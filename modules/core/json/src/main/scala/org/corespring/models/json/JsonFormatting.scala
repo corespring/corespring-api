@@ -49,7 +49,9 @@ trait JsonFormatting {
 
   implicit lazy val formatWorkflow: Format[Workflow] = Json.format[Workflow]
 
-  implicit lazy val formatCopyright: Format[Copyright] = Json.format[Copyright]
+  implicit lazy val formatCopyright: Format[Copyright] = new CopyrightFormat {
+    override def fieldValues: FieldValue = JsonFormatting.this.fieldValue
+  }
 
   implicit lazy val formatPlayerDefinition: Format[PlayerDefinition] = PlayerDefinitionFormat
 

@@ -71,7 +71,7 @@ class ItemFileConverter(
               val item = Item(
                 id = id,
                 collectionId = collectionId,
-                contributorDetails = contributorDetails,
+                contributorDetails = md.flatMap(m => contributorDetails((m \ "contributorDetails"))),
                 data = itemFiles,
                 lexile = extractString("lexile"),
                 otherAlignments = otherAlignments,
@@ -162,14 +162,11 @@ class ItemFileConverter(
     })
   }
 
-  private def contributorDetails(implicit metadata: Option[JsValue]): Option[ContributorDetails] = {
-    metadata.map(md => (md \ "contributorDetails").asOpt[JsObject]).flatten.map(js => Json.fromJson[ContributorDetails](js) match {
-      case JsSuccess(value, _) => value.copy(copyright = (js \ "copyright").asOpt[JsObject].map(Json.fromJson[Copyright](_) match {
-        case JsSuccess(copyValue, _) => Some(copyValue)
-        case _ => None
-      }).flatten)
-      case _ => throw new ConversionException(new Error(metadataParseError("contributorDetails")))
-    })
+  private def contributorDetails(details: JsValue): Option[ContributorDetails] = for {
+    cd <- details.asOpt[ContributorDetails]
+  } yield {
+    val copyright = (details \ "copyright").asOpt[Copyright](Json.reads[Copyright])
+    cd.copy(copyright = copyright)
   }
 
   private def taskInfo(implicit metadata: Option[JsValue]): Option[TaskInfo] = {

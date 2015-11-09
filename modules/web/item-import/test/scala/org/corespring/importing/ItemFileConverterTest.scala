@@ -1,10 +1,11 @@
 package org.corespring.importing
 
 import org.bson.types.ObjectId
+import org.corespring.assets.ItemAssetKeys
 import org.corespring.importing.validation.ItemJsonValidator
-import org.corespring.models.{Standard, Subject}
-import org.corespring.models.item.{StringKeyValue, FieldValue, Item}
-import org.corespring.models.item.resource.{BaseFile, StoredFile}
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.models.item.{ StringKeyValue, FieldValue, Item }
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.ItemService
 import org.specs2.mock.Mockito
@@ -193,7 +194,6 @@ class ItemFileConverterTest extends Specification with Mockito {
       "dot array.png", "metadata.json", "files/rubric.pdf").map(file => (file, Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1"))) ++
       Seq("item.json" -> Source.fromString(itemJson), "metadata.json" -> Source.fromString(metadataJson))).toMap
 
-
     val bucket: String = "fake bucket"
 
     val itemService: ItemService = {
@@ -210,17 +210,15 @@ class ItemFileConverterTest extends Specification with Mockito {
       }
     }
 
-    val jsonFormatting = new JsonFormatting{
+    val jsonFormatting = new JsonFormatting {
 
-      def kv(s:String) = StringKeyValue(s,s)
+      def kv(s: String) = StringKeyValue(s, s)
 
       override def fieldValue: FieldValue = FieldValue(
         credentials = Seq(kv("State Department of Education"),
-          kv("State of New Jersey Department of Education")
-        ),
+          kv("State of New Jersey Department of Education")),
         bloomsTaxonomy = Seq(kv("Analyzing")),
-        gradeLevels = Seq(kv("03"))
-      )
+        gradeLevels = Seq(kv("03")))
 
       override def findStandardByDotNotation: (String) => Option[Standard] = _ => None
 
@@ -233,17 +231,19 @@ class ItemFileConverterTest extends Specification with Mockito {
 
     val itemValidator = {
       val m = mock[ItemJsonValidator]
-      m.validate(any[JsValue]) answers{(json) => Success(json.asInstanceOf[JsValue])}
+      m.validate(any[JsValue]) answers { (json) => Success(json.asInstanceOf[JsValue]) }
       m
     }
 
+    val itemAssetKeys = ItemAssetKeys
+
     val itemFileConverter = new ItemFileConverter(
-    uploader,
-    itemService,
-    jsonFormatting,
-    context,
-    itemValidator
-    )
+      uploader,
+      itemAssetKeys,
+      itemService,
+      jsonFormatting,
+      context,
+      itemValidator)
     val result = itemFileConverter.convert(collectionId)(sources)
 
     "create Item from local files" in {

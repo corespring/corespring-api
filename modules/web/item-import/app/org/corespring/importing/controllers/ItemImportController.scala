@@ -4,7 +4,6 @@ import java.util.zip.ZipFile
 
 import org.corespring.importing.ItemFileConverter
 import org.corespring.services.{ OrgCollectionService }
-import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
@@ -16,7 +15,7 @@ import scalaz._
 
 class ItemImportController(converter: ItemFileConverter,
   userSession: UserSessionOrgIdentity[OrgAndOpts],
-  orgCollectionService: OrgCollectionService) extends LoadOrgAndOptions with Controller {
+  orgCollectionService: OrgCollectionService) extends Controller {
 
   def uploadForm() = Action {
     Ok(org.corespring.importing.views.html.uploadForm())
@@ -43,6 +42,6 @@ class ItemImportController(converter: ItemFileConverter,
     }
   }
 
-  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = userSession(request)
+  private def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = userSession(request)
 
 }
