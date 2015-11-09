@@ -30,6 +30,8 @@ GET /auth/isvalid                                                     @developer
 ->          /v2/editor                                                v2Editor.Routes
 ->          /import                                                   itemimport.Routes
 
+POST        /player/encrypt-options                                   org.corespring.legacy.LegacyEndpoints.encryptOptions
+
 # SecureSocial routes
 
 # Login page
