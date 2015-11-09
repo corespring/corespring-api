@@ -190,11 +190,14 @@ class ItemFileConverterTest extends Specification with Mockito {
 
   "convert" should {
 
-    val sources = (Seq(
-      "dot array.png", "metadata.json", "files/rubric.pdf").map(file => (file, Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1"))) ++
-      Seq("item.json" -> Source.fromString(itemJson), "metadata.json" -> Source.fromString(metadataJson))).toMap
+    val srcFiles = Seq("dot array.png", "metadata.json", "files/rubric.pdf")
 
-    val bucket: String = "fake bucket"
+    def toPathAndSource(path: String) = path -> Source.fromURL(getClass.getResource(s"/item/$path"), "ISO-8859-1")
+
+    val sources = (srcFiles.map(toPathAndSource) ++
+      Seq(
+        "item.json" -> Source.fromString(itemJson),
+        "metadata.json" -> Source.fromString(metadataJson))).toMap
 
     val itemService: ItemService = {
       val service = mock[ItemService]

@@ -41,7 +41,6 @@ class ItemImportIntegrationTest extends IntegrationSpecification {
 
   "upload" should {
 
-    //TODO: create the zip on the fly
     "create a new item" in new upload {
 
       val call = org.corespring.importing.controllers.routes.ItemImportController.upload()
