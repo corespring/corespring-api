@@ -89,7 +89,7 @@ object Global
     logger.error(uid)
     logger.error(throwable.getMessage)
 
-    if (logger.isDebugEnabled) {
+    if (logger.isWarnEnabled) {
       throwable.printStackTrace()
     }
 

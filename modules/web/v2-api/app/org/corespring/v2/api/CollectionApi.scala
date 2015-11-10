@@ -237,14 +237,17 @@ class CollectionApi(
     list(q, f, c, sk, l, sort)
   }
 
-  /** Note: ignoring q,f,c,sort for this 1st iteration */
+  /**
+   * Note: ignoring q,f,c,sort for this 1st iteration
+   * Also setting status code to [[BAD_REQUEST]] to fix an api regression.
+   */
   def list(
     q: Option[String] = None,
     f: Option[String] = None,
     c: Option[Boolean] = None,
     sk: Int = 0,
     l: Int = 50,
-    sort: Option[String] = None) = futureWithIdentity { (identity, _) =>
+    sort: Option[String] = None) = futureWithIdentity(BAD_REQUEST) { (identity, _) =>
 
     logger.info(s"[list] params: q=$q, f=$f, c=$c, sk=$sk, l=$l, sort=$sort")
 
