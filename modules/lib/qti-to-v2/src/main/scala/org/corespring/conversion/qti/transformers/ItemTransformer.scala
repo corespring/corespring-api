@@ -24,7 +24,7 @@ class ItemTransformer(val itemService: BaseFindAndSaveService[Item, VersionedId[
 
   import jsonFormatting._
 
-  lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
+  lazy val logger = Logger(classOf[ItemTransformer])
 
   //TODO: Remove service - transform should only transform.
   def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {
@@ -80,6 +80,9 @@ class ItemTransformer(val itemService: BaseFindAndSaveService[Item, VersionedId[
               case _ => {
                 logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
                 itemService.save(updatedItem)
+                logger.trace(s"component: ${updatedItem.playerDefinition.map(pd => Json.prettyPrint(pd.components)).getOrElse("")}")
+                logger.trace(s"xhtml: ${updatedItem.playerDefinition.map(_.xhtml).getOrElse("")}")
+                logger.trace(s"customScoring: ${updatedItem.playerDefinition.map(_.customScoring).getOrElse("")}")
                 updatedItem
               }
             }
