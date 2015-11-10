@@ -44,7 +44,7 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
         (contentAsJson(r) \ "score" \ "summary").asOpt[JsObject] === Some(Json.obj("percentage" -> 60, "note" -> "Overridden score"))
         status(r) === 200
       }.getOrElse(failure("load outcome failed"))
-    }
+    }.pendingUntilFixed("BL-3364")
 
   }
 
