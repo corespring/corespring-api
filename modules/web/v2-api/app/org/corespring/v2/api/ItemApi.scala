@@ -113,7 +113,8 @@ class ItemApi(
     val out: Validation[V2Error, Future[SimpleResult]] = for {
       queryJson <- safeParse(queryString).leftMap(e => invalidJson(e.getMessage))
       query <- Json.fromJson[ItemIndexQuery](queryJson).toValidation
-      identity <- getOrgAndOptions(request)
+      //Note: mapping error statusCode to a BAD_REQUEST to fix api regression
+      identity <- getOrgAndOptions(request).leftMap(e => generalError(e.message, BAD_REQUEST))
     } yield {
       val scopedQuery = query.copy(collections = Seq(collectionId.toString))
       searchWithQuery(scopedQuery, identity.org.accessibleCollections).map { v =>
