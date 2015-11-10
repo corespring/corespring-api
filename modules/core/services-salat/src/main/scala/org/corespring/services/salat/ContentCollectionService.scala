@@ -3,6 +3,7 @@ package org.corespring.services.salat
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError }
+import grizzled.slf4j.Logger
 import org.corespring.errors.{ CollectionInsertError, PlatformServiceError }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
@@ -21,6 +22,8 @@ class ContentCollectionService(
   shareItemWithCollectionService: => interface.ShareItemWithCollectionsService,
   val itemService: interface.item.ItemService,
   archiveConfig: ArchiveConfig) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
+
+  val logger = Logger(classOf[ContentCollectionService])
 
   object Keys {
     val isPublic = "isPublic"
@@ -90,7 +93,9 @@ class ContentCollectionService(
       if (result.getN == 1) {
         dao.findOneById(id).toSuccess(PlatformServiceError(s"Can't find collection with id: $id"))
       } else {
-        Failure(PlatformServiceError(s"No update occurred for query: $id"))
+        logger.debug(s"function=update, result.getLastError=${result.getLastError}")
+        logger.debug(s"function=update, result.getN=${result.getN}")
+        Failure(PlatformServiceError(s"Nothing changed on collection with id: $id"))
       }
     } catch {
       case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update collection", e))

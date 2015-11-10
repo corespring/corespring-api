@@ -35,6 +35,7 @@
     <logger name="VersionInfo" level="OFF"/>
     <logger name="ch.qos.logback" level="WARN"/>
     <logger name="org.corespring.v2.api.ItemApi" level="TRACE"/>
+    <logger name="org.corespring.services.salat" level="TRACE"/>
     <!--<logger name="it" level="TRACE"/>-->
     <!--<logger name="org.corespring.v2.api" level="TRACE"/>-->
     <logger name="org.corespring.itemSearch" level="TRACE"/>
