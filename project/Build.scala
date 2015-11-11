@@ -238,6 +238,7 @@ object Build extends sbt.Build {
     .settings(Seeding.settings: _*)
     .configs(IntegrationTest)
     .settings(IntegrationTestSettings.settings: _*)
+    .settings(CustomRelease.settings: _*)
     .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
     .settings(Indexing.indexTask)
     .dependsOn(
