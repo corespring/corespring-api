@@ -11,12 +11,14 @@ object Builders {
     publishArtifact in (Compile, packageSrc) := false,
     sources in doc in Compile := List())
 
+  val moduleConfigEmpty = Seq.empty
+
   val moduleConfig = Seq(Dependencies.ModuleConfigurations.snapshots,
     Dependencies.ModuleConfigurations.releases,
     Dependencies.ModuleConfigurations.localSnapshots)
-
 }
-class Builders(root: String, org: String, appVersion: String, rootScalaVersion: String) {
+
+class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
 
   val forkInTests = false
 
@@ -26,12 +28,14 @@ class Builders(root: String, org: String, appVersion: String, rootScalaVersion: 
   val sharedSettings = Seq(
     moduleConfigurations ++= Builders.moduleConfig,
     aggregate in update := false,
-    scalaVersion := rootScalaVersion,
     parallelExecution.in(Test) := false,
     resolvers ++= Dependencies.Resolvers.all,
     credentials += LoadCredentials.cred,
+    shellPrompt := ShellPrompt.buildShellPrompt,
     Keys.fork.in(Test) := forkInTests,
-    scalacOptions ++= Seq("-feature", "-deprecation")) ++ Builders.disableDocsSettings
+    scalacOptions ++=
+      Seq("-feature", "-deprecation")) ++
+    Builders.disableDocsSettings ++ rootSettings
 
   def lib(name: String, folder: String = "lib", deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty) =
 
@@ -39,12 +43,7 @@ class Builders(root: String, org: String, appVersion: String, rootScalaVersion: 
       makeName(name),
       file("modules/" + folder + "/" + name),
       dependencies = deps)
-      .settings(Defaults.defaultSettings ++ intellijCommandSettings: _*)
-      .settings(
-        organization := org,
-        version := appVersion,
-        scalaVersion := rootScalaVersion,
-        resolvers ++= Dependencies.Resolvers.all)
+      .settings(Defaults.defaultSettings: _*)
       .settings(sharedSettings: _*)
 
   def testLib(name: String) = lib(name, "test-lib")
@@ -53,11 +52,9 @@ class Builders(root: String, org: String, appVersion: String, rootScalaVersion: 
 
     val rootFile = root.getOrElse(file(s"modules/web/$name"))
 
-    play.Project(makeName(name), appVersion, path = rootFile)
-      .settings(
-        organization := org,
-        scalaVersion := rootScalaVersion,
-        resolvers ++= Dependencies.Resolvers.all)
+    //Note until we use an updated play we have to to this:
+    play.Project(makeName(name), "NOT-USED", path = rootFile)
+      .settings(version := (version in ThisBuild).value)
       .settings(sharedSettings: _*)
   }
 

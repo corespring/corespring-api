@@ -7,12 +7,11 @@ object Build extends sbt.Build {
   import Dependencies._
   import ComponentsBuilder._
 
-  lazy val appName = "corespring"
-  lazy val appVersion = "1.0"
-  lazy val ScalaVersion = "2.10.5"
-  lazy val org = "org.corespring"
+  val rootSettings = Seq(
+    scalaVersion in ThisBuild := "2.10.5",
+    organization in ThisBuild := "organization")
 
-  lazy val builders = new Builders(appName, org, appVersion, ScalaVersion)
+  lazy val builders = new Builders("corespring", rootSettings)
 
   lazy val customImports = Seq(
     "scala.language.reflectiveCalls",
@@ -87,30 +86,6 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro, jbcrypt, specs2 % "test"))
     .dependsOn(coreServices, coreModels)
 
-  /**
-   * Core data model
-   * lazy val core = builders.lib("core")
-   * .settings(
-   * libraryDependencies ++= Seq(
-   * assetsLoader,
-   * componentLoader,
-   * corespringCommonUtils,
-   * elasticsearchPlayWS,
-   * httpClient,
-   * jsoup,
-   * mockito,
-   * playFramework,
-   * playS3,
-   * playTest % "test",
-   * salatPlay,
-   * salatVersioningDao,
-   * scalaFaker,
-   * securesocial,
-   * specs2 % "test",
-   * sprayCaching))
-   * .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
-   */
-
   lazy val itemSearch = builders.lib("item-search")
     .settings(
       libraryDependencies ++= Seq(
@@ -175,9 +150,7 @@ object Build extends sbt.Build {
   lazy val itemImport = builders.web("item-import")
     .settings(
       libraryDependencies ++= Seq(
-        playJson, jsonValidator, salatVersioningDao, mockito, macWireMacro, macWireRuntime
-      )
-    )
+        playJson, jsonValidator, salatVersioningDao, mockito, macWireMacro, macWireRuntime))
     .dependsOn(coreJson, coreServices, v2Auth, testLib % "test->compile")
 
   lazy val draftsApi = builders.web("v2-api-drafts")
@@ -235,16 +208,12 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
-  /*lazy val reports = builders.web("reports")
-    .settings(
-      libraryDependencies ++= Seq(simplecsv, casbah, playCache))
-    .dependsOn(coreModels, coreServices, commonViews)*/
-
-  lazy val main = builders.web(appName, Some(file(".")))
+  val main = builders.web("main-web-app", Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
     .settings(
       //disable publishing of the root project
+      shellPrompt := ShellPrompt.buildShellPrompt,
       packagedArtifacts := Map.empty,
       libraryDependencies ++= Seq(playMemcached, assetsLoader, ztZip),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
@@ -265,6 +234,7 @@ object Build extends sbt.Build {
       Keys.fork.in(Test) := builders.forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
+    .settings(rootSettings: _*)
     .settings(Seeding.settings: _*)
     .configs(IntegrationTest)
     .settings(IntegrationTestSettings.settings: _*)
