@@ -7,7 +7,7 @@ object ShellPrompt {
       {
         val currProject = Project.extract(state).currentProject.id
         val v = Project.extract(state).get(sbt.Keys.version)
-        s"[${Colors.cyan(currProject)}|${Colors.green(v)}] "
+        s"[${Colors.cyan(currProject.replace("corespring-", ""))}|${Colors.green(v)}] "
       }
   }
 }

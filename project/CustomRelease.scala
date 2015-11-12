@@ -4,9 +4,9 @@ import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleasePlugin.autoImport.{ ReleaseStep }
 import sbtrelease.Version.Bump
 import sbtrelease.ReleaseStateTransformations._
-import org.corespring.sbtrelease.SbtReleaseExtrasSteps._
-import org.corespring.sbtrelease.SbtReleaseExtrasPlugin._
-import org.corespring.sbtrelease.{ PrefixAndVersion, BranchNameConverter, FolderStyleBranchNameConverter }
+import org.corespring.sbtrelease.ReleaseSteps._
+import org.corespring.sbtrelease.ReleaseExtrasPlugin._
+import org.corespring.sbtrelease.{ PrefixAndVersion, BranchNameConverter, FolderStyleConverter }
 
 /**
  * Whilst testing happens map hotfix and release branches to cr-hotfix/0.0.0 or cr-release/0.0.0
@@ -15,13 +15,11 @@ object TestBranchNameConverter extends BranchNameConverter {
 
   def fromBranchName(branchName: String): Option[PrefixAndVersion] = {
     FolderStyleConverter.fromBranchName(branchName).map { pv =>
-      pv.copy(prefix = pv.replace("cr-", ""))
+      pv.copy(prefix = pv.prefix.replace("cr-", ""))
     }
   }
 
-  def toBranchName(pf: PrefixAndVersion): String = {
-    FolderStyleConverter.toBranchName(pf).copy(prefix = s"cs-${pf.prefix}")
-  }
+  def toBranchName(pf: PrefixAndVersion): String = s"cr-${FolderStyleConverter.toBranchName(pf)}"
 }
 
 object CustomRelease {
@@ -35,8 +33,8 @@ object CustomRelease {
   })
 
   lazy val settings = Seq(
-    validHotfixParents := Seq("feature/with-custom-releasing"),
-    validReleaseParents := Seq("feature/with-custom-releasing"),
+    validHotfixParents := Seq("cr-master"),
+    validReleaseParents := Seq("cr-develop"),
     branchNameConverter := TestBranchNameConverter,
     releaseVersionBump := Bump.Minor,
 
@@ -65,7 +63,7 @@ object CustomRelease {
         setReleaseVersion,
         commitReleaseVersion,
         tagRelease,
-        mergeReleaseTagTo("master"))
+        mergeReleaseTagTo("cr-master"))
     })
 
 }

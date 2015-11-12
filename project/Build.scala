@@ -208,7 +208,7 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
-  val main = builders.web("main-web-app", Some(file(".")))
+  val main = builders.web("root", Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
     .settings(
