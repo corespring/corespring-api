@@ -73,7 +73,10 @@ class CollectionApi(
     case _ => Success(true)
   }
 
-  def createCollection = futureWithIdentity { (identity, request) =>
+  def createCollection: Action[AnyContent] = createCollection(CREATED)
+
+  //TODO: once v1 collection api is gone we can remove the successfulStatusCode
+  def createCollection(successStatusCode: Int): Action[AnyContent] = futureWithIdentity(BAD_REQUEST) { (identity, request) =>
     Future {
 
       logger.debug(s"function=createCollection, ${request.body}")
@@ -85,7 +88,7 @@ class CollectionApi(
         _ <- if (name.isEmpty) generalError("Name is empty").asFailure else Success(true)
         createResult <- contentCollectionService.create(name, identity.org).v2Error
       } yield createResult
-      v.map(c => Json.toJson(c)).toSimpleResult(CREATED)
+      v.map(c => Json.toJson(c)).toSimpleResult(successStatusCode)
     }
   }
 
@@ -137,7 +140,7 @@ class CollectionApi(
           _ <- contentCollectionService.delete(collectionId).v2Error
         } yield true
 
-        v.map(ok => Json.obj()).toSimpleResult()
+        v.map(ok => Json.obj("id" -> collectionId.toString)).toSimpleResult()
       }
   }
 

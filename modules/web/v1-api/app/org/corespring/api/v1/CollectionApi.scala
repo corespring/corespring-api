@@ -18,7 +18,11 @@ class CollectionApi(v2CollectionApi: v2.api.CollectionApi) extends Controller {
 
   def getCollection(id: ObjectId) = v2CollectionApi.getCollection(id)
 
-  def createCollection = v2CollectionApi.createCollection()
+  /**
+   * use OK so support old api
+   * @return
+   */
+  def createCollection = v2CollectionApi.createCollection(OK)
 
   def updateCollection(id: ObjectId) = v2CollectionApi.updateCollection(id)
 
