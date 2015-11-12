@@ -7,8 +7,8 @@ import sbtrelease.Version.Bump
 object CustomRelease {
 
   import sbtrelease.ReleaseStateTransformations._
-  import org.corespring.sbtrelease.SbtReleaseExtras._
-  import org.corespring.sbtrelease.SbtReleaseExtrasPlugin.autoImport._
+  import org.corespring.sbtrelease.SbtReleaseExtrasSteps._
+  import org.corespring.sbtrelease.SbtReleaseExtrasPlugin._
 
   //Run stage
   val runStage = ReleaseStep(action = st => {
