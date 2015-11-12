@@ -7,6 +7,9 @@ import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.SecureSocialHelper
 import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.services.item.ItemService
+import org.corespring.test.SecureSocialHelpers
+import org.corespring.v2.player.scopes.SessionRequestBuilder
+import org.corespring.v2.player.scopes.userAndItem
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.PlaySpecification
 
@@ -58,6 +61,15 @@ class ItemDraftsApiIntegrationTest extends IntegrationSpecification with PlaySpe
           status(r) === OK
         }.getOrElse(ko)
       }
+    }
+
+    "create" should {
+
+      trait scope extends userAndItem with SessionRequestBuilder with SecureSocialHelpers
+
+      "copy the item assets to the new item version, when creating from a published item with assets" in new scope {
+        true === false
+      }.pendingUntilFixed
     }
   }
 
