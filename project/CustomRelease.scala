@@ -23,20 +23,32 @@ object CustomRelease {
     validReleaseParents := Seq("feature/with-custom-releasing"),
     releaseVersionBump := Bump.Minor,
 
+    //    releaseProcess <<= thisProjectRef.apply { ref =>
+    //      Seq(
+    //        checkBranchVersion,
+    //        checkSnapshotDependencies,
+    //        runClean,
+    //        runTest,
+    //        runIntegrationTest,
+    //        prepareReleaseVersion,
+    //        setReleaseVersion,
+    //        commitReleaseVersion,
+    //        tagRelease,
+    //        mergeReleaseTagTo("master"),
+    //        publishArtifacts,
+    //        runStage)
+    //    })
+
+    //Trim down release steps for testin
     releaseProcess <<= thisProjectRef.apply { ref =>
       Seq(
         checkBranchVersion,
-        checkSnapshotDependencies,
         runClean,
-        runTest,
-        runIntegrationTest,
         prepareReleaseVersion,
         setReleaseVersion,
         commitReleaseVersion,
         tagRelease,
-        mergeReleaseTagTo("master"),
-        publishArtifacts,
-        runStage)
+        mergeReleaseTagTo("master"))
     })
 
 }
