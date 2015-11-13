@@ -67,3 +67,6 @@ POST        /password                                                 securesoci
 # Providers entry points
 GET         /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticate(provider)
 POST        /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticateByPost(provider)
+
+# Test support
+GET         /app/get-all-routes                                       @web.controllers.TestSupport.getAllRoutes
