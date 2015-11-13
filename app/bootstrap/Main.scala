@@ -79,7 +79,7 @@ object Main
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
 
-  override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ExecutionContext.global,Akka.system.dispatchers.lookup("akka.component-set-operations"))
+  override lazy val componentSetExecutionContext = ComponentSetExecutionContext(Akka.system.dispatchers.lookup("akka.component-set-operations"))
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.global)
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ExecutionContext.global)
   override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
