@@ -80,13 +80,13 @@ object Main
   import play.api.Play.current
 
   private def ecLookup(id: String) = {
-    def enabled(id: String) = {
+    def hasEnabledAkkaConfiguration(id: String) = {
       (for {
         o <- configuration.getObject(id)
         enabled <- configuration.getBoolean(id + ".enabled")
       } yield enabled).getOrElse(false)
     }
-    if (enabled(id)) {
+    if (hasEnabledAkkaConfiguration(id)) {
       Akka.system.dispatchers.lookup(id)
     } else {
       ExecutionContext.global
