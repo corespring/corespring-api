@@ -14,7 +14,7 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.api.tracking.{ ApiTrackingLogger, NullTracking, ApiTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
-import org.corespring.common.config.{ContainerConfig, AppConfig}
+import org.corespring.common.config.{ ContainerConfig, AppConfig }
 import org.corespring.container.client.ComponentSetExecutionContext
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
@@ -26,7 +26,7 @@ import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, Simpl
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.encryption.EncryptionModule
 import org.corespring.importing.validation.ItemSchema
-import org.corespring.importing.{ImportingExecutionContext, ItemImportModule}
+import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
@@ -83,7 +83,7 @@ object Main
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.global)
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ExecutionContext.global)
   override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
-  override lazy val sessionExecutionContext = SessionExecutionContext(ExecutionContext.global,Akka.system.dispatchers.lookup("akka.session-outcome-operations"))
+  override lazy val sessionExecutionContext = SessionExecutionContext(ExecutionContext.global, Akka.system.dispatchers.lookup("akka.session-outcome-operations"))
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ExecutionContext.global)
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
@@ -245,7 +245,6 @@ object Main
     out.reload
     out
   }
-
 
   override lazy val standardTree: StandardsTree = {
     val json: JsArray = {
