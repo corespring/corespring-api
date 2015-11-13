@@ -5,7 +5,7 @@ import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.services.item.{ FieldValueService, ItemService }
-import web.controllers.{ Main, ShowResource }
+import web.controllers.{TestSupport, Main, ShowResource}
 
 trait WebModule {
 
@@ -19,7 +19,8 @@ trait WebModule {
   def widgetType: WidgetType
 
   lazy val showResource = new ShowResource(itemService, s3Service)
+  lazy val testSupport = new TestSupport(userService, orgService)
   lazy val webMain = new Main(fieldValueService, jsonFormatting, userService, orgService, itemType, widgetType)
 
-  lazy val webControllers = Seq(showResource, webMain)
+  lazy val webControllers = Seq(showResource, testSupport, webMain)
 }
