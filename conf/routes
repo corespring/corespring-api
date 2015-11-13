@@ -19,9 +19,9 @@ GET         /developer/*file                                          developer.
 
 
 # Auth endpoints
-POST /auth/register                                                   @developer.controllers.AuthController.register
-POST /auth/access_token                                               @developer.controllers.AuthController.getAccessToken
-GET /auth/isvalid                                                     @developer.controllers.AuthController.isValid(token)
+POST        /auth/register                                            @developer.controllers.AuthController.register
+POST        /auth/access_token                                        @developer.controllers.AuthController.getAccessToken
+GET         /auth/isvalid                                             @developer.controllers.AuthController.isValid(token)
 
 
 ->          /api/v1                                                   v1Api.Routes
@@ -68,5 +68,3 @@ POST        /password                                                 securesoci
 GET         /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticate(provider)
 POST        /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticateByPost(provider)
 
-# Test support
-GET         /app/get-all-routes                                       @web.controllers.TestSupport.getAllRoutes
