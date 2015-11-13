@@ -79,14 +79,28 @@ object Main
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
 
-  override lazy val componentSetExecutionContext = ComponentSetExecutionContext(Akka.system.dispatchers.lookup("akka.component-set-operations"))
-  override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.global)
-  override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ExecutionContext.global)
-  override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
-  override lazy val sessionExecutionContext = SessionExecutionContext(ExecutionContext.global, Akka.system.dispatchers.lookup("akka.session-outcome-operations"))
-  override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ExecutionContext.global)
-  override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
-  override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
+  private def ecLookup(id: String) = {
+    def enabled(id: String) = {
+      (for {
+        o <- configuration.getObject(id)
+        enabled <- configuration.getBoolean(id + ".enabled")
+      } yield enabled).getOrElse(false)
+    }
+    if (enabled(id)) {
+      Akka.system.dispatchers.lookup(id)
+    } else {
+      ExecutionContext.global
+    }
+  }
+
+  override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
+  override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
+  override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
+  override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ecLookup("akka.salat-services"))
+  override lazy val sessionExecutionContext = SessionExecutionContext(ecLookup("akka.session-default"), ecLookup("akka.session-heavy"))
+  override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ecLookup("akka.v1-api"))
+  override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
+  override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
