@@ -55,6 +55,7 @@ import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
 import play.api.{ Play, Mode, Configuration, Logger }
+import play.libs.Akka
 import web.WebModule
 import web.controllers.{ Main, ShowResource }
 
@@ -78,11 +79,11 @@ object Main
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
 
-  override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ExecutionContext.global,ExecutionContext.global)
+  override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ExecutionContext.global,Akka.system.dispatchers.lookup("akka.component-set-operations"))
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.global)
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ExecutionContext.global)
   override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
-  override lazy val sessionExecutionContext = SessionExecutionContext(ExecutionContext.global,ExecutionContext.global)
+  override lazy val sessionExecutionContext = SessionExecutionContext(ExecutionContext.global,Akka.system.dispatchers.lookup("akka.session-outcome-operations"))
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ExecutionContext.global)
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
