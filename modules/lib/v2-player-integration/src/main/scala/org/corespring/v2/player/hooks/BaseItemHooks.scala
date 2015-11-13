@@ -39,6 +39,7 @@ trait BaseItemHooks
     update(id, Json.obj("collectionId" -> collectionId), updateCollectionId)
   }
 
+  @deprecated("use SupportingMaterialsService instead", "5.0.0")
   override final def saveSupportingMaterials(id: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     logger.debug(s"saveSupportingMaterials id=$id")
     update(id, Json.obj("supportingMaterials" -> json), PlayerJsonToItem.supportingMaterials)
