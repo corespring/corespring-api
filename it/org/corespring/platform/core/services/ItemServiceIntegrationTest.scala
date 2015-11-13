@@ -31,7 +31,8 @@ class ItemServiceIntegrationTest extends IntegrationSpecification {
                |}""".stripMargin
 
           val dbo = com.mongodb.util.JSON.parse(json).asInstanceOf[DBObject]
-          itemService.saveUsingDbo(itemId, dbo)
+
+          bootstrap.Main.itemDao.update(itemId, dbo, false)
           val path = S3Paths.itemFile(itemId, "ervin.png")
           ImageUtils.getS3Object(path).getKey must_== path
 

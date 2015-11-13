@@ -1,6 +1,5 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.container.client.hooks.CoreItemHooks
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
@@ -36,18 +35,16 @@ class ItemDraftHooks(
   itemService: ItemService,
   orgCollectionService: OrgCollectionService,
   transformer: ItemTransformer,
-  jsonFormatting: JsonFormatting,
+  val jsonFormatting: JsonFormatting,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
   override implicit val containerContext: ContainerExecutionContext)
   extends containerHooks.DraftHooks
-  with CoreItemHooks
+  with BaseItemHooks
   with LoadOrgAndOptions
   with ContainerConverters
   with MakeDraftId {
 
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
-
-  implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
 
   private lazy val logger = Logger(classOf[ItemHooks])
 
@@ -63,54 +60,8 @@ class ItemDraftHooks(
     }
   }
 
-  override def saveProfile(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    logger.debug(s"saveProfile itemId=$itemId")
-    def withKey(j: JsValue) = Json.obj("profile" -> j)
-    update(itemId, json, PlayerJsonToItem.profile).map { e => e.rightMap(withKey) }
-  }
-
-  override def saveSupportingMaterials(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    logger.debug(s"saveSupportingMaterials itemId=$itemId")
-    update(itemId, Json.obj("supportingMaterials" -> json), PlayerJsonToItem.supportingMaterials)
-  }
-  override def saveCustomScoring(draftId: String, customScoring: String)(implicit header: RequestHeader): R[JsValue] = {
-
-    def updateCustomScoring(item: ModelItem, json: JsValue): ModelItem = {
-      val updatedDefinition = item.playerDefinition.map { pd =>
-        new PlayerDefinition(pd.files, pd.xhtml, pd.components, pd.summaryFeedback, Some(customScoring))
-      }.getOrElse {
-        PlayerDefinition(Seq.empty, "", Json.obj(), "", Some(customScoring))
-      }
-      item.copy(playerDefinition = Some(updatedDefinition))
-    }
-
-    update(draftId, Json.obj("customScoring" -> customScoring), updateCustomScoring)
-  }
-
-  override def saveComponents(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    savePartOfPlayerDef(itemId, Json.obj("components" -> json))
-  }
-
-  override def saveXhtml(itemId: String, xhtml: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    savePartOfPlayerDef(itemId, Json.obj("xhtml" -> xhtml))
-  }
-
-  override def saveSummaryFeedback(itemId: String, feedback: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    savePartOfPlayerDef(itemId, Json.obj("summaryFeedback" -> feedback))
-  }
-
-  override def saveCollectionId(itemId: String, collectionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    def updateCollectionId(item: ModelItem, json: JsValue): ModelItem = {
-      item.copy(collectionId = collectionId)
-    }
-
-    update(itemId, Json.obj("collectionId" -> collectionId), updateCollectionId)
-  }
-
   private implicit class MkV2Error[A](v: Validation[DraftError, A]) {
-    def v2Error: Validation[V2Error, A] = {
-      v.leftMap { e => generalError(e.msg) }
-    }
+    def v2Error: Validation[V2Error, A] = v.leftMap(e => generalError(e.msg))
   }
 
   private def loadDraftAndIdentity(id: String, loadFn: (OrgAndUser, DraftId) => Validation[DraftError, ItemDraft])(implicit rh: RequestHeader): Validation[V2Error, (ItemDraft, OrgAndUser)] = for {
@@ -121,7 +72,7 @@ class ItemDraftHooks(
     (draft, identity)
   }
 
-  protected def update(draftId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  override protected def update(draftId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     logger.debug(s"update draftId=$draftId")
     for {
       draftAndIdentity <- loadDraftAndIdentity(draftId, backend.load(_)(_))
@@ -131,12 +82,6 @@ class ItemDraftHooks(
       update <- Success(draft.mkChange(updatedItem))
       saved <- backend.save(draftAndIdentity._2)(update).v2Error
     } yield json
-  }
-
-  private def baseDefinition(playerDef: Option[PlayerDefinition]): JsObject = Json.toJson(playerDef.getOrElse(new PlayerDefinition(Seq.empty, "", Json.obj(), "", None))).as[JsObject]
-
-  private def savePartOfPlayerDef(draftId: String, json: JsObject)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    update(draftId, json, (i, _) => PlayerJsonToItem.playerDef(i, baseDefinition(i.playerDefinition) ++ json))(header)
   }
 
   private def getOrgAndUser(h: RequestHeader): Validation[V2Error, OrgAndUser] = {
