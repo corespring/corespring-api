@@ -15,6 +15,8 @@ import org.corespring.api.tracking.{ ApiTrackingLogger, NullTracking, ApiTrackin
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
 import org.corespring.common.config.{ContainerConfig, AppConfig}
+import org.corespring.container.client.ComponentSetExecutionContext
+import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
@@ -76,12 +78,14 @@ object Main
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
 
-  override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
-  override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ExecutionContext.global)
-  override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
-  override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
+  override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ExecutionContext.global,ExecutionContext.global)
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.global)
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ExecutionContext.global)
+  override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
+  override lazy val sessionExecutionContext = SessionExecutionContext(ExecutionContext.global,ExecutionContext.global)
+  override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ExecutionContext.global)
+  override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
+  override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
