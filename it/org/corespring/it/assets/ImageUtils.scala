@@ -4,6 +4,7 @@ import java.io.File
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.model.ObjectListing
 import com.amazonaws.services.s3.transfer.{ Upload, TransferManager }
 import org.apache.commons.io.IOUtils
 import org.corespring.common.aws.AwsUtil
@@ -54,9 +55,30 @@ object ImageUtils {
   }
 
   def list(path: String): Seq[String] = {
+
+    logger.debug(s"function=list, path=$path")
     import scala.collection.JavaConversions._
     val l = client.listObjects(bucket, path)
     l.getObjectSummaries.map { s => s.getKey }
+  }
+
+  def listAll: Seq[String] = {
+    logger.debug(s"function=listAll")
+    import scala.collection.JavaConversions._
+    def listRecursively(acc: Seq[String], listing: Option[ObjectListing]): Seq[String] = listing match {
+      case Some(l) => {
+        acc ++ l.getObjectSummaries.map { s => s.getKey }
+        if (l.isTruncated) {
+          val nextListing = client.listNextBatchOfObjects(l)
+          listRecursively(acc, Some(nextListing))
+        } else {
+          acc
+        }
+      }
+      case _ => acc
+    }
+
+    listRecursively(Seq.empty, Some(client.listObjects(bucket)))
   }
 
   def delete(path: String) = {

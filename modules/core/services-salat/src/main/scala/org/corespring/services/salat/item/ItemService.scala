@@ -126,6 +126,7 @@ class ItemService(
     if (createNewVersion) {
       val newItem = dao.findOneById(VersionedId(item.id.id)).get
       val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, newItem)
+      logger.trace(s"function=save, cloneStoredFilesResult=$result")
       result match {
         case Success(updatedItem) => dao.save(updatedItem, createNewVersion = false).leftMap(e => GeneralError(e, None))
         case Failure(files) =>
