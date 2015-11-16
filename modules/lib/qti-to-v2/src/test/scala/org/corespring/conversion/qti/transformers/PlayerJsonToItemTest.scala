@@ -60,6 +60,7 @@ class PlayerJsonToItemTest extends Specification {
   val priorUse = "Summative"
   val priorGradeLevels = Seq("03", "04")
   val reviewsPassed = Seq("Bias")
+  val reviewsPassedOther = "Other"
   val standards = Seq("RL.2.6")
   def standardsJson = JsArray(standards.map(dn => obj("dotNotation" -> dn)))
   object supportingMaterial {
@@ -67,10 +68,18 @@ class PlayerJsonToItemTest extends Specification {
     val files = Seq("files/rubric.pdf")
   }
 
+  case class Id(id: String)
+
   object taskInfo {
     val gradeLevel = Seq("03")
     val title = "Read the passage <i>What's the Scoop on Soil?</i>. Which aspects of soil does the passage not explain? What can you tell about soil by squeezing it?"
     val description = "Item about Soil"
+    object subjects {
+      object primary {
+        val id = ObjectId.get.toString
+      }
+      val related = Seq(Id(ObjectId.get.toString))
+    }
   }
 
   object playerDefinition {
@@ -82,7 +91,6 @@ class PlayerJsonToItemTest extends Specification {
     val summaryFeedback = "summaryFeedback"
     val files = Seq("dot array.png")
   }
-
   val itemJson: JsObject = obj(
     "components" -> playerDefinition.components,
     "files" -> playerDefinition.files,
@@ -110,11 +118,21 @@ class PlayerJsonToItemTest extends Specification {
       "priorUse" -> priorUse,
       "priorGradeLevel" -> JsArray(priorGradeLevels.map(JsString(_))),
       "reviewsPassed" -> JsArray(reviewsPassed.map(JsString(_))),
+      "reviewsPassedOther" -> reviewsPassedOther,
       "standards" -> standardsJson,
       "taskInfo" -> obj(
         "gradeLevel" -> JsArray(taskInfo.gradeLevel.map(JsString(_))),
         "title" -> taskInfo.title,
-        "description" -> taskInfo.description)),
+        "description" -> taskInfo.description,
+        "subjects" -> obj(
+          "primary" -> obj(
+            "id" -> taskInfo.subjects.primary.id),
+          "related" -> arr(obj("id" -> taskInfo.subjects.related(0).id)))),
+      "workflow" -> obj(
+        "setup" -> true,
+        "tagged" -> true,
+        "standardsAligned" -> true,
+        "qaReview" -> true)),
     "supportingMaterials" -> arr(
       obj(
         "name" -> supportingMaterial.name,
@@ -155,11 +173,21 @@ class PlayerJsonToItemTest extends Specification {
       "have correct gradeLevel" in { ti.gradeLevel must_== taskInfo.gradeLevel }
       "have correct description" in { ti.description must_== Some(taskInfo.description) }
       "have correct title" in { ti.title must_== Some(taskInfo.title) }
+      "have correct primary subject" in { ti.subjects.get.primary must_== Some(taskInfo.subjects.primary.id) }
+      "have correct related subjects" in { ti.subjects.get.related must_== taskInfo.subjects.related.map(i => new ObjectId(i.id)) }
     }
 
+    "workflow" should {
+      val w = profile.workflow.get
+      "have correct setup" in { w.setup must_== true }
+      "have correct tagged" in { w.tagged must_== true }
+      "have correct standardsAligned" in { w.standardsAligned must_== true }
+      "have correct qaReview" in { w.qaReview must_== true }
+    }
     "have correct priorUse" in { profile.priorUse must_== Some(priorUse) }
     "have correct priorGradeLevels" in { profile.priorGradeLevels must_== priorGradeLevels }
     "have correct reviewsPassed" in { profile.reviewsPassed must_== reviewsPassed }
+    "have correct reviewsPassedOther" in { profile.reviewsPassedOther must_== Some(reviewsPassedOther) }
     "have correct standards" in { profile.standards must_== standards }
   }
 
