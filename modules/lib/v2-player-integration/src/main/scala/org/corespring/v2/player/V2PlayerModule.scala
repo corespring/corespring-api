@@ -6,7 +6,7 @@ import org.corespring.container.client.VersionInfo
 import org.corespring.container.client.integration.DefaultIntegration
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
-import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
 import org.corespring.drafts.item.ItemDrafts
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.PlayerDefinition
@@ -41,6 +41,8 @@ trait V2PlayerModule extends DefaultIntegration {
   import com.softwaremill.macwire.MacwireMacros._
 
   def playMode: Mode
+
+  def playerJsonToItem: PlayerJsonToItem
 
   def itemService: ItemService
   def orgService: OrganizationService

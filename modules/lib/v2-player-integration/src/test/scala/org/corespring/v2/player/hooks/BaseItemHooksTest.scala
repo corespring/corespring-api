@@ -3,6 +3,7 @@ package org.corespring.v2.player.hooks
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.R
 import org.corespring.container.client.integration.ContainerExecutionContext
+import org.corespring.conversion.qti.transformers.PlayerJsonToItem
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ VirtualFile, Resource }
 import org.corespring.v2.player.V2PlayerIntegrationSpec
@@ -34,7 +35,9 @@ class BaseItemHooksTest extends V2PlayerIntegrationSpec {
       Left(500 -> "not implemented")
     }(ec)
 
-    override def containerContext: ContainerExecutionContext = BaseItemHooksTest.this.containerExecutionContext
+    override lazy val containerContext: ContainerExecutionContext = BaseItemHooksTest.this.containerExecutionContext
+
+    override val playerJsonToItem: PlayerJsonToItem = new PlayerJsonToItem(jsonFormatting)
   }
 
   "saveCollectionId" should {
@@ -60,8 +63,7 @@ class BaseItemHooksTest extends V2PlayerIntegrationSpec {
 
       import jsonFormatting.formatResource
       val materialsJson = Json.toJson(materials)
-      saveSupportingMaterials("id", materialsJson)
-      updatedItem.supportingMaterials must_== materials
+      saveSupportingMaterials("id", materialsJson) must throwA[RuntimeException]
     }
   }
 

@@ -36,6 +36,7 @@ class ItemDraftHooks(
   orgCollectionService: OrgCollectionService,
   transformer: ItemTransformer,
   val jsonFormatting: JsonFormatting,
+  val playerJsonToItem: PlayerJsonToItem,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
   override implicit val containerContext: ContainerExecutionContext)
   extends containerHooks.DraftHooks
@@ -99,7 +100,7 @@ class ItemDraftHooks(
   }
 
   def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = {
-    update(draftId, json.as[JsObject], PlayerJsonToItem.wholeItem)
+    update(draftId, json.as[JsObject], playerJsonToItem.wholeItem)
   }
 
   override def commit(id: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = Future {

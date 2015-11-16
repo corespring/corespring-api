@@ -3,7 +3,7 @@ package org.corespring.v2.player.item
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ ItemHelper, SecureSocialHelper }
 import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
-import org.corespring.models.item.TaskInfo
+import org.corespring.models.item.{ FieldValue, TaskInfo }
 import org.specs2.specification.Scope
 import play.api.libs.json.Json
 import play.api.mvc.{ Request, AnyContentAsJson }
@@ -12,6 +12,12 @@ class UpdateItemIntegrationTest extends IntegrationSpecification {
 
   trait scope extends Scope with userAndItem with SessionRequestBuilder with SecureSocialHelper {
 
+    val id = bootstrap.Main.fieldValueService.insert(FieldValue()).toOption.get
+
+    override def after = {
+      super.after
+      bootstrap.Main.fieldValueService.delete(id)
+    }
   }
 
   "update profile" should {

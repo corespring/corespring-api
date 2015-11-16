@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
-import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
@@ -32,6 +32,7 @@ class ItemHooks(
   auth: ItemAuth[OrgAndOpts],
   itemService: ItemService,
   val jsonFormatting: JsonFormatting,
+  val playerJsonToItem: PlayerJsonToItem,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
   override implicit val containerContext: ContainerExecutionContext)
   extends containerHooks.ItemHooks

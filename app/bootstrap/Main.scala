@@ -14,17 +14,17 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.api.tracking.{ ApiTrackingLogger, NullTracking, ApiTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
-import org.corespring.common.config.{ContainerConfig, AppConfig}
+import org.corespring.common.config.{ ContainerConfig, AppConfig }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
-import org.corespring.conversion.qti.transformers.{ ItemTransformerConfig, ItemTransformer }
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformerConfig, ItemTransformer }
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.encryption.EncryptionModule
 import org.corespring.importing.validation.ItemSchema
-import org.corespring.importing.{ImportingExecutionContext, ItemImportModule}
+import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
@@ -241,7 +241,6 @@ object Main
     out
   }
 
-
   override lazy val standardTree: StandardsTree = {
     val json: JsArray = {
       import play.api.Play.current
@@ -303,4 +302,5 @@ object Main
     schema
   }
 
+  override lazy val playerJsonToItem: PlayerJsonToItem = new PlayerJsonToItem(jsonFormatting)
 }

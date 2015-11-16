@@ -14,6 +14,7 @@ import scalaz.Scalaz._
 trait BaseItemHooks
   extends org.corespring.container.client.hooks.CoreItemHooks {
 
+  def playerJsonToItem: PlayerJsonToItem
   def jsonFormatting: JsonFormatting
 
   implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
@@ -25,7 +26,7 @@ trait BaseItemHooks
   private def baseDefinition(playerDef: Option[PlayerDefinition]): JsObject = Json.toJson(playerDef.getOrElse(new PlayerDefinition(Seq.empty, "", Json.obj(), "", None))).as[JsObject]
 
   private def savePartOfPlayerDef(id: String, json: JsObject)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    update(id, json, (i, _) => PlayerJsonToItem.playerDef(i, baseDefinition(i.playerDefinition) ++ json))(header)
+    update(id, json, (i, _) => playerJsonToItem.playerDef(i, baseDefinition(i.playerDefinition) ++ json))(header)
   }
 
   override final def saveXhtml(id: String, xhtml: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
@@ -41,8 +42,7 @@ trait BaseItemHooks
 
   @deprecated("use SupportingMaterialsService instead", "5.0.0")
   override final def saveSupportingMaterials(id: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    logger.debug(s"saveSupportingMaterials id=$id")
-    update(id, Json.obj("supportingMaterials" -> json), PlayerJsonToItem.supportingMaterials)
+    throw new RuntimeException("Not supported")
   }
 
   override final def saveCustomScoring(id: String, customScoring: String)(implicit header: RequestHeader): R[JsValue] = {
@@ -70,7 +70,7 @@ trait BaseItemHooks
   override final def saveProfile(id: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     logger.debug(s"saveProfile id=$id")
     def withKey(j: JsValue) = Json.obj("profile" -> j)
-    update(id, json, PlayerJsonToItem.profile).map { e => e.rightMap(withKey) }
+    update(id, json, playerJsonToItem.profile).map { e => e.rightMap(withKey) }
   }
 
 }

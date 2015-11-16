@@ -2,7 +2,7 @@ package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.StatusMessage
-import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
 import org.corespring.models.Organization
 import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -72,11 +72,14 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
     val itemService = mock[ItemService]
 
+    val playerJsonToItem = new PlayerJsonToItem(jsonFormatting)
+
     lazy val hooks = new ItemHooks(
       itemTransformer,
       itemAuth,
       itemService,
       jsonFormatting,
+      playerJsonToItem,
       getOrgAndOptions,
       containerExecutionContext)
   }
