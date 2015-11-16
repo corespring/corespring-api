@@ -25,12 +25,15 @@ class PlayerJsonToItemTest extends Specification {
     override def fieldValue: FieldValue = FieldValue(
       bloomsTaxonomy = Seq(sk("Analyzing")),
       gradeLevels = Seq(sk("03"), sk("04")),
+      credentials = Seq(sk(contributorDetails.credentials)),
       keySkills = Seq(ListKeyValue("dummy", Seq("Define", "Discuss", "Distinguish", "Choose", "Analyze", "Examine"))))
 
     override def findSubjectById: (ObjectId) => Option[Subject] = _ => None
   }
 
   val playerJsonToItem = new PlayerJsonToItem(jsonFormatting)
+
+  case class Name(name: String)
 
   object contributorDetails {
     val author = "State of New Jersey Department of Education"
@@ -46,6 +49,7 @@ class PlayerJsonToItemTest extends Specification {
     val credentials = "State Department of Education"
     val licenseType = "CC BY"
     val sourceUrl = "http://www.state.nj.us/education/modelcurriculum/ela/10u1.shtml"
+    val additionalCopyrights = Seq(Name("ed"))
   }
 
   object otherAlignments {
@@ -99,7 +103,7 @@ class PlayerJsonToItemTest extends Specification {
     "summaryFeedback" -> playerDefinition.summaryFeedback,
     "profile" -> obj(
       "contributorDetails" -> obj(
-        "additionalCopyright" -> arr(obj("owner" -> "ed")),
+        "additionalCopyrights" -> JsArray(Seq(obj("author" -> contributorDetails.additionalCopyrights(0).name))),
         "author" -> contributorDetails.author,
         "contributor" -> contributorDetails.contributor,
         "copyrightOwner" -> contributorDetails.copyright.owner,
@@ -157,7 +161,7 @@ class PlayerJsonToItemTest extends Specification {
       "have correct credentials" in { cd.credentials must_== Some(contributorDetails.credentials) }
       "have correct licenseType" in { cd.licenseType must_== Some(contributorDetails.licenseType) }
       "have correct sourceUrl" in { cd.sourceUrl must_== Some(contributorDetails.sourceUrl) }
-
+      "have additionalCopyright" in { cd.additionalCopyrights(0).author must_== Some(contributorDetails.additionalCopyrights(0).name) }
     }
 
     "otherAlignments" should {

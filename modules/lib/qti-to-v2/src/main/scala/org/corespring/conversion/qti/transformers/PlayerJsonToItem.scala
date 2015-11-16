@@ -25,17 +25,10 @@ class PlayerJsonToItem(jsonFormatting: JsonFormatting) {
 
   def profile(item: Item, profileJson: JsValue): Item = {
 
-    def standards: Option[Seq[String]] =
-      (profileJson \ "standards") match {
-        case undefined: JsUndefined => None
-        case array: JsArray => {
-          val notations = array.value.map { s =>
-            (s \ "dotNotation").as[String]
-          }
-          Some(notations)
-        }
-        case _ => throw new IllegalArgumentException("additionalCopyrights must be an array")
-      }
+    def standards: Option[Seq[String]] = {
+      (profileJson \ "standards")
+        .asOpt[Seq[JsValue]].map { s => s.flatMap(v => (v \ "dotNotation").asOpt[String]) }
+    }
 
     def taskInfo: Option[TaskInfo] =
       (profileJson \ "taskInfo").asOpt[TaskInfo].map { ti =>
@@ -51,32 +44,6 @@ class PlayerJsonToItem(jsonFormatting: JsonFormatting) {
       }
     }
 
-    def contributorDetails: Option[ContributorDetails] = {
-      implicit val r = Json.reads[AdditionalCopyright]
-      (profileJson \ "contributorDetails").asOpt[JsValue].map { details =>
-        ContributorDetails(
-          additionalCopyrights = (details \ "additionalCopyrights").asOpt[Seq[AdditionalCopyright]].getOrElse(Seq.empty),
-          author = (details \ "author").asOpt[String],
-          contributor = (details \ "contributor").asOpt[String],
-          copyright = details.asOpt[Copyright],
-          costForResource = (details \ "costForResource").asOpt[Int],
-          credentials = (details \ "credentials").asOpt[String],
-          credentialsOther = (details \ "credentialsOther").asOpt[String],
-          licenseType = (details \ "licenseType").asOpt[String],
-          sourceUrl = (details \ "sourceUrl").asOpt[String])
-      }
-    }
-
-    def workflow: Option[Workflow] =
-      (profileJson \ "workflow").asOpt[JsValue].map { workflow =>
-        Workflow(
-          setup = (workflow \ "setup").asOpt[Boolean].getOrElse(false),
-          tagged = (workflow \ "tagged").asOpt[Boolean].getOrElse(false),
-          standardsAligned = (workflow \ "standardsAligned").asOpt[Boolean].getOrElse(false),
-          qaReview = (workflow \ "qaReview").asOpt[Boolean].getOrElse(false))
-      }
-
-    val newContributorDetails = contributorDetails.orElse(item.contributorDetails)
     val newInfo = taskInfo.orElse(item.taskInfo)
     val newLexile = (profileJson \ "lexile").asOpt[String].orElse(item.lexile)
     val newOtherAlignments = (profileJson \ "otherAlignments").asOpt[Alignments].orElse(item.otherAlignments)
@@ -86,10 +53,9 @@ class PlayerJsonToItem(jsonFormatting: JsonFormatting) {
     val newReviewsPassed = (profileJson \ "reviewsPassed").asOpt[Seq[String]].getOrElse(item.reviewsPassed)
     val newReviewsPassedOther = (profileJson \ "reviewsPassedOther").asOpt[String].orElse(item.reviewsPassedOther)
     val newStandards = standards.getOrElse(item.standards)
-    val newWorkflow = workflow
 
     item.copy(
-      contributorDetails = newContributorDetails,
+      contributorDetails = (profileJson \ "contributorDetails").asOpt[ContributorDetails], //newContributorDetails,
       lexile = newLexile,
       otherAlignments = newOtherAlignments,
       priorGradeLevels = newPriorGradeLevels,
@@ -99,6 +65,6 @@ class PlayerJsonToItem(jsonFormatting: JsonFormatting) {
       reviewsPassedOther = newReviewsPassedOther,
       standards = newStandards,
       taskInfo = newInfo,
-      workflow = newWorkflow)
+      workflow = (profileJson \ "workflow").asOpt[Workflow])
   }
 }
