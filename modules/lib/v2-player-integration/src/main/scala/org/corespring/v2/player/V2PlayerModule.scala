@@ -2,7 +2,8 @@ package org.corespring.v2.player
 
 import org.corespring.amazon.s3.S3Service
 import org.corespring.common.config.ContainerConfig
-import org.corespring.container.client.VersionInfo
+import org.corespring.container.client.controllers.resources.SessionExecutionContext
+import org.corespring.container.client.{ ComponentSetExecutionContext, VersionInfo }
 import org.corespring.container.client.integration.DefaultIntegration
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
@@ -68,6 +69,10 @@ trait V2PlayerModule extends DefaultIntegration {
   def sessionServices: SessionServices
 
   def v2PlayerExecutionContext: V2PlayerExecutionContext
+
+  def componentSetExecutionContext: ComponentSetExecutionContext
+
+  def sessionExecutionContext: SessionExecutionContext
 
   def containerConfig: ContainerConfig
 
