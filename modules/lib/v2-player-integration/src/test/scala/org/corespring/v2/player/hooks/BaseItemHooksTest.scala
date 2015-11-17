@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.R
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
+import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ Json, JsValue }
@@ -13,6 +14,8 @@ import play.api.test.FakeRequest
 import scala.concurrent.Future
 
 class BaseItemHooksTest extends Specification {
+
+  PlaySingleton.start()
 
   trait scope extends Scope with BaseItemHooks {
 
@@ -42,7 +45,7 @@ class BaseItemHooksTest extends Specification {
 
     "update the collectionId" in new scope {
       saveCollectionId("id", "new-id")
-      updatedItem.collectionId must_== "new-id"
+      updatedItem.collectionId must_== Some("new-id")
     }
   }
 
