@@ -3,14 +3,14 @@ package org.corespring.v2.player
 import java.io.File
 
 import com.typesafe.config.ConfigFactory
-import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.commons.io.{ FileUtils, IOUtils }
 import org.corespring.common.config.ContainerConfig
-import org.corespring.container.client.{ComponentSetExecutionContext, CompressedAndMinifiedComponentSets}
+import org.corespring.container.client.{ ComponentSetExecutionContext, CompressedAndMinifiedComponentSets }
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
 import play.api.Mode.Mode
-import play.api.{Configuration, Play}
+import play.api.{ Configuration, Play }
 
 class CompressedComponentSets(
   val containerConfig: ContainerConfig,

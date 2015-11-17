@@ -1,17 +1,14 @@
 package org.corespring.v2.player.hooks
 
-import com.mongodb._
-import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.StatusMessage
-import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
 import org.corespring.models.Organization
 import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
-import org.corespring.test.fakes.Fakes.withMockCollection
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec
@@ -40,7 +37,8 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
   abstract class baseContext[ERR, RES](
     val itemId: String = ObjectId.get.toString,
     val authResult: Validation[V2Error, Item] = Failure(defaultFailure),
-    val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(defaultOrgAndOpts)) extends Scope {
+    val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(defaultOrgAndOpts))
+    extends Scope with StubJsonFormatting {
 
     lazy val itemTransformer = {
       val m = mock[ItemTransformer]
@@ -74,10 +72,14 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
     val itemService = mock[ItemService]
 
+    val playerJsonToItem = new PlayerJsonToItem(jsonFormatting)
+
     lazy val hooks = new ItemHooks(
       itemTransformer,
       itemAuth,
       itemService,
+      jsonFormatting,
+      playerJsonToItem,
       getOrgAndOptions,
       containerExecutionContext)
   }
@@ -153,80 +155,5 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
       authResult = Success(mockItem)) {
       result.map(_.isRight) must equalTo(true).await
     }
-  }
-
-  "save***" should {
-
-    val orgAndOptsForSpec = mockOrgAndOpts(AuthMode.AccessToken)
-
-    class baseScope(override val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOptsForSpec))
-      extends baseContext with withMockCollection {
-
-      def orgAndOptsErr = orgAndOptsResult.toEither.left.get
-
-      itemAuth.canWrite(any[String])(any[OrgAndOpts]) returns Success(true)
-    }
-
-    lazy val vid = VersionedId(ObjectId.get)
-
-    class saveScope(
-      fn: ItemHooks => String => Future[Either[(Int, String), JsValue]],
-      val expectedSet: DBObject) extends baseScope {
-      val expectedQuery = MongoDBObject("_id._id" -> vid.id)
-      itemService.saveUsingDbo(any[VersionedId[ObjectId]], any[DBObject], any[Boolean]) returns true
-      val r = await(fn(hooks)(vid.toString))
-      there was one(itemService).saveUsingDbo(vid, MongoDBObject("$set" -> expectedSet), false)
-    }
-
-    "save returns orgAndOpts error" in new baseScope(Failure(TestError("org-and-opts"))) {
-      hooks.saveXhtml(vid.toString, "xhtml") must equalTo(
-        Left(orgAndOptsErr.statusCode -> orgAndOptsErr.message)).await
-    }
-
-    "save returns cantParseItemId error" in new baseScope() {
-      val err = cantParseItemId("bad id")
-      hooks.saveXhtml("bad id", "xhtml") must equalTo(Left(err.statusCode -> err.message)).await
-    }
-
-    "save returns itemAuth.canWrite error" in new baseScope() {
-      val err = TestError("can-write")
-      itemAuth.canWrite(any[String])(any[OrgAndOpts]) returns Failure(err)
-      hooks.saveXhtml(vid.toString, "xhtml") must equalTo(Left(err.statusCode -> err.message)).await
-    }
-
-    "save returns json" in new baseScope() {
-      itemService.saveUsingDbo(any[VersionedId[ObjectId]], any[DBObject], any[Boolean]) returns true
-      hooks.saveXhtml(vid.toString, "new-xhtml") must equalTo(Right(Json.obj("xhtml" -> "new-xhtml"))).await
-    }
-
-    "saveXhtml calls MongoCollection.update" in new saveScope(
-      ih => ih.saveXhtml(_, "update"),
-      MongoDBObject("playerDefinition.xhtml" -> "update")) {
-    }
-
-    "saveCollectionId calls MongoCollection.update" in new saveScope(
-      h => h.saveCollectionId(_, "new-id"),
-      MongoDBObject("collectionId" -> "new-id"))
-
-    "saveCustomScoring calls MongoCollection.update" in new saveScope(
-      h => h.saveCustomScoring(_, "customScoring"),
-      MongoDBObject("playerDefinition.customScoring" -> "customScoring"))
-
-    "saveSupportingMaterials calls MongoCollection.update" in new saveScope(
-      h => h.saveSupportingMaterials(_, Json.obj("new" -> true)),
-      MongoDBObject("playerDefinition.supportingMaterials" -> MongoDBObject("new" -> true)))
-
-    "saveComponents calls MongoCollection.update" in new saveScope(
-      h => h.saveComponents(_, Json.obj("new" -> true)),
-      MongoDBObject("playerDefinition.components" -> MongoDBObject("new" -> true)))
-
-    "saveSummaryFeedback calls MongoCollection.update" in new saveScope(
-      h => h.saveSummaryFeedback(_, "summary-feedback"),
-      MongoDBObject("playerDefinition.summaryFeedback" -> "summary-feedback"))
-
-    "saveProfile calls MongoCollection.update" in new saveScope(
-      h => h.saveProfile(_, Json.obj("profile" -> "new")),
-      MongoDBObject("playerDefinition.profile" -> MongoDBObject("profile" -> "new")))
-
   }
 }

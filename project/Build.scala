@@ -175,9 +175,7 @@ object Build extends sbt.Build {
   lazy val itemImport = builders.web("item-import")
     .settings(
       libraryDependencies ++= Seq(
-        playJson, jsonValidator, salatVersioningDao, mockito, macWireMacro, macWireRuntime
-      )
-    )
+        playJson, jsonValidator, salatVersioningDao, mockito, macWireMacro, macWireRuntime))
     .dependsOn(coreJson, coreServices, v2Auth, testLib % "test->compile")
 
   lazy val draftsApi = builders.web("v2-api-drafts")
@@ -230,6 +228,7 @@ object Build extends sbt.Build {
       qtiToV2,
       testLib,
       v2Auth % "test->test;compile->compile",
+      coreJson % "test->test;compile->compile",
       coreModels,
       coreServicesSalat,
       itemDrafts)

@@ -37,11 +37,6 @@ class ItemService(
 
   private val baseQuery = MongoDBObject(Keys.contentType -> Item.contentType)
 
-  override def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean = {
-    val result = dao.update(id, dbo, createNewVersion)
-    result.isRight
-  }
-
   override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
     val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, itemClone)
@@ -145,7 +140,7 @@ class ItemService(
 
   override def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> archiveConfig.contentCollectionId.toString))
-    saveUsingDbo(id, update, createNewVersion = false)
+    dao.update(id, update, createNewVersion = false)
     Some(archiveConfig.contentCollectionId.toString)
   }
 
