@@ -2,6 +2,7 @@ package org.corespring.conversion.qti.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.models.item._
+import org.corespring.models.item.resource.{ StoredFile, VirtualFile }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -13,7 +14,19 @@ class PlayerJsonToItemTest extends Specification {
 
   val collectionId = "543edd2fa399191672bedea9"
   val itemId = new ObjectId()
-  val item = Item(collectionId = ObjectId.get.toString, id = VersionedId(itemId, Some(0)))
+
+  val itemPlayerDefinition = PlayerDefinition(
+    Seq(
+      StoredFile("img.png", "image/png", false)),
+    "xhtml",
+    obj(),
+    "summaryFeedback",
+    Some("customScoring"))
+
+  val item = Item(
+    collectionId = ObjectId.get.toString,
+    id = VersionedId(itemId, Some(0)),
+    playerDefinition = Some(itemPlayerDefinition))
 
   val jsonFormatting = new JsonFormatting {
     override def findStandardByDotNotation: (String) => Option[Standard] = _ => None
@@ -94,11 +107,11 @@ class PlayerJsonToItemTest extends Specification {
         "componentType" -> "comp-type"))
     val customScoring = "customScoring"
     val summaryFeedback = "summaryFeedback"
-    val files = Seq("dot array.png")
   }
+
   val itemJson: JsObject = obj(
     "components" -> playerDefinition.components,
-    "files" -> playerDefinition.files,
+    "files" -> arr(),
     "xhtml" -> playerDefinition.xhtml,
     "customScoring" -> playerDefinition.customScoring,
     "summaryFeedback" -> playerDefinition.summaryFeedback,
@@ -205,6 +218,8 @@ class PlayerJsonToItemTest extends Specification {
     "have correct summaryFeedback" in { pd.summaryFeedback must_== playerDefinition.summaryFeedback }
     "have correct components" in { pd.components must_== playerDefinition.components }
     "have correct customScoring" in { pd.customScoring must_== Some(playerDefinition.customScoring) }
+    "ignore files from the json" in { pd.files must_!= Seq.empty }
+    "have files from the item" in { pd.files must_== itemPlayerDefinition.files }
   }
 
 }

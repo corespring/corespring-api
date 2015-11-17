@@ -19,7 +19,12 @@ class PlayerJsonToItem(jsonFormatting: JsonFormatting) {
   def playerDef(item: Item, playerJson: JsValue): Item = (playerJson \ "xhtml").asOpt[String].map { _ =>
     implicit val pdf = org.corespring.models.json.item.PlayerDefinitionFormat
     val playerDef = playerJson.as[PlayerDefinition]
-    item.copy(playerDefinition = Some(playerDef))
+
+    val merged = item.playerDefinition.map { pd =>
+      println(s"?? $pd, $playerDef")
+      pd.mergeAllButFiles(playerDef)
+    }.getOrElse(playerDef)
+    item.copy(playerDefinition = Some(merged))
   }.getOrElse(item)
 
   def profile(item: Item, profileJson: JsValue): Item = {

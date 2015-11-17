@@ -129,12 +129,6 @@ class ItemDraftsApiIntegrationTest extends IntegrationSpecification with PlaySpe
           resultStatus must_== OK
         }
 
-        "when the image is not added to the model, the draft should be able to load the asset from the new unpublished item" in new loadDraftAsset {
-          override def addImageToModel: Boolean = false
-          ImageUtils.exists(s3Path)
-          resultStatus must_== OK
-        }
-
       }
 
     }

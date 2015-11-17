@@ -98,9 +98,9 @@ object ITContext {
   def cleanup = {
     println(s"[ITContext] cleanup...")
     PlaySingleton.stop()
-    //cleanBucketIfExists(s3Bucket)
+    cleanBucketIfExists(s3Bucket)
     logger.info(s"delete the bucket $s3Bucket")
-    //s3.deleteBucket(s3Bucket)
+    s3.deleteBucket(s3Bucket)
     println("[ITContext] cleanup complete.")
   }
 }
