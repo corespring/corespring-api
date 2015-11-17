@@ -27,7 +27,7 @@ object V2ErrorToTuple {
 }
 
 trait ItemHooks
-  extends containerHooks.CoreItemHooks
+  extends BaseItemHooks
   with containerHooks.CreateItemHook
   with LoadOrgAndOptions {
 
@@ -40,6 +40,17 @@ trait ItemHooks
   def itemService: ItemService
 
   lazy val logger = V2LoggerFactory.getLogger("ItemHooks")
+
+  import scalaz.Scalaz._
+  override protected def update(id: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): R[JsValue] = Future {
+    for {
+      identity <- getOrgAndOptions(header)
+      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+      item <- auth.loadForWrite(id)(identity)
+      updatedItem <- Success(updateFn(item, json))
+      _ <- Validation.fromEither(itemService.save(updatedItem, false)).leftMap(e => generalError(e))
+    } yield json
+  }
 
   override def load(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
     val item: Validation[V2Error, JsValue] = for {
@@ -77,34 +88,6 @@ trait ItemHooks
       val outKey = returnKey.getOrElse(dbKey)
       JsObject(Seq(outKey -> w.writes(data)))
     }
-  }
-
-  override def saveXhtml(id: String, xhtml: String)(implicit h: RequestHeader): R[JsValue] = Future {
-    updateDb[String](id, "playerDefinition.xhtml", xhtml, Some("xhtml"))
-  }
-
-  override def saveCollectionId(id: String, collectionId: String)(implicit h: RequestHeader): R[JsValue] = Future {
-    updateDb[String](id, "collectionId", collectionId)
-  }
-
-  override def saveCustomScoring(id: String, customScoring: String)(implicit header: RequestHeader): R[JsValue] = Future {
-    updateDb[String](id, "playerDefinition.customScoring", customScoring, Some("customScoring"))
-  }
-
-  override def saveSupportingMaterials(id: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = Future {
-    updateDb[JsValue](id, "playerDefinition.supportingMaterials", json, Some("supportingMaterials"))
-  }
-
-  override def saveComponents(id: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = Future {
-    updateDb[JsValue](id, "playerDefinition.components", json, Some("components"))
-  }
-
-  override def saveSummaryFeedback(id: String, feedback: String)(implicit h: RequestHeader): R[JsValue] = Future {
-    updateDb[String](id, "playerDefinition.summaryFeedback", feedback, Some("summaryFeedback"))
-  }
-
-  override def saveProfile(id: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = Future {
-    updateDb[JsValue](id, "playerDefinition.profile", json, Some("profile"))
   }
 
   override def createItem(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
