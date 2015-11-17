@@ -11,15 +11,14 @@ object PlayerJsonToItem {
     supportingMaterials(profile(playerDef(item, itemJson), itemJson \ "profile"), itemJson)
   }
 
-  def playerDef(item: Item, playerJson: JsValue): Item = {
-    (playerJson \ "xhtml") match {
-      case undefined: JsUndefined => item
-      case _ => {
-        val playerDef = playerJson.as[PlayerDefinition]
-        item.copy(playerDefinition = Some(playerDef))
-      }
-    }
-  }
+  def playerDef(item: Item, playerJson: JsValue): Item = (playerJson \ "xhtml").asOpt[String].map { _ =>
+    val playerDef = playerJson.as[PlayerDefinition]
+
+    val merged = item.playerDefinition.map { pd =>
+      pd.mergeAllButFiles(playerDef)
+    }.getOrElse(playerDef)
+    item.copy(playerDefinition = Some(merged))
+  }.getOrElse(item)
 
   def profile(item: Item, profileJson: JsValue): Item = {
     val newContributorDetails = contributorDetails(profileJson).orElse(item.contributorDetails)

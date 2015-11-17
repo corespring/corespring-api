@@ -7,6 +7,7 @@ object IntegrationTestSettings {
 
   lazy val settings = Defaults.itSettings ++ Seq(
     scalaSource in IntegrationTest <<= baseDirectory / "it",
+    resourceDirectory in IntegrationTest <<= baseDirectory / "it-resources",
     Keys.parallelExecution in IntegrationTest := false,
     Keys.fork in IntegrationTest := false,
     Keys.logBuffered := false,

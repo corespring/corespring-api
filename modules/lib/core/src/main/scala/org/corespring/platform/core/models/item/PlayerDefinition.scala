@@ -55,6 +55,15 @@ object PlayerDefinition {
 class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val components: JsValue, val summaryFeedback: String, val customScoring: Option[String]) {
   override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}, $summaryFeedback"""
 
+  def mergeAllButFiles(other: PlayerDefinition): PlayerDefinition = {
+    new PlayerDefinition(
+      this.files,
+      other.xhtml,
+      other.components,
+      other.summaryFeedback,
+      other.customScoring)
+  }
+
   override def hashCode() = {
     new HashCodeBuilder(17, 31)
       .append(files)
