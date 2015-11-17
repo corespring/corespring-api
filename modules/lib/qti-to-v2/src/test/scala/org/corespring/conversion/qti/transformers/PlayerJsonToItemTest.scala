@@ -62,6 +62,7 @@ class PlayerJsonToItemTest extends Specification {
   val lexile = "24"
   val pValue = "0"
   val priorUse = "Summative"
+  val priorUseOther = "Other"
   val priorGradeLevels = Seq("03", "04")
   val reviewsPassed = Seq("Bias")
   val reviewsPassedOther = "Other"
@@ -120,6 +121,7 @@ class PlayerJsonToItemTest extends Specification {
         "depthOfKnowledge" -> otherAlignments.depthOfKnowledge),
       "pValue" -> pValue,
       "priorUse" -> priorUse,
+      "priorUseOther" -> priorUseOther,
       "priorGradeLevel" -> JsArray(priorGradeLevels.map(JsString(_))),
       "reviewsPassed" -> JsArray(reviewsPassed.map(JsString(_))),
       "reviewsPassedOther" -> reviewsPassedOther,
@@ -189,6 +191,7 @@ class PlayerJsonToItemTest extends Specification {
       "have correct qaReview" in { w.qaReview must_== true }
     }
     "have correct priorUse" in { profile.priorUse must_== Some(priorUse) }
+    "have correct priorUseOther" in { profile.priorUseOther must_== Some(priorUseOther) }
     "have correct priorGradeLevels" in { profile.priorGradeLevels must_== priorGradeLevels }
     "have correct reviewsPassed" in { profile.reviewsPassed must_== reviewsPassed }
     "have correct reviewsPassedOther" in { profile.reviewsPassedOther must_== Some(reviewsPassedOther) }
@@ -203,4 +206,5 @@ class PlayerJsonToItemTest extends Specification {
     "have correct components" in { pd.components must_== playerDefinition.components }
     "have correct customScoring" in { pd.customScoring must_== Some(playerDefinition.customScoring) }
   }
+
 }
