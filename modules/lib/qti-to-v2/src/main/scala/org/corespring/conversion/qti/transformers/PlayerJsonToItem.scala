@@ -21,7 +21,6 @@ class PlayerJsonToItem(jsonFormatting: JsonFormatting) {
     val playerDef = playerJson.as[PlayerDefinition]
 
     val merged = item.playerDefinition.map { pd =>
-      println(s"?? $pd, $playerDef")
       pd.mergeAllButFiles(playerDef)
     }.getOrElse(playerDef)
     item.copy(playerDefinition = Some(merged))
