@@ -2,7 +2,6 @@ package org.corespring.conversion.qti.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.models.item._
-import org.corespring.models.item.resource.{ Resource, BaseFile }
 import org.corespring.models.json.JsonFormatting
 import play.api.libs.json._
 
