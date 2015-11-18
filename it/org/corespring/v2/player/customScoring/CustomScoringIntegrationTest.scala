@@ -52,7 +52,7 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
         (contentAsJson(r) \ "score" \ "summary").asOpt[JsObject] === Some(Json.obj("percentage" -> 60, "note" -> "Overridden score"))
         status(r) === 200
       }.getOrElse(failure("load outcome failed"))
-    }
+    }.pendingUntilFixed("BL-3364")
 
     "text-entry - works with v2 /load-outcome" in new testScope("corespring-text-entry/one") {
       result.map { r =>
@@ -72,7 +72,6 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
   class testScope(val rootPath: String) extends orgWithAccessToken {
 
     def base = s"../../../qtiToV2/customScoring/$rootPath"
-
 
     lazy val sessionService = SessionServiceFactoryImpl.create(SessionDbConfig.sessionTable)
 

@@ -149,6 +149,21 @@ package object scopes {
     lazy val client = new AmazonS3Client(credentials)
     lazy val bucket = AppConfig.assetsBucket
 
+    def resourcePathToFile(p: String): File = {
+      val url = this.getClass.getResource(p)
+      require(url != null, s"can't load url for $p")
+      val file = new File(url.toURI)
+      require(file.exists, s"file doesn't exist: $p")
+      file
+    }
+
+    def imageData(imagePath: String): Array[Byte] = {
+      val file = resourcePathToFile(imagePath)
+      require(Seq("jpg", "png").exists(s => file.getName.endsWith(s)))
+      val bytes = IOUtils.toByteArray(file.toURI)
+      bytes
+    }
+
     def exists(path: String): Boolean = {
       try {
         val o = client.getObject(bucket, path)
@@ -421,6 +436,12 @@ package object scopes {
 
     override def makeRequest[A <: AnyContent](call: Call, body: A = AnyContentAsEmpty): Request[A] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*).withBody(body)
+    }
+
+    def makeRawRequest(call: Call, bytes: Array[Byte]): Request[AnyContentAsRaw] = {
+      FakeRequest(call.method, call.url)
+        .withCookies(cookies: _*)
+        .withRawBody(bytes)
     }
 
     def makeFormRequest(call: Call, form: MultipartFormData[Files.TemporaryFile]): Request[AnyContentAsMultipartFormData] = {
