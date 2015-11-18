@@ -1,10 +1,12 @@
 package org.corespring.itemSearch
 
+import org.bson.types.ObjectId
 import org.corespring.it.helpers.{StandardHelper, ItemHelper}
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{IntegrationSpecification, ItemIndexCleaner}
 import org.corespring.models.Standard
 import org.corespring.models.item.{Item, PlayerDefinition}
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json
 
 import scala.concurrent.Await
@@ -59,6 +61,20 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
       val futureResult = itemIndexService.search(query)
       Await.ready(futureResult, Duration.Inf).value.get.get
     }
+
+    protected def hitsShouldContain(results: ItemIndexSearchResult, id: VersionedId[ObjectId]*) = {
+      val resultIds = results.hits.map(_.id).toSet
+      val expectedIds = id.map(_.toString).toSet
+      resultIds should_== expectedIds
+    }
+
+    protected def hitsToSet(hits: Seq[ItemIndexHit]) = {
+      hits.map(_.id).toSet
+    }
+
+    protected def idsToSet(id: VersionedId[ObjectId]*) = {
+      id.map(_.toString).toSet
+    }
   }
 
   "search" should {
@@ -69,7 +85,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
         case Failure(e) => failure(s"Unexpected error $e")
         case Success(v) => {
           v.total should_== 1
-          v.hits.map(_.id) should_== Seq(mathItemId.toString)
+          hitsToSet(v.hits) should_== idsToSet(mathItemId)
         }
       }
     }
@@ -80,7 +96,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
         case Failure(e) => failure(s"Unexpected error $e")
         case Success(v) => {
           v.total should_== 2
-          v.hits.map(_.id) should_== Seq(elaItemId.toString, elaLiteracyItemId.toString)
+          hitsToSet(v.hits) should_== idsToSet(elaItemId, elaLiteracyItemId)
         }
       }
     }
@@ -91,7 +107,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
         case Failure(e) => failure(s"Unexpected error $e")
         case Success(v) => {
           v.total should_== 2
-          v.hits.map(_.id) should_== Seq(elaItemId.toString, elaLiteracyItemId.toString)
+          hitsToSet(v.hits) should_== idsToSet(elaLiteracyItemId, elaItemId)
         }
       }
     }
