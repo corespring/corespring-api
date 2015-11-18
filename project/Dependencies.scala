@@ -77,7 +77,7 @@ object Dependencies {
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.18-PLAY22").exclude("org.mongodb", "mongo-java-driver")
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.19-PLAY22-2").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
   val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.3"
 
