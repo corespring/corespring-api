@@ -20,6 +20,15 @@ class PlayerDefinition(
   val summaryFeedback: String,
   val customScoring: Option[String]) {
 
+  def mergeAllButFiles(other: PlayerDefinition): PlayerDefinition = {
+    new PlayerDefinition(
+      this.files,
+      other.xhtml,
+      other.components,
+      other.summaryFeedback,
+      other.customScoring)
+  }
+
   override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}, $summaryFeedback)"""
 
   override def hashCode() = {

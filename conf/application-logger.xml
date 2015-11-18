@@ -31,9 +31,17 @@
     <logger name="poc" level="DEBUG"/>
     <logger name="org.corespring.platform.core.models" level="DEBUG"/>
     -->
+    <logger name="org.corespring.it" level="TRACE"/>
+    <logger name="org.corespring.v2.api.drafts.item" level="TRACE"/>
+    <logger name="org.corespring.v2.player.hooks" level="TRACE"/>
+    <logger name="org.corespring.services.salat.item.ItemAssetService" level="TRACE"/>
+    <logger name="org.corespring.services.salat.item.ItemService" level="TRACE"/>
+
     <logger name="bootstrap" level="TRACE"/>
     <logger name="VersionInfo" level="OFF"/>
     <logger name="ch.qos.logback" level="WARN"/>
+    <logger name="org.corespring.drafts" level="TRACE"/>
+    <logger name="org.corespring.it" level="TRACE"/>
     <logger name="org.corespring.v2.player.item" level="TRACE"/>
     <logger name="org.corespring.v2.player.hooks" level="TRACE"/>
     <!--<logger name="it" level="TRACE"/>-->
@@ -73,7 +81,7 @@
     <logger name="ItemApi" level="TRACE"/>
     <logger name="org.corespring.container.AssetUtils" level="TRACE" />
     -->
-    <root level="INFO">
+    <root level="OFF">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

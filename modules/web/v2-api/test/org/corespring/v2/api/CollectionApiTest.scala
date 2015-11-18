@@ -207,7 +207,7 @@ class CollectionApiTest extends V2ApiSpec {
     }
 
     "returns an empty json response" in new deleteCollection {
-      contentAsJson(result) === Json.obj("id"->collectionId.toString)
+      contentAsJson(result) === Json.obj("id" -> collectionId.toString)
     }
 
   }
