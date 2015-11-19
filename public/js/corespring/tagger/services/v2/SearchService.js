@@ -76,7 +76,7 @@ angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$ht
       this.search = function(params, callback) {
         query = toQuery(params);
         loading(function(onLoadFinished) {
-          $http.get('/api/v2/items?query=' + encodeURI(JSON.stringify(query))).success(function(result) {
+          $http.get('/api/v2/items?query=' + encodeURIComponent(JSON.stringify(query))).success(function(result) {
             self.itemDataCollection = result.hits;
             self.resultCount = result.total;
             $rootScope.$broadcast('onSearchCountComplete', self.resultCount);
