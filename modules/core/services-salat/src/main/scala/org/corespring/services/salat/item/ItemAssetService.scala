@@ -96,7 +96,7 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
     val v2FileResults = clonePlayerDefinitionFiles(v1FileResults, from, to)
     val cloneFileResults = v1FileResults ++ v2FileResults
     def successful = cloneFileResults.filterNot(_.successful).length == 0
-    logger.trace(s"Failed clone result: $cloneFileResults")
+    logger.trace(s"function=cloneStoredFiles, Failed clone result: $cloneFileResults")
     if (successful) Success(to) else Failure(cloneFileResults)
   }
 

@@ -54,6 +54,7 @@ object ImageUtils {
   }
 
   def list(path: String): Seq[String] = {
+    logger.debug(s"function=list, path=$path")
     import scala.collection.JavaConversions._
     val l = client.listObjects(bucket, path)
     l.getObjectSummaries.map { s => s.getKey }
