@@ -58,6 +58,7 @@ import play.api.{ Play, Mode, Configuration, Logger }
 import play.libs.Akka
 import web.WebModule
 import web.controllers.{ Main, ShowResource }
+import web.models.{ ContainerVersion, WebExecutionContext }
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -93,6 +94,8 @@ object Main
     }
   }
 
+  override lazy val containerVersion: ContainerVersion = ContainerVersion(versionInfo)
+
   override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
@@ -101,6 +104,7 @@ object Main
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ecLookup("akka.v1-api"))
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
+  override def webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
