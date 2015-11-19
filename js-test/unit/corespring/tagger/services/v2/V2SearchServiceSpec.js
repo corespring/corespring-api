@@ -42,8 +42,8 @@ describe('V2SearchService', function() {
       return result;
     }
 
-    function expectedQuery(searchText) {
-      return JSON.stringify({
+    function expectedQuery(searchText, offset) {
+      var query = {
         text: searchText,
         contributors: [],
         collections: [],
@@ -51,40 +51,86 @@ describe('V2SearchService', function() {
         itemTypes: [],
         widgets: [],
         workflows: []
-      });
+      };
+      if (!angular.isUndefined(offset)) {
+        query.offset = offset;
+      }
+      return JSON.stringify(query);
     }
 
-    it('can search for ampersand', function() {
-      service.search({
-        searchText: '&'
-      });
+    function expectedQueryWithOffset(searchText) {
+      return expectedQuery(searchText, 0);
+    }
+
+    function getQuery() {
       httpBackend.flush();
-      expect(getSearch(capturedUrl).query).toEqual(expectedQuery('&'));
+      return getSearch(capturedUrl).query
+    }
+
+    describe('can search for', function() {
+
+      it('ampersand', function() {
+        service.search({
+          searchText: '&'
+        });
+        expect(getQuery()).toEqual(expectedQuery('&'));
+      });
+
+      it('question mark', function() {
+        service.search({
+          searchText: '?'
+        });
+        expect(getQuery()).toEqual(expectedQuery('?'));
+      });
+
+      it('single quote', function() {
+        service.search({
+          searchText: '\''
+        });
+        expect(getQuery()).toEqual(expectedQuery('\''));
+      });
+
+      it('double quote', function() {
+        service.search({
+          searchText: '"'
+        });
+        expect(getQuery()).toEqual(expectedQuery('"'));
+      });
     });
 
-    it('can search for question mark', function() {
-      service.search({
-        searchText: '?'
-      });
-      httpBackend.flush();
-      expect(getSearch(capturedUrl).query).toEqual(expectedQuery('?'));
-    });
+    describe('can loadMore of', function() {
 
-    it('can search for single quote', function() {
-      service.search({
-        searchText: '\''
+      it('ampersand', function() {
+        service.search({
+          searchText: '&'
+        });
+        service.loadMore();
+        expect(getQuery()).toEqual(expectedQueryWithOffset('&'));
       });
-      httpBackend.flush();
-      expect(getSearch(capturedUrl).query).toEqual(expectedQuery('\''));
-    });
 
-    it('can search for double quote', function() {
-      service.search({
-        searchText: '"'
+      it('question mark', function() {
+        service.search({
+          searchText: '?'
+        });
+        service.loadMore();
+        expect(getQuery()).toEqual(expectedQueryWithOffset('?'));
       });
-      httpBackend.flush();
-      expect(getSearch(capturedUrl).query).toEqual(expectedQuery('"'));
-    });
 
+      it('single quote', function() {
+        service.search({
+          searchText: '\''
+        });
+        service.loadMore();
+        expect(getQuery()).toEqual(expectedQueryWithOffset('\''));
+      });
+
+      it('double quote', function() {
+        service.search({
+          searchText: '"'
+        });
+        service.loadMore();
+        expect(getQuery()).toEqual(expectedQueryWithOffset('"'));
+      });
+    });
   });
-})
+});

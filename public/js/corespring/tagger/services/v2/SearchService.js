@@ -65,7 +65,7 @@ angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$ht
       this.loadMore = function(callback) {
         query.offset = self.itemDataCollection.length;
         loading(function(onLoadFinished) {
-          $http.get('/api/v2/items?query=' + encodeURI(JSON.stringify(query))).success(function(result) {
+          $http.get('/api/v2/items?query=' + encodeURIComponent(JSON.stringify(query))).success(function(result) {
             self.itemDataCollection = self.itemDataCollection.concat(result.hits);
             onLoadFinished();
             callback(self.itemDataCollection);
