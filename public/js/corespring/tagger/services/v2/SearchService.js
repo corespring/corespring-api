@@ -62,28 +62,36 @@ angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$ht
         return 0;
       };
 
+      function loading(promise) {
+        $rootScope.$broadcast('onNetworkLoading');
+        promise.success(callback).error(callback);
+        return promise;
+
+        function callback() {
+          $rootScope.$broadcast('onNetworkComplete');
+        }
+      }
+
+      function makeRequest(query){
+        return loading($http.get('/api/v2/items?query=' + encodeURIComponent(JSON.stringify(query))));
+      }
+
       this.loadMore = function(callback) {
         query.offset = self.itemDataCollection.length;
-        loading(function(onLoadFinished) {
-          $http.get('/api/v2/items?query=' + encodeURIComponent(JSON.stringify(query))).success(function(result) {
-            self.itemDataCollection = self.itemDataCollection.concat(result.hits);
-            onLoadFinished();
-            callback(self.itemDataCollection);
-          });
-        })
+        makeRequest(query).success(function(result) {
+          self.itemDataCollection = self.itemDataCollection.concat(result.hits);
+          callback(self.itemDataCollection);
+        });
       };
 
       this.search = function(params, callback) {
         query = toQuery(params);
-        loading(function(onLoadFinished) {
-          $http.get('/api/v2/items?query=' + encodeURIComponent(JSON.stringify(query))).success(function(result) {
-            self.itemDataCollection = result.hits;
-            self.resultCount = result.total;
-            $rootScope.$broadcast('onSearchCountComplete', self.resultCount);
-            onLoadFinished();
-            callback(self.itemDataCollection);
-          });
-        })
+        makeRequest(query).success(function(result) {
+          self.itemDataCollection = result.hits;
+          self.resultCount = result.total;
+          $rootScope.$broadcast('onSearchCountComplete', self.resultCount);
+          callback(self.itemDataCollection);
+        });
       };
 
       this.resetDataCollection = function() {
