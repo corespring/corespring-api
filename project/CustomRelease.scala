@@ -64,7 +64,7 @@ object CustomRelease {
         commitReleaseVersion,
         mergeCurrentBranchTo("cr-master"),
         //Always tag after merge so that HEAD will have the latest tag.
-        tagBranchReleaseTagTo("cr-master")
+        tagBranchWithReleaseTag("cr-master"))
     })
 
 }
