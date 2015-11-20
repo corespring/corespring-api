@@ -242,6 +242,7 @@
         onItemChanged: $scope.onItemChanged,
         devEditor: devEditor,
         autosizeEnabled: false,
+        iframeScrollingEnabled: true,
         hideSaveButton: true
       };
 
