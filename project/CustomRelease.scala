@@ -34,11 +34,19 @@ object CustomRelease {
     newState
   })
 
-
   //every develop change should go to Devt
   //every release-XXX change should go to QA
   //every master change should go to Staging
   //deploy to prod is manual
+
+  /**
+    * What will the ci have to do:
+    * for releases update the release var to X.X.X,
+    * - checkout that branch and do it's builds etc
+    * - when ready run `release --with-defaults`
+    *
+    * for hotfixes - create a new hotfix var - checkout the branch and do as above.
+    */
   lazy val settings = Seq(
     validHotfixParents := Seq("master"),
     validReleaseParents := Seq("develop"),
