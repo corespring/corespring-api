@@ -14,17 +14,19 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.api.tracking.{ ApiTrackingLogger, NullTracking, ApiTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
-import org.corespring.common.config.{ContainerConfig, AppConfig}
+import org.corespring.common.config.{ ContainerConfig, AppConfig }
+import org.corespring.container.client.ComponentSetExecutionContext
+import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
-import org.corespring.conversion.qti.transformers.{ ItemTransformerConfig, ItemTransformer }
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformerConfig, ItemTransformer }
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.encryption.EncryptionModule
 import org.corespring.importing.validation.ItemSchema
-import org.corespring.importing.{ImportingExecutionContext, ItemImportModule}
+import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
@@ -53,6 +55,7 @@ import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
 import play.api.{ Play, Mode, Configuration, Logger }
+import play.libs.Akka
 import web.WebModule
 import web.controllers.{ Main, ShowResource }
 
@@ -76,12 +79,28 @@ object Main
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
 
-  override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
-  override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ExecutionContext.global)
-  override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
-  override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
-  override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.global)
-  override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ExecutionContext.global)
+  private def ecLookup(id: String) = {
+    def hasEnabledAkkaConfiguration(id: String) = {
+      (for {
+        o <- configuration.getObject(id)
+        enabled <- configuration.getBoolean(id + ".enabled")
+      } yield enabled).getOrElse(false)
+    }
+    if (hasEnabledAkkaConfiguration(id)) {
+      Akka.system.dispatchers.lookup(id)
+    } else {
+      ExecutionContext.global
+    }
+  }
+
+  override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
+  override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
+  override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
+  override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ecLookup("akka.salat-services"))
+  override lazy val sessionExecutionContext = SessionExecutionContext(ecLookup("akka.session-default"), ecLookup("akka.session-heavy"))
+  override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ecLookup("akka.v1-api"))
+  override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
+  override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
@@ -241,7 +260,6 @@ object Main
     out
   }
 
-
   override lazy val standardTree: StandardsTree = {
     val json: JsArray = {
       import play.api.Play.current
@@ -303,4 +321,5 @@ object Main
     schema
   }
 
+  override lazy val playerJsonToItem: PlayerJsonToItem = new PlayerJsonToItem(jsonFormatting)
 }

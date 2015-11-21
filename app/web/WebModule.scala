@@ -1,10 +1,10 @@
 package web
 
 import org.corespring.amazon.s3.S3Service
-import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
+import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.services.item.{ FieldValueService, ItemService }
+import org.corespring.services.{ OrganizationService, UserService }
 import web.controllers.{ Main, ShowResource }
 
 trait WebModule {

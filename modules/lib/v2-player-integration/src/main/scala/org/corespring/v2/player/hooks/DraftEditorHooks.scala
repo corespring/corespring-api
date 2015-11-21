@@ -64,7 +64,7 @@ class DraftEditorHooks(
   }
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-    logger.trace(s"function=loadFile id=$id path=$path")
+    logger.trace(s"function=loadFile id=$id path=$path, bucket=${awsConfig.bucket}")
     val result = for {
       _ <- Success(logger.trace(s"function=loadDraft id=$id"))
       identity <- getOrgAndUser(request)

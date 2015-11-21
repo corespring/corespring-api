@@ -1,16 +1,16 @@
 package org.corespring.v2.api.drafts.item
 
-import org.corespring.drafts.errors.{DraftError, NothingToCommit}
-import org.corespring.drafts.item.models.{DraftId, OrgAndUser}
-import org.corespring.drafts.item.{ItemDraftIsOutOfDate, ItemDrafts => DraftsBackend, MakeDraftId}
+import org.corespring.drafts.errors.{ DraftError, NothingToCommit }
+import org.corespring.drafts.item.models.{ DraftId, OrgAndUser }
+import org.corespring.drafts.item.{ ItemDraftIsOutOfDate, ItemDrafts => DraftsBackend, MakeDraftId }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.drafts.item.json.{CommitJson, DraftCloneResultJson, ItemDraftJson}
+import org.corespring.v2.api.drafts.item.json.{ CommitJson, DraftCloneResultJson, ItemDraftJson }
 import org.joda.time.DateTime
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
 
 import scala.concurrent.Future
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class ItemDrafts(
   drafts: DraftsBackend,
@@ -66,7 +66,7 @@ class ItemDrafts(
 
   private def toApiResult(e: DraftError): DraftApiResult = e match {
     case ItemDraftIsOutOfDate(d, src) => draftIsOutOfDate(d, src.data, itemDraftJson.conflict)
-    case NothingToCommit(id) => nothingToCommit(id.toString)
+    case nc: NothingToCommit[DraftId] => nothingToCommit(nc.id.toIdString)
     case _ => generalDraftApiError(e.msg)
   }
 
