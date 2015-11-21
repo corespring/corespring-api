@@ -62,8 +62,9 @@ object CustomRelease {
         prepareReleaseVersion,
         setReleaseVersion,
         commitReleaseVersion,
-        tagRelease,
-        mergeReleaseTagTo("cr-master"))
+        mergeCurrentBranchTo("cr-master"),
+        //Always tag after merge so that HEAD will have the latest tag.
+        tagBranchWithReleaseTag("cr-master"))
     })
 
 }
