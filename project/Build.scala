@@ -44,12 +44,12 @@ object Build extends sbt.Build {
   lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
     .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
-  lazy val coreServices = builders.lib("services", "core")
+  lazy val coreServices = builders.lib("services", "core", publish = true)
     .settings(
       libraryDependencies ++= Seq(specs2 % "test"))
     .dependsOn(coreModels)
 
-  lazy val coreUtils = builders.lib("utils", "core")
+  lazy val coreUtils = builders.lib("utils", "core", publish = true)
 
   lazy val coreLegacy = builders.lib("legacy", "core")
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, securesocial, playFramework, specs2 % "test", playS3))
@@ -59,10 +59,10 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(securesocial, playFramework))
     .dependsOn(coreModels, coreServices)
 
-  lazy val coreSalatConfig = builders.lib("salat-config", "core").settings(
+  lazy val coreSalatConfig = builders.lib("salat-config", "core", publish = true).settings(
     libraryDependencies ++= Seq(salat))
 
-  lazy val coreServicesSalat = builders.lib("services-salat", "core")
+  lazy val coreServicesSalat = builders.lib("services-salat", "core", publish = true)
     .settings(
       libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws))
     .configs(IntegrationTest)
@@ -82,7 +82,7 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", aws))
     .dependsOn(coreSalatConfig, coreServices, coreUtils)
 
-  lazy val encryption = builders.lib("encryption", "core")
+  lazy val encryption = builders.lib("encryption", "core", publish = true)
     .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro, jbcrypt, specs2 % "test"))
     .dependsOn(coreServices, coreModels)
 
