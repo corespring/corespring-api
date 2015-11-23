@@ -1,5 +1,3 @@
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import sbt._
 import Keys._
 import org.corespring.sbt.repo.RepoAuthPlugin.Keys._
