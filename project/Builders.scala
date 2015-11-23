@@ -1,6 +1,8 @@
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import sbt._
 import Keys._
-import play.Project._
+import org.corespring.sbt.repo.RepoAuthPlugin.Keys._
 
 object Builders {
 
@@ -11,11 +13,10 @@ object Builders {
     publishArtifact in (Compile, packageSrc) := false,
     sources in doc in Compile := List())
 
-  val moduleConfigEmpty = Seq.empty
-
-  val moduleConfig = Seq(Dependencies.ModuleConfigurations.snapshots,
-    Dependencies.ModuleConfigurations.releases,
-    Dependencies.ModuleConfigurations.localSnapshots)
+  //Note: This is disabled at the moment due to: https://github.com/sbt/sbt/issues/2282
+  val moduleConfig = Nil /*Seq(
+    Dependencies.ModuleConfigurations.snapshots,
+    Dependencies.ModuleConfigurations.releases)*/
 }
 
 class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
@@ -30,21 +31,25 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
     aggregate in update := false,
     parallelExecution.in(Test) := false,
     resolvers ++= Dependencies.Resolvers.all,
-    credentials += LoadCredentials.cred,
     shellPrompt := ShellPrompt.buildShellPrompt,
     Keys.fork.in(Test) := forkInTests,
     scalacOptions ++=
       Seq("-feature", "-deprecation")) ++
     Builders.disableDocsSettings ++ rootSettings
 
-  def lib(name: String, folder: String = "lib", deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty) =
+  def lib(name: String, folder: String = "lib", deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty, publish: Boolean = false) = {
 
-    sbt.Project(
+    val p = sbt.Project(
       makeName(name),
       file("modules/" + folder + "/" + name),
       dependencies = deps)
       .settings(Defaults.defaultSettings: _*)
       .settings(sharedSettings: _*)
+
+    if (publish) {
+      p.settings(publishTo := authPublishTo.value)
+    } else p
+  }
 
   def testLib(name: String) = lib(name, "test-lib")
 
