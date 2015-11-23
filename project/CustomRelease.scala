@@ -49,8 +49,6 @@ object CustomRelease {
    * for hotfixes - create a new hotfix var - checkout the branch and do as above.
    */
   lazy val settings = Seq(
-    validHotfixParents := Seq("master"),
-    validReleaseParents := Seq("develop"),
     branchNameConverter := HyphenNameConverter,
     releaseVersionBump := Bump.Minor,
     releaseProcess <<= thisProjectRef.apply { ref =>
