@@ -1,3 +1,4 @@
 addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.0")
-
-addSbtPlugin("org.corespring" % "sbt-release-extras" % "1.2.2-SNAPSHOT")
+credentials += Credentials(Path.userHome / ".ivy2"/".credentials")
+resolvers += "corespring-ivy-releases" at "http://repository.corespring.org/artifactory/ivy-releases"
+addSbtPlugin("org.corespring" % "sbt-release-extras" % "1.3.0")
