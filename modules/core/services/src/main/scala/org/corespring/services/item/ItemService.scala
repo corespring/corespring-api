@@ -57,7 +57,5 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]]
 
-  @deprecated("once we add a new ItemUpdateService for updating parts of the item remove this", "core-refactor")
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean
 }
 

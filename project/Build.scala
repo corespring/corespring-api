@@ -203,6 +203,7 @@ object Build extends sbt.Build {
       qtiToV2,
       testLib,
       v2Auth % "test->test;compile->compile",
+      coreJson % "test->test;compile->compile",
       coreModels,
       coreServicesSalat,
       itemDrafts)
