@@ -9,7 +9,8 @@ case class TaskInfo(
   title: Option[String] = None,
   description: Option[String] = None,
   itemType: Option[String] = None,
-  domains: Set[String] = Set.empty) {
+  domains: Set[String] = Set.empty,
+  standardClusters: Seq[StandardCluster] = Seq.empty) {
 
   def cloneInfo(titlePrefix: String): TaskInfo = {
     require(titlePrefix != null)
@@ -20,13 +21,14 @@ case class TaskInfo(
 object TaskInfo {
 
   object Keys {
-    val title = "title"
     val description = "description"
+    val domains = "domains"
+    val extended = "extended"
     val gradeLevel = "gradeLevel"
     val itemType = "itemType"
+    val standardClusters = "standardClusters"
     val subjects = "subjects"
-    val extended = "extended"
-    val domains = "domains"
+    val title = "title"
   }
 
   val gradeLevelSorter: (String, String) => Boolean = (a, b) => {

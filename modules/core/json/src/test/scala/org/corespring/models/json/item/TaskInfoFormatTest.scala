@@ -2,7 +2,7 @@ package org.corespring.models.json.item
 
 import org.bson.types.ObjectId
 import org.corespring.models.Subject
-import org.corespring.models.item.{ StringKeyValue, Subjects, FieldValue, TaskInfo }
+import org.corespring.models.item._
 import org.corespring.models.json.{ SubjectWrites, SubjectsFormat }
 import org.specs2.mutable.Specification
 import play.api.libs.json.{ Writes, Format, Json }
@@ -15,6 +15,8 @@ class TaskInfoFormatTest extends Specification {
   ))
 
   implicit val tif: Format[TaskInfo] = new TaskInfoFormat {
+    override implicit def scf: Format[StandardCluster] = StandardClusterFormat
+
     override implicit def sf: Format[Subjects] = new SubjectsFormat {
       override def findOneById(id: ObjectId): Option[Subject] = Some(Subject("?"))
 
@@ -46,6 +48,15 @@ class TaskInfoFormatTest extends Specification {
       val json = Json.toJson(taskInfo)
       val parsed = json.as[TaskInfo]
       parsed.itemType must equalTo(taskInfo.itemType)
+    }
+
+    "parse standardClusters" in {
+      val taskInfo = TaskInfo(standardClusters = Seq(
+        StandardCluster("cluster-a", false, "source-a" ),
+        StandardCluster("cluster-b", true, "source-b" )))
+      val json = Json.toJson(taskInfo)
+      val parsed = json.as[TaskInfo]
+      parsed.standardClusters must equalTo(taskInfo.standardClusters)
     }
 
   }
