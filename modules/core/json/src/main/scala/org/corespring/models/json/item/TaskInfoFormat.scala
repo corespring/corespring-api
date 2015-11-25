@@ -2,7 +2,7 @@ package org.corespring.models.json.item
 
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
-import org.corespring.models.item.{StandardCluster, Subjects, TaskInfo}
+import org.corespring.models.item.{ StandardCluster, Subjects, TaskInfo }
 import org.corespring.models.json.ValueGetter
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
@@ -22,7 +22,6 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
 
   implicit def sf: Format[Subjects]
   implicit def scf: Format[StandardCluster]
-
 
   override def writes(info: TaskInfo): JsValue = {
 
@@ -67,8 +66,6 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
       gradeLevel = getGradeLevel(json))
     JsSuccess(info)
   }
-
-
 
   private def getSubjects(json: JsValue): Option[Subjects] = {
     Json.fromJson[Subjects](json) match {

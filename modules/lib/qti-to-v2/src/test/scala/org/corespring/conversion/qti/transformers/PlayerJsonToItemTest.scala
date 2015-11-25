@@ -81,7 +81,7 @@ class PlayerJsonToItemTest extends Specification {
   val reviewsPassedOther = "Other"
   val standards = Seq("RL.2.6")
   def standardsJson = JsArray(standards.map(dn => obj("dotNotation" -> dn)))
-  def standardClustersJson = arr(obj("text"->"hidden-cluster", "hidden"->true, "source" -> "A.B.C"), obj("text"->"visible-cluster", "hidden"->false, "source" -> "manual"))
+  def standardClustersJson = arr(obj("text" -> "hidden-cluster", "hidden" -> true, "source" -> "A.B.C"), obj("text" -> "visible-cluster", "hidden" -> false, "source" -> "manual"))
   object supportingMaterial {
     val name = "Rubric"
     val files = Seq("files/rubric.pdf")
@@ -199,7 +199,7 @@ class PlayerJsonToItemTest extends Specification {
       "have correct title" in { ti.title must_== Some(taskInfo.title) }
       "have correct primary subject" in { ti.subjects.get.primary must_== Some(taskInfo.subjects.primary.id) }
       "have correct related subjects" in { ti.subjects.get.related must_== taskInfo.subjects.related.map(i => new ObjectId(i.id)) }
-      "have correct standardClusters" in {ti.standardClusters must_== taskInfo.standardClusters}
+      "have correct standardClusters" in { ti.standardClusters must_== taskInfo.standardClusters }
     }
 
     "workflow" should {

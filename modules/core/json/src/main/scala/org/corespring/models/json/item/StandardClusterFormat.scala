@@ -16,8 +16,7 @@ object StandardClusterFormat extends Format[StandardCluster] {
     Json.obj(
       Keys.text -> obj.text,
       Keys.hidden -> obj.hidden,
-      Keys.source -> obj.source
-    )
+      Keys.source -> obj.source)
   }
 
   def reads(json: JsValue) = {
