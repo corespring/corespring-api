@@ -69,7 +69,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
   }
 
   "search" should {
-    "find an item that has an automatically inserted calculator in its model" in new loadJson {
+    "find an item with an automatically inserted calculator when it's indexed via the app" in new loadJson {
       implicit val itemFormat = bootstrap.Main.jsonFormatting.item
       logger.debug(s"loaded item json: ${Json.prettyPrint(Json.toJson(item))}")
       //This will add the item via the indexing dao
@@ -79,7 +79,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
       searchResult.map(_.hits(0).title) must_== Success(Some("this is a test item."))
     }
 
-    "find one where index is run manually" in new loadJson {
+    "find an item with an automatically inserted calculator when index is run manually" in new loadJson {
       //Add the raw dbo to the db
       bootstrap.Main.db(CollectionNames.item).insert(dbo)
       val cfg = bootstrap.Main.elasticSearchConfig
