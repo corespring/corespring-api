@@ -1,0 +1,162 @@
+{
+    "_id" : {
+        "_id" : { "$oid": "521f5c463004534c766ce45b" },
+        "version" : 1
+    },
+    "collectionId" : "51df104fe4b073dbbb1c84fa",
+    "contentType" : "item",
+    "contributorDetails" : {
+        "additionalCopyrights" : [],
+        "author" : "New Classrooms Innovation Partners",
+        "contributor" : "New Classrooms Innovation Partners",
+        "copyright" : {
+            "owner" : "New Classrooms Innovation Partners",
+            "year" : "2013"
+        },
+        "credentials" : "Other",
+        "licenseType" : "CC BY",
+        "sourceUrl" : "http://www.newclassrooms.org/"
+    },
+    "data" : {
+        "name" : "data",
+        "files" : [ 
+            {
+                "name" : "qti.xml",
+                "contentType" : "text/xml",
+                "isMain" : true,
+                "content" : "<?xml version='1.0' encoding='UTF-8'?>\n<assessmentItem>\n  <correctResponseFeedback>Correct!</correctResponseFeedback>\n  <incorrectResponseFeedback>Remember to distribute the decimal outside of the parentheses first, and then combine like-terms.</incorrectResponseFeedback>\n  <responseDeclaration \n  identifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_RL\" cardinality=\"single\"  exactMatch=\"false\">\n    <correctResponse>\n      <value>QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A2</value>\n    </correctResponse>\n</responseDeclaration>\n  <itemBody><csCalculator responseIdentifier=\"automatically-inserted-calculator\" type=\"scientific\"></csCalculator>\n    <p class=\"intro-2\">\n      Solve the equation for <math><mi>s</mi></math>.</p>\n      <hr class=\"element-separator\"/>\n      <p class=\"equation para-center\">\n          <math>\n              <mn>0.5</mn>\n              <mo>&#x2062;</mo>\n              <mrow>\n                  <mo>(</mo>\n                  <mn>10</mn>\n                  <mo>-</mo>\n                  <mrow>\n                      <mn>4</mn>\n                      <mo>&#x2062;</mo>\n                      <mi>s</mi>\n                  </mrow>\n                  <mo>)</mo>\n              </mrow>\n              <mo>=</mo>\n              <mrow>\n                  <mn>3</mn>\n                  <mo>&#x2062;</mo>\n                  <mi>s</mi>\n                  <mo>+</mo>\n                  <mn>10</mn>\n              </mrow>\n          </math>\n      </p>\n      <choiceInteraction \n    responseIdentifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_RL\" maxChoices=\"1\" shuffle=\"true\">\n        <simpleChoice identifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A0\">\n          –3\n          <feedbackInline \n          identifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A0\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n        <simpleChoice identifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A1\">\n          3\n          <feedbackInline \n          identifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A1\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n        <simpleChoice identifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A2\">\n          –1\n          <feedbackInline \n          identifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A2\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n        <simpleChoice identifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A3\">\n          1\n          <feedbackInline \n          identifier=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A3\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n</choiceInteraction>\n  </itemBody>\n</assessmentItem>"
+            }
+        ]
+    },
+    "dateModified" : { "$date" : "2014-06-30T18:02:15.372Z"}, 
+    "otherAlignments" : {
+        "bloomsTaxonomy" : "Understanding",
+        "keySkills" : [ 
+            "Apply", 
+            "Calculate", 
+            "Solve"
+        ],
+        "depthOfKnowledge" : "2"
+    },
+    "playerDefinition" : {
+        "files" : [],
+        "xhtml" : "<div class=\"item-body qti\"><p><corespring-calculator id=\"automatically-inserted-calculator\"></corespring-calculator></p>\n    <p class=\"intro-2\">\n      Solve the equation for <math><mi>s</mi></math>.</p>\n      <hr class=\"element-separator\"/>\n      <p class=\"equation para-center\">\n          <math>\n              <mn>0.5</mn>\n              <mo>⁢</mo>\n              <mrow>\n                  <mo>(</mo>\n                  <mn>10</mn>\n                  <mo>-</mo>\n                  <mrow>\n                      <mn>4</mn>\n                      <mo>⁢</mo>\n                      <mi>s</mi>\n                  </mrow>\n                  <mo>)</mo>\n              </mrow>\n              <mo>=</mo>\n              <mrow>\n                  <mn>3</mn>\n                  <mo>⁢</mo>\n                  <mi>s</mi>\n                  <mo>+</mo>\n                  <mn>10</mn>\n              </mrow>\n          </math>\n      </p>\n      \n        \n        \n        \n        \n<corespring-multiple-choice id=\"QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_RL\"></corespring-multiple-choice>\n  </div>",
+        "components" : {
+            "automatically-inserted-calculator" : {
+                "weight" : 0,
+                "title" : "Calculator",
+                "isTool" : true,
+                "componentType" : "corespring-calculator",
+                "model" : {
+                    "config" : {
+                        "type" : "scientific"
+                    }
+                }
+            },
+            "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_RL" : {
+                "componentType" : "corespring-multiple-choice",
+                "model" : {
+                    "config" : {
+                        "shuffle" : "true",
+                        "orientation" : "vertical",
+                        "choiceType" : "radio",
+                        "choiceLabels" : "letters",
+                        "choiceStyle" : "",
+                        "showCorrectAnswer" : "inline"
+                    },
+                    "choices" : [ 
+                        {
+                            "label" : "–3",
+                            "value" : "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A0"
+                        }, 
+                        {
+                            "label" : "3",
+                            "value" : "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A1"
+                        }, 
+                        {
+                            "label" : "–1",
+                            "value" : "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A2"
+                        }, 
+                        {
+                            "label" : "1",
+                            "value" : "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A3"
+                        }
+                    ]
+                },
+                "feedback" : [ 
+                    {
+                        "value" : "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A0",
+                        "feedback" : "Remember to distribute the decimal outside of the parentheses first, and then combine like-terms."
+                    }, 
+                    {
+                        "value" : "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A1",
+                        "feedback" : "Remember to distribute the decimal outside of the parentheses first, and then combine like-terms."
+                    }, 
+                    {
+                        "value" : "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A2",
+                        "feedback" : "Correct!"
+                    }, 
+                    {
+                        "value" : "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A3",
+                        "feedback" : "Remember to distribute the decimal outside of the parentheses first, and then combine like-terms."
+                    }
+                ],
+                "correctResponse" : {
+                    "value" : [ 
+                        "QUE_0_3_8A54F0A4F74248C9B6B2B2865A371CE6_A2"
+                    ]
+                }
+            }
+        },
+        "summaryFeedback" : ""
+    },
+    "priorGradeLevels" : [],
+    "priorUse" : "Formative",
+    "published" : true,
+    "reviewsPassed" : [ 
+        "Editorial", 
+        "Bias", 
+        "Fairness", 
+        "Content"
+    ],
+    "sharedInCollections" : [],
+    "standards" : [ 
+        "8.EE.C.7b", 
+        "HSA-REI.A.1", 
+        "HSA-REI.B.3"
+    ],
+    "supportingMaterials" : [],
+    "taskInfo" : {
+        "extended" : {
+            "new_classrooms" : {
+                "credits" : "2",
+                "family" : "A",
+                "masterQuestion" : "4",
+                "skillNumber" : "204"
+            }
+        },
+        "subjects" : {
+            "primary" : { "$oid" :  "4ffb535f6bb41e469c0bf2c2" },
+            "related" : [ 
+                { "$oid" : "4ffb535f6bb41e469c0bf2c3" }
+            ]
+        },
+        "gradeLevel" : [ 
+            "08", 
+            "09", 
+            "10", 
+            "11", 
+            "12"
+        ],
+        "title" : "Solve multistep equations with rational numbers.",
+        "description" : "204 - Master Question 4 MC #4",
+        "itemType" : "Multiple Choice",
+        "domains" : []
+    },
+    "workflow" : {
+        "setup" : true,
+        "tagged" : false,
+        "standardsAligned" : false,
+        "qaReview" : true
+    }
+}

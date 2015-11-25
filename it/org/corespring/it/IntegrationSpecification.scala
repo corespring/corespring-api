@@ -4,6 +4,7 @@ import akka.util.Timeout
 import bootstrap.Main
 import grizzled.slf4j.Logger
 import org.corespring.itemSearch.ItemIndexDeleteService
+import org.corespring.models.item.FieldValue
 import org.specs2.execute.{ Result, AsResult, Results }
 import org.specs2.mutable.Around
 import play.api.test._
@@ -36,6 +37,14 @@ abstract class IntegrationSpecification
   override def around[T](t: => T)(implicit evidence$1: AsResult[T]): Result = {
     removeData()
     AsResult(t)
+  }
+}
+
+trait FieldValuesIniter {
+
+  def initFieldValues = {
+    val fv = FieldValue()
+    bootstrap.Main.fieldValueService.insert(fv)
   }
 }
 
