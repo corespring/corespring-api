@@ -50,14 +50,27 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     }
   }
 
+  trait loadJson extends createItem {
+    def path: String
+    lazy val url = this.getClass.getResource(path)
+    lazy val s = Source.fromFile(url.toURI).getLines().mkString("\n")
+    lazy val json = Json.parse(s)
+    logger.trace(s"json=${Json.prettyPrint(json)}")
+    implicit val itemFormat = bootstrap.Main.jsonFormatting.item
+    val item = json.as[Item]
+    addItem(item)
+    searchResult.map(_.total) must_== Success(1)
+  }
+
   "search" should {
-    "find an item that has an automatically inserted calculator in its model" in new createItem {
-      lazy val url = this.getClass.getResource("/indexing/calculator-item.json")
-      lazy val s = Source.fromFile(url.toURI).getLines().mkString("\n")
-      lazy val json = Json.parse(s)
-      logger.trace(s"json=${Json.prettyPrint(json)}")
-      implicit val itemFormat = bootstrap.Main.jsonFormatting.item
-      val item = json.as[Item]
+    "find an item that has an automatically inserted calculator in its model" in new loadJson {
+      override def path: String = "/indexing/calculator-item-auto-with-qti.json"
+      addItem(item)
+      searchResult.map(_.total) must_== Success(1)
+    }
+
+    "find an item that has an automatically inserted calculator in its model (no qti)" in new loadJson {
+      override def path: String = "/indexing/calculator-item-auto-no-qti.json"
       addItem(item)
       searchResult.map(_.total) must_== Success(1)
     }
