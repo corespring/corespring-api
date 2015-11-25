@@ -11,9 +11,14 @@ import play.api.libs.json.Json
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
-import scalaz.Success
+import scalaz._
 
 class IndexCalculatorIntegrationTest extends IntegrationSpecification {
+
+  object Config {
+    val RetryCount = 10
+    val RetryDelay = 500.milliseconds
+  }
 
   trait createItem
     extends ItemIndexCleaner
@@ -27,7 +32,21 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     lazy val orgId = OrganizationHelper.create("test-org")
     lazy val collectionId = CollectionHelper.create(orgId)
     lazy val query = ItemIndexQuery(widgets = Seq("corespring-calculator"))
-    lazy val searchResult = Await.result(bootstrap.Main.itemIndexService.search(query), 1.second)
+
+    def searchResult = {
+      def trySearch(n: Int): Validation[Error, ItemIndexSearchResult] = {
+        Await.result(bootstrap.Main.itemIndexService.search(query), 1.second) match {
+          case Success(searchResult) if (searchResult.total > 0) => Success(searchResult)
+          case Success(searchResult) if (n == 0) => Success(searchResult)
+          case Failure(error) => Failure(error)
+          case _ => {
+            Thread.sleep(Config.RetryDelay.toMillis)
+            trySearch(n - 1)
+          }
+        }
+      }
+      trySearch(Config.RetryCount)
+    }
 
     override def after = {
       logger.debug(" ----------- >> after.. cleaning up..")
