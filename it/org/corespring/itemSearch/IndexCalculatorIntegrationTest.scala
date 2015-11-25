@@ -39,30 +39,32 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
   val jsonString =
     """
       |{
-      |  "_id" : {
-      |      "_id" : { "$oid": "521f5c463004534c766ce45b" },
-      |      "version" : 1
-      |  },
-      |  "contentType" : "item",
-      |  "collectionId" : "51df104fe4b073dbbb1c84fa",
-      |  "playerDefinition" : {
-      |    "files" : [],
-      |    "xhtml" : "<div><corespring-calculator id=\"automatically-inserted-calculator\"></corespring-calculator></div>",
-      |    "components" : {
-      |      "automatically-inserted-calculator" : {
-      |        "componentType" : "corespring-calculator",
-      |      }
+      |    "_id": {
+      |        "_id": {
+      |            "$oid": "521f5c463004534c766ce45b"
+      |        },
+      |        "version": 1
       |    },
-      |    "summaryFeedback" : ""
-      |  },
-      |  "taskInfo" : {
-      |      "title" : "this is a test item."
-      |  }
-      |}
-    """.stripMargin
+      |    "contentType": "item",
+      |    "collectionId": "51df104fe4b073dbbb1c84fa",
+      |    "playerDefinition": {
+      |        "files": [],
+      |        "xhtml": "<div><corespring-calculator id=\"automatically-inserted-calculator\"></corespring-calculator></div>",
+      |        "components": {
+      |            "automatically-inserted-calculator": {
+      |                "componentType": "corespring-calculator"
+      |            }
+      |        },
+      |        "summaryFeedback": ""
+      |    },
+      |    "taskInfo": {
+      |        "title": "this is a test item."
+      |    }
+      |} """.stripMargin
 
   trait loadJson extends createItem {
     val dbo = com.mongodb.util.JSON.parse(jsonString).asInstanceOf[DBObject]
+    logger.info(s"dbo: $dbo")
     implicit val nc: Context = bootstrap.Main.context
     val dboItem = com.novus.salat.grater[Item].asObject(dbo)
     val item = dboItem.copy(collectionId = collectionId.toString)
