@@ -39,6 +39,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
   val jsonString =
     """
       |{
+      |   "contentType" : "item",
       |    "_id": {
       |        "_id": {
       |            "$oid": "521f5c463004534c766ce45b"
@@ -86,6 +87,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
       bootstrap.Main.db(CollectionNames.item).insert(dbo)
       val cfg = bootstrap.Main.elasticSearchConfig
       //Run the indexer
+      logger.info(s"config: $cfg")
       val result = ContentIndexer.reindex(cfg.url, cfg.mongoUri, cfg.componentPath)(ExecutionContext.Implicits.global)
       logger.info(s"result? $result")
       //Now search
