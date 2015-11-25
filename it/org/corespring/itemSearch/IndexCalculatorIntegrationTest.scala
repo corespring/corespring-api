@@ -1,15 +1,18 @@
 package org.corespring.itemSearch
-
-import org.corespring.it.helpers.{ OrganizationHelper, CollectionHelper, ItemHelper, SecureSocialHelper }
+import com.mongodb.casbah.Imports._
+import com.novus.salat.Context
+import org.corespring.elasticsearch.ContentIndexer
+import org.corespring.it.helpers._
 import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.it.{ FieldValuesIniter, IntegrationSpecification, ItemIndexCleaner }
+import org.corespring.models.Standard
 import org.corespring.models.item.{ Item, PlayerDefinition }
+import org.corespring.services.salat.bootstrap.CollectionNames
 import org.specs2.mutable.After
 import play.api.libs.json.Json
 
-import scala.concurrent.Await
+import scala.concurrent.{ ExecutionContext, Await }
 import scala.concurrent.duration._
-import scala.io.Source
 import scalaz.Success
 
 class IndexCalculatorIntegrationTest extends IntegrationSpecification {
@@ -19,9 +22,14 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     with FieldValuesIniter
     with After {
 
-    initFieldValues
+    protected def initStandards() = {
+      StandardHelper.create(Standard(Some("A.B.C")))
+    }
 
     cleanIndex()
+    removeData()
+    initFieldValues()
+    initStandards()
 
     lazy val orgId = OrganizationHelper.create("test-org")
     lazy val collectionId = CollectionHelper.create(orgId)
@@ -50,35 +58,54 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     }
   }
 
+  val jsonString =
+    """
+      |{
+      |  "_id" : {
+      |      "_id" : { "$oid": "521f5c463004534c766ce45b" },
+      |      "version" : 1
+      |  },
+      |  "contentType" : "item",
+      |  "collectionId" : "51df104fe4b073dbbb1c84fa",
+      |  "playerDefinition" : {
+      |    "files" : [],
+      |    "xhtml" : "<div><corespring-calculator id=\"automatically-inserted-calculator\"></corespring-calculator></div>",
+      |    "components" : {
+      |      "automatically-inserted-calculator" : {
+      |        "componentType" : "corespring-calculator",
+      |      }
+      |    },
+      |    "summaryFeedback" : ""
+      |  },
+      |  "taskInfo" : {
+      |      "title" : "this is a test item."
+      |  }
+      |}
+    """.stripMargin
+
   trait loadJson extends createItem {
-    def path: String
-    lazy val url = this.getClass.getResource(path)
-    lazy val s = Source.fromFile(url.toURI).getLines().mkString("\n")
-    lazy val json = Json.parse(s)
-    logger.trace(s"json=${Json.prettyPrint(json)}")
-    implicit val itemFormat = bootstrap.Main.jsonFormatting.item
-    val item = json.as[Item]
-    addItem(item)
-    searchResult.map(_.total) must_== Success(1)
+    val dbo = com.mongodb.util.JSON.parse(jsonString).asInstanceOf[DBObject]
+    implicit val nc: Context = bootstrap.Main.context
+    val dboItem = com.novus.salat.grater[Item].asObject(dbo)
+    val item = dboItem.copy(collectionId = collectionId.toString)
   }
 
   "search" should {
     "find an item that has an automatically inserted calculator in its model" in new loadJson {
-      override def path: String = "/indexing/calculator-item-auto-with-qti.json"
+      implicit val itemFormat = bootstrap.Main.jsonFormatting.item
+      logger.debug(s"loaded item json: ${Json.prettyPrint(Json.toJson(item))}")
       addItem(item)
       searchResult.map(_.total) must_== Success(1)
+      searchResult.map(_.hits(0).title) must_== Success(Some("this is a test item."))
     }
 
-    "find an item that has an automatically inserted calculator in its model (no qti)" in new loadJson {
-      override def path: String = "/indexing/calculator-item-auto-no-qti.json"
-      addItem(item)
+    "find one where index is run manually" in new loadJson {
+      bootstrap.Main.db(CollectionNames.item).insert(dbo)
+      val cfg = bootstrap.Main.elasticSearchConfig
+      val result = ContentIndexer.reindex(cfg.url, cfg.mongoUri, cfg.componentPath)(ExecutionContext.Implicits.global)
+      logger.info(s"result? $result")
       searchResult.map(_.total) must_== Success(1)
-    }
-
-    "find an item that has a calculator that was added by the itemService" in new createItem {
-      val item = itemWithWidget("corespring-calculator")
-      addItem(item)
-      searchResult.map(_.total) must_== Success(1)
+      searchResult.map(_.hits(0).title) must_== Success(Some("this is a test item."))
     }
   }
 }

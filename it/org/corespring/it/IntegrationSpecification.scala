@@ -39,10 +39,9 @@ abstract class IntegrationSpecification
     AsResult(t)
   }
 }
-
 trait FieldValuesIniter {
 
-  def initFieldValues = {
+  def initFieldValues() = {
     val fv = FieldValue()
     bootstrap.Main.fieldValueService.insert(fv)
   }

@@ -1,0 +1,16 @@
+{
+  "id" : "5655c975c92eb3b7e34af9f1:0",
+  "collectionId" : "5655c975c92eb3b7e34af9f0",
+  "playerDefinition" : {
+    "xhtml" : "<div corespring-calculator=\"\" id=\"1\"></div>",
+    "files" : [ ],
+    "components" : {
+      "1" : {
+        "componentType" : "corespring-calculator"
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "contentType" : "item",
+  "published" : false
+}
