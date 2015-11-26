@@ -47,8 +47,9 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.hooks.StandardsTree
 import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService, MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService }
-import org.corespring.v2.player.{ AllItemVersionTransformer, TransformerItemService, V2PlayerExecutionContext, V2PlayerModule }
+import org.corespring.v2.player._
 import org.corespring.v2.sessiondb._
+import org.corespring.web.common.views.helpers.BuildInfo
 import org.corespring.web.user.SecureSocial
 import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
@@ -122,6 +123,12 @@ object Main
   lazy val configuration = current.configuration
 
   lazy val containerConfig = ContainerConfig(configuration, current.mode)
+
+  lazy val cdnResolver = new CDNResolver(
+    containerConfig.cdnDomain,
+    if (containerConfig.cdnAddVersionAsQueryParam) Some(BuildInfo.commitHashShort) else None)
+
+  override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
   override lazy val elasticSearchConfig = ElasticSearchConfig(
     AppConfig.elasticSearchUrl,
