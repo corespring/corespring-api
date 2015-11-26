@@ -15,11 +15,6 @@ import scalaz._
 
 class IndexCalculatorIntegrationTest extends IntegrationSpecification {
 
-  object Config {
-    val RetryCount = 10
-    val RetryDelay = 500.milliseconds
-  }
-
   trait createItem
     extends ItemIndexCleaner
     with FieldValuesIniter
@@ -32,21 +27,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     lazy val orgId = OrganizationHelper.create("test-org")
     lazy val collectionId = CollectionHelper.create(orgId)
     lazy val query = ItemIndexQuery(widgets = Seq("corespring-calculator"))
-
-    def searchResult = {
-      def trySearch(n: Int): Validation[Error, ItemIndexSearchResult] = {
-        Await.result(bootstrap.Main.itemIndexService.search(query), 1.second) match {
-          case Success(searchResult) if (searchResult.total > 0) => Success(searchResult)
-          case Success(searchResult) if (n == 0) => Success(searchResult)
-          case Failure(error) => Failure(error)
-          case _ => {
-            Thread.sleep(Config.RetryDelay.toMillis)
-            trySearch(n - 1)
-          }
-        }
-      }
-      trySearch(Config.RetryCount)
-    }
+    lazy val searchResult = Await.result(bootstrap.Main.itemIndexService.search(query), 1.second)
 
     override def after = {
       logger.debug(" ----------- >> after.. cleaning up..")
@@ -109,6 +90,11 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
       logger.info(s"config: $cfg")
       val result = ContentIndexer.reindex(cfg.url, cfg.mongoUri, cfg.componentPath)(ExecutionContext.Implicits.global)
       logger.info(s"result? $result")
+      /**
+       * Note: We have to give the indexer a little bit more time before we search.
+       * It should be a blocking call but it appears not.
+       */
+      Thread.sleep(5000)
       //Now search
       searchResult.map(_.total) must_== Success(1)
       searchResult.map(_.hits(0).title) must_== Success(Some("this is a test item."))
