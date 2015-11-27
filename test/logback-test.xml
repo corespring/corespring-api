@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel"/>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %coloredLevel %logger{55} - %message%n%xException{5}</pattern>
+    </encoder>
+  </appender>
+  <logger name="bootstrap" level="TRACE"/>
+  <logger name="VersionInfo" level="OFF"/>
+  <logger name="filters" level="TRACE"/>
+  <logger name="ch.qos.logback" level="WARN"/>
+  <root level="TRACE">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>
