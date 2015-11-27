@@ -7,91 +7,10 @@
             <pattern>%d{HH:mm:ss.SSS} %coloredLevel %logger{55} - %message%n%xException{5}</pattern>
         </encoder>
     </appender>
-
-    
-
-    <!--
-    <logger name="api.v1" level="INFO"/>
-    <logger name="application" level="INFO"/>
-    <logger name="assets" level="WARN"/>
-    <logger name="basiclti.controllers" level="ERROR"/>
-    -->
     <logger name="bootstrap" level="TRACE"/>
     <logger name="VersionInfo" level="OFF"/>
+    <logger name="filters" level="TRACE"/>
     <logger name="ch.qos.logback" level="WARN"/>
-    <logger name="org.corespring.v2.player.item" level="TRACE"/>
-    <logger name="org.corespring.v2.player.hooks" level="TRACE"/>
-    <!--<logger name="it" level="TRACE"/>-->
-    <!--<logger name="org.corespring.v2.api" level="TRACE"/>-->
-    <!--<logger name="org.corespring.services.salat" level="TRACE"/>-->
-    <!--<logger name="org.corespring.v2.auth" level="INFO"/>-->
-    <!--<logger name="org.corespring.services" level="INFO"/>-->
-    <!--<logger name="org.corespring.drafts.item" level="INFO"/>-->
-    <!--<logger name="org.corespring.container.client.AssetUtils" level="WARN"/>-->
-    <!--<logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>-->
-    <!--<logger name="org.corespring.container.client.filters" level="TRACE"/>-->
-    <!--
-    <logger name="com.mongodb" level="TRACE"/>
-    -->
-    <logger name="com.mongodb.casbah.commons.conversions.scala" level="DEBUG"/>
-    <!--
-    <logger name="common" level="DEBUG"/>
-    <logger name="common.controllers.deployment" level="DEBUG"/>
-    <logger name="components.outcome" level="TRACE"/>
-    <logger name="components.response" level="DEBUG"/>
-    <logger name="ContentCollection" level="TRACE"/>
-    <logger name="controllers" level="DEBUG"/>
-    <logger name="developer" level="INFO"/>
-    <logger name="Global" level="DEBUG"/>
-    <logger name="it" level="TRACE"/>
-    <logger name="ItemApi" level="TRACE"/>
-    <logger name="js.processing" level="TRACE"/>
-    <logger name="memcached" level="ERROR"/>
-    <logger name="models" level="ERROR"/>
-    <logger name="models.mongoContext" level="ERROR"/>
-    <logger name="org.corespring.api.tracking" level="INFO"/>
-    <logger name="org.corespring.api.v1" level="TRACE"/>
-    <logger name="org.corespring.container" level="TRACE"/>
-    <logger name="org.corespring.container.AssetUtils" level="TRACE" />
-    <logger name="org.corespring.container.client.AssetUtils" level="WARN"/>
-    <logger name="org.corespring.container.client.filters" level="TRACE"/>
-    <logger name="org.corespring.container.FileComponentLoader" level="INFO"/>
-    <logger name="org.corespring.container.JsConsole" level="TRACE"/>
-    <logger name="org.corespring.container.RhinoScopeBuilder" level="INFO"/>
-    <logger name="org.corespring.drafts" level="TRACE"/>
-    <logger name="org.corespring.drafts.item" level="INFO"/>
-    <logger name="org.corespring.platform.core" level="TRACE"/>
-    <logger name="org.corespring.platform.core.encryption" level="DEBUG"/>
-    <logger name="org.corespring.platform.core.files" level="TRACE"/>
-    <logger name="org.corespring.platform.core.models" level="DEBUG"/>
-    <logger name="org.corespring.platform.core.models.item" level="OFF"/>
-    <logger name="org.corespring.platform.core.models.mongoContext" level="OFF"/>
-    <logger name="org.corespring.qtiToV2.ItemTransformer" level="TRACE"/>
-    <logger name="org.corespring.services" level="INFO"/>
-    <logger name="org.corespring.services.salat" level="TRACE"/>
-    <logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>
-    <logger name="org.corespring.v2" level="TRACE"/>
-    <logger name="org.corespring.v2.api" level="TRACE"/>
-    <logger name="org.corespring.v2.auth" level="INFO"/>
-    -->
-    <logger name="org.corespring.v2.player.hooks" level="TRACE"/>
-    <logger name="org.corespring.v2.player.item" level="TRACE"/>
-    <!--
-    <logger name="play" level="INFO"/>
-    <logger name="player" level="ERROR"/>
-    <logger name="poc" level="DEBUG"/>
-    <logger name="qti" level="DEBUG"/>
-    <logger name="s3-play-plugin" level="WARN"/>
-    -->
-    <logger name="SalatVersioningDao" level="INFO"/>
-    <!--
-    <logger name="session" level="TRACE"/>
-    <logger name="tests" level="DEBUG"/>
-    <logger name="utils" level="DEBUG"/>
-    <logger name="v2player.test" level="TRACE"/>
-    -->
-    <logger name="VersionInfo" level="OFF"/>
-
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
