@@ -1,6 +1,7 @@
 package bootstrap
 
 import bootstrap.Actors.UpdateItem
+import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.transfer.TransferManager
 import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client, S3ClientOptions }
@@ -214,12 +215,16 @@ object Main
   override lazy val transferManager: TransferManager = new TransferManager(s3)
 
   override lazy val s3: AmazonS3 = {
+
     val client = new AmazonS3Client(awsCredentials)
 
     AppConfig.amazonEndpoint.foreach { e =>
-      client.setS3ClientOptions(new S3ClientOptions().withPathStyleAccess(true))
+      val options = new S3ClientOptions()
       client.setEndpoint(e)
+      options.withPathStyleAccess(true)
+      client.setS3ClientOptions(options)
     }
+
     client
   }
 
