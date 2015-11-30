@@ -62,14 +62,16 @@ class ItemDrafts(
   def removeByItemId(user: OrgAndUser)(itemId: ObjectId): Validation[DraftError, ObjectId] = {
     logger.debug(s"function=removeByItemId, itemId=$itemId")
     for {
-      _ <- if (userCanDeleteDrafts(itemId, user))
+      _ <- if (userCanDeleteDrafts(itemId, user)) {
         Success(true)
-      else
+      } else {
         Failure(UserCantDeleteMultipleDrafts(user, itemId))
-      _ <- if (draftService.removeByItemId(itemId))
+      }
+      _ <- if (draftService.removeByItemId(itemId)) {
         Success(true)
-      else
+      } else {
         Failure(GeneralError(s"error removing by item id: $itemId"))
+      }
       _ <- assets.deleteDraftsByItemId(itemId)
     } yield itemId
   }
@@ -77,7 +79,11 @@ class ItemDrafts(
   def remove(user: OrgAndUser)(id: DraftId) = {
     logger.debug(s"function=remove, id=$id")
     for {
-      _ <- if (owns(user)(id)) Success(true) else Failure(UserCantRemove(user, id))
+      _ <- if (owns(user)(id)) {
+        Success(true)
+      } else {
+        Failure(UserCantRemove(user, id))
+      }
       _ <- draftService.remove(id) match {
         case true => Success()
         case false => Failure(DeleteDraftFailed(id))
