@@ -130,7 +130,12 @@ class ItemDrafts(
     }
 
     for {
-      canCreate <- if (userCanCreateDraft(draftId.itemId, user)) Success(true) else Failure(UserCantCreate(user, draftId.itemId))
+      canCreate <-
+        if (userCanCreateDraft(draftId.itemId, user)) {
+          Success(true)
+        } else {
+          Failure(UserCantCreate(user, draftId.itemId))
+        }
       unpublishedItem <- itemService.getOrCreateUnpublishedVersion(
         new VersionedId[ObjectId](draftId.itemId, None)).toSuccess(GetUnpublishedItemError(draftId.itemId))
       draft <- mkDraft(draftId, unpublishedItem, user)
