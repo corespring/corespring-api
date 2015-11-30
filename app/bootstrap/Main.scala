@@ -110,7 +110,7 @@ object Main
 
     override lazy val bucket: String = AppConfig.assetsBucket
 
-    override def appVersion: String = BuildInfo.commitHashShort
+    override def appVersion: String = BuildInfo.commitHashShort + AppConfig.appVersionOverride
 
     override def s3: AmazonS3 = bootstrap.Main.s3
 
