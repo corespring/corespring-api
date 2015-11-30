@@ -28,22 +28,6 @@ object Global
 
   lazy val controllers: Seq[Controller] = Main.controllers
 
-  lazy val componentSetFilter = new CacheFilter {
-    override implicit def ec: ExecutionContext = ExecutionContext.global
-
-    override lazy val bucket: String = AppConfig.assetsBucket
-
-    override val appVersion: String = BuildInfo.commitHashShort
-
-    override val s3: AmazonS3 = bootstrap.Main.s3
-
-    override val gzipEnabled = bootstrap.Main.containerConfig.componentsGzip
-
-    override def intercept(path: String) = path.contains("component-sets")
-
-    override lazy val futureQueue: FutureQueuer = new BlockingFutureQueuer()
-  }
-
   override def onStart(app: Application): Unit = {
 
     CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
@@ -65,7 +49,7 @@ object Global
   }
 
   override def doFilter(a: EssentialAction): EssentialAction = {
-    Filters(super.doFilter(a), Seq(componentSetFilter): _*)
+    Filters(super.doFilter(a), Seq(Main.componentSetFilter): _*)
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
