@@ -70,6 +70,8 @@
     <script type="text/javascript">
     var score = 0;
 
+    console.log('??', graphTest);
+
     if(graphTest.value.indexOf('x') !== -1) score += 0.1;
 
     if (graphTest.outcome.isCorrect) score += 0.4;
