@@ -257,6 +257,10 @@
                 <input placeholder="Search" ng-model="searchParams.searchText" ng-change="lazySearch()" class="span3 form-control" id="appendedInputButtons" type="text"><span class="add-on"><i class="fa fa-search"></i></span>
                </div>
             </td>
+            <td>
+              <i class="label label-info fa fa-bolt" style="width: 10px"></i> = published<br/>
+              <i class="label label-info fa fa-history" style="width: 10px"></i> = authored in v1
+            </td>
         </tr>
         </tbody>
         </table>
@@ -272,6 +276,7 @@
         <table class="item-list table content-sort table-striped" style="margin: 0 auto; margin-top:20px; width:95%;">
             <thead>
             <tr>
+                <th width="10"></th>
                 <th width="150"></th>
                 <th sort-column-header field="title" width="200">Title</th>
                 <th class="description-column" sort-column-header field="description" width="300">Description</th>
@@ -285,6 +290,9 @@
             </thead>
             <tbody>
             <tr id="row-{{item.id}}" ng-repeat="item in items" style="cursor: pointer;">
+                <td>
+                  <i ng-show="isV1(item)" class="label label-info fa fa-history"></i>
+                </td>
                 <td class="buttons-align-right">
                   <button ng-click="edit(item)" ng-show="!item.readOnly" class="btn btn-default btn-edit btn-sm"><i class="fa fa-pencil"></i> edit</button>
                   <a class="btn btn-default btn-preview btn-sm" ng-click="launchCatalogView()"><i class="fa fa-eye"></i> Preview</a>
