@@ -9,6 +9,7 @@ import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
 import developer.DeveloperModule
+import filters.{ BlockingFutureQueuer, FutureQueuer, CacheFilter }
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
@@ -18,6 +19,7 @@ import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
 import org.corespring.common.config.{ ContainerConfig, AppConfig }
 import org.corespring.container.client.ComponentSetExecutionContext
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
+import org.corespring.container.client.filters.CheckS3CacheFilter
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
@@ -103,6 +105,22 @@ object Main
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ecLookup("akka.v1-api"))
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
+
+  lazy val componentSetFilter = new CacheFilter {
+    override implicit def ec: ExecutionContext = componentSetExecutionContext.heavyLoad
+
+    override lazy val bucket: String = AppConfig.assetsBucket
+
+    override def appVersion: String = BuildInfo.commitHashShort + AppConfig.appVersionOverride
+
+    override def s3: AmazonS3 = bootstrap.Main.s3
+
+    override def intercept(path: String) = path.contains("component-sets")
+
+    override val gzipEnabled = containerConfig.componentsGzip
+
+    override lazy val futureQueue: FutureQueuer = new BlockingFutureQueuer()
+  }
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
