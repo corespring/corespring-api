@@ -133,7 +133,7 @@ object Main
 
   private lazy val logger = Logger(Main.getClass)
 
-  logger.debug("bootstrapping...")
+  logger.debug(s"bootstrapping... ${appVersion}")
 
   override lazy val controllers: Seq[Controller] = {
     super.controllers ++
