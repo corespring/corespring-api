@@ -97,7 +97,7 @@ object Main
     }
   }
 
-  private def appVersion: String = {
+  private def mainAppVersion(): String = {
     val result = BuildInfo.commitHashShort + AppConfig.appVersionOverride
     logger.info(s"AppVersion $result hash ${BuildInfo.commitHashShort} override ${AppConfig.appVersionOverride}")
     result
@@ -117,7 +117,9 @@ object Main
 
     override lazy val bucket: String = AppConfig.assetsBucket
 
-    override def appVersion: String = appVersion
+    override def appVersion: String = {
+      mainAppVersion()
+    }
 
     override def s3: AmazonS3 = bootstrap.Main.s3
 
@@ -133,7 +135,7 @@ object Main
 
   private lazy val logger = Logger(Main.getClass)
 
-  logger.debug(s"bootstrapping... ${appVersion}")
+  logger.debug(s"bootstrapping... ${mainAppVersion()}")
 
   override lazy val controllers: Seq[Controller] = {
     super.controllers ++
@@ -151,7 +153,7 @@ object Main
 
   lazy val cdnResolver = new CDNResolver(
     containerConfig.cdnDomain,
-    if (containerConfig.cdnAddVersionAsQueryParam) Some(appVersion) else None)
+    if (containerConfig.cdnAddVersionAsQueryParam) Some(mainAppVersion) else None)
 
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
