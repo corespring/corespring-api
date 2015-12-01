@@ -9,6 +9,7 @@ import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
 import developer.DeveloperModule
+import filters.{ BlockingFutureQueuer, FutureQueuer, CacheFilter }
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
@@ -105,7 +106,7 @@ object Main
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
 
-  lazy val componentSetFilter = new CheckS3CacheFilter {
+  lazy val componentSetFilter = new CacheFilter {
     override implicit def ec: ExecutionContext = componentSetExecutionContext.heavyLoad
 
     override lazy val bucket: String = AppConfig.assetsBucket
@@ -115,6 +116,10 @@ object Main
     override def s3: AmazonS3 = bootstrap.Main.s3
 
     override def intercept(path: String) = path.contains("component-sets")
+
+    override val gzipEnabled = containerConfig.componentsGzip
+
+    override lazy val futureQueue: FutureQueuer = new BlockingFutureQueuer()
   }
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
