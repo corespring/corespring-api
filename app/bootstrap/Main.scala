@@ -8,19 +8,20 @@ import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
 import developer.DeveloperModule
+import filters.{ BlockingFutureQueuer, CacheFilter, FutureQueuer }
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.api.tracking.{ ApiTrackingLogger, NullTracking, ApiTracking }
+import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
-import org.corespring.common.config.{ ContainerConfig, AppConfig }
+import org.corespring.common.config.{ AppConfig, ContainerConfig }
 import org.corespring.container.client.ComponentSetExecutionContext
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
-import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformerConfig, ItemTransformer }
+import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
@@ -45,19 +46,19 @@ import org.corespring.v2.auth.V2AuthModule
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.player._
 import org.corespring.v2.player.hooks.StandardsTree
 import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService, MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService }
-import org.corespring.v2.player.{ AllItemVersionTransformer, TransformerItemService, V2PlayerExecutionContext, V2PlayerModule }
 import org.corespring.v2.sessiondb._
+import org.corespring.web.common.views.helpers.BuildInfo
 import org.corespring.web.user.SecureSocial
 import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
-import play.api.{ Play, Mode, Configuration, Logger }
+import play.api.{ Logger, Mode, Play }
 import play.libs.Akka
 import web.WebModule
-import web.controllers.{ Main, ShowResource }
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -102,6 +103,22 @@ object Main
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
 
+  lazy val componentSetFilter = new CacheFilter {
+    override implicit def ec: ExecutionContext = componentSetExecutionContext.heavyLoad
+
+    override lazy val bucket: String = AppConfig.assetsBucket
+
+    override def appVersion: String = BuildInfo.commitHashShort + AppConfig.appVersionOverride
+
+    override def s3: AmazonS3 = bootstrap.Main.s3
+
+    override def intercept(path: String) = path.contains("component-sets")
+
+    override val gzipEnabled = containerConfig.componentsGzip
+
+    override lazy val futureQueue: FutureQueuer = new BlockingFutureQueuer()
+  }
+
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
 
@@ -122,6 +139,12 @@ object Main
   lazy val configuration = current.configuration
 
   lazy val containerConfig = ContainerConfig(configuration, current.mode)
+
+  lazy val cdnResolver = new CDNResolver(
+    containerConfig.cdnDomain,
+    if (containerConfig.cdnAddVersionAsQueryParam) Some(BuildInfo.commitHashShort) else None)
+
+  override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
   override lazy val elasticSearchConfig = ElasticSearchConfig(
     AppConfig.elasticSearchUrl,
@@ -194,12 +217,16 @@ object Main
   override lazy val transferManager: TransferManager = new TransferManager(s3)
 
   override lazy val s3: AmazonS3 = {
+
     val client = new AmazonS3Client(awsCredentials)
 
     AppConfig.amazonEndpoint.foreach { e =>
-      client.setS3ClientOptions(new S3ClientOptions().withPathStyleAccess(true))
+      val options = new S3ClientOptions()
       client.setEndpoint(e)
+      options.withPathStyleAccess(true)
+      client.setS3ClientOptions(options)
     }
+
     client
   }
 
