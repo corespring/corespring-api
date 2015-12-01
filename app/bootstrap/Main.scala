@@ -86,20 +86,24 @@ object Main
   private def ecLookup(id: String) = {
     def hasEnabledAkkaConfiguration(id: String) = {
       (for {
-        o <- configuration.getObject(id)
-        enabled <- configuration.getBoolean(id + ".enabled")
-      } yield enabled).getOrElse(false)
+        configDoesExist <- configuration.getObject(id)
+        configIsEnabled <- configuration.getBoolean(id + ".enabled")
+      } yield configIsEnabled).getOrElse(false)
     }
     if (hasEnabledAkkaConfiguration(id)) {
+      logger.info(s"Using specific execution context for $id")
       Akka.system.dispatchers.lookup(id)
     } else {
+      logger.info(s"Using global execution context for $id")
       ExecutionContext.global
     }
   }
 
   private def mainAppVersion(): String = {
-    val result = BuildInfo.commitHashShort + AppConfig.appVersionOverride
-    logger.info(s"AppVersion $result hash ${BuildInfo.commitHashShort} override ${AppConfig.appVersionOverride}")
+    val commit = BuildInfo.commitHashShort
+    val versionOverride = AppConfig.appVersionOverride
+    val result = commit + versionOverride
+    logger.trace(s"AppVersion $result hash ${commit} override ${versionOverride}")
     result
   }
 
