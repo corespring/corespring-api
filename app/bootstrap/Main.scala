@@ -97,6 +97,12 @@ object Main
     }
   }
 
+  private def appVersion: String = {
+    val result = BuildInfo.commitHashShort + AppConfig.appVersionOverride
+    logger.info(s"AppVersion $result hash ${BuildInfo.commitHashShort} override ${AppConfig.appVersionOverride}")
+    result
+  }
+
   override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
@@ -111,7 +117,7 @@ object Main
 
     override lazy val bucket: String = AppConfig.assetsBucket
 
-    override def appVersion: String = BuildInfo.commitHashShort + AppConfig.appVersionOverride
+    override def appVersion: String = appVersion
 
     override def s3: AmazonS3 = bootstrap.Main.s3
 
@@ -145,7 +151,7 @@ object Main
 
   lazy val cdnResolver = new CDNResolver(
     containerConfig.cdnDomain,
-    if (containerConfig.cdnAddVersionAsQueryParam) Some(BuildInfo.commitHashShort) else None)
+    if (containerConfig.cdnAddVersionAsQueryParam) Some(appVersion) else None)
 
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
