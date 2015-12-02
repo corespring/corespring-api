@@ -1,6 +1,8 @@
 package org.corespring.v2.sessiondb.mongo
 
 import com.mongodb.casbah.MongoCollection
+import com.mongodb.casbah.commons.MongoDBObject
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.sessiondb.SessionService
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
@@ -14,4 +16,8 @@ class MongoSessionService(collection: MongoCollection) extends SessionService {
   def load(id: String): Option[JsValue] = impl.load(id)
   def save(id: String, data: JsValue): Option[JsValue] = impl.save(id, data)
 
+  override def sessionCount(itemId: VersionedId[ObjectId]): Long = {
+    val query = MongoDBObject("itemId" -> itemId.toString)
+    impl.collection.count(query)
+  }
 }

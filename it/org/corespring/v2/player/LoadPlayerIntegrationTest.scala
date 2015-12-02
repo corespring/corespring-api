@@ -1,25 +1,24 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
-import org.corespring.common.config.SessionDbConfig
 import org.corespring.container.client.V2PlayerConfig
 import org.corespring.container.client.component.ComponentUrls
 import org.corespring.container.client.controllers.apps.ComponentScriptInfo
 import org.corespring.container.client.hooks.PlayerHooks
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.processing.PlayerItemPreProcessor
 import org.corespring.it.IntegrationSpecification
+import org.corespring.it.helpers.SecureSocialHelper
+import org.corespring.it.scopes._
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.V2SessionHelper
 import org.corespring.v2.auth.models.PlayerAccessSettings
-import org.corespring.v2.player.scopes._
 import org.specs2.mock.Mockito
 import play.api.Mode.Mode
 import play.api.libs.json._
 import play.api.mvc._
 import play.api.test.FakeRequest
-import play.api.{ Configuration, Mode, GlobalSettings, Play }
+import play.api.{ Configuration, GlobalSettings, Mode, Play }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -32,7 +31,7 @@ class LoadPlayerIntegrationTest
 
     def showErrorInUi = false
 
-    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+    override def containerContext: ContainerExecutionContext = ContainerExecutionContext(ExecutionContext.global)
 
     override def hooks: PlayerHooks = new PlayerHooks {
 
@@ -45,6 +44,7 @@ class LoadPlayerIntegrationTest
 
       override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = ???
 
+      override implicit def containerContext: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
     }
 
     override def urls: ComponentUrls = mock[ComponentUrls]
@@ -67,14 +67,6 @@ class LoadPlayerIntegrationTest
     override protected def buildCss(scriptInfo: ComponentScriptInfo)(implicit rh: RequestHeader): Seq[String] = Seq.empty
   }
 
-  def getMockResult(itemId: VersionedId[ObjectId], collection: String) = {
-    val sessionId = V2SessionHelper.findSessionForItemId(itemId, collection)
-    val mockPlayer = new MockPlayer(sessionId.toString)
-    val mockResult = mockPlayer.createSessionForItem(itemId.toString)(FakeRequest("", ""))
-    logger.debug(s"mockresult - headers: ${headers(mockResult)}")
-    mockResult
-  }
-
   "when I load the player with orgId and options" should {
 
     "fail to create session for unknown user" in new unknownIdentity_CreateSession() {
@@ -88,16 +80,16 @@ class LoadPlayerIntegrationTest
 
     "create session for logged in user" in new user_CreateSession() {
       status(createSessionResult) === CREATED
-      val mockResult = getMockResult(itemId, SessionDbConfig.previewSessionTable)
+      val mockResult = getMockResult(itemId)
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
     "create session adds dateCreated field to the db document, and returns it in the session json" in new user_CreateSession() {
       status(createSessionResult) === CREATED
-      val mockResult = getMockResult(itemId, SessionDbConfig.previewSessionTable)
-      val sessionId = V2SessionHelper.findSessionForItemId(itemId, SessionDbConfig.previewSessionTable)
-      val session = V2SessionHelper.findSession(sessionId.toString, SessionDbConfig.previewSessionTable).get
+      val mockResult = getMockResult(itemId)
+      val sessionId = v2SessionHelper.findSessionForItemId(itemId)
+      val session = v2SessionHelper.findSession(sessionId.toString).get
       (session \ "dateCreated") must not be equalTo(null)
 
       val call = org.corespring.container.client.controllers.resources.routes.Session.loadItemAndSession(sessionId.toString)
@@ -116,7 +108,7 @@ class LoadPlayerIntegrationTest
 
     "create session for access token" in new token_CreateSession() {
       status(createSessionResult) === CREATED
-      val mockResult = getMockResult(itemId, SessionDbConfig.sessionTable)
+      val mockResult = getMockResult(itemId)
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
@@ -133,13 +125,13 @@ class LoadPlayerIntegrationTest
 
     "create session for client id + options query string" in new clientIdAndToken_queryString_CreateSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
       status(createSessionResult) === CREATED
-      val mockResult = getMockResult(itemId, SessionDbConfig.sessionTable)
+      val mockResult = getMockResult(itemId)
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
   }
 
-  trait HasCreateSessionResult { self: HasItemId with RequestBuilder =>
+  private trait HasCreateSessionResult { self: HasItemId with RequestBuilder =>
 
     protected def global: GlobalSettings = Play.current.global
 
@@ -151,8 +143,45 @@ class LoadPlayerIntegrationTest
     }
   }
 
-  class unknownIdentity_CreateSession extends HasCreateSessionResult with PlainRequestBuilder with orgWithAccessTokenAndItem {}
-  class user_CreateSession extends userAndItem with HasCreateSessionResult with SessionRequestBuilder with SecureSocialHelpers {}
-  class token_CreateSession extends orgWithAccessTokenAndItem with HasCreateSessionResult with TokenRequestBuilder {}
-  class clientIdAndToken_queryString_CreateSession(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with HasCreateSessionResult with IdAndPlayerTokenRequestBuilder {}
+  private class unknownIdentity_CreateSession extends HasCreateSessionResult with PlainRequestBuilder with orgWithAccessTokenAndItem {}
+
+  private trait MockResultLoader { self: WithV2SessionHelper =>
+
+    def getMockResult(itemId: VersionedId[ObjectId]) = {
+      val sessionId = v2SessionHelper.findSessionForItemId(itemId)
+      val mockPlayer = new MockPlayer(sessionId.toString)
+      val mockResult = mockPlayer.createSessionForItem(itemId.toString)(FakeRequest("", ""))
+      logger.debug(s"mockresult - headers: ${headers(mockResult)}")
+      mockResult
+    }
+  }
+
+  private class user_CreateSession
+    extends userAndItem
+    with HasCreateSessionResult
+    with SessionRequestBuilder
+    with SecureSocialHelper
+    with WithV2SessionHelper
+    with MockResultLoader {
+    override lazy val usePreview = true
+  }
+
+  private class token_CreateSession
+    extends orgWithAccessTokenAndItem
+    with HasCreateSessionResult
+    with TokenRequestBuilder
+    with WithV2SessionHelper
+    with MockResultLoader {
+    override lazy val usePreview = false
+  }
+
+  private class clientIdAndToken_queryString_CreateSession(val playerToken: String, val skipDecryption: Boolean = true)
+    extends clientIdAndPlayerToken
+    with HasCreateSessionResult
+    with IdAndPlayerTokenRequestBuilder
+    with WithV2SessionHelper
+    with MockResultLoader {
+    override lazy val usePreview = false
+
+  }
 }

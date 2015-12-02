@@ -1,14 +1,13 @@
 package org.corespring.v2.player
 
+import grizzled.slf4j.Logger
 import org.corespring.drafts.item.models.DraftId
-import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
-import org.corespring.platform.core.models.Organization
-import org.corespring.test.SecureSocialHelpers
+import org.corespring.it.IntegrationSpecification
+import org.corespring.it.helpers.{ IntegrationHelpers, SecureSocialHelper }
+import org.corespring.it.scopes._
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.generalError
-import org.corespring.v2.player.scopes._
-import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import play.api.mvc._
 
@@ -18,7 +17,7 @@ class LoadEditorIntegrationTest
 
   import org.corespring.container.client.controllers.apps.routes.DraftEditor
 
-  override val logger: org.slf4j.Logger = LoggerFactory.getLogger("it.load-editor")
+  override lazy val logger = Logger("it.load-editor")
 
   "the editor" should {
 
@@ -64,10 +63,10 @@ class LoadEditorIntegrationTest
     override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
   }
 
-  class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelpers {
+  class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelper {
     override lazy val draftName = user.userName
+    lazy val orgService = bootstrap.Main.orgService
     override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
-
   }
 
   class clientIdAndPlayerToken_editItemLoader(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with itemDraftLoader {

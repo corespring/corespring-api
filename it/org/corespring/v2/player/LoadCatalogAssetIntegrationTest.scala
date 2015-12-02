@@ -1,9 +1,9 @@
 package org.corespring.v2.player
 
 import org.corespring.it.IntegrationSpecification
-import org.corespring.v2.player.scopes.AddSupportingMaterialImageAndItem
+import org.corespring.it.scopes.AddSupportingMaterialImageAndItem
 import org.specs2.time.NoTimeConversions
-import play.api.mvc.{ Codec, AnyContentAsEmpty }
+import play.api.mvc.{ Request, AnyContentAsEmpty, Codec }
 
 class LoadCatalogAssetIntegrationTest extends IntegrationSpecification with NoTimeConversions {
 
@@ -11,13 +11,13 @@ class LoadCatalogAssetIntegrationTest extends IntegrationSpecification with NoTi
 
     "load a supporting material asset" in new AddSupportingMaterialImageAndItem {
       //Note: the `lazy` is important here - otherwise there'll be a NPE in <AddSupportingMaterialImageAndItem>.
-      override lazy val imagePath = "it/org/corespring/v2/player/load-image/puppy.png"
+      override lazy val imagePath = "/test-images/puppy.png"
       override lazy val materialName = "Rubric"
 
       import org.corespring.container.client.controllers.resources.routes.Item
       val call = Item.getAssetFromSupportingMaterial(itemId.toString, materialName, fileName)
       val r = makeRequest(call, AnyContentAsEmpty)
-      val future = route(r)(writeableOf_AnyContentAsEmpty(Codec.utf_8))
+      val future = route(r.asInstanceOf[Request[AnyContentAsEmpty.type]])(writeableOf_AnyContentAsEmpty(Codec.utf_8))
       future.map {
         result =>
           status(result) must_== OK

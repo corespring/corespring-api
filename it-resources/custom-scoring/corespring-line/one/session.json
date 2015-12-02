@@ -1,0 +1,36 @@
+{
+  "item" : {
+    "components" : {
+      "RESPONSE" : {
+        "componentType" : "corespring-multiple-choice"
+      },
+      "graphTest" : {
+        "componentType" : "corespring-line"
+      }
+    }
+  },
+  "session" : {
+    "components" : {
+      "RESPONSE" : {
+         "answers" : [ "3" ]
+      },
+      "graphTest" : {
+        "answers" : "-0.75x+2.75"
+      }
+    }
+  },
+  "outcomes" : {
+    "components" : {
+      "graphTest" : {
+        "correctness" : "correct"
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":100,
+      "note": "Overridden score"
+    }
+  }
+}

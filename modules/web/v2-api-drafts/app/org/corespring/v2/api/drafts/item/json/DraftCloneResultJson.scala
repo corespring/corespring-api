@@ -7,6 +7,6 @@ object DraftCloneResultJson {
   def apply(r: DraftCloneResult): JsValue = {
     Json.obj(
       "itemId" -> r.itemId.toString,
-      "draftId" -> r.draftId.toString)
+      "draftId" -> r.draftId.toIdString)
   }
 }

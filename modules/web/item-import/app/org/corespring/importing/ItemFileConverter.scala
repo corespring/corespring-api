@@ -1,33 +1,37 @@
 package org.corespring.importing
 
-import java.io.ByteArrayInputStream
-
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.s3.transfer.TransferManager
 import com.fasterxml.jackson.core.JsonParseException
 import org.bson.types.ObjectId
-import org.corespring.common.aws.AwsUtil
-import org.corespring.json.validation.JsonValidator
-import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile, BaseFile }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.assets.AssetKeys
+import org.corespring.importing.validation.{ ItemJsonValidator }
+import org.corespring.models.item._
+import org.corespring.models.item.resource.{ BaseFile, Resource }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.services.item.ItemService
+import play.api.Logger
 import play.api.libs.json._
 
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 import scalaz.{ Success, Failure, Validation }
 
-trait ItemFileConverter {
+case class ImportingExecutionContext(ctx: ExecutionContext)
 
-  def uploader: Uploader
-  def itemService: ItemService
+class ItemFileConverter(
+  uploader: Uploader,
+  itemAssetKeys: AssetKeys[VersionedId[ObjectId]],
+  itemService: ItemService,
+  jsonFormatting: JsonFormatting,
+  context: ImportingExecutionContext,
+  itemValidator: ItemJsonValidator) {
 
-  val S3_UPLOAD_TIMEOUT = Duration(5, MINUTES)
+  implicit val ec = context.ctx
+
+  private val logger = Logger(classOf[ItemFileConverter])
+
+  import jsonFormatting._
 
   object errors {
     val cannotCreateItem = "There was an error saving the item to the database"
@@ -49,14 +53,14 @@ trait ItemFileConverter {
    */
   def convert(collectionId: String)(implicit sources: Map[String, Source]): Validation[Error, Item] = {
     try {
-      (itemJson, metadata) match {
+      (loadJson(sources), metadata) match {
         case (Failure(error), _) => Failure(error)
         case (_, Failure(error)) => Failure(error)
-        case (Success(itemJson), Success(md)) => {
+        case (Success(json), Success(md)) => {
           implicit val metadata = md
           create(collectionId) match {
             case Some(id) => {
-              val itemFiles: Option[Resource] = files(id, itemJson) match {
+              val itemFiles: Option[Resource] = files(id, json) match {
                 case Success(files) => files
                 case Failure(error) => throw new ConversionException(error)
               }
@@ -66,16 +70,16 @@ trait ItemFileConverter {
               }
               val item = Item(
                 id = id,
-                collectionId = Some(collectionId),
-                contributorDetails = contributorDetails,
+                collectionId = collectionId,
+                contributorDetails = md.flatMap(m => contributorDetails((m \ "contributorDetails"))),
                 data = itemFiles,
                 lexile = extractString("lexile"),
                 otherAlignments = otherAlignments,
                 pValue = extractString("pValue"),
                 playerDefinition =
                   Some(PlayerDefinition(itemFiles.map(_.files).getOrElse(Seq.empty),
-                    (itemJson \ "xhtml").as[String], (itemJson \ "components"),
-                    (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
+                    (json \ "xhtml").as[String], (json \ "components"),
+                    (json \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
                 priorGradeLevels = extractStringSeq("priorGradeLevels"),
                 priorUse = extractString("priorUse"),
                 taskInfo = taskInfo,
@@ -95,19 +99,16 @@ trait ItemFileConverter {
     }
   }
 
-  private def itemJson(implicit sources: Map[String, Source]): Validation[Error, JsValue] = {
-    val filename = itemJsonFilename
-    try {
-      val itemJson = sources.get(filename).map(item => Json.parse(item.mkString))
-        .getOrElse(throw new Exception(errors.fileMissing(filename)))
-      JsonValidator.validateItem(itemJson) match {
-        case Left(errorMessages) => Failure(new Error(errorMessages.mkString("\n")))
-        case Right(itemJson) => Success(itemJson)
-      }
-    } catch {
-      case json: JsonParseException => Failure(new Error(jsonParseError(filename)))
-      case e: Exception => Failure(new Error(e.getMessage))
-    }
+  import scalaz.Scalaz._
+
+  private def loadJson(sources: Map[String, Source]): Validation[Error, JsValue] = {
+
+    logger.trace(s"function=loadJson, sources=${sources.map(_._1)}")
+    for {
+      source <- sources.get(itemJsonFilename).toSuccess(new Error(s"Can't find file $itemJsonFilename"))
+      itemJson <- Validation.fromTryCatch(Json.parse(source.mkString)).leftMap(_ => new Error("Can't parse json"))
+      validated <- itemValidator.validate(itemJson).leftMap(e => new Error(e.mkString("\n")))
+    } yield validated
   }
 
   private def metadata(implicit sources: Map[String, Source]): Validation[Error, Option[JsValue]] = {
@@ -120,7 +121,7 @@ trait ItemFileConverter {
 
   private def create(collectionId: String): Option[VersionedId[ObjectId]] = {
     val item = Item(
-      collectionId = Some(collectionId),
+      collectionId = collectionId,
       playerDefinition = Some(PlayerDefinition.empty))
     itemService.insert(item)
   }
@@ -134,13 +135,18 @@ trait ItemFileConverter {
   }
 
   private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]] = {
-    val futureFiles =
-      Future.sequence(files.map { case (filename, source) => uploader.upload(filename, s"$itemId/data/$filename", source) }.toSeq)
-    try {
-      Success(Await.result(futureFiles, S3_UPLOAD_TIMEOUT))
-    } catch {
-      case e: Exception => Failure(new Error(e.getMessage))
-    }
+
+    val uploads: Seq[Future[BaseFile]] = files.map {
+      case (filename, source) => {
+        val key = itemAssetKeys.file(itemId, filename)
+        uploader.upload(filename, key, source)
+      }
+    }.toSeq
+
+    Validation.fromTryCatch {
+      val futures = Future.sequence(uploads)
+      Await.result(futures, 5.minutes)
+    }.leftMap(t => new Error(t.getMessage))
   }
 
   private def extractString(field: String)(implicit metadata: Option[JsValue]): Option[String] =
@@ -150,38 +156,33 @@ trait ItemFileConverter {
     metadata.map(metadata => (metadata \ field).asOpt[Seq[String]]).flatten.getOrElse(Seq.empty)
 
   private def otherAlignments(implicit metadata: Option[JsValue]): Option[Alignments] = {
-    implicit val alignmentsReads = Alignments.Reads
     metadata.map(md => (md \ "otherAlignments").asOpt[JsObject]).flatten.map(Json.fromJson[Alignments](_) match {
       case JsSuccess(value, _) => value
       case _ => throw new ConversionException(new Error(metadataParseError("otherAlignments")))
     })
   }
 
-  private def contributorDetails(implicit metadata: Option[JsValue]): Option[ContributorDetails] = {
-    implicit val contributorDetailsReads = ContributorDetails.Reads
-    implicit val Formats = Json.format[Copyright]
-    metadata.map(md => (md \ "contributorDetails").asOpt[JsObject]).flatten.map(js => Json.fromJson[ContributorDetails](js) match {
-      case JsSuccess(value, _) => value.copy(copyright = (js \ "copyright").asOpt[JsObject].map(Json.fromJson[Copyright](_) match {
-        case JsSuccess(copyValue, _) => Some(copyValue)
-        case _ => None
-      }).flatten)
-      case _ => throw new ConversionException(new Error(metadataParseError("contributorDetails")))
-    })
+  private def contributorDetails(details: JsValue): Option[ContributorDetails] = for {
+    cd <- details.asOpt[ContributorDetails]
+  } yield {
+    val copyright = (details \ "copyright").asOpt[Copyright](Json.reads[Copyright])
+    cd.copy(copyright = copyright)
   }
 
   private def taskInfo(implicit metadata: Option[JsValue]): Option[TaskInfo] = {
-    implicit val taskInfoReads = TaskInfo.taskInfoReads
     metadata.map(md => (md \ "taskInfo").asOpt[TaskInfo]).flatten
   }
 
   private def workflow(implicit metadata: Option[JsValue]): Option[Workflow] = {
-    import org.corespring.platform.core.models.item.Workflow._
+
+    import Workflow.Keys
+
     metadata.map(md => (md \ "workflow").asOpt[Seq[String]] match {
       case Some(workflowStrings) => Some(Workflow(
-        setup = workflowStrings.contains(setup),
-        tagged = workflowStrings.contains(tagged),
-        standardsAligned = workflowStrings.contains(standardsAligned),
-        qaReview = workflowStrings.contains(qaReview)))
+        setup = workflowStrings.contains(Keys.setup),
+        tagged = workflowStrings.contains(Keys.tagged),
+        standardsAligned = workflowStrings.contains(Keys.standardsAligned),
+        qaReview = workflowStrings.contains(Keys.qaReview)))
       case _ => None
     }).flatten
   }
@@ -204,20 +205,3 @@ trait ItemFileConverter {
   }
 }
 
-trait Uploader {
-  def upload(filename: String, path: String, file: Source): Future[StoredFile]
-}
-
-class TransferManagerUploader(credentials: BasicAWSCredentials, bucket: String) extends Uploader {
-
-  val transferManager = new TransferManager(credentials)
-
-  def upload(filename: String, path: String, file: Source) = future {
-    val byteArray = file.map(_.toByte).toArray
-    val metadata = new ObjectMetadata()
-    metadata.setContentLength(byteArray.length)
-    val result = transferManager.upload(bucket, path, new ByteArrayInputStream(byteArray), metadata).waitForUploadResult
-    StoredFile(name = filename, contentType = BaseFile.getContentType(filename), storageKey = result.getKey)
-  }
-
-}

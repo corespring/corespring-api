@@ -1,9 +1,9 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
+import org.corespring.models.{ ContentCollection, Organization }
+import org.corespring.services.OrganizationService
 import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerAccessSettings }
-import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.Errors.{ incorrectJsonFormat, invalidQueryStringParameter, noApiClientAndPlayerTokenInQueryString }
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import org.specs2.mock.Mockito
@@ -27,10 +27,9 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
 
     override def decrypt(encrypted: String, apiClientId: String, header: RequestHeader): Option[String] = Some(encrypted)
 
-    override def orgService: OrgService = {
-      val m = mock[OrgService]
-      m.defaultCollection(any[Organization]) returns Some(ObjectId.get)
-      m.org(any[ObjectId]) returns Some(org)
+    override def orgService: OrganizationService = {
+      val m = mock[OrganizationService]
+      m.findOneById(any[ObjectId]) returns Some(org)
       m
     }
   }
@@ -56,8 +55,8 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
         case Success(_) => ko("request succeeded")
         case Failure(err) => {
           val arr = (err.json \ "json-errors").as[JsArray]
-          ((arr(0) \ "errors")(0) \ "message").as[String] === "Missing 'expires'"
-          err.message === incorrectJsonFormat(Json.obj("itemId" -> "*")).message
+          ((arr(0) \ "errors")(0) \ "message").as[String] must_== "Missing 'expires'"
+          err.message must_== incorrectJsonFormat(Json.obj("itemId" -> "*")).message
         }
       }
 

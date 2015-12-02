@@ -1,18 +1,19 @@
 package org.corespring.v2.player.hooks
 
-import com.mongodb.DBObject
-import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
-import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
 
@@ -26,38 +27,30 @@ object V2ErrorToTuple {
   implicit def v2ErrorToTuple[A](v: Validation[V2Error, A]): Either[(Int, String), A] = v.leftMap { e => (e.statusCode -> e.message) }.toEither
 }
 
-trait ItemHooks
-  extends BaseItemHooks
-  with containerHooks.CreateItemHook
+class ItemHooks(
+  transformer: ItemTransformer,
+  auth: ItemAuth[OrgAndOpts],
+  itemService: ItemService,
+  val jsonFormatting: JsonFormatting,
+  val playerJsonToItem: PlayerJsonToItem,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val containerContext: ContainerExecutionContext)
+  extends containerHooks.ItemHooks
+  with BaseItemHooks
   with LoadOrgAndOptions {
 
   import V2ErrorToTuple._
 
-  def transform: ModelItem => JsValue
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
-  def auth: ItemAuth[OrgAndOpts]
-
-  def itemService: ItemService
-
-  lazy val logger = V2LoggerFactory.getLogger("ItemHooks")
-
-  import scalaz.Scalaz._
-  override protected def update(id: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): R[JsValue] = Future {
-    for {
-      identity <- getOrgAndOptions(header)
-      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
-      item <- auth.loadForWrite(id)(identity)
-      updatedItem <- Success(updateFn(item, json))
-      _ <- Validation.fromEither(itemService.save(updatedItem, false)).leftMap(e => generalError(e))
-    } yield json
-  }
+  lazy val logger = Logger(classOf[ItemHooks])
 
   override def load(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
     val item: Validation[V2Error, JsValue] = for {
       identity <- getOrgAndOptions(header)
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- auth.loadForRead(itemId)(identity)
-    } yield transform(item)
+    } yield transformer.transformToV2Json(item)
 
     item.leftMap(e => e.statusCode -> e.message).toEither
   }
@@ -69,33 +62,12 @@ trait ItemHooks
     } yield Json.obj("id" -> vid.toString)
   }
 
-  private def updateDb[A](id: String, dbKey: String, data: A, returnKey: Option[String] = None)(implicit h: RequestHeader, w: Writes[A]): Either[(Int, String), JsValue] = {
-
-    def update(vid: VersionedId[ObjectId], dbo: DBObject) = {
-      val result = itemService.collection.update(MongoDBObject("_id._id" -> vid.id), MongoDBObject("$set" -> dbo), false, false)
-      logger.debug(s"no of documents update: ${result.getN.toString}")
-      require(result.getN == 1)
-    }
-    import com.mongodb.util.JSON
-    val dbo = MongoDBObject(dbKey -> JSON.parse(Json.stringify((Json.toJson(data)))))
-
-    for {
-      identity <- getOrgAndOptions(h)
-      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
-      canWrite <- auth.canWrite(id)(identity)
-      _ <- if (canWrite) Success(update(vid, dbo)) else Failure(generalError(s"Can't save to item $id"))
-    } yield {
-      val outKey = returnKey.getOrElse(dbKey)
-      JsObject(Seq(outKey -> w.writes(data)))
-    }
-  }
-
   override def createItem(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
 
     def createItem(collectionId: String, identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
       val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
       val item = ModelItem(
-        collectionId = Some(collectionId),
+        collectionId = collectionId,
         playerDefinition = Some(definition))
       auth.insert(item)(identity)
     }
@@ -115,5 +87,16 @@ trait ItemHooks
 
     accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString()).toEither
   }
+
+  override protected def update(id: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): R[JsValue] = Future {
+    for {
+      identity <- getOrgAndOptions(header)
+      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+      item <- auth.loadForWrite(id)(identity)
+      updatedItem <- Success(updateFn(item, json))
+      _ <- itemService.save(updatedItem, false).leftMap(e => generalError(e.message))
+    } yield json
+  }
+
 }
 

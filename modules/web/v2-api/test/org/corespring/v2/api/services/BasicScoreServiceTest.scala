@@ -1,19 +1,34 @@
 package org.corespring.v2.api.services
 
+import org.bson.types.ObjectId
 import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
-import org.corespring.platform.core.models.item.PlayerDefinition
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.models.item.{ FieldValue, PlayerDefinition }
+import org.corespring.models.json.JsonFormatting
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import scalaz.Success
 
 class BasicScoreServiceTest extends Specification with Mockito {
 
+  val jsonFormatting = new JsonFormatting {
+    override def fieldValue: FieldValue = ???
+
+    override def findStandardByDotNotation: (String) => Option[Standard] = ???
+
+    override def rootOrgId: ObjectId = ???
+
+    override def findSubjectById: (ObjectId) => Option[Subject] = ???
+  }
+
+  import jsonFormatting.formatPlayerDefinition
+
   class scoreScope extends Scope {
 
-    val playerDefinition =  PlayerDefinition(
+    val playerDefinition = PlayerDefinition(
       files = Seq.empty,
       xhtml = "<html/>",
       components = Json.obj(),
@@ -43,7 +58,7 @@ class BasicScoreServiceTest extends Specification with Mockito {
     }
 
     "return score from ScoreProcessor with success" in new scoreScope {
-      response must be equalTo(Success(score))
+      response must be equalTo (Success(score))
     }
 
   }

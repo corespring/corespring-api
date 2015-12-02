@@ -1,57 +1,57 @@
 package org.corespring.v2.player.integration.hooks
 
-import akka.util.internal.Timeout
-import org.corespring.container.client.hooks.{ SaveSession, SessionOutcome, FullSession }
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
-import org.corespring.test.matchers.RequestMatchers
+import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionOutcome }
+import org.corespring.models.Organization
+import org.corespring.models.item.PlayerDefinition
+import org.corespring.models.item.resource.StoredFile
+import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.SessionAuth.Session
 import org.corespring.v2.auth.models.AuthMode.AuthMode
-import org.corespring.v2.auth.models.{ PlayerAccessSettings, OrgAndOpts }
+import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, generalError, invalidToken }
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.corespring.v2.player.hooks.SessionHooks
 import org.specs2.matcher.{ Expectable, Matcher }
-import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.GlobalSettings
-import play.api.libs.json.{ Json, JsValue }
+import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
 import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
 import scalaz.{ Failure, Success, Validation }
 
-class SessionHooksTest extends Specification with Mockito with RequestMatchers {
+class SessionHooksTest extends V2PlayerIntegrationSpec {
 
   import scala.language.higherKinds
 
   val defaultFailure = generalError("Default failure")
 
-  abstract class SessionContext extends Scope {
+  private[SessionHooksTest] abstract class SessionContext extends Scope with StubJsonFormatting {
 
     def getOrgAndOptionsResult: Validation[V2Error, OrgAndOpts]
     def authSaveSessionResult: Validation[V2Error, (String, Session) => Option[Session]]
     def authLoadForReadResult: Validation[V2Error, (Session, PlayerDefinition)]
 
-    lazy val hooks = new SessionHooks {
-
-      override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = {
-        val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
-        m.saveSessionFunction(any[OrgAndOpts]) returns authSaveSessionResult
-        m.loadForRead(anyString)(any[OrgAndOpts]) returns authLoadForReadResult
-        m
-      }
-
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptionsResult
-
-      override def itemService: org.corespring.platform.core.services.item.ItemService = ???
-
-      override def transformItem: Item => JsValue = ???
+    lazy val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = {
+      val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
+      m.saveSessionFunction(any[OrgAndOpts]) returns authSaveSessionResult
+      m.loadForRead(anyString)(any[OrgAndOpts]) returns authLoadForReadResult
+      m
     }
+
+    def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptionsResult
+
+    lazy val itemService: ItemService = mock[ItemService]
+
+    lazy val hooks = new SessionHooks(
+      sessionAuth,
+      itemService,
+      jsonFormatting,
+      getOrgAndOptions,
+      containerExecutionContext)
+
   }
 
   class IdentificationFailureContext extends SessionContext {

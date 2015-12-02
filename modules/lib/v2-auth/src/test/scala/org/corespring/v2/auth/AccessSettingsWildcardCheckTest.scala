@@ -1,21 +1,14 @@
 package org.corespring.v2.auth
 
-import org.corespring.common.config.AppConfig
 import org.corespring.v2.auth.models.{ Mode, PlayerAccessSettings }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import play.api.Configuration
 
 import scalaz.{ Failure, Success }
 
 class AccessSettingsWildcardCheckTest extends Specification with Mockito {
 
-  val config = mock[Configuration]
-  config.getString(anyString, any) returns Some("test")
-  config.getBoolean(anyString) returns Some(false)
-
-  val appConfig = new AppConfig(config)
-  val check = new AccessSettingsWildcardCheck(appConfig)
+  val check = new AccessSettingsWildcardCheck(AccessSettingsCheckConfig(false))
 
   val allow = check.allow _
   val notGrantedError = check.notGrantedError _

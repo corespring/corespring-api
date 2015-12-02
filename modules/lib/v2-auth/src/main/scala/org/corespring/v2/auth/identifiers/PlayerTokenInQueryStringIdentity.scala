@@ -1,12 +1,12 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.{ User, Organization }
+import org.corespring.models.{ User, Organization }
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.errors.Errors._
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import org.corespring.v2.warnings.V2Warning
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import play.api.libs.json.{ JsSuccess, JsValue, JsError, Json }
@@ -27,9 +27,8 @@ object PlayerTokenInQueryStringIdentity {
 
 trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
+  override lazy val logger = Logger(classOf[PlayerTokenInQueryStringIdentity])
   override val name = "player-token-in-query-string"
-
-  override lazy val logger = V2LoggerFactory.getLogger("auth", "PlayerTokenInQueryStringIdentity")
 
   override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, OrgAndOpts] = {
     toAccessSettings(org.id, rh).map { tuple: (PlayerAccessSettings, Option[V2Warning]) =>

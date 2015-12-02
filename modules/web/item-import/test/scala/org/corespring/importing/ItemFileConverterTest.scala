@@ -1,23 +1,22 @@
 package org.corespring.importing
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ BaseFile, StoredFile }
-import org.corespring.platform.core.services.item.ItemService
-import org.corespring.test.PlaySingleton
-import org.corespring.v2.auth.models.{ OrgAndOpts, _ }
+import org.corespring.assets.ItemAssetKeys
+import org.corespring.importing.validation.ItemJsonValidator
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.models.item.{ StringKeyValue, FieldValue, Item }
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.item.ItemService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.corespring.platform.data.mongo.models.VersionedId
-import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.json.JsValue
 import scala.concurrent._
 import scala.io.Source
 import scalaz.Success
 
 class ItemFileConverterTest extends Specification with Mockito {
-
-  PlaySingleton.start()
 
   val collectionId = "543edd2fa399191672bedea9"
 
@@ -191,23 +190,63 @@ class ItemFileConverterTest extends Specification with Mockito {
 
   "convert" should {
 
-    val sources = (Seq(
-      "dot array.png", "metadata.json", "files/rubric.pdf").map(file => (file, Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1"))) ++
-      Seq("item.json" -> Source.fromString(itemJson), "metadata.json" -> Source.fromString(metadataJson))).toMap
+    val srcFiles = Seq("dot array.png", "metadata.json", "files/rubric.pdf")
 
-    val itemFileConverter = new ItemFileConverter {
-      def bucket: String = "fake bucket"
-      def itemService: ItemService = {
-        val service = mock[ItemService]
-        service.insert(_root_.org.mockito.Matchers.anyObject().asInstanceOf[Item]).returns(Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0))))
-        service
-      }
-      def uploader = new Uploader {
-        override def upload(filename: String, path: String, file: Source): Future[StoredFile] = future {
-          StoredFile(name = filename, contentType = BaseFile.getContentType(filename), storageKey = storageKey)
-        }
+    def toPathAndSource(path: String) = path -> Source.fromURL(getClass.getResource(s"/item/$path"), "ISO-8859-1")
+
+    val sources = (srcFiles.map(toPathAndSource) ++
+      Seq(
+        "item.json" -> Source.fromString(itemJson),
+        "metadata.json" -> Source.fromString(metadataJson))).toMap
+
+    val itemService: ItemService = {
+      val service = mock[ItemService]
+      service.insert(_root_.org.mockito.Matchers.anyObject().asInstanceOf[Item]).returns(Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0))))
+      service
+    }
+
+    val uploader = new Uploader {
+      import ExecutionContext.Implicits.global
+
+      override def upload(filename: String, path: String, file: Source): Future[StoredFile] = future {
+        StoredFile(name = filename, contentType = BaseFile.getContentType(filename), storageKey = storageKey)
       }
     }
+
+    val jsonFormatting = new JsonFormatting {
+
+      def kv(s: String) = StringKeyValue(s, s)
+
+      override def fieldValue: FieldValue = FieldValue(
+        credentials = Seq(kv("State Department of Education"),
+          kv("State of New Jersey Department of Education")),
+        bloomsTaxonomy = Seq(kv("Analyzing")),
+        gradeLevels = Seq(kv("03")))
+
+      override def findStandardByDotNotation: (String) => Option[Standard] = _ => None
+
+      override def rootOrgId: ObjectId = ObjectId.get
+
+      override def findSubjectById: (ObjectId) => Option[Subject] = _ => None
+    }
+
+    val context = ImportingExecutionContext(ExecutionContext.global)
+
+    val itemValidator = {
+      val m = mock[ItemJsonValidator]
+      m.validate(any[JsValue]) answers { (json) => Success(json.asInstanceOf[JsValue]) }
+      m
+    }
+
+    val itemAssetKeys = ItemAssetKeys
+
+    val itemFileConverter = new ItemFileConverter(
+      uploader,
+      itemAssetKeys,
+      itemService,
+      jsonFormatting,
+      context,
+      itemValidator)
     val result = itemFileConverter.convert(collectionId)(sources)
 
     "create Item from local files" in {
@@ -218,68 +257,68 @@ class ItemFileConverterTest extends Specification with Mockito {
 
       val item: Item = result.asInstanceOf[Success[Error, Item]].getOrElse(throw new Exception("no item"))
 
-      "have correct collectionId" in { item.collectionId must be equalTo (Some(collectionId)) }
-      "have item as contentType" in { item.contentType must be equalTo (Item.contentType) }
+      "have correct collectionId" in { item.collectionId must_== collectionId }
+      "have item as contentType" in { item.contentType must_== Item.contentType }
 
       "contributorDetails" should {
         val itemContributorDetails = item.contributorDetails.getOrElse(throw new Exception("contributorDetails missing"))
 
-        "have correct author" in { itemContributorDetails.author must be equalTo Some(contributorDetails.author) }
-        "have correct contributor" in { itemContributorDetails.contributor must be equalTo Some(contributorDetails.contributor) }
+        "have correct author" in { itemContributorDetails.author must_== Some(contributorDetails.author) }
+        "have correct contributor" in { itemContributorDetails.contributor must_== Some(contributorDetails.contributor) }
 
         "copyright" should {
           val itemCopyright = itemContributorDetails.copyright.getOrElse(throw new Exception("contributorDetails.copyright missing"))
 
-          "have correct owner" in { itemCopyright.owner must be equalTo (Some(contributorDetails.copyright.owner)) }
-          "have correct year" in { itemCopyright.year must be equalTo (Some(contributorDetails.copyright.year)) }
+          "have correct owner" in { itemCopyright.owner must_== (Some(contributorDetails.copyright.owner)) }
+          "have correct year" in { itemCopyright.year must_== (Some(contributorDetails.copyright.year)) }
         }
 
-        "have correct credentials" in { itemContributorDetails.credentials must be equalTo (Some(contributorDetails.credentials)) }
-        "have correct licenseType" in { itemContributorDetails.licenseType must be equalTo (Some(contributorDetails.licenseType)) }
-        "have correct sourceUrl" in { itemContributorDetails.sourceUrl must be equalTo (Some(contributorDetails.sourceUrl)) }
+        "have correct credentials" in { itemContributorDetails.credentials must_== (Some(contributorDetails.credentials)) }
+        "have correct licenseType" in { itemContributorDetails.licenseType must_== (Some(contributorDetails.licenseType)) }
+        "have correct sourceUrl" in { itemContributorDetails.sourceUrl must_== (Some(contributorDetails.sourceUrl)) }
 
       }
 
       "data" should {
         val itemData = item.data.getOrElse(throw new Exception("data missing"))
 
-        "have correct files" in { itemData.files.map(_.name) must be equalTo files }
+        "have correct files" in { itemData.files.map(_.name) must_== files }
       }
 
       "otherAlignments" should {
         val itemOtherAlignments = item.otherAlignments.getOrElse(throw new Exception("otherAlignments missing"))
 
-        "have correct bloomsTaxonomy" in { itemOtherAlignments.bloomsTaxonomy must be equalTo Some(otherAlignments.bloomsTaxonomy) }
-        "have correct keySkills" in { itemOtherAlignments.keySkills must be equalTo otherAlignments.keySkills }
-        "have correct relatedCurriculum" in { itemOtherAlignments.relatedCurriculum must be equalTo Some(otherAlignments.relatedCurriculum) }
-        "have correct depthOfKnowledge" in { itemOtherAlignments.depthOfKnowledge must be equalTo Some(otherAlignments.depthOfKnowledge) }
+        "have correct bloomsTaxonomy" in { itemOtherAlignments.bloomsTaxonomy must_== Some(otherAlignments.bloomsTaxonomy) }
+        "have correct keySkills" in { itemOtherAlignments.keySkills must_== otherAlignments.keySkills }
+        "have correct relatedCurriculum" in { itemOtherAlignments.relatedCurriculum must_== Some(otherAlignments.relatedCurriculum) }
+        "have correct depthOfKnowledge" in { itemOtherAlignments.depthOfKnowledge must_== Some(otherAlignments.depthOfKnowledge) }
       }
 
-      "have correct priorUse" in { item.priorUse must be equalTo (Some(priorUse)) }
-      "have correct priorGradeLevels" in { item.priorGradeLevels must be equalTo (priorGradeLevels) }
-      "have correct reviewsPassed" in { item.reviewsPassed must be equalTo (reviewsPassed) }
-      "have correct standards" in { item.standards must be equalTo (standards) }
+      "have correct priorUse" in { item.priorUse must_== (Some(priorUse)) }
+      "have correct priorGradeLevels" in { item.priorGradeLevels must_== (priorGradeLevels) }
+      "have correct reviewsPassed" in { item.reviewsPassed must_== (reviewsPassed) }
+      "have correct standards" in { item.standards must_== (standards) }
 
       "supportingMaterials" should {
         val itemSupportingMaterial = item.supportingMaterials.headOption.getOrElse(throw new Exception("supportingMaterial missing"))
 
         "have correct name" in {
-          itemSupportingMaterial.name must be equalTo supportingMaterial.name
+          itemSupportingMaterial.name must_== supportingMaterial.name
         }
         "have correct filename" in {
-          itemSupportingMaterial.files.map(_.name) must be equalTo supportingMaterial.files
+          itemSupportingMaterial.files.map(_.name) must_== supportingMaterial.files
         }
         "have correct storageKey" in {
-          itemSupportingMaterial.files.map(_.asInstanceOf[StoredFile].storageKey) must be equalTo Seq(storageKey)
+          itemSupportingMaterial.files.map(_.asInstanceOf[StoredFile].storageKey) must_== Seq(storageKey)
         }
       }
 
       "taskInfo" should {
         val itemTaskInfo = item.taskInfo.getOrElse(throw new Exception("taskInfo missing"))
 
-        "have correct gradeLevel" in { itemTaskInfo.gradeLevel must be equalTo taskInfo.gradeLevel }
-        "have correct description" in { itemTaskInfo.description must be equalTo Some(taskInfo.description) }
-        "have correct title" in { itemTaskInfo.title must be equalTo Some(taskInfo.title) }
+        "have correct gradeLevel" in { itemTaskInfo.gradeLevel must_== taskInfo.gradeLevel }
+        "have correct description" in { itemTaskInfo.description must_== Some(taskInfo.description) }
+        "have correct title" in { itemTaskInfo.title must_== Some(taskInfo.title) }
       }
 
     }

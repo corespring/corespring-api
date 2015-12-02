@@ -3,43 +3,47 @@ package org.corespring.v2.player.hooks
 import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
-import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, UploadResult }
+import org.corespring.container.client.hooks.{ ItemEditorHooks => ContainerItemEditorHooks, UploadResult }
+import org.corespring.container.client.integration.ContainerExecutionContext
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.S3Paths
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ BaseFile, StoredFile }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.models.appConfig.Bucket
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
 import scala.concurrent.Future
+import scalaz.Validation
 
-trait ItemEditorHooks
-  extends ContainerEditorHooks
+class ItemEditorHooks(
+  transformer: ItemTransformer,
+  playS3: S3Service,
+  awsConfig: Bucket,
+  itemAuth: ItemAuth[OrgAndOpts],
+  itemService: ItemService,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val containerContext: ContainerExecutionContext)
+  extends ContainerItemEditorHooks
   with LoadOrgAndOptions {
 
   import play.api.http.Status._
-
   import scalaz._
   import scalaz.Scalaz._
-
   import V2ErrorToTuple._
 
-  private lazy val logger = V2LoggerFactory.getLogger(classOf[ItemEditorHooks])
+  private lazy val logger = Logger(classOf[ItemEditorHooks])
 
-  def transform: Item => JsValue
+  private val bucket = awsConfig.bucket
 
-  def playS3: S3Service
-
-  def bucket: String
-
-  def itemAuth: ItemAuth[OrgAndOpts]
-  def itemService: ItemService
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
   private def loadItem(id: String)(implicit header: RequestHeader) = for {
     o <- getOrgAndOptions(header)
@@ -50,7 +54,7 @@ trait ItemEditorHooks
     logger.trace(s"function=load id=$id")
     for {
       item <- loadItem(id)
-    } yield transform(item)
+    } yield transformer.transformToV2Json(item)
   }
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {

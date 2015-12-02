@@ -1,18 +1,14 @@
 package org.corespring.web.common.views.helpers
 
-import com.mongodb.casbah.commons.MongoDBObject
-import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
-import org.corespring.platform.core.models.item.{WidgetType, ItemType, FieldValue}
-import org.corespring.platform.core.services.item._
+
+import com.typesafe.config.{Config, ConfigFactory}
+import org.corespring.models.item.{ComponentType, FieldValue}
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 
-import scala.concurrent.Await
-
-class Defaults(itemIndexService: ItemIndexService) {
-
+object BuildInfo {
   val propsFile = "/buildInfo.properties"
 
   private val properties = {
@@ -26,23 +22,28 @@ class Defaults(itemIndexService: ItemIndexService) {
     }.getOrElse(new Properties())
   }
 
-  lazy val fieldValues: String = FieldValue.findOne(MongoDBObject()) match {
-    case Some(fv) => {
-      import org.corespring.platform.core.models.json._
-      implicit val writes = Json.writes[FieldValue]
-
-      val json: JsValue = (writes.writes(fv) match {
-        case obj: JsObject => obj.deepMerge(Json.obj("v2ItemTypes" -> v2ItemTypes, "widgetTypes" -> widgetTypes))
-        case value: JsValue => value
-      })
-      Json.stringify(json)
-    }
-    case _ => "{}"
-  }
-
   lazy val commitHashShort: String = properties.getProperty("commit.hash", "?")
   lazy val pushDate: String = properties.getProperty("date", "?")
   lazy val branch: String = properties.getProperty("branch", "?")
+}
+
+class Defaults(
+  fieldValue: => Option[FieldValue],
+  itemTypes: Seq[ComponentType]) {
+
+  lazy val fieldValues: String = fieldValue match {
+    case Some(fv) => {
+
+      import org.corespring.models.json.item.FieldValueWrites
+
+      val json: JsObject = FieldValueWrites.writes(fv)
+      val itemTypeJson = Json.obj("v2ItemTypes" ->
+        itemTypes.map { it => Json.obj("key" -> it.componentType, "value" -> it.label) })
+      val out = json.deepMerge(Json.obj("v2ItemTypes" -> itemTypeJson))
+      Json.stringify(out)
+    }
+    case _ => "{}"
+  }
 
   def envName(default: String): String = get("ENV_NAME").getOrElse(default)
 
@@ -63,9 +64,5 @@ class Defaults(itemIndexService: ItemIndexService) {
       applicationID = get("newrelic.application-id").getOrElse(""))
   }
 
-  lazy val v2ItemTypes = ItemType.all
-  lazy val widgetTypes = WidgetType.all
-
 }
 
-object Defaults extends Defaults(ElasticSearchItemIndexService)

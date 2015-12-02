@@ -1,6 +1,6 @@
 package org.corespring.v2.auth.models
 
-import org.corespring.platform.core.models.{ User, Organization }
+import org.corespring.models.{ User, Organization }
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.warnings.V2Warning
 import play.api.libs.json.{ JsString, Json, JsValue }

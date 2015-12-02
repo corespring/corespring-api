@@ -1,7 +1,7 @@
 package org.corespring.test.fakes
 
-import com.mongodb._
-import com.mongodb.casbah.{ MongoCollection => CasbahMongoCollection, MongoCursor, Imports }
+import com.mongodb.casbah.{ MongoCollection => CasbahMongoCollection, MongoCursor }
+import com.mongodb.{ WriteConcern, WriteResult, _ }
 import org.specs2.mock.Mockito
 import org.specs2.mock.mockito.ArgumentCapture
 
@@ -119,6 +119,7 @@ object Fakes extends Mockito {
     }
 
     lazy val mockCollection = {
+
       val m = mock[CasbahMongoCollection]
 
       m.customEncoderFactory returns None
@@ -136,7 +137,9 @@ object Fakes extends Mockito {
         any[WriteConcern])(
           any[A2DBO], any[A2DBO], any[DBEncoder]) returns updateResult
 
-      m.findOne(any[Any])(any[A2DBO]) returns nullToOption[DBObject](findOneResult)
+      m.findOne(any[Any])(any[A2DBO]) returns {
+        nullToOption[DBObject](findOneResult)
+      }
 
       m.findOne(
         any[Any],

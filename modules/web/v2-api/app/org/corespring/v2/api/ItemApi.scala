@@ -1,51 +1,50 @@
 package org.corespring.v2.api
 
-import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.{Organization, ContentCollRef, JsonUtil}
-import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
-import org.corespring.drafts.item.models.ItemDraft
-import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
-import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
+import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexQuery, ItemIndexSearchResult, ItemIndexService }
+import org.corespring.models.ContentCollRef
+import org.corespring.models.item.{ ComponentType, Item }
+import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.identifiers.RequestIdentity
-import org.corespring.v2.auth.models.OrgAndOpts
-import play.api.libs.iteratee.Iteratee
-
-import scala.concurrent
-import scala.concurrent._
-
-import org.corespring.platform.core.models.item.{ ItemType, Item }
-import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemService }
+import org.corespring.services.item.ItemService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
+import org.corespring.v2.errors.V2Error
+import org.corespring.v2.sessiondb.SessionService
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
-import scalaz.{ Failure, Success, Validation }
+
+import scala.concurrent._
 import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
-trait ItemApi extends V2Api with JsonUtil {
+case class ItemApiExecutionContext(context: ExecutionContext)
 
-  def itemAuth: ItemAuth[OrgAndOpts]
-  def itemService: ItemService
-  def itemType: ItemType
-  def itemIndexService: ItemIndexService
-  def scoreService: ScoreService
+class ItemApi(
+  itemService: ItemService,
+  orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
+  itemIndexService: ItemIndexService,
+  itemAuth: ItemAuth[OrgAndOpts],
+  itemTypes: Seq[ComponentType],
+  scoreService: ScoreService,
+  val jsonFormatting: JsonFormatting,
+  apiContext: ItemApiExecutionContext,
+  sessionService: SessionService,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api with JsonUtil {
 
-  /**
-   * For a known organization (derived from the request) return Some(id)
-   * If it is an unknown user return None
-   * @param identity
-   * @return
-   */
-  def defaultCollection(implicit identity: OrgAndOpts): Option[String]
+  implicit val itemFormat = jsonFormatting.item
 
-  protected lazy val logger = V2LoggerFactory.getLogger("ItemApi")
+  override implicit def ec: ExecutionContext = apiContext.context
+
+  private implicit val QueryReads = ItemIndexQuery.ApiReads
+  private implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
+
+  protected lazy val logger = Logger(classOf[ItemApi])
 
   /**
    * Create an Item. Will set the collectionId to the default id for the
@@ -67,15 +66,15 @@ trait ItemApi extends V2Api with JsonUtil {
 
       val out = for {
         identity <- getOrgAndOptions(request)
-        dc <- defaultCollection(identity).toSuccess(noDefaultCollection(identity.org.id))
-        json <- loadJson(dc)(request)
-        validJson <- validatedJson(dc)(json).toSuccess(incorrectJsonFormat(json))
+        dc <- orgCollectionService.getDefaultCollection(identity.org.id).leftMap(e => generalError(e.message))
+        json <- loadJson(dc.id)(request)
+        validJson <- validatedJson(dc.id)(json).toSuccess(incorrectJsonFormat(json))
         collectionId <- (validJson \ "collectionId").asOpt[String].toSuccess(invalidJson("no collection id specified"))
         canCreate <- itemAuth.canCreateInCollection(collectionId)(identity)
         item <- validJson.asOpt[Item].toSuccess(invalidJson("can't parse json as Item"))
         vid <- if (canCreate) {
           logger.trace(s"function=create, inserting item, json=${validJson}")
-          itemService.insert(item).toSuccess(errorSaving("Insert failed"))
+          itemAuth.insert(item)(identity).toSuccess(errorSaving)
         } else Failure(errorSaving("creation denied"))
       } yield {
         logger.trace(s"new item id: $vid")
@@ -85,28 +84,80 @@ trait ItemApi extends V2Api with JsonUtil {
     }
   }
 
-  import Organization._
+  private def searchWithQuery(q: ItemIndexQuery,
+    accessibleCollections: Seq[ContentCollRef]): Future[Validation[Error, ItemIndexSearchResult]] = {
+    val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
+    val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
+    val scopedQuery = collections.isEmpty match {
+      case true => q.copy(collections = accessibleCollectionStrings)
+      case _ => q.copy(collections = collections)
+    }
+
+    logger.trace(s"function=searchWithQuery, scopedQuery=$scopedQuery")
+    itemIndexService.search(scopedQuery)
+  }
+
+  private[ItemApi] implicit class JsResultToValidation[T](jsResult: JsResult[T]) {
+    def toValidation: Validation[V2Error, T] = jsResult match {
+      case JsSuccess(d, _) => Success(d)
+      case JsError(errors) => Failure(invalidJson(errors.mkString))
+    }
+  }
+
+  //upgrade of v1 item api - listWithColl
+  def searchByCollectionId(collectionId: ObjectId,
+    q: Option[String] = None) = Action.async { request =>
+
+    val queryString = q.getOrElse("{}")
+
+    val out: Validation[V2Error, Future[SimpleResult]] = for {
+      queryJson <- safeParse(queryString).leftMap(e => invalidJson(e.getMessage))
+      query <- Json.fromJson[ItemIndexQuery](queryJson).toValidation
+      //Note: mapping error statusCode to a BAD_REQUEST to fix api regression
+      identity <- getOrgAndOptions(request).leftMap(e => generalError(e.message, BAD_REQUEST))
+    } yield {
+      val scopedQuery = query.copy(collections = Seq(collectionId.toString))
+      searchWithQuery(scopedQuery, identity.org.accessibleCollections).map { v =>
+        v match {
+          case Success(searchResult) => {
+            implicit val ItemIndexHitFormat = ItemIndexHit.Format
+            Ok(Json.toJson(searchResult.hits))
+          }
+          case Failure(error) => BadRequest(error.getMessage)
+        }
+      }
+    }
+
+    out match {
+      case Failure(e) => Future(Status(e.statusCode)(e.message))
+      case Success(f) => f
+    }
+  }
 
   def search(query: Option[String]) = Action.async { implicit request =>
-    implicit val QueryReads = ItemIndexQuery.ApiReads
-    implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
+
+    logger.debug(s"function=search, rawQueryString=${request.rawQueryString}")
+
+    logger.debug(s"function=search, query=$query")
+
+    def searchQueryResult(q: ItemIndexQuery,
+      accessibleCollections: Seq[ContentCollRef]): Future[SimpleResult] = {
+      logger.trace(s"function=search#searchQueryResult, q=$q")
+      searchWithQuery(q, accessibleCollections).map(result => result match {
+        case Success(searchResult) => Ok(Json.toJson(searchResult))
+        case Failure(error) => BadRequest(error.getMessage)
+      })
+    }
+
     val queryString = query.getOrElse("{}")
+
+    logger.trace(s"function=search, queryString=$queryString")
 
     getOrgAndOptions(request) match {
       case Success(orgAndOpts) => safeParse(queryString) match {
         case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
-          case JsSuccess(query, _) => {
-            val accessibleCollections = orgAndOpts.org.contentcolls.accessible.map(_.collectionId.toString)
-            val collections = query.collections.filter(id => accessibleCollections.contains(id))
-            val scopedQuery = (collections.isEmpty match {
-              case true => query.copy(collections = accessibleCollections)
-              case _ => query.copy(collections = collections)
-            })
-            itemIndexService.search(scopedQuery).map(result => result match {
-              case Success(searchResult) => Ok(Json.prettyPrint(Json.toJson(searchResult)))
-              case Failure(error) => BadRequest(error.getMessage)
-            })
-          }
+          case JsSuccess(query, _) => searchQueryResult(query, orgAndOpts.org.accessibleCollections)
+
           case _ => future {
             val error = invalidJson(queryString)
             Status(error.statusCode)(error.message)
@@ -125,9 +176,12 @@ trait ItemApi extends V2Api with JsonUtil {
   }
 
   def getItemTypes() = Action.async {
-    implicit request => Future {
-      Ok(Json.prettyPrint(itemType.all))
-    }
+    _ =>
+      Future {
+        val keyValues = itemTypes.map(it => Json.obj("key" -> it.componentType, "value" -> it.label))
+        val json = JsArray(keyValues)
+        Ok(Json.toJson(json))
+      }
   }
 
   def delete(itemId: String) = Action.async { implicit request =>
@@ -149,8 +203,8 @@ trait ItemApi extends V2Api with JsonUtil {
       val out = for {
         identity <- getOrgAndOptions(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        dbObject <- itemService.findFieldsById(vid, MongoDBObject(collectionId -> 1)).toSuccess(cantFindItemWithId(vid))
-        canDelete <- itemAuth.canCreateInCollection(dbObject.get(collectionId).toString)(identity)
+        collectionId <- itemService.collectionIdForItem(vid).toSuccess(cantFindItemWithId(vid))
+        canDelete <- itemAuth.canCreateInCollection(collectionId.toString)(identity)
         result <- moveItemToArchive(vid)
       } yield {
         result
@@ -183,7 +237,7 @@ trait ItemApi extends V2Api with JsonUtil {
     }
   }
 
-  def getSummaryData: (Item, Option[String]) => JsValue
+  def getFull(itemId: String) = get(itemId, Some("full"))
 
   def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
     import scalaz.Scalaz._
@@ -193,7 +247,7 @@ trait ItemApi extends V2Api with JsonUtil {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         identity <- getOrgAndOptions(request)
         item <- itemAuth.loadForRead(itemId)(identity)
-      } yield getSummaryData(item, detail)
+      } yield jsonFormatting.itemSummary.write(item, detail)
 
       validationToResult[JsValue](i => Ok(i))(out)
     }
@@ -235,7 +289,14 @@ trait ItemApi extends V2Api with JsonUtil {
     }
   }
 
-  private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
+  def legacyCountSessions(itemId: VersionedId[ObjectId]) = Action.async { implicit request =>
+    Future {
+      val count = sessionService.sessionCount(itemId)
+      Ok(Json.obj("sessionCount" -> count))
+    }
+  }
+
+  private def defaultItem(collectionId: ObjectId): JsValue = validatedJson(collectionId)(Json.obj()).get
 
   lazy val defaultPlayerDefinition = Json.obj(
     "components" -> Json.obj(),
@@ -254,15 +315,15 @@ trait ItemApi extends V2Api with JsonUtil {
 
   private def addDefaultPlayerDefinition(json: JsObject): JsObject = addIfNeeded[JsObject](json, "playerDefinition", defaultPlayerDefinition)
 
-  private def addDefaultCollectionId(json: JsObject, defaultCollectionId: String): JsObject = addIfNeeded[String](json, "collectionId", JsString(defaultCollectionId))
+  private def addDefaultCollectionId(json: JsObject, defaultCollectionId: ObjectId): JsObject = addIfNeeded[String](json, "collectionId", JsString(defaultCollectionId.toString))
 
-  private def validatedJson(defaultCollectionId: String)(raw: JsValue): Option[JsValue] = raw.asOpt[JsObject].map { rawObj =>
+  private def validatedJson(defaultCollectionId: ObjectId)(raw: JsValue): Option[JsValue] = raw.asOpt[JsObject].map { rawObj =>
     val noId = (rawObj - "id").as[JsObject]
     val steps = addDefaultPlayerDefinition _ andThen (addDefaultCollectionId(_, defaultCollectionId))
     steps(noId)
   }
 
-  private def loadJson(defaultCollectionId: String)(request: Request[AnyContent]): Validation[V2Error, JsValue] = {
+  private def loadJson(defaultCollectionId: ObjectId)(request: Request[AnyContent]): Validation[V2Error, JsValue] = {
 
     def hasJsonHeader: Boolean = {
       val types = Seq("application/json", "text/json")

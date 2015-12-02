@@ -16,9 +16,12 @@ dist
 logs
 mongo-migrator.log
 project/project
+project/scoverage.sbt
 project/target
 staging.env
 target
 tasks/mock-data-task/project
 tasks/mock-data-task/target
 tmp
+deploy.sh
+*.env

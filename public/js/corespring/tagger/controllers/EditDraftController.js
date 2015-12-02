@@ -241,7 +241,8 @@
         draftName: $scope.draft.user,
         onItemChanged: $scope.onItemChanged,
         devEditor: devEditor,
-        autosizeEnabled: false,
+        autosizeEnabled: true,
+        iframeScrollingEnabled: false,
         hideSaveButton: true
       };
 

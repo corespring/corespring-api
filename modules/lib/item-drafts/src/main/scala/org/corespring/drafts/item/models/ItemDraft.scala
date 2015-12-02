@@ -1,8 +1,10 @@
 package org.corespring.drafts.item.models
 
+import java.net.{ URLDecoder, URLEncoder }
+
 import org.bson.types.ObjectId
-import org.corespring.drafts.{ Src, UserDraft }
-import org.corespring.platform.core.models.item.Item
+import org.corespring.drafts.{ UserDraft }
+import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.{ DateTimeZone, DateTime }
 
@@ -18,7 +20,34 @@ object ItemDraft {
 
 /** A Draft is unique to the itemId (base id) and org and user) */
 case class DraftId(itemId: ObjectId, name: String, orgId: ObjectId) {
-  def toIdString = s"$itemId~$name"
+  def toIdString = s"$itemId~${URLEncoder.encode(name, "UTF-8")}"
+}
+
+object DraftId {
+
+  val regex = """^([^~]+)~([^~]+)$""".r
+
+  /**
+   * Parse the string of a form: objectId~username to (ObjectId,String)
+   * @param s
+   */
+  def idStringToObjectIdAndUserName(s: String): Option[(ObjectId, String)] = {
+    try {
+      val regex(id, name) = s
+      if (ObjectId.isValid(id)) {
+        Some(new ObjectId(id) -> URLDecoder.decode(name, "UTF-8"))
+      } else {
+        None
+      }
+    } catch {
+      case t: Throwable => None
+    }
+  }
+
+  def fromIdString(s: String, orgId: ObjectId): Option[DraftId] = idStringToObjectIdAndUserName(s).map {
+    case (itemId, name) =>
+      DraftId(itemId, name, orgId)
+  }
 }
 
 case class ItemDraftHeader(id: DraftId, created: DateTime, expires: DateTime, userName: Option[String])

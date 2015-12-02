@@ -3,34 +3,42 @@ package developer.controllers
 import controllers.Assets
 import developer.controllers.routes.{ Developer => DeveloperRoutes }
 import org.bson.types.ObjectId
-import org.corespring.api.v1.errors.ApiError
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.controllers.auth.{OAuthProvider, BaseApi}
-import org.corespring.platform.core.models.{ContentCollection, User, Organization}
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.legacy.ServiceLookup
+import org.corespring.models.auth.{ ApiClient, Permission }
+import org.corespring.models.json.ObjectIdFormat
+import org.corespring.models.{ ContentCollection, Organization, User }
+import org.corespring.web.api.v1.errors.ApiError
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
-import scala._
+import securesocial.core.{ IdentityId, SecureSocial, SecuredRequest }
+
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
-import securesocial.core.{SecuredRequest, IdentityId, SecureSocial}
-import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * TODO: remove magic strings
  */
-object Developer extends Controller with BaseApi with SecureSocial with PackageLogging {
+object Developer extends Controller with SecureSocial {
+
+  val logger = Logger(Developer.getClass)
 
   import ExecutionContext.Implicits.global
 
+  implicit val writeOid = ObjectIdFormat
+  implicit val writeOrg = ServiceLookup.jsonFormatting.writeOrg
+
   def at(path: String, file: String) = Assets.at(path, file)
+
+  private def getUser(id: IdentityId): Option[User] = ServiceLookup.userService.getUser(id.userId, id.providerId)
 
   private def userFromRequest(r: Request[AnyContent]): Option[User] = {
     val result: Validation[String, User] = for {
       authenticator <- SecureSocial.authenticatorFromRequest(r).toSuccess("Can't find authenticator")
-      user <- User.getUser(authenticator.identityId).toSuccess(s"Can't find user with id: $authenticator.userId")
+      user <- getUser(authenticator.identityId).toSuccess(s"Can't find user with id: $authenticator.userId")
     } yield user
 
     result match {
@@ -42,14 +50,18 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
     }
   }
 
+  private def hasRegisteredOrg(u: User) = {
+    u.org.orgId != AppConfig.demoOrgId
+  }
+
   def home = Action.async {
     implicit request =>
 
-      val defaultView : Future[SimpleResult] = at("/public/developer", "index.html")(request)
+      val defaultView: Future[SimpleResult] = at("/public/developer", "index.html")(request)
 
-     userFromRequest(request)
-        .filterNot( _.hasRegisteredOrg )
-        .map( u => Future(Redirect(DeveloperRoutes.createOrganizationForm().url)))
+      userFromRequest(request)
+        .filterNot(hasRegisteredOrg)
+        .map(u => Future(Redirect(DeveloperRoutes.createOrganizationForm().url)))
         .getOrElse(defaultView)
   }
 
@@ -59,11 +71,11 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
   }
 
   def isLoggedIn = SecuredAction(ajaxCall = true) {
-    request : SecuredRequest[AnyContent] =>
+    request: SecuredRequest[AnyContent] =>
 
       def json(isLoggedIn: Boolean, username: Option[String] = None) = JsObject(Seq("isLoggedIn" -> JsBoolean(isLoggedIn)) ++ username.map("username" -> JsString(_)))
       val userId: IdentityId = request.user.identityId
-      User.getUser(userId) match {
+      getUser(userId) match {
         case Some(user) => {
           val username = if (user.provider == "userpass") user.userName else user.fullName.split(" ").head
           Ok(json(true, Some(username)))
@@ -88,9 +100,9 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
 
   def getOrganization = SecuredAction {
     request =>
-      User.getUser(request.user.identityId) match {
+      getUser(request.user.identityId) match {
         case Some(user) => {
-          val org: Option[Organization] = User.getOrg(user, Permission.Read)
+          val org: Option[Organization] = ServiceLookup.userService.getOrg(user, Permission.Read)
           //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
           //TODO: this doesn't look right - need to discuss a fix for it.
           org.find(o => o.id != AppConfig.demoOrgId) match {
@@ -108,36 +120,31 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
   }
 
   def createOrganization = SecuredAction(false) {
-    request : SecuredRequest[AnyContent] =>
+    request: SecuredRequest[AnyContent] =>
 
       def makeOrg(json: JsValue): Option[Organization] = (json \ "name").asOpt[String].map {
         n =>
-          import org.corespring.platform.core.models.json._
           Organization(n, (json \ "parent_id").asOpt[ObjectId].toList)
       }
 
-      def makeApiClient(orgId: ObjectId): Option[ApiClient] = OAuthProvider.createApiClient(orgId) match {
-        case Left(e) => None
-        case Right(c) => Some(c)
+      def makeApiClient(orgId: ObjectId): Option[ApiClient] = {
+        ServiceLookup.apiClientService.getOrCreateForOrg(orgId).toOption
       }
 
       def setOrg(userId: ObjectId, orgId: ObjectId): Option[ObjectId] = {
-        User.setOrganization(userId, orgId, Permission.Write) match {
-          case Left(e) => None
-          case _ => Some(userId)
-        }
+        ServiceLookup.userService.setOrganization(userId, orgId, Permission.Write).map(_ => userId).toOption
       }
 
-      def createDefaultCollection(orgId : ObjectId) =
-        ContentCollection.insertCollection(orgId,
-          ContentCollection(ContentCollection.DEFAULT, orgId), Permission.Write)
+      def createDefaultCollection(orgId: ObjectId) =
+        ServiceLookup.contentCollectionService.insertCollection(
+          ContentCollection(ContentCollection.Default, orgId))
 
       val validation: Validation[String, (Organization, ApiClient)] = for {
-        user <- User.getUser(request.user.identityId).toSuccess("Unknown user")
-        okUser <- if (user.hasRegisteredOrg) Failure("Org already registered") else Success(user)
+        user <- getUser(request.user.identityId).toSuccess("Unknown user")
+        okUser <- if (hasRegisteredOrg(user)) Failure("Org already registered") else Success(user)
         json <- request.body.asJson.toSuccess("Json expected")
         orgToCreate <- makeOrg(json).toSuccess("Couldn't create org")
-        org <- Organization.insert(orgToCreate,None).right.toOption.toSuccess("Couldn't create org")
+        org <- ServiceLookup.orgService.insert(orgToCreate, None).leftMap(e => e.message)
         updatedIdentityId <- setOrg(okUser.id, org.id).toSuccess("Couldn't set org")
         // Ensure default collection is created for this organisation
         defaultCollection <- createDefaultCollection(org.id).right.toOption.toSuccess("Couldn't create default collection")
@@ -152,14 +159,14 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
 
   def getOrganizationCredentials(orgId: ObjectId) = SecuredAction {
     request =>
-      User.getUser(request.user.identityId) match {
+      getUser(request.user.identityId) match {
         case Some(user) => {
           if (user.org.orgId == orgId) {
-            Organization.findOneById(orgId) match {
+            ServiceLookup.orgService.findOneById(orgId) match {
               case Some(org) => {
-                OAuthProvider.createApiClient(org.id) match {
-                  case Right(client) => Ok(developer.views.html.org_credentials(client.clientId.toString, client.clientSecret, org.name))
-                  case Left(error) => BadRequest(Json.toJson(error))
+                ServiceLookup.apiClientService.getOrCreateForOrg(org.id) match {
+                  case Success(client) => Ok(developer.views.html.org_credentials(client.clientId.toString, client.clientSecret, org.name))
+                  case Failure(error) => BadRequest(Json.toJson(error))
                 }
               }
               case None => InternalServerError("could not find organization, after authentication. this should never occur")
@@ -173,10 +180,12 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
   def handleStartSignUp = Action.async {
     implicit request =>
       val action = securesocial.controllers.Registration.handleStartSignUp(request)
-      action.transform({ r => r match {
-        case BadRequest => action
-        case _ => Ok(developer.views.html.registerDone())
-      }}, e => e)
+      action.transform({ r =>
+        r match {
+          case BadRequest => action
+          case _ => Ok(developer.views.html.registerDone())
+        }
+      }, e => e)
       action
   }
 

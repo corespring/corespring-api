@@ -1,7 +1,7 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.container.client.hooks.{ Binary, _ }
-import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile, VirtualFile }
+import org.corespring.container.client.hooks.{Binary, _}
+import org.corespring.models.item.resource.{BaseFile, Resource, StoredFile, VirtualFile}
 
 private[hooks] trait MaterialToResource {
 

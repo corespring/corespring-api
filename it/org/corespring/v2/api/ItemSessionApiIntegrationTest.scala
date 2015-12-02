@@ -1,30 +1,28 @@
 package org.corespring.v2.api
 
-import com.mongodb.DBObject
 import org.bson.types.ObjectId
-import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.encryption.ApiClientEncrypter
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.item.PlayerDefinition
-import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.it.scopes._
+import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.helpers.models
-import org.corespring.test.helpers.models.{ ItemHelper, V2SessionHelper }
 import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
-import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
-import play.api.libs.json.{JsNumber, JsString, JsObject, Json}
-import play.api.mvc.{ RequestHeader, AnyContentAsJson, AnyContent, Call }
+import play.api.libs.json.{ JsNumber, JsString, Json }
+import play.api.mvc.{ AnyContentAsJson, AnyContent, Call, RequestHeader }
 
-class ItemSessionApiIntegrationTest extends IntegrationSpecification {
+class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2SessionHelper {
   val Routes = org.corespring.v2.api.routes.ItemSessionApi
+
+  lazy val itemService = bootstrap.Main.itemService
 
   "ItemSessionApi" should {
 
     def mkCompoundError(rh: RequestHeader) = compoundError("Failed to identify an Organization from the request",
-      Seq(noToken(rh), noApiClientAndPlayerTokenInQueryString(rh), noUserSession(rh)),
+      Seq(
+        noApiClientAndPlayerTokenInQueryString(rh),
+        noToken(rh),
+        noUserSession(rh)),
       UNAUTHORIZED)
 
     "when loading a session" should {
@@ -73,7 +71,7 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification {
         val e = noOrgIdAndOptions(req)
         (contentAsJson(result) \ "id").asOpt[String].isDefined === true
         val sessionId = ((contentAsJson(result) \ "id")).as[String]
-        val dbo = models.V2SessionHelper.findSession(sessionId).get
+        val dbo = v2SessionHelper.findSession(sessionId).get
         val identity = (dbo \ "identity")
         (identity \ "orgId") === JsString(orgId.toString)
         (identity \ "authMode") === JsNumber(AuthMode.ClientIdAndPlayerToken.id)
@@ -102,26 +100,26 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification {
 
       s"1: return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
-        val item = ItemServiceWired.findOneById(itemId).get
+        val item = itemService.findOneById(itemId).get
         //Note: We have to remove the qti or else the ItemTransformer will overrwrite the v2 data
         val update = item.copy(data = None, playerDefinition = Some(playerDef()))
         val resultString = s"""{"summary":{"maxPoints":1,"points":1.0,"percentage":100.0},"components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}}"""
         val resultJson = Json.parse(resultString)
-        ItemServiceWired.save(update)
+        itemService.save(update)
         println(s"playerDefinition: ${update.playerDefinition}")
-        V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
+        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("carrot")))))
         status(result) === OK
         contentAsJson(result) === resultJson
       }
 
       s"2: return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
-        val item = ItemServiceWired.findOneById(itemId).get
+        val item = itemService.findOneById(itemId).get
         val update = item.copy(data = None, playerDefinition = Some(playerDef()))
         val resultString = s"""{"summary":{"maxPoints":1,"points":0.0,"percentage":0.0},"components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}}"""
         val resultJson = Json.parse(resultString)
-        ItemServiceWired.save(update)
-        V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
+        itemService.save(update)
+        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("banana")))))
         status(result) === OK
         contentAsJson(result) === resultJson
@@ -142,13 +140,13 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification {
 
       s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
-        val item = ItemServiceWired.findOneById(itemId).get
+        val item = itemService.findOneById(itemId).get
         val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}, "summary":{"numcorrect" : 1, "score" : 1.0}}"""
         val resultJson = Json.parse(resultString)
-        ItemServiceWired.save(update)
-        V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
+        itemService.save(update)
+        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("carrot")))))
         status(result) === OK
         contentAsJson(result) === resultJson
@@ -169,13 +167,13 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification {
       """
       s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
-        val item = ItemServiceWired.findOneById(itemId).get
+        val item = itemService.findOneById(itemId).get
         val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}, "summary":{"numcorrect" : 1, "score" : 1.0}}"""
         val resultJson = Json.parse(resultString)
-        ItemServiceWired.save(update)
-        V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
+        itemService.save(update)
+        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("carrot")))))
         status(result) === OK
         contentAsJson(result) === resultJson
@@ -183,13 +181,13 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification {
 
       s"return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
-        val item = ItemServiceWired.findOneById(itemId).get
+        val item = itemService.findOneById(itemId).get
         val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}, "summary":{"numcorrect" : 0, "score" : 0}}"""
         val resultJson = Json.parse(resultString)
-        ItemServiceWired.save(update)
-        V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
+        itemService.save(update)
+        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("banana")))))
         status(result) === OK
         contentAsJson(result) === resultJson
@@ -202,12 +200,12 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification {
 
     "return apiClient" in new cloneSession {
       (contentAsJson(result) \ "apiClient").as[String] must be equalTo (
-        ApiClient.findOneByOrgId(orgId).map(_.clientId).getOrElse(throw new Exception("Boop")).toString)
+        bootstrap.Main.apiClientService.findOneByOrgId(orgId).map(_.clientId).getOrElse(throw new Exception("Boop")).toString)
     }
 
     "return encrypted options, decryptable by provided apiClient" in new cloneSession {
       val apiClientId = (contentAsJson(result) \ "apiClient").as[String]
-      val encrypter = new ApiClientEncrypter(AESCrypto)
+      val encrypter = bootstrap.Main.apiClientEncryptionService
       encrypter.decrypt(apiClientId, (contentAsJson(result) \ "options").as[String]) must be equalTo (
         Some(ItemSessionApi.clonedSessionOptions.toString))
     }
@@ -234,7 +232,10 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification {
     override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.create(itemId)
   }
 
-  class clientIdAndPlayerToken_createSession(val playerToken: String, val skipDecryption: Boolean = true) extends createSession with clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder {
+  class clientIdAndPlayerToken_createSession(val playerToken: String, val skipDecryption: Boolean = true)
+    extends createSession
+    with clientIdAndPlayerToken
+    with IdAndPlayerTokenRequestBuilder {
     override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.create(itemId)
   }
 
@@ -247,10 +248,15 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification {
     override def requestBody = json
   }
 
-  class clientIdAndPlayerToken_getSession(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with sessionLoader with HasSessionId {
+  class clientIdAndPlayerToken_getSession(val playerToken: String, val skipDecryption: Boolean = true)
+    extends clientIdAndPlayerToken
+    with IdAndPlayerTokenRequestBuilder
+    with sessionLoader
+    with HasSessionId
+    with WithV2SessionHelper {
     override def getCall(sessionId: ObjectId): Call = Routes.get(sessionId.toString)
 
-    lazy override val sessionId: ObjectId = V2SessionHelper.create(itemId)
+    lazy override val sessionId: ObjectId = v2SessionHelper.create(itemId)
 
     override def before = {
       super.before
@@ -258,7 +264,7 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification {
 
     override def after = {
       super.after
-      V2SessionHelper.delete(sessionId)
+      v2SessionHelper.delete(sessionId)
     }
   }
 }

@@ -1,14 +1,12 @@
 package org.corespring.v2.api.drafts.item.json
 
-import org.corespring.drafts.item.models.{ Conflict, ItemDraft, ItemDraftHeader }
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.json.ContentView
-import org.corespring.platform.core.models.json.ItemView
+import org.corespring.drafts.item.models.{ ItemDraftHeader, Conflict, ItemDraft }
+import org.corespring.models.json.JsonFormatting
+import org.joda.time.{ DateTimeZone, DateTime }
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
-object ItemDraftJson {
+class ItemDraftJson(jsonFormatting: JsonFormatting) {
 
   lazy val longDateTime = DateTimeFormat.longDateTime()
 
@@ -18,7 +16,7 @@ object ItemDraftJson {
 
   def header(h: ItemDraftHeader): JsValue = {
     Json.obj(
-      "id" -> h.id.toString,
+      "id" -> h.id.toIdString,
       "itemId" -> s"${h.id.itemId.toString}",
       "orgId" -> h.id.orgId.toString,
       "created" -> timeJson(h.created),
@@ -32,7 +30,7 @@ object ItemDraftJson {
 
     def simple(d: ItemDraft): JsValue = {
       Json.obj(
-        "id" -> d.id.toString,
+        "id" -> d.id.toIdString,
         "itemId" -> s"${d.parent.id.toString}",
         "orgId" -> d.user.org.id.toString,
         "created" -> timeJson(d.created),
@@ -42,13 +40,14 @@ object ItemDraftJson {
         .getOrElse(Json.obj())
     }
 
-    import ItemView.Writes
-    val itemJson = Json.toJson[ContentView[Item]](ContentView(d.parent.data, None))
+    val itemJson = jsonFormatting.item.writes(d.parent.data)
     val simpleJson = simple(d)
     simpleJson.asInstanceOf[JsObject] ++ Json.obj("src" -> Json.obj("data" -> itemJson))
   }
 
   def conflict(c: Conflict): JsValue = {
+
+    implicit val i = jsonFormatting.item
     Json.obj(
       "draftId" -> c.draft.id.toIdString,
       "draftParent" -> Json.toJson(c.draft.parent.data),

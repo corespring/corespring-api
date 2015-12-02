@@ -1,14 +1,13 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
-import org.corespring.it.{IntegrationHelpers, IntegrationSpecification}
+import org.corespring.it.IntegrationSpecification
+import org.corespring.it.helpers.{ IntegrationHelpers, SecureSocialHelper }
+import org.corespring.it.scopes._
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.SecureSocialHelpers
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.generalError
-import org.corespring.v2.player.scopes._
-import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import play.api.mvc._
 
@@ -17,8 +16,6 @@ class LoadCatalogIntegrationTest
   with IntegrationHelpers {
 
   import org.corespring.container.client.controllers.apps.routes.Catalog
-
-  override val logger: org.slf4j.Logger = LoggerFactory.getLogger("it.load-catalog")
 
   "showing catalog" should {
 
@@ -54,7 +51,7 @@ class LoadCatalogIntegrationTest
     override def getCall(itemId: VersionedId[ObjectId]): Call = Catalog.load(itemId.toString)
   }
 
-  class user_catalogLoader extends userAndItem with SessionRequestBuilder with itemLoader with SecureSocialHelpers {
+  class user_catalogLoader extends userAndItem with SessionRequestBuilder with itemLoader with SecureSocialHelper {
     override def getCall(itemId: VersionedId[ObjectId]): Call = Catalog.load(itemId.toString)
   }
 

@@ -5,13 +5,13 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.item.{ S3Paths, ItemDraftHelper }
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.item.FieldValue
-import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.platform.core.models.{ Organization, mongoContext }
+import org.corespring.it.assets.ImageUtils
+import org.corespring.it.helpers.{ ItemHelper, OrganizationHelper, SecureSocialHelper }
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
+import org.corespring.models.item.FieldValue
+import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.{ ItemHelper, OrganizationHelper }
-import org.corespring.v2.player.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
+import org.corespring.services.item.ItemService
 import org.specs2.specification.Scope
 import play.api.http.Writeable
 import play.api.libs.json.JsArray
@@ -24,10 +24,12 @@ import play.api.mvc.Request
 class ItemDraftsCreatePublishIntegrationTest extends IntegrationSpecification {
 
   val itemDraftHelper = new ItemDraftHelper {
-    override implicit def context: Context = mongoContext.context
+    override implicit def context: Context = bootstrap.Main.context
+
+    override def itemService: ItemService = bootstrap.Main.itemService
   }
 
-  trait scope extends Scope with userAndItem with SessionRequestBuilder with SecureSocialHelpers {
+  trait scope extends Scope with userAndItem with SessionRequestBuilder with SecureSocialHelper {
 
     val expectedFiles = Seq(StoredFile("ervin.png", "image/png", false, "ervin.png"))
 
@@ -39,15 +41,11 @@ class ItemDraftsCreatePublishIntegrationTest extends IntegrationSpecification {
     }
 
     def initFieldValues() = {
-      /**
-       * Note: pre-core-refactor the integration tests
-       * expected the field values to be populated,
-       * by running seed-test first.
-       */
+      bootstrap.Main.fieldValueService.insert(FieldValue())
     }
 
     def createDraft() = {
-      val org = Organization.findOneById(orgId).get
+      val org = OrganizationHelper.service.findOneById(orgId).get
       val draftId = DraftId(itemId.id, user.userName, orgId)
       itemDraftHelper.create(draftId, itemId, org)
     }

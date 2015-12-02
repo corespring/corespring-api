@@ -2,27 +2,23 @@ package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.R
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
-import org.corespring.test.PlaySingleton
-import org.specs2.mutable.Specification
+import org.corespring.container.client.integration.ContainerExecutionContext
+import org.corespring.conversion.qti.transformers.PlayerJsonToItem
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{ VirtualFile, Resource }
+import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.specification.Scope
 import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc.RequestHeader
-import play.api.test.FakeRequest
 
 import scala.concurrent.Future
 
-class BaseItemHooksTest extends Specification {
+class BaseItemHooksTest extends V2PlayerIntegrationSpec {
 
-  PlaySingleton.start()
-
-  trait scope extends Scope with BaseItemHooks {
-
-    implicit val rh = FakeRequest("", "")
+  trait scope extends Scope with StubJsonFormatting with BaseItemHooks {
 
     val collectionId = ObjectId.get.toString
-    val item = Item(collectionId = Some(collectionId))
+    val item = Item(collectionId = collectionId)
 
     protected var updatedItem: Item = null
 
@@ -39,13 +35,16 @@ class BaseItemHooksTest extends Specification {
       Left(500 -> "not implemented")
     }(ec)
 
+    override lazy val containerContext: ContainerExecutionContext = BaseItemHooksTest.this.containerExecutionContext
+
+    override val playerJsonToItem: PlayerJsonToItem = new PlayerJsonToItem(jsonFormatting)
   }
 
   "saveCollectionId" should {
 
     "update the collectionId" in new scope {
       saveCollectionId("id", "new-id")
-      updatedItem.collectionId must_== Some("new-id")
+      updatedItem.collectionId must_== "new-id"
     }
   }
 
@@ -62,6 +61,7 @@ class BaseItemHooksTest extends Specification {
         name = "Rubric",
         files = Seq(VirtualFile("index.html", "text/html", false, "hi"))))
 
+      import jsonFormatting.formatResource
       val materialsJson = Json.toJson(materials)
       saveSupportingMaterials("id", materialsJson) must throwA[RuntimeException]
     }

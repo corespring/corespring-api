@@ -7,8 +7,8 @@ import play.api.libs.json.{ Json, Writes, JsValue }
 
 object CommitJson {
 
-  implicit val oid = org.corespring.platform.core.models.json.ObjectIdWrites
-  implicit val vid: Writes[VersionedId[ObjectId]] = org.corespring.platform.core.models.versioning.VersionedIdImplicits.Writes
+  implicit val oid = org.corespring.models.json.ObjectIdFormat
+  implicit val vid: Writes[VersionedId[ObjectId]] = org.corespring.models.json.VersionedIdFormat
   implicit val did: Writes[DraftId] = Json.writes[DraftId]
   implicit val u: Writes[SimpleUser] = Json.writes[SimpleUser]
   implicit val su: Writes[SimpleOrg] = Json.writes[SimpleOrg]

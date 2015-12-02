@@ -3,10 +3,9 @@ package org.corespring.importing.controllers
 import java.util.zip.ZipFile
 
 import org.corespring.importing.ItemFileConverter
-import org.corespring.v2.auth.LoadOrgAndOptions
+import org.corespring.services.{ OrgCollectionService }
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.V2Error
 import play.api.mvc._
 
@@ -15,19 +14,20 @@ import scala.io.Source
 import scalaz._
 
 class ItemImportController(converter: ItemFileConverter,
-                           userSession: UserSessionOrgIdentity[OrgAndOpts],
-                           orgService: OrgService) extends LoadOrgAndOptions with Controller {
+  userSession: UserSessionOrgIdentity[OrgAndOpts],
+  orgCollectionService: OrgCollectionService) extends Controller {
 
   def uploadForm() = Action {
-    Ok(org.corespring.importing.views.html.uploadForm.render())
+    Ok(org.corespring.importing.views.html.uploadForm())
   }
 
   def upload() = Action(parse.multipartFormData) { request =>
 
-    def defaultCollection = getOrgAndOptions(request).map(opts => orgService.defaultCollection(opts.org))
+    lazy val defaultCollection = getOrgAndOptions(request)
+      .map(opts => orgCollectionService.getDefaultCollection(opts.org.id))
 
     (request.body.file("file"), defaultCollection) match {
-      case (Some(upload), Success(Some(collectionId))) => {
+      case (Some(upload), Success(collectionId)) => {
         val zip = new ZipFile(upload.ref.file)
         val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
           (entry.getName -> Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1"))
@@ -42,6 +42,6 @@ class ItemImportController(converter: ItemFileConverter,
     }
   }
 
-  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = userSession(request)
+  private def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = userSession(request)
 
 }

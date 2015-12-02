@@ -3,11 +3,12 @@ package org.corespring.v2.player.supportingMaterials
 import com.novus.salat.Context
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.drafts.item.{ DraftAssetKeys, ItemDraftHelper }
+import org.corespring.it.assets.ImageUtils
+import org.corespring.it.helpers.SecureSocialHelper
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.it.{ IntegrationSpecification, MultipartFormDataWriteable }
-import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.models.{ Organization, mongoContext }
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.v2.player.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
+import org.corespring.models.item.resource.Resource
+import org.corespring.services.item.ItemService
 import org.specs2.execute.Result
 import org.specs2.time.NoTimeConversions
 import play.api.mvc.{ Call, SimpleResult }
@@ -21,17 +22,19 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
 
   trait scope extends userAndItem
     with SessionRequestBuilder
-    with SecureSocialHelpers
-    with Helpers.requestToFuture
+    with SecureSocialHelper
     with testDefaults {
 
     val helper = new ItemDraftHelper {
-      override implicit def context: Context = mongoContext.context
+      override implicit def context: Context = bootstrap.Main.context
+
+      override def itemService: ItemService = bootstrap.Main.itemService
     }
 
+    val orgService = bootstrap.Main.orgService
     val draftId = {
       val draftId = DraftId(itemId.id, user.userName, orgId)
-      val org = Organization.findOneById(orgId).get
+      val org = orgService.findOneById(orgId).get
       helper.create(draftId, itemId, org)
     }
 
@@ -45,7 +48,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
     def createHtmlMaterial: Future[SimpleResult] = {
       val call = Routes.createSupportingMaterial(draftId.itemId.toString)
       val createMaterial = makeJsonRequest(call, json)
-      futureResult(createMaterial)
+      route(createMaterial)(writeableOf_AnyContentAsJson).get
     }
 
     override def after: Any = {
@@ -59,7 +62,6 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
     "create a html based supporting material" in new scope {
       val result = createHtmlMaterial
 
-      println(s"content: ${contentAsString(result)}")
       status(result) === CREATED
 
       getHeadResource match {
@@ -70,7 +72,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
 
     "create a binary supporting material" in new scope with withUploadFile {
 
-      def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
+      def filePath: String = s"/test-images/puppy.small.jpg"
       lazy val key = DraftAssetKeys.supportingMaterialFile(draftId, "binary-material", filename)
 
       override def after = {
@@ -110,7 +112,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
       def deleteMaterial(name: String) = {
         val call = Routes.deleteSupportingMaterial(draftId.itemId.toString, name)
         val req = makeRequest(call)
-        futureResult(req)
+        route(req).get
       }
     }
 
@@ -129,7 +131,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
     trait updateFileContentScope extends scope {
       def updateHtmlContent(content: String): Future[SimpleResult] = {
         val updateContent = Routes.updateSupportingMaterialContent(draftId.itemId.toString, materialName, "index.html")
-        futureResult(makeTextRequest(updateContent, content))
+        route(makeTextRequest(updateContent, content))(writeableOf_AnyContentAsText).get
       }
     }
 
@@ -166,7 +168,6 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
         r <- addFile
       } yield r
 
-      println(contentAsString(result))
       status(result) === OK
 
       assertHeadResource { r =>
@@ -207,7 +208,6 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
         r <- removeFile
       } yield r
 
-      println(contentAsString(result))
       status(result) === OK
 
       assertHeadResource { r =>

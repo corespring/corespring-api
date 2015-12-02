@@ -4,23 +4,15 @@ import java.io.File
 
 import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
-import org.corespring.common.config.SessionDbConfig
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
-import org.corespring.platform.core.models.item.{ Item, TaskInfo }
-import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
+import org.corespring.it.helpers.{ ItemHelper, CollectionHelper }
+import org.corespring.it.scopes.{ WithV2SessionHelper, orgWithAccessToken }
+import org.corespring.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.test.helpers.models.{ V2SessionHelper, CollectionHelper, ItemHelper }
-import org.corespring.v2.player.scopes.orgWithAccessToken
-import org.corespring.wiring.sessiondb.SessionServiceFactoryImpl
-import play.api.{ Configuration, Play }
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json.{ JsObject, Json }
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{ FakeHeaders, FakeRequest }
-
-import scala.xml.Node
 
 class CustomScoringIntegrationTest extends IntegrationSpecification {
 
@@ -54,12 +46,6 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
       }.getOrElse(failure("load outcome failed"))
     }.pendingUntilFixed("BL-3364")
 
-    "text-entry - works with v2 /load-outcome" in new testScope("corespring-text-entry/one") {
-      result.map { r =>
-        (contentAsJson(r) \ "score" \ "summary").asOpt[JsObject] === Some(Json.obj("percentage" -> 100, "note" -> "Overridden score"))
-        status(r) === 200
-      }.getOrElse(failure("load outcome failed"))
-    }
   }
 
   /**
@@ -69,17 +55,12 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
    * - the runs load outcome
    * - checks that the wrapped responseProcessing js runs and returns a response
    */
-  class testScope(val rootPath: String) extends orgWithAccessToken {
+  class testScope(val rootPath: String) extends orgWithAccessToken with WithV2SessionHelper {
 
-    def base = s"../../../qtiToV2/customScoring/$rootPath"
+    def base = s"/custom-scoring/$rootPath"
 
-    lazy val sessionService = SessionServiceFactoryImpl.create(SessionDbConfig.sessionTable)
-
-    lazy val transformer = new ItemTransformer {
-      override def itemService: ItemService = ItemServiceWired
-      override def configuration: Configuration = Configuration.empty
-      override def findCollection(id: ObjectId): Option[ContentCollection] = None
-    }
+    lazy val transformer = bootstrap.Main.itemTransformer
+    lazy val sessionService = bootstrap.Main.sessionServices.main
 
     private def mkSession(itemId: VersionedId[ObjectId], path: String): JsObject = {
       val id = Json.obj("itemId" -> itemId.toString)
@@ -104,6 +85,7 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
 
     private def makeItem(path: String, qti: String): Item = {
       Item(
+        collectionId = collectionId.toString,
         taskInfo = Some(TaskInfo(title = Some(s"Integration test item: $path"))),
         data = Some(Resource(name = "data", files = Seq(
           VirtualFile(name = "qti.xml", "text/xml", true, qti)))))
@@ -122,7 +104,7 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
 
     override def after: Unit = {
       super.after
-      V2SessionHelper.delete(sessionId)
+      v2SessionHelper.delete(sessionId)
       CollectionHelper.delete(collectionId)
     }
 

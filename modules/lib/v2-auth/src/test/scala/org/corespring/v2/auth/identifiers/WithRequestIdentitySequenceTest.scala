@@ -1,16 +1,17 @@
 package org.corespring.v2.auth.identifiers
 
-import org.corespring.v2.errors.Errors.{ compoundError, generalError }
+import org.corespring.v2.errors.Errors.{compoundError, generalError}
 import org.corespring.v2.errors.V2Error
-import org.specs2.execute.{ AsResult, Result }
+import org.specs2.execute.{AsResult, Result}
 import org.specs2.mock.Mockito
-import org.specs2.mutable.{ Around, Specification }
+import org.specs2.mutable.{Around, Specification}
+import play.api.http.Status._
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 
-import scalaz.{ Validation, Failure, Success }
+import scalaz.{Failure, Success, Validation}
 
-class WithRequestIdentitySequenceTest extends Specification with IdentitySpec with Mockito {
+class WithRequestIdentitySequenceTest extends Specification with Mockito {
 
   private trait scope extends Around {
 
@@ -36,9 +37,7 @@ class WithRequestIdentitySequenceTest extends Specification with IdentitySpec wi
     }
 
     override def around[T](t: => T)(implicit evidence$1: AsResult[T]): Result = {
-      running(fakeApp) {
-        AsResult.effectively(t)
-      }
+      AsResult.effectively(t)
     }
 
     lazy val result = identify(fr)
@@ -67,9 +66,9 @@ class WithRequestIdentitySequenceTest extends Specification with IdentitySpec wi
     "when executing" should {
 
       trait callScope extends scope {
-        val failOne = failure("one")
-        val failTwo = failure("two")
-        val successOne = success("one")
+        lazy val failOne = failure("one")
+        lazy val failTwo = failure("two")
+        lazy val successOne = success("one")
       }
 
       "only calls the first identifier if successful" in new callScope {
