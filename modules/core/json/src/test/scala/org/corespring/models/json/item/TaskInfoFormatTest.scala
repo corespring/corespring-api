@@ -15,7 +15,7 @@ class TaskInfoFormatTest extends Specification {
   ))
 
   implicit val tif: Format[TaskInfo] = new TaskInfoFormat {
-    override implicit def scf: Format[StandardCluster] = StandardClusterFormat
+    override implicit def scf: Format[StandardCluster] = Json.format[StandardCluster]
 
     override implicit def sf: Format[Subjects] = new SubjectsFormat {
       override def findOneById(id: ObjectId): Option[Subject] = Some(Subject("?"))

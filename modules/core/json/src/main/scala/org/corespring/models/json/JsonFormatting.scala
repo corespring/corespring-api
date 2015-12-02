@@ -61,7 +61,7 @@ trait JsonFormatting {
 
   implicit lazy val formatStandard: Format[Standard] = StandardFormat
 
-  implicit lazy val formatStandardCluster: Format[StandardCluster] = StandardClusterFormat
+  implicit lazy val formatStandardCluster: Format[StandardCluster] = Json.format[StandardCluster]
 
   implicit lazy val formatContributorDetails: Format[ContributorDetails] = new ContributorDetailsFormat {
     override implicit def ac: Format[AdditionalCopyright] = JsonFormatting.this.formatAdditionalCopyright
