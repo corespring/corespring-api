@@ -9,9 +9,6 @@ import org.corespring.sbtrelease.ReleaseSteps._
 import org.corespring.sbtrelease.ReleaseExtrasPlugin._
 import org.corespring.sbtrelease.{ PrefixAndVersion, BranchNameConverter, FolderStyleConverter }
 
-/**
- * Whilst testing happens map hotfix and release branches to cr-hotfix/0.0.0 or cr-release/0.0.0
- */
 object HyphenNameConverter extends BranchNameConverter {
   val pattern = """^([^-]+)-([^-]+)$""".r
 
@@ -35,11 +32,6 @@ object CustomRelease {
     newState
   })
 
-  //every develop change should go to Devt
-  //every release-XXX change should go to QA
-  //every master change should go to Staging
-  //deploy to prod is manual
-
   /**
    * What will the ci have to do:
    * for releases update the release var to X.X.X,
@@ -53,7 +45,7 @@ object CustomRelease {
     releaseVersionBump := Bump.Minor,
     releaseProcess <<= thisProjectRef.apply { ref =>
       Seq(
-        checkBranchName("release-candidate"),
+        checkBranchName("rc"),
         checkSnapshotDependencies,
         runClean,
         runTest,
@@ -61,10 +53,11 @@ object CustomRelease {
         prepareReleaseVersion,
         setReleaseVersion,
         commitReleaseVersion,
+        pushBranchChanges,
         mergeCurrentBranchTo("master"),
         tagBranchWithReleaseTag("master"),
-        //Note: this requires that you run release with defaults `--with-defaults`
-        pushChanges,
+        pushBranchChanges,
+        pushTags,
         publishArtifacts,
         runStage)
     })
