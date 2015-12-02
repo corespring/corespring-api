@@ -1,17 +1,17 @@
 package org.corespring.itemSearch
 
 import org.bson.types.ObjectId
-import org.corespring.it.helpers.{StandardHelper, ItemHelper}
+import org.corespring.it.helpers.{ StandardHelper, ItemHelper }
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
-import org.corespring.it.{IntegrationSpecification, ItemIndexCleaner}
+import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
 import org.corespring.models.Standard
-import org.corespring.models.item.{Item, PlayerDefinition}
+import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scalaz.{Success, Failure}
+import scalaz.{ Success, Failure }
 
 class ItemSearchIntegrationTest extends IntegrationSpecification {
 
@@ -42,22 +42,22 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
       ItemHelper.create(collectionId, itemWithStandard(standard))
     }
 
-    protected def itemWithStandard(s:Standard): Item = {
+    protected def itemWithStandard(s: Standard): Item = {
       Item(collectionId = collectionId.toString,
         standards = Seq(s.dotNotation.get))
     }
 
-    protected def mkStandard(subject:String, dotNotation:String) = {
+    protected def mkStandard(subject: String, dotNotation: String) = {
       Standard(
-        subject=Some(subject),
+        subject = Some(subject),
         dotNotation = Some(dotNotation),
-        standard=Some("AAA"),
-        category=Some("BBB"),
+        standard = Some("AAA"),
+        category = Some("BBB"),
         subCategory = Some("CCC"))
     }
 
-    protected def search(text:Option[String]) ={
-      val query = ItemIndexQuery(text=text)
+    protected def search(text: Option[String]) = {
+      val query = ItemIndexQuery(text = text)
       val futureResult = itemIndexService.search(query)
       Await.ready(futureResult, Duration.Inf).value.get.get
     }

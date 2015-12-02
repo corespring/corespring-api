@@ -11,8 +11,9 @@ object Dependencies {
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
   object ModuleConfigurations {
-    val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolvers.corespringSnapshots)
-    val localSnapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolver.defaultLocal)
+
+    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, Resolvers.corespringSnapshots))
+    val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", chainedSnapshots)
     val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
   }
 

@@ -7,12 +7,11 @@ object Build extends sbt.Build {
   import Dependencies._
   import ComponentsBuilder._
 
-  lazy val appName = "corespring"
-  lazy val appVersion = "1.0"
-  lazy val ScalaVersion = "2.10.5"
-  lazy val org = "org.corespring"
+  val rootSettings = Seq(
+    scalaVersion in ThisBuild := "2.10.5",
+    organization in ThisBuild := "org.corespring")
 
-  lazy val builders = new Builders(appName, org, appVersion, ScalaVersion)
+  lazy val builders = new Builders("corespring", rootSettings)
 
   lazy val customImports = Seq(
     "scala.language.reflectiveCalls",
@@ -39,18 +38,18 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
     .dependsOn(apiUtils)
 
-  lazy val coreModels = builders.lib("models", "core").settings(
+  lazy val coreModels = builders.lib("models", "core", publish = true).settings(
     libraryDependencies ++= Seq(casbah, salatVersioningDao, playJson, commonsLang, specs2 % "test"))
 
   lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
     .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
-  lazy val coreServices = builders.lib("services", "core")
+  lazy val coreServices = builders.lib("services", "core", publish = true)
     .settings(
       libraryDependencies ++= Seq(specs2 % "test"))
     .dependsOn(coreModels)
 
-  lazy val coreUtils = builders.lib("utils", "core")
+  lazy val coreUtils = builders.lib("utils", "core", publish = true)
 
   lazy val coreLegacy = builders.lib("legacy", "core")
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, securesocial, playFramework, specs2 % "test", playS3))
@@ -60,10 +59,10 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(securesocial, playFramework))
     .dependsOn(coreModels, coreServices)
 
-  lazy val coreSalatConfig = builders.lib("salat-config", "core").settings(
+  lazy val coreSalatConfig = builders.lib("salat-config", "core", publish = true).settings(
     libraryDependencies ++= Seq(salat))
 
-  lazy val coreServicesSalat = builders.lib("services-salat", "core")
+  lazy val coreServicesSalat = builders.lib("services-salat", "core", publish = true)
     .settings(
       libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws))
     .configs(IntegrationTest)
@@ -83,33 +82,9 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", aws))
     .dependsOn(coreSalatConfig, coreServices, coreUtils)
 
-  lazy val encryption = builders.lib("encryption", "core")
+  lazy val encryption = builders.lib("encryption", "core", publish = true)
     .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro, jbcrypt, specs2 % "test"))
     .dependsOn(coreServices, coreModels)
-
-  /**
-   * Core data model
-   * lazy val core = builders.lib("core")
-   * .settings(
-   * libraryDependencies ++= Seq(
-   * assetsLoader,
-   * componentLoader,
-   * corespringCommonUtils,
-   * elasticsearchPlayWS,
-   * httpClient,
-   * jsoup,
-   * mockito,
-   * playFramework,
-   * playS3,
-   * playTest % "test",
-   * salatPlay,
-   * salatVersioningDao,
-   * scalaFaker,
-   * securesocial,
-   * specs2 % "test",
-   * sprayCaching))
-   * .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
-   */
 
   lazy val itemSearch = builders.lib("item-search")
     .settings(
@@ -234,16 +209,12 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
-  /*lazy val reports = builders.web("reports")
-    .settings(
-      libraryDependencies ++= Seq(simplecsv, casbah, playCache))
-    .dependsOn(coreModels, coreServices, commonViews)*/
-
-  lazy val main = builders.web(appName, Some(file(".")))
+  val main = builders.web("root", Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
     .settings(
       //disable publishing of the root project
+      shellPrompt := ShellPrompt.buildShellPrompt,
       packagedArtifacts := Map.empty,
       libraryDependencies ++= Seq(playMemcached, assetsLoader, ztZip),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
@@ -260,13 +231,14 @@ object Build extends sbt.Build {
        */
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
-      credentials += LoadCredentials.cred,
       Keys.fork.in(Test) := builders.forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
+    .settings(rootSettings: _*)
     .settings(Seeding.settings: _*)
     .configs(IntegrationTest)
     .settings(IntegrationTestSettings.settings: _*)
+    .settings(CustomRelease.settings: _*)
     .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
     .settings(Indexing.indexTask)
     .dependsOn(
