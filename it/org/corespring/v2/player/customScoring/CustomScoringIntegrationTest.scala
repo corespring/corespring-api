@@ -18,33 +18,37 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
 
   "Old qti js is transformed and " should {
 
-    "multiple-choice - works with v2 /load-outcome" in new testScope("corespring-multiple-choice/one") {
+    "multiple-choice - works with v2 /load-outcome" in new testScope {
+      val rootPath = "corespring-multiple-choice/one"
       result.map { r =>
         (contentAsJson(r) \ "score" \ "summary").asOpt[JsObject] === Some(Json.obj("percentage" -> 100, "note" -> "Overridden score"))
         status(r) === 200
       }.getOrElse(failure("load outcome failed"))
     }
 
-    "drag-and-drop - works with v2 /load-outcome" in new testScope("corespring-drag-and-drop/one") {
+    "drag-and-drop - works with v2 /load-outcome" in new testScope {
+      val rootPath = "corespring-drag-and-drop/one"
       result.map { r =>
         (contentAsJson(r) \ "score" \ "summary").asOpt[JsObject] === Some(Json.obj("percentage" -> 100, "note" -> "Overridden score"))
         status(r) === 200
       }.getOrElse(failure("load outcome failed"))
     }
 
-    "inline-choice - works with v2 /load-outcome" in new testScope("corespring-inline-choice/one") {
+    "inline-choice - works with v2 /load-outcome" in new testScope {
+      val rootPath = "corespring-inline-choice/one"
       result.map { r =>
         (contentAsJson(r) \ "score" \ "summary").asOpt[JsObject] === Some(Json.obj("percentage" -> 100, "note" -> "Overridden score"))
         status(r) === 200
       }.getOrElse(failure("load outcome failed"))
     }
 
-    "line - works with v2 /load-outcome" in new testScope("corespring-line/one") {
+    "line - works with v2 /load-outcome" in new testScope {
+      val rootPath = "corespring-line/one"
       result.map { r =>
-        (contentAsJson(r) \ "score" \ "summary").asOpt[JsObject] === Some(Json.obj("percentage" -> 60, "note" -> "Overridden score"))
+        (contentAsJson(r) \ "score" \ "summary").asOpt[JsObject] === Some(Json.obj("percentage" -> 30, "note" -> "Overridden score"))
         status(r) === 200
       }.getOrElse(failure("load outcome failed"))
-    }.pendingUntilFixed("BL-3364")
+    }
 
   }
 
@@ -55,8 +59,8 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
    * - the runs load outcome
    * - checks that the wrapped responseProcessing js runs and returns a response
    */
-  class testScope(val rootPath: String) extends orgWithAccessToken with WithV2SessionHelper {
-
+  trait testScope extends orgWithAccessToken with WithV2SessionHelper {
+    def rootPath: String
     def base = s"/custom-scoring/$rootPath"
 
     lazy val transformer = bootstrap.Main.itemTransformer
@@ -100,6 +104,7 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
     override def before: Unit = {
       super.before
       transformer.updateV2Json(itemId)
+      logger.debug(s"custom scoring: ${ItemHelper.get(itemId).get.playerDefinition.get.customScoring}")
     }
 
     override def after: Unit = {

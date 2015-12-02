@@ -131,6 +131,7 @@ package object scopes {
   trait userAndItem extends user with HasItemId {
     val itemId = ItemHelper.create(collectionId)
     override def after: Any = {
+      println(s"[user][after]")
       super.after
       ItemHelper.delete(itemId)
     }

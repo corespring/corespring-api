@@ -102,3 +102,6 @@ case class CloneFileFailure(val file: StoredFile, err: Throwable) extends CloneF
   override def successful: Boolean = false
 }
 
+case class NotFoundCloneFileFailure(val file: StoredFile, val err: Throwable) extends CloneFileResult {
+  override def successful: Boolean = false
+}
