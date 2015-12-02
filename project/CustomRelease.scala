@@ -53,7 +53,7 @@ object CustomRelease {
     releaseVersionBump := Bump.Minor,
     releaseProcess <<= thisProjectRef.apply { ref =>
       Seq(
-        checkBranchVersion,
+        checkBranchName("release-candidate"),
         checkSnapshotDependencies,
         runClean,
         runTest,
