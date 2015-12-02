@@ -15,7 +15,8 @@ private[importing] trait Uploader {
   def upload(filename: String, path: String, file: Source): Future[StoredFile]
 }
 
-class TransferManagerUploader(manager: TransferManager,
+class TransferManagerUploader(
+  manager: TransferManager,
   bucket: Bucket,
   context: ImportingExecutionContext) extends Uploader {
 

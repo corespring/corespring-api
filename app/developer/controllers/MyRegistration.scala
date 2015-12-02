@@ -23,7 +23,8 @@ import scalaz.{ Failure, Success, Validation }
 
 object MyRegistration extends Controller {
 
-  case class MyRegistrationInfo(userName: Option[String],
+  case class MyRegistrationInfo(
+    userName: Option[String],
     firstName: String,
     lastName: String,
     organization: Option[String],
@@ -39,7 +40,8 @@ object MyRegistration extends Controller {
       "organization" -> optional(nonEmptyText),
       Password ->
         tuple(
-          Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
+          Password1 -> nonEmptyText.verifying(
+            use[PasswordValidator].errorMessage,
             p => use[PasswordValidator].isValid(p)),
           Password2 -> nonEmptyText).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2)) // binding
           ((userName, firstName, lastName, organization, password) => MyRegistrationInfo(Some(userName), firstName, lastName, organization, password._1)) // unbinding
@@ -52,7 +54,8 @@ object MyRegistration extends Controller {
       "organization" -> optional(nonEmptyText),
       Password ->
         tuple(
-          Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
+          Password1 -> nonEmptyText.verifying(
+            use[PasswordValidator].errorMessage,
             p => use[PasswordValidator].isValid(p)),
           Password2 -> nonEmptyText).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2)) // binding
           ((firstName, lastName, organization, password) => MyRegistrationInfo(None, firstName, lastName, organization, password._1)) // unbinding

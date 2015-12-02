@@ -13,7 +13,8 @@ import scala.collection.JavaConversions._
 import scala.io.Source
 import scalaz._
 
-class ItemImportController(converter: ItemFileConverter,
+class ItemImportController(
+  converter: ItemFileConverter,
   userSession: UserSessionOrgIdentity[OrgAndOpts],
   orgCollectionService: OrgCollectionService) extends Controller {
 

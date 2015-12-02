@@ -53,6 +53,7 @@
     $scope.launchCatalogView = launchCatalogView;
     $scope.onItemLoad = onItemLoad;
     $scope.publish = publish;
+    $scope.isV1 = isV1;
 
     // Delay in milliseconds for search after item update
     var searchDelay = 1000;
@@ -104,8 +105,12 @@
       route('cloneItem', item);
     }
 
+    function isV1(item) {
+      return item.apiVersion === 1 || (item.format && item.format.apiVersion === 1);
+    }
+
     function route(action, item) {
-      if (item.apiVersion === 1 || (item.format && item.format.apiVersion === 1)) {
+      if (isV1(item)) {
         $scope.v1[action](item);
       } else {
         $scope.v2[action](item);

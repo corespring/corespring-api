@@ -1,8 +1,9 @@
 package org.corespring.services.salat.item
 
+import com.amazonaws.services.s3.model.AmazonS3Exception
 import org.bson.types.ObjectId
 import org.corespring.models.item._
-import org.corespring.models.item.resource.{StoredFile, Resource, BaseFile}
+import org.corespring.models.item.resource.{CloneFileResult, StoredFile, Resource, BaseFile}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mock.Mockito
 import org.specs2.mutable.{ Specification }
@@ -53,16 +54,19 @@ class ItemAssetServiceTest extends Specification with Mockito {
     }
 
     "cloneStoredFiles" should {
+
       "ensure that to-item has a version" in new scope {
         val toItem = mkItem(randomItemIdWithoutVersion)
         val fromItem = mkItem(randomItemIdWithVersion)
         service.cloneStoredFiles(fromItem, toItem) must throwA[IllegalArgumentException]
       }
+
       "ensure than from-item has a version" in new scope {
         val toItem = mkItem(randomItemIdWithVersion)
         val fromItem = mkItem(randomItemIdWithoutVersion)
         service.cloneStoredFiles(fromItem, toItem) must throwA[IllegalArgumentException]
       }
+
       "not fail when item has no files" in new scope {
         val toItem = mkItem()
         val fromItem = incVersion(toItem)
@@ -145,6 +149,24 @@ class ItemAssetServiceTest extends Specification with Mockito {
         val toItem = incVersion(fromItem)
         service.cloneStoredFiles(fromItem, toItem)
         there was one(s3Mock).copyAsset("file from supportingMaterials", s"${itemIdToPath(toItem)}/test-resource/test-file")
+      }
+
+      trait missingScope extends scope {
+        val missing = mock[AmazonS3Exception]
+        missing.getStatusCode().returns(404)
+        s3Mock.copyAsset(any[String], any[String]) throws(missing)
+
+        val toItem = mkItem(randomItemIdWithVersion)
+        val fromItem = mkItem(randomItemIdWithVersion)
+        val result = service.cloneStoredFiles(fromItem, toItem)
+      }
+
+      "when there are missing files from s3" should {
+
+        "return success" in new missingScope {
+          result must haveClass[Success[Seq[CloneFileResult], Item]]
+        }
+        
       }
 
     }
