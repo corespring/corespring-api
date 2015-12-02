@@ -1,9 +1,9 @@
 package org.corespring.common.config
 
-import play.api.{Mode, Configuration}
+import play.api.{ Mode, Configuration }
 import play.api.Mode.Mode
 
-case class ContainerConfig(rootConfig: Configuration, mode: Mode){
+case class ContainerConfig(rootConfig: Configuration, mode: Mode) {
 
   lazy val config = {
     for {
@@ -20,16 +20,18 @@ case class ContainerConfig(rootConfig: Configuration, mode: Mode){
     }
   }.getOrElse(Configuration.empty)
 
-  private def getString(key: String, defaultValue:Option[String] = None): String = {
+  private def getString(key: String, defaultValue: Option[String] = None): String = {
     config.getString(key).getOrElse(defaultValue.getOrElse(throw new RuntimeException(s"Key not found: $key")))
   }
 
-  private def getBoolean(key: String, defaultValue:Option[Boolean] = None): Boolean = {
+  private def getMaybeString(key: String) = config.getString(key)
+
+  private def getBoolean(key: String, defaultValue: Option[Boolean] = None): Boolean = {
     config.getBoolean(key).getOrElse(defaultValue.getOrElse(throw new RuntimeException(s"Key not found: $key")))
   }
 
-  lazy val cdnAddVersionAsQueryParam = getString("cdn.add-version-as-query-param")
-  lazy val cdnDomain = getString("cdn.domain")
+  lazy val cdnAddVersionAsQueryParam: Boolean = getBoolean("cdn.add-version-as-query-param", Some(false))
+  lazy val cdnDomain: Option[String] = getMaybeString("cdn.domain")
   lazy val componentsGzip = getBoolean("components.gzip", Some(mode == Mode.Prod))
   lazy val componentsMinify = getBoolean("components.minify", Some(mode == Mode.Prod))
   lazy val componentsPath = getString("components.path")

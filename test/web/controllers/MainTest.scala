@@ -12,6 +12,9 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsArray, Json }
 import play.api.test.PlaySpecification
+import web.models.{ WebExecutionContext, ContainerVersion }
+
+import scala.concurrent.ExecutionContext
 
 class MainTest extends Specification with Mockito with PlaySpecification {
 
@@ -54,8 +57,19 @@ class MainTest extends Specification with Mockito with PlaySpecification {
       m.all returns Json.arr()
       m
     }
+    lazy val containerVersion = ContainerVersion(Json.obj())
 
-    val main = new Main(fieldValueService, jsonFormatting, userService, orgService, itemType, widgetType)
+    lazy val webExecutionContext = WebExecutionContext(ExecutionContext.global)
+
+    val main = new Main(
+      fieldValueService,
+      jsonFormatting,
+      userService,
+      orgService,
+      itemType,
+      widgetType,
+      containerVersion,
+      webExecutionContext)
   }
 
   "defaultValues" should {

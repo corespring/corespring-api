@@ -27,10 +27,9 @@ trait SimpleJsRoutes {
       s"routesObject.${functionName} = ${functionBody}\n"
     }
 
-
     val routeObjectName = objectName
     val functionsList = routes.map(process).mkString("\n")
-      s"""
+    s"""
        //Simple Js Routes - an alternative rendering to the standard Play Js Routes generator
        //1. Init the Play Framework functions on the global scope (so we can created extendable objects
        if( !window["_qS"] ){

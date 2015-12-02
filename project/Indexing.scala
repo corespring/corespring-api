@@ -20,6 +20,5 @@ object Indexing {
       s.log.error(
         s"[safeIndex] - Not allowed to index to a remote elasticsearch. Add -Dallow.remote.indexing=true to override.")
     }
-    ElasticsearchIndexerPlugin.index(mongoUri, elasticSearchUri, componentPath)
   }
 }

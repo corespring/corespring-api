@@ -95,7 +95,8 @@ class ResourceApi(
     VersionedId(itemId)
   }
 
-  def HasItem(itemId: String,
+  def HasItem(
+    itemId: String,
     additionalChecks: Seq[(ApiRequest[AnyContent], Item) => Option[Result]] = Seq(),
     action: ItemRequest[AnyContent] => Result): Action[AnyContent] = HasItem(itemId, additionalChecks, parse.anyContent)(action)
 
@@ -120,8 +121,9 @@ class ResourceApi(
     def apply(request: ApiRequest[_], item: Item): Option[Result] = {
       if (orgCollectionService.isAuthorized(request.ctx.orgId, new ObjectId(item.collectionId), Permission.Write)) {
         if (sessionServices.main.sessionCount(item.id) > 0 && item.published && !force) {
-          Some(Forbidden(toJson(JsObject(Seq("message" ->
-            JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
+          Some(Forbidden(toJson(JsObject(Seq(
+            "message" ->
+              JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
             "flags" -> JsArray(Seq(JsString("alert_increment"))))))))
         } else {
           None
@@ -408,8 +410,10 @@ class ResourceApi(
    * @return
    */
   def uploadFile(itemId: String, materialName: String, filename: String) =
-    HasItem(itemId,
-      Seq(editCheck(),
+    HasItem(
+      itemId,
+      Seq(
+        editCheck(),
         canFindResource(materialName)(_, _),
         isFilenameTaken(filename, materialName)(_, _)),
       s3service.upload(AppConfig.assetsBucket, storageKey(itemId, materialName, filename)))(
@@ -482,7 +486,8 @@ class ResourceApi(
     }
   })
 
-  def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
+  def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(
+    itemId,
     Seq(editCheck(), canFindResource(resourceName)(_, _)),
     {
       request: ItemRequest[AnyContent] =>

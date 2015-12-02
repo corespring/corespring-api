@@ -1,15 +1,20 @@
 package web.controllers
 
+import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ User }
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.services.item.FieldValueService
+import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Logger
-import play.api.libs.json.{ Json, JsObject }
+import play.api.libs.json.{ JsValue, Json, JsObject }
 import play.api.mvc._
 import play.api.libs.json.Json._
 import securesocial.core.{ SecuredRequest }
+import web.models.{ WebExecutionContext, ContainerVersion }
+
+import scala.concurrent.Future
 
 class Main(
   fieldValueService: FieldValueService,
@@ -17,7 +22,11 @@ class Main(
   userService: UserService,
   orgService: OrganizationService,
   itemType: ItemType,
-  widgetType: WidgetType) extends Controller with securesocial.core.SecureSocial {
+  widgetType: WidgetType,
+  containerVersionInfo: ContainerVersion,
+  webExecutionContext: WebExecutionContext) extends Controller with securesocial.core.SecureSocial {
+
+  implicit val context = webExecutionContext.context
 
   val logger = Logger(classOf[Main])
 
@@ -35,6 +44,13 @@ class Main(
       "v2ItemTypes" -> itemType.all,
       "widgetTypes" -> widgetType.all))
     stringify(values)
+  }
+
+  def version = Action.async {
+    Future {
+      val json = BuildInfo.json.deepMerge(Json.obj("container" -> containerVersionInfo.json))
+      Ok(json)
+    }
   }
 
   def index = SecuredAction {
