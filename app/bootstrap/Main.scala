@@ -59,6 +59,8 @@ import play.api.mvc._
 import play.api.{ Logger, Mode, Play }
 import play.libs.Akka
 import web.WebModule
+import web.controllers.{ Main, ShowResource }
+import web.models.{ ContainerVersion, WebExecutionContext }
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -94,6 +96,8 @@ object Main
     }
   }
 
+  override lazy val containerVersion: ContainerVersion = ContainerVersion(versionInfo)
+
   override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
@@ -102,6 +106,7 @@ object Main
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ecLookup("akka.v1-api"))
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
+  override def webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
 
   lazy val componentSetFilter = new CacheFilter {
     override implicit def ec: ExecutionContext = componentSetExecutionContext.heavyLoad
@@ -151,7 +156,8 @@ object Main
     AppConfig.mongoUri,
     containerConfig.componentsPath)
 
-  lazy val transformerItemService = new TransformerItemService(itemService,
+  lazy val transformerItemService = new TransformerItemService(
+    itemService,
     db(CollectionNames.versionedItem),
     db(CollectionNames.item))(context)
 

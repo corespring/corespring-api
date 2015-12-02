@@ -2,8 +2,8 @@ package org.corespring.web.common.views.helpers
 
 import java.util.Properties
 
-import com.typesafe.config.{Config, ConfigFactory}
-import org.corespring.models.item.{ComponentType, FieldValue}
+import com.typesafe.config.{ Config, ConfigFactory }
+import org.corespring.models.item.{ ComponentType, FieldValue }
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
@@ -25,6 +25,11 @@ object BuildInfo {
   lazy val commitHashShort: String = properties.getProperty("commit.hash", "?")
   lazy val pushDate: String = properties.getProperty("date", "?")
   lazy val branch: String = properties.getProperty("branch", "?")
+
+  lazy val json = Json.obj(
+    "commitHash" -> commitHashShort,
+    "branch" -> branch,
+    "date" -> pushDate)
 }
 
 class Defaults(

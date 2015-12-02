@@ -6,6 +6,7 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrganizationService, UserService }
 import web.controllers.{ Main, ShowResource }
+import web.models.{ ContainerVersion, WebExecutionContext }
 
 trait WebModule {
 
@@ -17,9 +18,19 @@ trait WebModule {
   def orgService: OrganizationService
   def itemType: ItemType
   def widgetType: WidgetType
+  def containerVersion: ContainerVersion
+  def webExecutionContext: WebExecutionContext
 
   lazy val showResource = new ShowResource(itemService, s3Service)
-  lazy val webMain = new Main(fieldValueService, jsonFormatting, userService, orgService, itemType, widgetType)
+  lazy val webMain = new Main(
+    fieldValueService,
+    jsonFormatting,
+    userService,
+    orgService,
+    itemType,
+    widgetType,
+    containerVersion,
+    webExecutionContext)
 
   lazy val webControllers = Seq(showResource, webMain)
 }
