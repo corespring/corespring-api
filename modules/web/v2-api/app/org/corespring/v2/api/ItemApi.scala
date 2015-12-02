@@ -84,7 +84,8 @@ class ItemApi(
     }
   }
 
-  private def searchWithQuery(q: ItemIndexQuery,
+  private def searchWithQuery(
+    q: ItemIndexQuery,
     accessibleCollections: Seq[ContentCollRef]): Future[Validation[Error, ItemIndexSearchResult]] = {
     val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
     val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
@@ -105,7 +106,8 @@ class ItemApi(
   }
 
   //upgrade of v1 item api - listWithColl
-  def searchByCollectionId(collectionId: ObjectId,
+  def searchByCollectionId(
+    collectionId: ObjectId,
     q: Option[String] = None) = Action.async { request =>
 
     val queryString = q.getOrElse("{}")
@@ -140,7 +142,8 @@ class ItemApi(
 
     logger.debug(s"function=search, query=$query")
 
-    def searchQueryResult(q: ItemIndexQuery,
+    def searchQueryResult(
+      q: ItemIndexQuery,
       accessibleCollections: Seq[ContentCollRef]): Future[SimpleResult] = {
       logger.trace(s"function=search#searchQueryResult, q=$q")
       searchWithQuery(q, accessibleCollections).map(result => result match {

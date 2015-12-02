@@ -156,7 +156,8 @@ object Main
     AppConfig.mongoUri,
     containerConfig.componentsPath)
 
-  lazy val transformerItemService = new TransformerItemService(itemService,
+  lazy val transformerItemService = new TransformerItemService(
+    itemService,
     db(CollectionNames.versionedItem),
     db(CollectionNames.item))(context)
 

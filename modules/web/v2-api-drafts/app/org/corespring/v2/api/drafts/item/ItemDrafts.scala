@@ -109,7 +109,8 @@ class ItemDrafts(
     if (all.getOrElse(false)) {
       drafts.removeByItemId(user)(draftId.itemId).bimap(
         toApiResult,
-        itemId => Json.obj("itemId" -> itemId.toString,
+        itemId => Json.obj(
+          "itemId" -> itemId.toString,
           "id" -> draftId.toIdString))
     } else {
       drafts.remove(user)(draftId)
