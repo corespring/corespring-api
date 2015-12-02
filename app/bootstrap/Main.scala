@@ -85,13 +85,15 @@ object Main
   private def ecLookup(id: String) = {
     def hasEnabledAkkaConfiguration(id: String) = {
       (for {
-        o <- configuration.getObject(id)
-        enabled <- configuration.getBoolean(id + ".enabled")
-      } yield enabled).getOrElse(false)
+        configDoesExist <- configuration.getObject(id)
+        configIsEnabled <- configuration.getBoolean(id + ".enabled")
+      } yield configIsEnabled).getOrElse(false)
     }
     if (hasEnabledAkkaConfiguration(id)) {
+      logger.info(s"Using specific execution context for $id")
       Akka.system.dispatchers.lookup(id)
     } else {
+      logger.info(s"Using global execution context for $id")
       ExecutionContext.global
     }
   }
@@ -108,12 +110,22 @@ object Main
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
   override def webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
 
+  private def mainAppVersion(): String = {
+    val commit = BuildInfo.commitHashShort
+    val versionOverride = AppConfig.appVersionOverride
+    val result = commit + versionOverride
+    logger.trace(s"AppVersion $result hash ${commit} override ${versionOverride}")
+    result
+  }
+
   lazy val componentSetFilter = new CacheFilter {
     override implicit def ec: ExecutionContext = componentSetExecutionContext.heavyLoad
 
     override lazy val bucket: String = AppConfig.assetsBucket
 
-    override def appVersion: String = BuildInfo.commitHashShort + AppConfig.appVersionOverride
+    override def appVersion: String = {
+      mainAppVersion()
+    }
 
     override def s3: AmazonS3 = bootstrap.Main.s3
 
@@ -129,7 +141,7 @@ object Main
 
   private lazy val logger = Logger(Main.getClass)
 
-  logger.debug("bootstrapping...")
+  logger.debug(s"bootstrapping... ${mainAppVersion()}")
 
   override lazy val controllers: Seq[Controller] = {
     super.controllers ++
@@ -147,7 +159,7 @@ object Main
 
   lazy val cdnResolver = new CDNResolver(
     containerConfig.cdnDomain,
-    if (containerConfig.cdnAddVersionAsQueryParam) Some(BuildInfo.commitHashShort) else None)
+    if (containerConfig.cdnAddVersionAsQueryParam) Some(mainAppVersion) else None)
 
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
