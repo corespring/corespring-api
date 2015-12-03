@@ -9,4 +9,4 @@ cd /opt
 : ${ENV_MONGO_URI:?"Need to set ENV_MONGO_URI non-empty"}
 
 echo "-- boot play app..."
-./corespring-api/bin/corespring
+./corespring-api/bin/corespring-root
