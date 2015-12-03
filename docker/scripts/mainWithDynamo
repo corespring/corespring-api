@@ -61,6 +61,6 @@ puts Dir.pwd
 
 puts "-- boot play app..."
 
-path = "corespring-api/bin/corespring"
+path = "corespring-api/bin/corespring-root"
 play_pid = Process.spawn(path)
 Process.wait(play_pid)
