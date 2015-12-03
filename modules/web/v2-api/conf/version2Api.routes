@@ -41,7 +41,7 @@ POST /items/:itemId/clone                  @org.corespring.v2.api.ItemApi.cloneI
 
 PUT /items/:itemId/publish                 @org.corespring.v2.api.ItemApi.publish(itemId)
 
-GET /items/:itemId/countSessions           @org.corespring.v2.api.ItemApi.legacyCountSessions(itemId:VersionedId[ObjectId])
+GET /items/:itemId/countSessions           @org.corespring.v2.api.ItemApi.countSessions(itemId:VersionedId[ObjectId])
 
 PUT /items/:itemId/save-new-version        @org.corespring.v2.api.ItemApi.saveNewVersion(itemId)
 
