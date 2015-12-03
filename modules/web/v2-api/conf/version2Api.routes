@@ -15,6 +15,7 @@ PUT     /sessions/:sessionId/reopen        @org.corespring.v2.api.ItemSessionApi
 PUT     /sessions/:sessionId/complete      @org.corespring.v2.api.ItemSessionApi.complete(sessionId: String)
 
 
+
 ## V1 Port to v2 (cms support)
 GET /organizations/with-shared-collection/:collId @org.corespring.v2.api.OrganizationApi.getOrgsWithSharedCollection(collId: ObjectId)
 
@@ -39,6 +40,8 @@ DELETE /items/:itemId                      @org.corespring.v2.api.ItemApi.delete
 POST /items/:itemId/clone                  @org.corespring.v2.api.ItemApi.cloneItem(itemId)
 
 PUT /items/:itemId/publish                 @org.corespring.v2.api.ItemApi.publish(itemId)
+
+GET /items/:itemId/countSessions           @org.corespring.v2.api.ItemApi.legacyCountSessions(itemId:VersionedId[ObjectId])
 
 PUT /items/:itemId/save-new-version        @org.corespring.v2.api.ItemApi.saveNewVersion(itemId)
 
