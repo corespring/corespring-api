@@ -21,6 +21,11 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
 
   val forkInTests = false
 
+  val skipPublishSettings = Seq(
+    publishArtifact := false,
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
+  )
+
   //TODO: This is not useful at the moment - when it works however it'll be amazing:
   // updateOptions := updateOptions.value.withConsolidatedResolution(true),
   // see: https://github.com/sbt/sbt/issues/2105
@@ -46,7 +51,9 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
 
     if (publish) {
       p.settings(publishTo := authPublishTo.value)
-    } else p
+    } else {
+      p.settings(skipPublishSettings :_*)
+    }
   }
 
   def testLib(name: String) = lib(name, "test-lib")
@@ -59,6 +66,7 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
     play.Project(makeName(name), "NOT-USED", path = rootFile)
       .settings(version := (version in ThisBuild).value)
       .settings(sharedSettings: _*)
+      .settings(skipPublishSettings :_*)
   }
 
   private def makeName(s: String): String = if (s == root) root else Seq(root, s).mkString("-")
