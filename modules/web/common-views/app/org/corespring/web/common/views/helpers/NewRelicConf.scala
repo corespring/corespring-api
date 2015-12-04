@@ -1,6 +1,6 @@
 package org.corespring.web.common.views.helpers
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{ ConfigFactory, Config }
 
 case class NewRelicConf(
   enabled: Boolean = false,
@@ -11,7 +11,7 @@ case class NewRelicConf(
   beacon: String = "bam.nr-data.net",
   errorBeacon: String = "bam.nr-data.net")
 
-object NewRelicConf{
+object NewRelicConf {
   lazy val config: NewRelicConf = getNewRelicConf()
 
   private val rootConfig: Config = ConfigFactory.load()
@@ -28,5 +28,5 @@ object NewRelicConf{
       licenseKey = get("newrelic.license-key").getOrElse(""),
       applicationID = get("newrelic.application-id").getOrElse(""))
 
-}
+  }
 }

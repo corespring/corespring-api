@@ -77,7 +77,8 @@ class ItemFileConverter(
                 otherAlignments = otherAlignments,
                 pValue = extractString("pValue"),
                 playerDefinition =
-                  Some(PlayerDefinition(itemFiles.map(_.files).getOrElse(Seq.empty),
+                  Some(PlayerDefinition(
+                    itemFiles.map(_.files).getOrElse(Seq.empty),
                     (json \ "xhtml").as[String], (json \ "components"),
                     (json \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
                 priorGradeLevels = extractStringSeq("priorGradeLevels"),

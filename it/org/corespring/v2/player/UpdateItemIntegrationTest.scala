@@ -1,18 +1,24 @@
 package org.corespring.v2.player.item
 
-import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.item.TaskInfo
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2.player.scopes.{ SessionRequestBuilder, userAndItem }
+import org.corespring.it.{FieldValuesIniter, IntegrationSpecification}
+import org.corespring.models.item.TaskInfo
+import org.corespring.it.helpers.SecureSocialHelper
+import org.corespring.it.helpers.ItemHelper
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.specs2.specification.Scope
 import play.api.libs.json.Json
 import play.api.mvc.{ Request, AnyContentAsJson }
 
 class UpdateItemIntegrationTest extends IntegrationSpecification {
 
-  trait scope extends Scope with userAndItem with SessionRequestBuilder with SecureSocialHelpers {
+  trait scope extends Scope with userAndItem with SessionRequestBuilder with SecureSocialHelper with FieldValuesIniter {
 
+    initFieldValues()
+
+    override def after = {
+      logger.debug(" ----------- >> after.. cleaning up..")
+      removeData()
+    }
   }
 
   "update profile" should {

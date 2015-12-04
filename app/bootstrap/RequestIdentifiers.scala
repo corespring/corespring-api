@@ -23,7 +23,8 @@ import scalaz.Success
  * @param orgService
  * @param tokenService
  */
-class RequestIdentifiers(secureSocialService: SecureSocial,
+class RequestIdentifiers(
+  secureSocialService: SecureSocial,
   orgService: OrganizationService,
   userService: UserService,
   tokenService: AccessTokenService,

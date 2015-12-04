@@ -1,5 +1,6 @@
 package org.corespring.services.salat.item
 
+import com.amazonaws.services.s3.model.AmazonS3Exception
 import grizzled.slf4j.Logger
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource._
@@ -7,6 +8,17 @@ import org.corespring.{ services => interface }
 import scalaz.{ Failure, Success, Validation }
 
 class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) => Unit) extends interface.item.ItemAssetService {
+
+  def tryClone(file: StoredFile, fn: StoredFile => String): CloneFileResult = try {
+    val newKey = fn(file)
+    CloneFileSuccess(file.copy(storageKey = newKey), newKey)
+  } catch {
+    case s3Exception: AmazonS3Exception => s3Exception.getStatusCode match {
+      case 404 => NotFoundCloneFileFailure(file, s3Exception)
+      case _ => CloneFileFailure(file, s3Exception)
+    }
+    case throwable: Throwable => CloneFileFailure(file, throwable)
+  }
 
   private val logger = Logger(classOf[ItemAssetService])
   /**
@@ -23,17 +35,13 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
     def copyFile(f: StoredFile): Option[CloneFileResult] = if (alreadyCopied.exists(_.file.name == f.name)) {
       None
     } else {
-      val r = try {
+      val r = tryClone(f, { f: StoredFile =>
         val fromKey = StoredFile.storageKey(from.id.id, from.id.version.get, "data", f.name)
         val toKey = StoredFile.storageKey(to.id.id, to.id.version.get, "data", f.name)
         logger.trace(s"function=copyAsset, from=$fromKey, to=$toKey")
         copyAsset(fromKey, toKey)
-        CloneFileSuccess(f, toKey)
-      } catch {
-        case t: Throwable => {
-          CloneFileFailure(f, t)
-        }
-      }
+        toKey
+      })
       Some(r)
     }
 
@@ -50,7 +58,7 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
       CloneResourceResult(result)
     }
 
-    def processFile(resource: Resource, file: StoredFile): CloneFileResult = try {
+    def processFile(resource: Resource, file: StoredFile): CloneFileResult = tryClone(file, { file =>
       val toKey = StoredFile.storageKey(to.id.id, to.id.version.get, resource, file.name)
 
       //V1 file key validation
@@ -66,13 +74,8 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
       logger.debug("[ItemFiles] clone file: " + from + " --> " + to)
       println("[ItemFiles] clone file: " + from + " --> " + to)
       copyAsset(fromKey, toKey)
-      CloneFileSuccess(file.copy(storageKey = toKey), toKey)
-    } catch {
-      case e: Throwable => {
-        logger.debug("An error occurred cloning the file: " + e.getMessage)
-        CloneFileFailure(file, e)
-      }
-    }
+      toKey
+    })
 
     val resources: Seq[Resource] = to.supportingMaterials ++ to.data
     val result: Seq[CloneResourceResult] = resources.map(cloneResourceFiles)
@@ -95,7 +98,16 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
     val v1FileResults: Seq[CloneFileResult] = cloneV1Files(from, to)
     val v2FileResults = clonePlayerDefinitionFiles(v1FileResults, from, to)
     val cloneFileResults = v1FileResults ++ v2FileResults
-    def successful = cloneFileResults.filterNot(_.successful).length == 0
+
+    def wasNotFound(result: CloneFileResult) = result match {
+      case NotFoundCloneFileFailure(file, _) => {
+        logger.warn(s"File ${file.name} was not found on S3 for ${from.id}")
+        true
+      }
+      case _ => false
+    }
+
+    def successful = cloneFileResults.filterNot(result => result.successful || wasNotFound(result)).length == 0
     logger.trace(s"function=cloneStoredFiles, Failed clone result: $cloneFileResults")
     if (successful) Success(to) else Failure(cloneFileResults)
   }
