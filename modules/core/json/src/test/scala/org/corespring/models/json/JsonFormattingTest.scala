@@ -1,6 +1,7 @@
 package org.corespring.models.json
 
 import org.bson.types.ObjectId
+import org.corespring.models.item.resource.{ VirtualFile, StoredFile }
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item._
@@ -68,7 +69,46 @@ class JsonFormattingTest extends Specification {
     "define playerDefinintion" in {
       item.playerDefinition.isDefined === true
     }
+  }
 
+  "data" should {
+
+    val json = Json.obj(
+      "collectionId" -> dummyCollectionId,
+      "data" -> Json.obj(
+        "name" -> "test resource",
+        "files" -> JsArray(Seq(
+          Json.obj(
+            "name" -> "mc008-3.jpg",
+            "contentType" -> "image/jpeg",
+            "isMain" -> true,
+            "storageKey" -> "52a5ed3e3004dc6f68cdd9fc/0/data/mc008-3.jpg"),
+          Json.obj(
+            "name" -> "qti.xml",
+            "contentType" -> "text/xml",
+            "isMain" -> true,
+            "content" -> "<?xml version='1.0' encoding='UTF-8'?><assessmentItem></assessmentItem>")))))
+    val item = json.as[Item]
+
+    "define data" in {
+      item.data.isDefined === true
+    }
+
+    "create stored file" in {
+      item.data.get.files(0) === StoredFile(
+        "mc008-3.jpg",
+        "image/jpg",
+        true,
+        "52a5ed3e3004dc6f68cdd9fc/0/data/mc008-3.jpg")
+    }
+
+    "create virtual file" in {
+      item.data.get.files(1) === VirtualFile(
+        "qti.xml",
+        "text/xml",
+        true,
+        "<?xml version='1.0' encoding='UTF-8'?>\n<assessmentItem></assessmentItem>")
+    }
   }
 
   "workflow" should {
