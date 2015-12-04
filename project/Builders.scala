@@ -22,9 +22,8 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
   val forkInTests = false
 
   val skipPublishSettings = Seq(
-    publishArtifact := false,
-    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
-  )
+    /** Note: publishArtifact := false seems to mess with routes */
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))))
 
   //TODO: This is not useful at the moment - when it works however it'll be amazing:
   // updateOptions := updateOptions.value.withConsolidatedResolution(true),
@@ -52,7 +51,7 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
     if (publish) {
       p.settings(publishTo := authPublishTo.value)
     } else {
-      p.settings(skipPublishSettings :_*)
+      p.settings(skipPublishSettings: _*)
     }
   }
 
@@ -66,7 +65,7 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
     play.Project(makeName(name), "NOT-USED", path = rootFile)
       .settings(version := (version in ThisBuild).value)
       .settings(sharedSettings: _*)
-      .settings(skipPublishSettings :_*)
+      .settings(skipPublishSettings: _*)
   }
 
   private def makeName(s: String): String = if (s == root) root else Seq(root, s).mkString("-")
