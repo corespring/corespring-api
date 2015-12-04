@@ -1,18 +1,20 @@
 package web.controllers
 
+import org.bson.types.ObjectId
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.{ Organization, User }
+import play.api.Mode
+import play.api.Mode.Mode
 import play.api.{ Play, Mode }
 import play.api.mvc.{ Controller, Action }
-import org.corespring.common.config.AppConfig
 
-object Partials extends Controller with securesocial.core.SecureSocial {
+class Partials(mode: Mode, orgs: DefaultOrgs) extends Controller with securesocial.core.SecureSocial {
 
   def editItem = SecuredAction { request =>
     val userId = request.user.identityId
     val user: User = ServiceLookup.userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
-    val useV2 = Play.current.mode == Mode.Dev || AppConfig.v2playerOrgIds.contains(user.org.orgId)
-    val isRoot = AppConfig.rootOrgId == user.org.orgId
+    val useV2 = Play.current.mode == Mode.Dev || orgs.v2Player.contains(user.org.orgId)
+    val isRoot = orgs.root == user.org.orgId
     Ok(web.views.html.partials.editItem(useV2, isRoot))
   }
 

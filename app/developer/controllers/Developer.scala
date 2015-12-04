@@ -22,6 +22,8 @@ class Developer(config: DeveloperConfig) extends Controller with SecureSocial {
 
   val logger = Logger(classOf[Developer])
 
+  lazy val myRegistration = new MyRegistration(config)
+
   import ExecutionContext.Implicits.global
 
   implicit val writeOid = ObjectIdFormat
@@ -101,7 +103,7 @@ class Developer(config: DeveloperConfig) extends Controller with SecureSocial {
           val org: Option[Organization] = ServiceLookup.userService.getOrg(user, Permission.Read)
           //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
           //TODO: this doesn't look right - need to discuss a fix for it.
-          org.find(o => o.id != AppConfig.demoOrgId) match {
+          org.find(o => o.id != config.demoOrgId) match {
             case Some(o) => Ok(Json.toJson(o))
             case None => NotFound(Json.toJson(ApiError.MissingOrganization))
           }
@@ -185,6 +187,6 @@ class Developer(config: DeveloperConfig) extends Controller with SecureSocial {
       action
   }
 
-  def handleSignUp(token: String) = Action.async { request => MyRegistration.handleSignUp(token)(request) }
+  def handleSignUp(token: String) = Action.async { request => myRegistration.handleSignUp(token)(request) }
 }
 

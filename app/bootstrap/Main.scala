@@ -74,7 +74,7 @@ object Main {
 }
 
 class Main(val configuration: Configuration,
-  mode: PlayMode,
+  val mode: PlayMode,
   classLoader: ClassLoader,
   resourceAsStream: String => Option[InputStream])
   extends SalatServices
@@ -94,7 +94,7 @@ class Main(val configuration: Configuration,
 
   private lazy val logger = Logger(classOf[Main])
 
-  override lazy val appConfig = AppConfig(configuration)
+  lazy val appConfig = AppConfig(configuration)
 
   lazy val buildInfo = BuildInfo(resourceAsStream)
 

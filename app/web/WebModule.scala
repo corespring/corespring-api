@@ -1,12 +1,18 @@
 package web
 
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrganizationService, UserService }
-import web.controllers.{ Main, ShowResource }
+import play.api.Mode.Mode
+import web.controllers.{ Partials, PublicSite, Main, ShowResource }
 import web.models.{ ContainerVersion, WebExecutionContext }
+
+case class PublicSiteConfig(url: String)
+case class DefaultOrgs(v2Player: Seq[ObjectId], root: ObjectId)
 
 trait WebModule {
 
@@ -20,8 +26,13 @@ trait WebModule {
   def widgetType: WidgetType
   def containerVersion: ContainerVersion
   def webExecutionContext: WebExecutionContext
+  def mode: Mode
+  def defaultOrgs: DefaultOrgs
+  def bucket: Bucket
+  def publicSiteConfig: PublicSiteConfig
 
-  lazy val showResource = new ShowResource(itemService, s3Service)
+  lazy val showResource = new ShowResource(itemService, s3Service, bucket)
+  lazy val partials = new Partials(mode, defaultOrgs)
   lazy val webMain = new Main(
     fieldValueService,
     jsonFormatting,
@@ -32,5 +43,7 @@ trait WebModule {
     containerVersion,
     webExecutionContext)
 
-  lazy val webControllers = Seq(showResource, webMain)
+  lazy val publicSite = new PublicSite(publicSiteConfig.url, mode)
+
+  lazy val webControllers = Seq(showResource, webMain, publicSite, partials)
 }

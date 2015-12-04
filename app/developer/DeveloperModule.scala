@@ -1,6 +1,6 @@
 package developer
 
-import developer.controllers.{ Developer, AuthController }
+import developer.controllers.{ MyRegistration, Developer, AuthController }
 import org.bson.types.ObjectId
 import org.corespring.platform.core.controllers.auth.OAuthProvider
 import org.corespring.services.UserService
