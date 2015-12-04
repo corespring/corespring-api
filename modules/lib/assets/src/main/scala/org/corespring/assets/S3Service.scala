@@ -37,4 +37,4 @@ class CorespringS3ServiceExtended(client: AmazonS3)
   }
 }
 
-object CorespringS3ServiceExtended extends CorespringS3ServiceExtended(S3Service.mkClient(AppConfig.amazonKey, AppConfig.amazonSecret, AppConfig.amazonEndpoint))
+//object CorespringS3ServiceExtended extends CorespringS3ServiceExtended(S3Service.mkClient(AppConfig.amazonKey, AppConfig.amazonSecret, AppConfig.amazonEndpoint))

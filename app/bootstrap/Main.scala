@@ -1,5 +1,7 @@
 package bootstrap
 
+import java.io.InputStream
+
 import bootstrap.Actors.UpdateItem
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.transfer.TransferManager
@@ -56,7 +58,7 @@ import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
-import play.api.{ Logger, Mode, Play }
+import play.api.{Configuration, Logger, Mode}
 import play.libs.Akka
 import web.WebModule
 import web.controllers.{ Main, ShowResource }
@@ -65,7 +67,17 @@ import web.models.{ ContainerVersion, WebExecutionContext }
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
 
-object Main
+
+object Main{
+  def apply(app:play.api.Application) : Main = {
+    new Main(app.configuration, app.mode, app.classloader, app.resourceAsStream)
+  }
+}
+
+class Main(val configuration:Configuration,
+           mode : PlayMode,
+           classLoader: ClassLoader,
+           resourceAsStream: String => Option[InputStream])
   extends SalatServices
   with EncryptionModule
   with ItemSearchModule
@@ -80,7 +92,8 @@ object Main
   with ItemImportModule {
 
   import com.softwaremill.macwire.MacwireMacros._
-  import play.api.Play.current
+
+  private lazy val logger = Logger(classOf[Main])
 
   private def ecLookup(id: String) = {
     def hasEnabledAkkaConfiguration(id: String) = {
@@ -127,7 +140,7 @@ object Main
       mainAppVersion()
     }
 
-    override def s3: AmazonS3 = bootstrap.Main.s3
+    override def s3: AmazonS3 = Main.this.s3
 
     override def intercept(path: String) = path.contains("component-sets")
 
@@ -139,7 +152,6 @@ object Main
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
 
-  private lazy val logger = Logger(Main.getClass)
 
   logger.debug(s"bootstrapping... ${mainAppVersion()}")
 
@@ -153,9 +165,7 @@ object Main
       itemDraftsController
   }
 
-  lazy val configuration = current.configuration
-
-  lazy val containerConfig = ContainerConfig(configuration, current.mode)
+  lazy val containerConfig = ContainerConfig(configuration, mode)
 
   lazy val cdnResolver = new CDNResolver(
     containerConfig.cdnDomain,
@@ -250,7 +260,7 @@ object Main
 
   override lazy val db: MongoDB = Db.salatDb()
 
-  override lazy val context: Context = new ServicesContext(Play.classloader)
+  override lazy val context: Context = new ServicesContext(classLoader)
 
   override lazy val identifyUser: RequestHeader => Option[OrgAndUser] = (rh) => {
 
@@ -266,7 +276,7 @@ object Main
 
     private lazy val fieldValueLoadedOnce = fieldValueService.get.get
 
-    override def fieldValue: FieldValue = if (Play.current.mode == Mode.Prod) {
+    override def fieldValue: FieldValue = if (mode == Mode.Prod) {
       fieldValueLoadedOnce
     } else {
       fieldValueService.get.get
@@ -307,8 +317,7 @@ object Main
 
   override lazy val standardTree: StandardsTree = {
     val json: JsArray = {
-      import play.api.Play.current
-      Play.resourceAsStream("public/web/standards_tree.json").map { is =>
+      resourceAsStream("public/web/standards_tree.json").map { is =>
         val contents = IOUtils.toString(is, "UTF-8")
         IOUtils.closeQuietly(is)
         Json.parse(contents).as[JsArray]
@@ -317,7 +326,7 @@ object Main
     StandardsTree(json)
   }
 
-  override def playMode: PlayMode = Play.current.mode
+  override def playMode: PlayMode = mode
 
   override def appConfig: AppConfig = AppConfig
 
@@ -345,7 +354,7 @@ object Main
   lazy val apiTracking: ApiTracking = {
 
     lazy val logRequests = {
-      val out = configuration.getBoolean("api.log-requests").getOrElse(Play.current.mode == Mode.Dev)
+      val out = configuration.getBoolean("api.log-requests").getOrElse(mode == Mode.Dev)
       logger.info(s"Log api requests? $out")
       out
     }
@@ -359,7 +368,7 @@ object Main
 
   override lazy val itemSchema: ItemSchema = {
     val file = "schema/item-schema.json"
-    val inputStream = Play.application.resourceAsStream("schema/item-schema.json")
+    val inputStream = resourceAsStream("schema/item-schema.json")
       .getOrElse(throw new IllegalArgumentException(s"File $file not found"))
     val schema = ItemSchema(IOUtils.toString(inputStream, "UTF-8"))
     IOUtils.closeQuietly(inputStream)

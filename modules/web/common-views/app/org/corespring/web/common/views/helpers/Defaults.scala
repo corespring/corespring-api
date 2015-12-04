@@ -8,28 +8,35 @@ import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 
-object BuildInfo {
-  val propsFile = "/buildInfo.properties"
-
-  private val properties = {
-    val url = Play.resource(propsFile)
-    url.map { u =>
-      val input = u.openStream()
-      val props = new Properties()
-      props.load(input)
-      input.close()
-      props
-    }.getOrElse(new Properties())
-  }
-
-  lazy val commitHashShort: String = properties.getProperty("commit.hash", "?")
-  lazy val pushDate: String = properties.getProperty("date", "?")
-  lazy val branch: String = properties.getProperty("branch", "?")
-
+case class BuildInfo(commitHashShort:String, pushDate:String, branch:String){
   lazy val json = Json.obj(
     "commitHash" -> commitHashShort,
     "branch" -> branch,
     "date" -> pushDate)
+}
+
+object BuildInfo {
+
+  def apply(app:play.api.Application) : BuildInfo = {
+    val propsFile = "/buildInfo.properties"
+
+    val properties = {
+      val url = app.resource(propsFile)
+      url.map { u =>
+        val input = u.openStream()
+        val props = new Properties()
+        props.load(input)
+        input.close()
+        props
+      }.getOrElse(new Properties())
+    }
+
+    BuildInfo(
+      commitHashShort  = properties.getProperty("commit.hash", "?"),
+      pushDate  = properties.getProperty("date", "?"),
+      branch = properties.getProperty("branch", "?")
+    )
+  }
 }
 
 class Defaults(
