@@ -58,8 +58,7 @@ object CustomRelease {
         tagBranchWithReleaseTag("master"),
         pushBranchChanges,
         pushTags,
-        publishArtifacts,
-        runStage)
+        publishArtifacts)
     })
 
 }
