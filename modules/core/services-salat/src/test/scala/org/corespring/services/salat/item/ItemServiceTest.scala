@@ -89,6 +89,12 @@ class ItemServiceTest extends Specification with Mockito {
       there was no(dao).revertToVersion(item.id)
       result must_== Success(inc(item.id))
     }
+
+    "use item.data from db to copy the assets" in new save {
+      override def succeed = true
+      val result = itemService.save(item, true)
+      there was one(dao).get(any[VersionedId[ObjectId]])
+    }
   }
 
   "countItemsInCollections" should {
