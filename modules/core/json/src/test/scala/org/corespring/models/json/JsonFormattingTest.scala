@@ -1,6 +1,7 @@
 package org.corespring.models.json
 
 import org.bson.types.ObjectId
+import org.corespring.models.item.resource.{ VirtualFile, StoredFile }
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item._
@@ -68,7 +69,46 @@ class JsonFormattingTest extends Specification {
     "define playerDefinintion" in {
       item.playerDefinition.isDefined === true
     }
+  }
 
+  "data" should {
+
+    val json = Json.obj(
+      "collectionId" -> dummyCollectionId,
+      "data" -> Json.obj(
+        "name" -> "test resource",
+        "files" -> JsArray(Seq(
+          Json.obj(
+            "name" -> "mc008-3.jpg",
+            "contentType" -> "image/jpeg",
+            "isMain" -> true,
+            "storageKey" -> "52a5ed3e3004dc6f68cdd9fc/0/data/mc008-3.jpg"),
+          Json.obj(
+            "name" -> "qti.xml",
+            "contentType" -> "text/xml",
+            "isMain" -> true,
+            "content" -> "<?xml version='1.0' encoding='UTF-8'?>\n<assessmentItem>\n  <correctResponseFeedback>Correct!</correctResponseFeedback>\n  <incorrectResponseFeedback>Probability = desired outcomes/possible outcomes. In other words, what you want/total options. </incorrectResponseFeedback>\n  <responseDeclaration \n  identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_RL\" cardinality=\"single\">\n    <correctResponse>\n      <value>QUE_0_7_E386B1897A204A4885E46D9B842004E8_A0</value>\n    </correctResponse>\n</responseDeclaration>\n  <itemBody>\n    <p>\n      A box contains one black ball and nine white balls. What is the probability of selecting a black ball at random from the box?\n      <choiceInteraction \n       responseIdentifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_RL\" shuffle=\"false\" maxChoices=\"1\">\n        <simpleChoice identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A0\">\n          <tex>\\dfrac{1}{10}</tex>\n          <feedbackInline \n          identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A0\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n        <simpleChoice identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A1\">\n          <tex>\\dfrac{1}{9}</tex>\n          <feedbackInline \n          identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A1\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n        <simpleChoice identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A2\">\n          <tex>\\dfrac{9}{1}</tex>\n          <feedbackInline \n          identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A2\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n        <simpleChoice identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A3\">\n          <tex>\\dfrac{1}{10}</tex>\n          <feedbackInline \n          identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A3\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n</choiceInteraction>\n    </p>\n  </itemBody>\n</assessmentItem>")))))
+    val item = json.as[Item]
+
+    "define data" in {
+      item.data.isDefined === true
+    }
+
+    "create stored file" in {
+      item.data.get.files(0) === StoredFile(
+        "mc008-3.jpg",
+        "image/jpg",
+        true,
+        "52a5ed3e3004dc6f68cdd9fc/0/data/mc008-3.jpg")
+    }
+
+    "create virtual file" in {
+      item.data.get.files(1) === VirtualFile(
+        "qti.xml",
+        "text/xml",
+        true,
+        "<?xml version='1.0' encoding='UTF-8'?>\n<assessmentItem>\n  <correctResponseFeedback>Correct!</correctResponseFeedback>\n  <incorrectResponseFeedback>Probability = desired outcomes/possible outcomes. In other words, what you want/total options. </incorrectResponseFeedback>\n  <responseDeclaration \n  identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_RL\" cardinality=\"single\">\n    <correctResponse>\n      <value>QUE_0_7_E386B1897A204A4885E46D9B842004E8_A0</value>\n    </correctResponse>\n</responseDeclaration>\n  <itemBody>\n    <p>\n      A box contains one black ball and nine white balls. What is the probability of selecting a black ball at random from the box?\n      <choiceInteraction \n       responseIdentifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_RL\" shuffle=\"false\" maxChoices=\"1\">\n        <simpleChoice identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A0\">\n          <tex>\\dfrac{1}{10}</tex>\n          <feedbackInline \n          identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A0\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n        <simpleChoice identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A1\">\n          <tex>\\dfrac{1}{9}</tex>\n          <feedbackInline \n          identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A1\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n        <simpleChoice identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A2\">\n          <tex>\\dfrac{9}{1}</tex>\n          <feedbackInline \n          identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A2\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n        <simpleChoice identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A3\">\n          <tex>\\dfrac{1}{10}</tex>\n          <feedbackInline \n          identifier=\"QUE_0_7_E386B1897A204A4885E46D9B842004E8_A3\" defaultFeedback=\"true\">\n</feedbackInline>\n        </simpleChoice>\n</choiceInteraction>\n    </p>\n  </itemBody>\n</assessmentItem>")
+    }
   }
 
   "workflow" should {

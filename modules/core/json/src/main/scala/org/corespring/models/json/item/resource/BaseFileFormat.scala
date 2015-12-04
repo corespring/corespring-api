@@ -30,7 +30,7 @@ object BaseFileFormat extends JsonUtil with Format[BaseFile] {
       if (isTextType) {
         VirtualFile(name, contentType, isMain, (json \ "content").asOpt[String].getOrElse(""))
       } else {
-        StoredFile(name, contentType, isMain)
+        StoredFile(name, contentType, isMain, (json \ "storageKey").asOpt[String].getOrElse(""))
       })
 
   }
@@ -49,8 +49,7 @@ object VirtualFileWrites extends Writes[VirtualFile] {
 
 object StoredFileWrites extends Writes[StoredFile] {
   def writes(f: StoredFile): JsValue = {
-    BaseFileFormat.toJson(f)
-    //"storageKey is for internal use only"
-    //++ JsObject(Seq("storageKey" -> JsString(f.storageKey)))
+    //TODO Remove storageKey once v1 api has been removed
+    BaseFileFormat.toJson(f) ++ JsObject(Seq("storageKey" -> JsString(f.storageKey)))
   }
 }
