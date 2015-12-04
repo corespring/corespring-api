@@ -17,7 +17,7 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
-import org.corespring.common.config.{ AppConfig, ContainerConfig }
+import org.corespring.common.config.{ ContainerConfig }
 import org.corespring.container.client.ComponentSetExecutionContext
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
@@ -58,7 +58,7 @@ import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
-import play.api.{Configuration, Logger, Mode}
+import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import web.WebModule
 import web.controllers.{ Main, ShowResource }
@@ -67,17 +67,16 @@ import web.models.{ ContainerVersion, WebExecutionContext }
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
 
-
-object Main{
-  def apply(app:play.api.Application) : Main = {
+object Main {
+  def apply(app: play.api.Application): Main = {
     new Main(app.configuration, app.mode, app.classloader, app.resourceAsStream)
   }
 }
 
-class Main(val configuration:Configuration,
-           mode : PlayMode,
-           classLoader: ClassLoader,
-           resourceAsStream: String => Option[InputStream])
+class Main(val configuration: Configuration,
+  mode: PlayMode,
+  classLoader: ClassLoader,
+  resourceAsStream: String => Option[InputStream])
   extends SalatServices
   with EncryptionModule
   with ItemSearchModule
@@ -94,6 +93,10 @@ class Main(val configuration:Configuration,
   import com.softwaremill.macwire.MacwireMacros._
 
   private lazy val logger = Logger(classOf[Main])
+
+  override lazy val appConfig = AppConfig(configuration)
+
+  lazy val buildInfo = BuildInfo(resourceAsStream)
 
   private def ecLookup(id: String) = {
     def hasEnabledAkkaConfiguration(id: String) = {
@@ -124,8 +127,8 @@ class Main(val configuration:Configuration,
   override def webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
 
   private def mainAppVersion(): String = {
-    val commit = BuildInfo.commitHashShort
-    val versionOverride = AppConfig.appVersionOverride
+    val commit = buildInfo.commitHashShort
+    val versionOverride = appConfig.appVersionOverride
     val result = commit + versionOverride
     logger.trace(s"AppVersion $result hash ${commit} override ${versionOverride}")
     result
@@ -134,7 +137,7 @@ class Main(val configuration:Configuration,
   lazy val componentSetFilter = new CacheFilter {
     override implicit def ec: ExecutionContext = componentSetExecutionContext.heavyLoad
 
-    override lazy val bucket: String = AppConfig.assetsBucket
+    override lazy val bucket: String = Main.this.bucket.bucket
 
     override def appVersion: String = {
       mainAppVersion()
@@ -151,7 +154,6 @@ class Main(val configuration:Configuration,
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
-
 
   logger.debug(s"bootstrapping... ${mainAppVersion()}")
 
@@ -174,8 +176,8 @@ class Main(val configuration:Configuration,
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
   override lazy val elasticSearchConfig = ElasticSearchConfig(
-    AppConfig.elasticSearchUrl,
-    AppConfig.mongoUri,
+    appConfig.elasticSearchUrl,
+    appConfig.mongoUri,
     containerConfig.componentsPath)
 
   lazy val transformerItemService = new TransformerItemService(
@@ -187,15 +189,12 @@ class Main(val configuration:Configuration,
     configuration.getBoolean("v2.itemTransformer.checkModelIsUpToDate").getOrElse(false))
 
   override lazy val sessionDbConfig: SessionDbConfig = {
-    val envName = if (AppConfig.dynamoDbActivate) Some(AppConfig.envName) else None
-    new SessionDbConfig(AppConfig.sessionService, AppConfig.sessionServiceUrl, AppConfig.sessionServiceAuthToken,
-      envName, AppConfig.dynamoDbUseLocal, AppConfig.dynamoDbLocalInit)
+    val envName = if (appConfig.dynamoDbActivate) Some(appConfig.envName) else None
+    new SessionDbConfig(appConfig.sessionService, appConfig.sessionServiceUrl, appConfig.sessionServiceAuthToken,
+      envName, appConfig.dynamoDbUseLocal, appConfig.dynamoDbLocalInit)
   }
 
-  override lazy val awsCredentials: AWSCredentials = new AWSCredentials {
-    override lazy val getAWSAccessKeyId: String = AppConfig.amazonKey
-    override lazy val getAWSSecretKey: String = AppConfig.amazonSecret
-  }
+  override lazy val awsCredentials: AWSCredentials = appConfig.s3Config.credentials
 
   override lazy val itemTransformer: ItemTransformer = wire[AllItemVersionTransformer]
 
@@ -236,9 +235,9 @@ class Main(val configuration:Configuration,
    * However this won't be available until we move to scala 2.11 and will probably involve a bump of play too.
    * In the interim we create simple types to wrap the strings
    */
-  override lazy val bucket = Bucket(AppConfig.assetsBucket)
+  override lazy val bucket = Bucket(appConfig.s3Config.bucket)
 
-  override lazy val archiveConfig = ArchiveConfig(AppConfig.archiveContentCollectionId, AppConfig.archiveOrgId)
+  override lazy val archiveConfig = ArchiveConfig(appConfig.archiveContentCollectionId, appConfig.archiveOrgId)
 
   override lazy val accessTokenConfig = AccessTokenConfig()
 
@@ -248,7 +247,7 @@ class Main(val configuration:Configuration,
 
     val client = new AmazonS3Client(awsCredentials)
 
-    AppConfig.amazonEndpoint.foreach { e =>
+    appConfig.s3Config.endpoint.foreach { e =>
       val options = new S3ClientOptions()
       client.setEndpoint(e)
       options.withPathStyleAccess(true)
@@ -284,7 +283,7 @@ class Main(val configuration:Configuration,
 
     override lazy val findSubjectById: (ObjectId) => Option[Subject] = subjectService.findOneById(_)
 
-    override lazy val rootOrgId: ObjectId = AppConfig.rootOrgId
+    override lazy val rootOrgId: ObjectId = appConfig.rootOrgId
   }
 
   override lazy val itemDao: VersioningDao[Item, VersionedId[ObjectId]] = {
@@ -327,8 +326,6 @@ class Main(val configuration:Configuration,
   }
 
   override def playMode: PlayMode = mode
-
-  override def appConfig: AppConfig = AppConfig
 
   override def containerContext: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
 

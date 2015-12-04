@@ -1,6 +1,5 @@
 package org.corespring.v2.auth
 
-import org.corespring.common.config.AppConfig
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
@@ -18,15 +17,15 @@ trait V2AuthModule {
 
   import com.softwaremill.macwire.MacwireMacros._
 
+  def accessSettingsCheckConfig: AccessSettingsCheckConfig
   def archiveConfig: ArchiveConfig
-  def appConfig: AppConfig
   def jsonFormatting: JsonFormatting
   def itemService: ItemService
   def orgService: OrganizationService
   def itemTransformer: ItemTransformer
   def orgCollectionService: OrgCollectionService
 
-  lazy val accessSettingsWildcardCheck = new AccessSettingsWildcardCheck(AccessSettingsCheckConfig(appConfig.allowAllSessions))
+  lazy val accessSettingsWildcardCheck = new AccessSettingsWildcardCheck(accessSettingsCheckConfig)
 
   lazy val perms: HasPermissions = new HasPermissions {
     import org.corespring.v2.auth.models.Mode

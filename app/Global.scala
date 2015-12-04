@@ -1,11 +1,7 @@
 import bootstrap.Main
-import com.amazonaws.services.s3.AmazonS3
 import filters.Headers
 import filters._
-import org.corespring.common.config.AppConfig
 import org.corespring.play.utils.{ CallBlockOnHeaderFilter, ControllerInstanceResolver }
-import org.corespring.web.common.controllers.deployment.AssetsLoader
-import org.corespring.web.common.views.helpers.BuildInfo
 import org.joda.time.DateTime
 import play.api.http.ContentTypes
 import play.api.libs.json.Json

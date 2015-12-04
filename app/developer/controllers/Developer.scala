@@ -1,10 +1,9 @@
 package developer.controllers
 
 import controllers.Assets
+import developer.DeveloperConfig
 import developer.controllers.routes.{ Developer => DeveloperRoutes }
 import org.bson.types.ObjectId
-import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.auth.{ ApiClient, Permission }
 import org.corespring.models.json.ObjectIdFormat
@@ -19,12 +18,9 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-/**
- * TODO: remove magic strings
- */
-object Developer extends Controller with SecureSocial {
+class Developer(config: DeveloperConfig) extends Controller with SecureSocial {
 
-  val logger = Logger(Developer.getClass)
+  val logger = Logger(classOf[Developer])
 
   import ExecutionContext.Implicits.global
 
@@ -51,7 +47,7 @@ object Developer extends Controller with SecureSocial {
   }
 
   private def hasRegisteredOrg(u: User) = {
-    u.org.orgId != AppConfig.demoOrgId
+    u.org.orgId != config.demoOrgId
   }
 
   def home = Action.async {

@@ -1,13 +1,7 @@
 package org.corespring.assets
 
 import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.S3Object
-import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
-import org.corespring.common.config.AppConfig
-import play.api.mvc._
-
-import scala.concurrent.Future
 
 trait S3ServiceClient {
   def s3Service: CorespringS3Service
@@ -37,4 +31,3 @@ class CorespringS3ServiceExtended(client: AmazonS3)
   }
 }
 
-//object CorespringS3ServiceExtended extends CorespringS3ServiceExtended(S3Service.mkClient(AppConfig.amazonKey, AppConfig.amazonSecret, AppConfig.amazonEndpoint))

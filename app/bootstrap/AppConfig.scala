@@ -2,57 +2,39 @@ package bootstrap
 
 import java.net.URL
 
+import com.amazonaws.auth.AWSCredentials
 import org.bson.types.ObjectId
 import play.api.Configuration
-/*
+
+case class S3Config(credentials: AWSCredentials, bucket: String, endpoint: Option[String])
+
 private[bootstrap] case class AppConfig(
-                      allowAllSessions: Boolean,
-                      amazonKey: String,
-                      amazonSecret: String,
-                      amazonEndpoint: Option[String],
-                      assetsBucket: String,
-                      appVersionOverride: String,
-                      demoOrgId: ObjectId,
-                      dynamoDbActivate: Boolean,
-                      dynamoDbLocalInit: Boolean,
-                      dynamoDbLocalPort: Int,
-                      dynamoDbUseLocal: Boolean,
-                      elasticSearchUrl: URL,
-                      envName: String,
-                      rootOrgId: ObjectId,
-                      v2playerOrgIds: Seq[ObjectId],
-                      archiveContentCollectionId: ObjectId,
-                      archiveOrgId: ObjectId,
-                      publicSite: String,
-                      mongoUri: String,
-                      componentFilteringEnabled: Boolean,
-                      sessionService: String,
-                      sessionServiceUrl: String,
-                      sessionServiceAuthToken: String)
+  s3Config: S3Config,
+  allowAllSessions: Boolean,
+  appVersionOverride: String,
+  demoOrgId: ObjectId,
+  dynamoDbActivate: Boolean,
+  dynamoDbLocalInit: Boolean,
+  dynamoDbLocalPort: Int,
+  dynamoDbUseLocal: Boolean,
+  elasticSearchUrl: URL,
+  envName: String,
+  rootOrgId: ObjectId,
+  v2playerOrgIds: Seq[ObjectId],
+  archiveContentCollectionId: ObjectId,
+  archiveOrgId: ObjectId,
+  publicSite: String,
+  mongoUri: String,
+  componentFilteringEnabled: Boolean,
+  sessionService: String,
+  sessionServiceUrl: String,
+  sessionServiceAuthToken: String)
 
 object AppConfig {
 
   private object Key extends Enumeration {
     type Key = Value
-    val ALLOW_ALL_SESSIONS,
-    AMAZON_ACCESS_KEY,
-    AMAZON_ACCESS_SECRET,
-    AMAZON_ASSETS_BUCKET,
-    AMAZON_ENDPOINT,
-    APP_VERSION_OVERRIDE,
-    DEMO_ORG_ID,
-    DYNAMO_DB_ACTIVATE,
-    DYNAMO_DB_LOCAL_INIT,
-    DYNAMO_DB_LOCAL_PORT,
-    DYNAMO_DB_USE_LOCAL,
-    ELASTIC_SEARCH_URL,
-    ENV_NAME,
-    ROOT_ORG_ID,
-    V2_PLAYER_ORG_IDS,
-    COMPONENT_FILTERING_ENABLED,
-    SESSION_SERVICE,
-    SESSION_SERVICE_URL,
-    SESSION_SERVICE_AUTHTOKEN = Value
+    val ALLOW_ALL_SESSIONS, AMAZON_ACCESS_KEY, AMAZON_ACCESS_SECRET, AMAZON_ASSETS_BUCKET, AMAZON_ENDPOINT, APP_VERSION_OVERRIDE, DEMO_ORG_ID, DYNAMO_DB_ACTIVATE, DYNAMO_DB_LOCAL_INIT, DYNAMO_DB_LOCAL_PORT, DYNAMO_DB_USE_LOCAL, ELASTIC_SEARCH_URL, ENV_NAME, ROOT_ORG_ID, V2_PLAYER_ORG_IDS, COMPONENT_FILTERING_ENABLED, SESSION_SERVICE, SESSION_SERVICE_URL, SESSION_SERVICE_AUTHTOKEN = Value
   }
 
   private implicit def keyToString(k: Key.Key): String = k.toString
@@ -63,12 +45,19 @@ object AppConfig {
 
     def getString(key: String): String = config.getString(key).getOrElse(throw new RuntimeException(s"Key not found: $key"))
 
+    val credentials = new AWSCredentials {
+      override def getAWSAccessKeyId: String = config.getString(Key.AMAZON_ACCESS_KEY).getOrElse("?")
+      override def getAWSSecretKey: String = config.getString(Key.AMAZON_ACCESS_SECRET).getOrElse("?")
+    }
+
+    val s3Config = S3Config(
+      credentials,
+      bucket = config.getString(Key.AMAZON_ASSETS_BUCKET).getOrElse("?"),
+      endpoint = config.getString(Key.AMAZON_ENDPOINT))
+
     AppConfig(
+      s3Config,
       allowAllSessions = config.getBoolean(Key.ALLOW_ALL_SESSIONS).getOrElse(false),
-      amazonKey = config.getString(Key.AMAZON_ACCESS_KEY).getOrElse("?"),
-      amazonSecret = config.getString(Key.AMAZON_ACCESS_SECRET).getOrElse("?"),
-      amazonEndpoint = config.getString(Key.AMAZON_ENDPOINT),
-      assetsBucket = config.getString(Key.AMAZON_ASSETS_BUCKET).getOrElse("?"),
       appVersionOverride = config.getString(Key.APP_VERSION_OVERRIDE).getOrElse(""),
       demoOrgId = config.getString(Key.DEMO_ORG_ID).map(new ObjectId(_)).getOrElse(throw new RuntimeException("Not found")),
       dynamoDbActivate = config.getBoolean(Key.DYNAMO_DB_ACTIVATE).getOrElse(false),
@@ -86,8 +75,7 @@ object AppConfig {
       componentFilteringEnabled = config.getBoolean(Key.COMPONENT_FILTERING_ENABLED).getOrElse(notFound(Key.COMPONENT_FILTERING_ENABLED)),
       sessionService = config.getString(Key.SESSION_SERVICE).getOrElse("?"),
       sessionServiceUrl = config.getString(Key.SESSION_SERVICE_URL).getOrElse("?"),
-      sessionServiceAuthToken = config.getString(Key.SESSION_SERVICE_AUTHTOKEN).getOrElse("?")
-    )
+      sessionServiceAuthToken = config.getString(Key.SESSION_SERVICE_AUTHTOKEN).getOrElse("?"))
   }
-}*/
+}
 
