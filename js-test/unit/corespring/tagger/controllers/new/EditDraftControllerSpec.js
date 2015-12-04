@@ -61,7 +61,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
     };
 
     mocks.itemService = {
-
+      countSessionsForItem: jasmine.createSpy('countSessionsForItem').andReturn(0)
     };
 
     mocks.ItemServiceConstructor = jasmine.createSpy('new ItemService')

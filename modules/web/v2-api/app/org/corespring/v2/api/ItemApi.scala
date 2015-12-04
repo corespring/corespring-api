@@ -292,7 +292,7 @@ class ItemApi(
     }
   }
 
-  def legacyCountSessions(itemId: VersionedId[ObjectId]) = Action.async { implicit request =>
+  def countSessions(itemId: VersionedId[ObjectId]) = Action.async { implicit request =>
     Future {
       val count = sessionService.sessionCount(itemId)
       Ok(Json.obj("sessionCount" -> count))
