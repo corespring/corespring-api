@@ -1,9 +1,9 @@
 package org.corespring.api.v1
 
-import org.corespring.models.item.resource.{StoredFile, BaseFile, Resource}
-import org.corespring.models.item.{TaskInfo, Item}
+import org.corespring.models.item.resource.{ StoredFile, BaseFile, Resource }
+import org.corespring.models.item.{ TaskInfo, Item }
 
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class ItemApiItemValidation {
 

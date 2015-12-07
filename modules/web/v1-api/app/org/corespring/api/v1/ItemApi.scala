@@ -7,24 +7,21 @@ import com.novus.salat.Context
 import com.novus.salat.dao.SalatInsertError
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.assets.{ CorespringS3Service }
-import org.corespring.common.log.{ ClassLogging }
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.resource.{ BaseFile, Resource, StoredFile }
-import org.corespring.models.item.{ TaskInfo, Item }
+import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
+import org.corespring.platform.core.controllers.auth.{ ApiRequest, OAuthProvider }
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{ OrgCollectionService, OrganizationService, ContentCollectionService }
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.MetadataSetService
-import org.corespring.v2.sessiondb.{ SessionServices }
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.v2.sessiondb.SessionServices
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsNumber, JsObject, JsString, _ }
-import play.api.mvc.{ SimpleResult, Action, AnyContent, Result }
+import play.api.mvc.{ Action, AnyContent, Result }
 
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, _ }
