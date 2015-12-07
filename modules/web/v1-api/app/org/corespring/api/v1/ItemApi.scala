@@ -120,10 +120,10 @@ class ItemApi(
    * Note: we remove the version - so that the dao automatically returns the latest version
    */
   private def saveItem(item: Item, createNewVersion: Boolean): Validation[String,Item] = {
-    (for {
+    for {
       newItem <- service.save(item, createNewVersion).leftMap(_.message)
       dbItem <- service.findOneById(item.id.copy(version = None)).toSuccess("Error loading item")
-    } yield dbItem)
+    } yield dbItem
   }
 
   def get(id: VersionedId[ObjectId], detail: Option[String] = Some("normal")) = ItemApiAction(id, Permission.Read) {
