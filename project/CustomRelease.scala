@@ -38,7 +38,7 @@ object CustomRelease {
 
   /**
     * main releases are run from 'rc'.
-    * hotfixes from 'hotfix'
+    * hotfixes from 'hf'
     */
   lazy val settings = Seq(
     branchNameConverter := HyphenNameConverter,
@@ -63,15 +63,15 @@ object CustomRelease {
         pushTags,
         publishArtifacts)
 
-      val hotfixRelease = shared("hotfix") ++ Seq(
-        tagBranchWithReleaseTag("hotfix"),
+      val hotfixRelease = shared("hf") ++ Seq(
+        tagBranchWithReleaseTag("hf"),
         pushBranchChanges,
         pushTags,
         publishArtifacts)
 
       Git(bd).currentBranch match {
         case "rc" => regularRelease
-        case "hotfix" => hotfixRelease
+        case "hf" => hotfixRelease
         case branch => Seq(unsupportedBranch(branch))
       }
     })
