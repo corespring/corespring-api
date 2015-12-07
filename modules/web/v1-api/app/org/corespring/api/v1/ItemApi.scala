@@ -86,7 +86,7 @@ class ItemApi(
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbItem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- itemApiItemValidation.validateItem(dbItem, item)
-        savedResult <- saveItem(validatedItem, dbItem.published && (sessionCount(dbItem) > 0)).toSuccess("Error saving item")
+        savedResult <- saveItem(validatedItem, dbItem.published && (sessionCount(dbItem) > 0))
         withV2DataItem <- Success(itemTransformer.updateV2Json(savedResult))
       } yield {
         withV2DataItem
@@ -119,10 +119,11 @@ class ItemApi(
   /**
    * Note: we remove the version - so that the dao automatically returns the latest version
    */
-  private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
-    service.save(item, createNewVersion)
-    val vid: VersionedId[ObjectId] = item.id.copy(version = None)
-    service.findOneById(vid)
+  private def saveItem(item: Item, createNewVersion: Boolean): Validation[String,Item] = {
+    (for {
+      newItem <- service.save(item, createNewVersion).leftMap(_.message)
+      dbItem <- service.findOneById(item.id.copy(version = None)).toSuccess("Error loading item")
+    } yield dbItem)
   }
 
   def get(id: VersionedId[ObjectId], detail: Option[String] = Some("normal")) = ItemApiAction(id, Permission.Read) {
