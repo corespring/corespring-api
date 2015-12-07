@@ -75,21 +75,22 @@
 
     //---------------------------------------------------
 
+    function highlightItem(id) {
+      var item = $(document.getElementById('row-'+id));
+      var prevPrev = $(document.getElementById('row-'+id)).prev().prev();
+      if (prevPrev.length > 0) {
+        prevPrev[0].scrollIntoView(true);
+      }
+      item.addClass('highlighted');
+      setTimeout(function() {
+        item.removeClass('highlighted');
+      }, 200);
+    }
+
     function init() {
-      console.log("homeinit");
-      console.log("Prev Item Data: ", $rootScope.itemData);
       if ($rootScope.itemData) {
-        var id = $rootScope.itemData.id;
         $timeout(function() {
-          var item = $(document.getElementById('row-'+id));
-          var prevPrev = $(document.getElementById('row-'+id)).prev().prev();
-          if (prevPrev.length > 0) {
-            prevPrev[0].scrollIntoView(true);
-          }
-          item.addClass('highlighted');
-          setTimeout(function() {
-            item.removeClass('highlighted');
-          }, 200);
+          highlightItem($rootScope.itemData.id);
         }, 200);
       }
       $rootScope.itemData = undefined;

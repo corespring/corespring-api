@@ -57,7 +57,6 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
   }, 500);
 
   $scope.search = function() {
-    console.log("SZORCS");
     var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function(e) {
       return e.label == "Other";
     });
@@ -81,7 +80,6 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
   };
 
   $scope.loadMore = function(idx, callback) {
-    console.log("Loading More");
     V2SearchService.loadMore(function() {
       // re-bind the scope collection to the services model after result comes back
       $rootScope.items = applyPermissions(V2SearchService.itemDataCollection);
