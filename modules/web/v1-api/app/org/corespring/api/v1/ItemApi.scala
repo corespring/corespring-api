@@ -11,7 +11,7 @@ import org.corespring.assets.{ CorespringS3Service }
 import org.corespring.common.log.{ ClassLogging }
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.resource.StoredFile
+import org.corespring.models.item.resource.{BaseFile, Resource, StoredFile}
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
@@ -129,36 +129,35 @@ class ItemApi(
     Some(itemCopy)
   }
 
-  private def addDataStorageKeys(dbItem: Item, item: Item) = {
-    dbItem.data
+  private def addDataStorageKeys(dbItem: Item, item: Item): Option[Resource] = {
+    item.data.map(resource => addStorageKeys(dbItem.data, resource))
   }
 
-  private def addSupportingMaterialsStorageKeys(dbItem: Item, item: Item) = {
-    dbItem.supportingMaterials
-  }
-
-  /**
-   * TODO: Remove code duplication here..
-   * add storage keys to item before update
-   * @param dbItem
-   * @param item
-   */
-  /*
-  private def addStorageKeysToItem(dbItem: Item, item: Item) = {
-    val itemsf: Seq[StoredFile] =
-      item.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
-        item.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
-    val dbitemsf: Seq[StoredFile] =
-      dbItem.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
-        dbItem.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
-    itemsf.foreach(sf => {
-      dbitemsf.find(_.name == sf.name) match {
-        case Some(dbsf) => sf.storageKey = dbsf.storageKey
-        case None => logger.warn("addStorageKeysToItem: no db storage key found")
-      }
+  private def addSupportingMaterialsStorageKeys(dbItem: Item, item: Item): Seq[Resource] = {
+    item.supportingMaterials.map( sm => dbItem.supportingMaterials.find(_.name == sm.name) match {
+      case Some(dbItemResource) => addStorageKeys(Some(dbItemResource), sm)
+      case _ => throw new RuntimeException(s"Resource ${sm.name} not found in dbItem.supportingMaterials")
     })
   }
-  */
+
+  private def addStorageKeys(dbItemResource: Option[Resource], itemResource: Resource) = {
+    if(!dbItemResource.isDefined){
+      throw new RuntimeException("dbItem.data is not defined")
+    }
+    itemResource.copy(
+      files = addStorageKeys(dbItemResource.get.files, itemResource.files)
+    )
+  }
+
+  private def addStorageKeys(dbItemFiles: Seq[BaseFile], itemFiles: Seq[BaseFile]) = {
+    itemFiles.map(_ match {
+      case storedFile:StoredFile => dbItemFiles.find(_.name == storedFile.name) match {
+        case dbItemFile : Option[StoredFile] => storedFile.copy(storageKey = dbItemFile.get.storageKey)
+        case _ => throw new RuntimeException(s"ItemFile ${storedFile.name} not found in dbItem.data")
+      }
+      case otherFile => otherFile
+    })
+  }
 
   /**
    * Note: we remove the version - so that the dao automatically returns the latest version
