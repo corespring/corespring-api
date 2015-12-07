@@ -13,7 +13,7 @@ class BaseFileFormatTest extends Specification {
 
     "validates the contentType defined in the json and falls back to a known contentType if that validation fails" in {
       val json = Json.obj("name" -> "test.txt", "contentType" -> "blah", "isMain" -> false, "content" -> "hi")
-      json.as[BaseFile] === VirtualFile("test.txt", "text/txt", false, "hi")
+      json.as[BaseFile] === VirtualFile("test.txt", "text/plain", false, "hi")
     }
 
     "read json for stored file with content incorrectly set" in {

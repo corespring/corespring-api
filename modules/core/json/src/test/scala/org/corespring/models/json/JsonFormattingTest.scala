@@ -97,9 +97,8 @@ class JsonFormattingTest extends Specification {
     "create stored file" in {
       item.data.get.files(0) === StoredFile(
         "mc008-3.jpg",
-        "image/jpg",
-        true,
-        "52a5ed3e3004dc6f68cdd9fc/0/data/mc008-3.jpg")
+        "image/jpeg",
+        true)
     }
 
     "create virtual file" in {
@@ -107,7 +106,7 @@ class JsonFormattingTest extends Specification {
         "qti.xml",
         "text/xml",
         true,
-        "<?xml version='1.0' encoding='UTF-8'?>\n<assessmentItem></assessmentItem>")
+        "<?xml version='1.0' encoding='UTF-8'?><assessmentItem></assessmentItem>")
     }
   }
 
