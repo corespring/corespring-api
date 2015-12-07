@@ -208,6 +208,13 @@ angular.module('tagger.services')
         .error(onError);
     };
 
+    ItemService.prototype.countSessionsForItem = function(onSuccess, onError, id){
+      var url = "/api/v2/items/:id/countSessions".replace(":id", this.id);
+      $http.get(url, {})
+        .success(onSuccess)
+        .error(onError);
+    };
+
     ItemService.prototype.publish = function(onSuccess, onError, id){
         id = id || this.id;
         var url = "/api/v2/items/:id/publish".replace(":id", id);

@@ -21,9 +21,13 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
 
   val forkInTests = false
 
+  val skipPublishSettings = Seq(
+    /** Note: publishArtifact := false seems to mess with routes */
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))))
+
   //TODO: This is not useful at the moment - when it works however it'll be amazing:
   // updateOptions := updateOptions.value.withConsolidatedResolution(true),
-  // see: https://github.com/sbt/sbt/issues/2105
+  // see: https://github.com/sbt/sbt/issues/2105 - update: fixed in 13.9 - but we're having issues using 13.9
   val sharedSettings = Seq(
     moduleConfigurations ++= Builders.moduleConfig,
     aggregate in update := false,
@@ -46,7 +50,9 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
 
     if (publish) {
       p.settings(publishTo := authPublishTo.value)
-    } else p
+    } else {
+      p.settings(skipPublishSettings: _*)
+    }
   }
 
   def testLib(name: String) = lib(name, "test-lib")
@@ -59,6 +65,7 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
     play.Project(makeName(name), "NOT-USED", path = rootFile)
       .settings(version := (version in ThisBuild).value)
       .settings(sharedSettings: _*)
+      .settings(skipPublishSettings: _*)
   }
 
   private def makeName(s: String): String = if (s == root) root else Seq(root, s).mkString("-")
