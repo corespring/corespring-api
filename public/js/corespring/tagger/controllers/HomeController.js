@@ -89,8 +89,9 @@
 
     function init() {
       if ($rootScope.itemData) {
+        var id = $rootScope.itemData.id;
         $timeout(function() {
-          highlightItem($rootScope.itemData.id);
+          highlightItem(id);
         }, 200);
       }
       $rootScope.itemData = undefined;

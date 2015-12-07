@@ -28,18 +28,6 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
     $scope.errorUid = null;
   };
 
-  $scope.prevItem = function() {
-    console.log($rootScope.items);
-  };
-
-  $scope.nextItem = function() {
-    $rootScope.currentItemIndex++;
-  };
-
-  $scope.$on('editItemOpened', function(ev, item) {
-    $rootScope.currentItemIndex = _.indexOf($rootScope.items, item);
-  });
-
   $scope.sortBy = function(field) {
     if ($rootScope.searchParams.sort && $rootScope.searchParams.sort[field]) {
       $rootScope.searchParams.sort[field] *= -1;
