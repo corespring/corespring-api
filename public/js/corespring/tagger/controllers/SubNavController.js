@@ -3,6 +3,7 @@
   function SubNavController($scope, $rootScope, CollectionManager, Contributor){
 
     function init(){
+      console.log("SubNavInit");
       loadCollections();
       loadContributors();
       var defaultsFactory = new com.corespring.model.Defaults();
@@ -35,7 +36,10 @@
             if (!$rootScope.searchParams.collection && $scope.sortedCollections) {
               $rootScope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
             }
-            $scope.search();
+            console.log("MUU");
+            if (_.isEmpty($rootScope.items)) {
+              $scope.search();
+            }
           }
         },
         true);

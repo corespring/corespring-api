@@ -28,6 +28,18 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
     $scope.errorUid = null;
   };
 
+  $scope.prevItem = function() {
+    console.log($rootScope.items);
+  };
+
+  $scope.nextItem = function() {
+    $rootScope.currentItemIndex++;
+  };
+
+  $scope.$on('editItemOpened', function(ev, item) {
+    $rootScope.currentItemIndex = _.indexOf($rootScope.items, item);
+  });
+
   $scope.sortBy = function(field) {
     if ($rootScope.searchParams.sort && $rootScope.searchParams.sort[field]) {
       $rootScope.searchParams.sort[field] *= -1;
@@ -45,6 +57,7 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
   }, 500);
 
   $scope.search = function() {
+    console.log("SZORCS");
     var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function(e) {
       return e.label == "Other";
     });
@@ -67,7 +80,8 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
     });
   };
 
-  $scope.loadMore = function() {
+  $scope.loadMore = function(idx, callback) {
+    console.log("Loading More");
     V2SearchService.loadMore(function() {
       // re-bind the scope collection to the services model after result comes back
       $rootScope.items = applyPermissions(V2SearchService.itemDataCollection);
@@ -75,7 +89,7 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
       setTimeout(function() {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }, 200);
-
+      _.isFunction(callback) && callback();
     });
   };
 
