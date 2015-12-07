@@ -11,7 +11,7 @@ import org.corespring.assets.{ CorespringS3Service }
 import org.corespring.common.log.{ ClassLogging }
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.resource.{BaseFile, Resource, StoredFile}
+import org.corespring.models.item.resource.{ BaseFile, Resource, StoredFile }
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
@@ -87,7 +87,7 @@ class ItemApi(
         json <- request.body.asJson.toSuccess("No json in request body")
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbItem <- service.findOneById(id).toSuccess("no item found for the given id")
-        validatedItem <- validateItem(dbItem, item).toSuccess("Invalid data")
+        validatedItem <- validateItem(dbItem, item)
         savedResult <- saveItem(validatedItem, dbItem.published && (sessionCount(dbItem) > 0)).toSuccess("Error saving item")
         withV2DataItem <- Success(itemTransformer.updateV2Json(savedResult))
       } yield {
@@ -118,15 +118,18 @@ class ItemApi(
       } yield cloned
   }
 
-  private def validateItem(dbItem: Item, item: Item): Option[Item] = {
-    val itemCopy = item.copy(
-      id = dbItem.id,
-      collectionId = if (item.collectionId.isEmpty) dbItem.collectionId else item.collectionId,
-      taskInfo = item.taskInfo.map(_.copy(extended = dbItem.taskInfo.getOrElse(TaskInfo()).extended)),
-      data = addDataStorageKeys(dbItem, item),
-      supportingMaterials = addSupportingMaterialsStorageKeys(dbItem, item)
-      )
-    Some(itemCopy)
+  private def validateItem(dbItem: Item, item: Item): Validation[String, Item] = {
+    try {
+      Success(item.copy(
+        id = dbItem.id,
+        collectionId = if (item.collectionId.isEmpty) dbItem.collectionId else item.collectionId,
+        taskInfo = item.taskInfo.map(_.copy(extended = dbItem.taskInfo.getOrElse(TaskInfo()).extended)),
+        data = addDataStorageKeys(dbItem, item),
+        supportingMaterials = addSupportingMaterialsStorageKeys(dbItem, item)))
+    } catch {
+      case e: RuntimeException =>
+        Failure(s"Validation error $e.message")
+    }
   }
 
   private def addDataStorageKeys(dbItem: Item, item: Item): Option[Resource] = {
@@ -134,29 +137,29 @@ class ItemApi(
   }
 
   private def addSupportingMaterialsStorageKeys(dbItem: Item, item: Item): Seq[Resource] = {
-    item.supportingMaterials.map( sm => dbItem.supportingMaterials.find(_.name == sm.name) match {
+    item.supportingMaterials.map(sm => dbItem.supportingMaterials.find(_.name == sm.name) match {
       case Some(dbItemResource) => addStorageKeys(Some(dbItemResource), sm)
       case _ => throw new RuntimeException(s"Resource ${sm.name} not found in dbItem.supportingMaterials")
     })
   }
 
   private def addStorageKeys(dbItemResource: Option[Resource], itemResource: Resource) = {
-    if(!dbItemResource.isDefined){
+
+    def addStorageKeys(dbItemFiles: Seq[BaseFile], itemFiles: Seq[BaseFile]) = {
+      itemFiles.map(_ match {
+        case storedFile: StoredFile => dbItemFiles.find(_.name == storedFile.name) match {
+          case dbItemFile: Option[StoredFile] => storedFile.copy(storageKey = dbItemFile.get.storageKey)
+          case _ => throw new RuntimeException(s"ItemFile ${storedFile.name} not found in dbItem.data")
+        }
+        case otherFile => otherFile
+      })
+    }
+
+    if (!dbItemResource.isDefined) {
       throw new RuntimeException("dbItem.data is not defined")
     }
     itemResource.copy(
-      files = addStorageKeys(dbItemResource.get.files, itemResource.files)
-    )
-  }
-
-  private def addStorageKeys(dbItemFiles: Seq[BaseFile], itemFiles: Seq[BaseFile]) = {
-    itemFiles.map(_ match {
-      case storedFile:StoredFile => dbItemFiles.find(_.name == storedFile.name) match {
-        case dbItemFile : Option[StoredFile] => storedFile.copy(storageKey = dbItemFile.get.storageKey)
-        case _ => throw new RuntimeException(s"ItemFile ${storedFile.name} not found in dbItem.data")
-      }
-      case otherFile => otherFile
-    })
+      files = addStorageKeys(dbItemResource.get.files, itemResource.files))
   }
 
   /**
