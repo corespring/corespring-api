@@ -11,6 +11,7 @@ import org.corespring.assets.{ CorespringS3Service }
 import org.corespring.common.log.{ ClassLogging }
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.auth.Permission
+import org.corespring.models.item.resource.StoredFile
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
@@ -121,12 +122,43 @@ class ItemApi(
     val itemCopy = item.copy(
       id = dbItem.id,
       collectionId = if (item.collectionId.isEmpty) dbItem.collectionId else item.collectionId,
-      taskInfo = item.taskInfo.map(_.copy(extended = dbItem.taskInfo.getOrElse(TaskInfo()).extended)) //
+      taskInfo = item.taskInfo.map(_.copy(extended = dbItem.taskInfo.getOrElse(TaskInfo()).extended)),
+      data = addDataStorageKeys(dbItem, item),
+      supportingMaterials = addSupportingMaterialsStorageKeys(dbItem, item)
       )
-    //Note: this is being disabled but it wasn't doing anything useful in the develop branch
-    //addStorageKeysToItem(dbItem, item)
     Some(itemCopy)
   }
+
+  private def addDataStorageKeys(dbItem: Item, item: Item) = {
+    dbItem.data
+  }
+
+  private def addSupportingMaterialsStorageKeys(dbItem: Item, item: Item) = {
+    dbItem.supportingMaterials
+  }
+
+  /**
+   * TODO: Remove code duplication here..
+   * add storage keys to item before update
+   * @param dbItem
+   * @param item
+   */
+  /*
+  private def addStorageKeysToItem(dbItem: Item, item: Item) = {
+    val itemsf: Seq[StoredFile] =
+      item.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
+        item.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
+    val dbitemsf: Seq[StoredFile] =
+      dbItem.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
+        dbItem.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
+    itemsf.foreach(sf => {
+      dbitemsf.find(_.name == sf.name) match {
+        case Some(dbsf) => sf.storageKey = dbsf.storageKey
+        case None => logger.warn("addStorageKeysToItem: no db storage key found")
+      }
+    })
+  }
+  */
 
   /**
    * Note: we remove the version - so that the dao automatically returns the latest version
