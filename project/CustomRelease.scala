@@ -7,7 +7,7 @@ import sbtrelease.Version
 import sbtrelease.ReleaseStateTransformations._
 import org.corespring.sbtrelease.ReleaseSteps._
 import org.corespring.sbtrelease.ReleaseExtrasPlugin._
-import org.corespring.sbtrelease.{ PrefixAndVersion, BranchNameConverter, FolderStyleConverter }
+import org.corespring.sbtrelease.{Git, PrefixAndVersion, BranchNameConverter, FolderStyleConverter}
 
 object HyphenNameConverter extends BranchNameConverter {
   val pattern = """^([^-]+)-([^-]+)$""".r
@@ -32,33 +32,47 @@ object CustomRelease {
     newState
   })
 
+  def unsupportedBranch(b:String) = ReleaseStep(action = st => {
+    sys.error(s"Unsupported branch for releasing: $b, must be 'rc' for releases or 'hotfix' for hotfixes")
+  })
+
   /**
-   * What will the ci have to do:
-   * for releases update the release var to X.X.X,
-   * - checkout that branch and do it's builds etc
-   * - when ready run `release --with-defaults`
-   *
-   * for hotfixes - create a new hotfix var - checkout the branch and do as above.
-   */
+    * main releases are run from 'rc'.
+    * hotfixes from 'hotfix'
+    */
   lazy val settings = Seq(
     branchNameConverter := HyphenNameConverter,
     releaseVersionBump := Bump.Minor,
-    releaseProcess <<= thisProjectRef.apply { ref =>
-      Seq(
-        checkBranchName("rc"),
+    releaseProcess <<= baseDirectory.apply { bd =>
+
+      def shared(branchName:String) = Seq(
+        checkBranchName(branchName),
         checkSnapshotDependencies,
         runClean,
         runTest,
         runIntegrationTest,
         prepareReleaseVersion,
         setReleaseVersion,
-        commitReleaseVersion,
+        commitReleaseVersion)
+
+      val regularRelease = shared("rc") ++ Seq(
         pushBranchChanges,
         mergeCurrentBranchTo("master"),
         tagBranchWithReleaseTag("master"),
         pushBranchChanges,
         pushTags,
         publishArtifacts)
-    })
 
+      val hotfixRelease = shared("hotfix") ++ Seq(
+        tagBranchWithReleaseTag("hotfix"),
+        pushBranchChanges,
+        pushTags,
+        publishArtifacts)
+
+      Git(bd).currentBranch match {
+        case "rc" => regularRelease
+        case "hotfix" => hotfixRelease
+        case branch => Seq(unsupportedBranch(branch))
+      }
+    })
 }
