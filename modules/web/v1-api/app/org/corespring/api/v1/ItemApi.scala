@@ -7,23 +7,21 @@ import com.novus.salat.Context
 import com.novus.salat.dao.SalatInsertError
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.assets.{ CorespringS3Service }
-import org.corespring.common.log.{ ClassLogging }
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.{ TaskInfo, Item }
+import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
+import org.corespring.platform.core.controllers.auth.{ ApiRequest, OAuthProvider }
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{ OrgCollectionService, OrganizationService, ContentCollectionService }
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.MetadataSetService
-import org.corespring.v2.sessiondb.{ SessionServices }
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.v2.sessiondb.SessionServices
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsNumber, JsObject, JsString, _ }
-import play.api.mvc.{ SimpleResult, Action, AnyContent, Result }
+import play.api.mvc.{ Action, AnyContent, Result }
 
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, _ }
@@ -43,6 +41,7 @@ class ItemApi(
   sessionServices: SessionServices,
   itemTransformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
+  itemApiItemValidation: ItemApiItemValidation,
   val oAuthProvider: OAuthProvider,
   override implicit val context: Context)
   extends ContentApi[Item](
@@ -86,8 +85,8 @@ class ItemApi(
         json <- request.body.asJson.toSuccess("No json in request body")
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbItem <- service.findOneById(id).toSuccess("no item found for the given id")
-        validatedItem <- validateItem(dbItem, item).toSuccess("Invalid data")
-        savedResult <- saveItem(validatedItem, dbItem.published && (sessionCount(dbItem) > 0)).toSuccess("Error saving item")
+        validatedItem <- itemApiItemValidation.validateItem(dbItem, item)
+        savedResult <- saveItem(validatedItem, dbItem.published && (sessionCount(dbItem) > 0))
         withV2DataItem <- Success(itemTransformer.updateV2Json(savedResult))
       } yield {
         withV2DataItem
@@ -117,24 +116,14 @@ class ItemApi(
       } yield cloned
   }
 
-  private def validateItem(dbItem: Item, item: Item): Option[Item] = {
-    val itemCopy = item.copy(
-      id = dbItem.id,
-      collectionId = if (item.collectionId.isEmpty) dbItem.collectionId else item.collectionId,
-      taskInfo = item.taskInfo.map(_.copy(extended = dbItem.taskInfo.getOrElse(TaskInfo()).extended)) //
-      )
-    //Note: this is being disabled but it wasn't doing anything useful in the develop branch
-    //addStorageKeysToItem(dbItem, item)
-    Some(itemCopy)
-  }
-
   /**
    * Note: we remove the version - so that the dao automatically returns the latest version
    */
-  private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
-    service.save(item, createNewVersion)
-    val vid: VersionedId[ObjectId] = item.id.copy(version = None)
-    service.findOneById(vid)
+  private def saveItem(item: Item, createNewVersion: Boolean): Validation[String,Item] = {
+    for {
+      newItem <- service.save(item, createNewVersion).leftMap(_.message)
+      dbItem <- service.findOneById(item.id.copy(version = None)).toSuccess("Error loading item")
+    } yield dbItem
   }
 
   def get(id: VersionedId[ObjectId], detail: Option[String] = Some("normal")) = ItemApiAction(id, Permission.Read) {
