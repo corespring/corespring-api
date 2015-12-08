@@ -12,7 +12,7 @@ object BaseFile {
 
   object ContentTypes {
 
-    val JPG: String = "image/jpg"
+    val JPEG: String = "image/jpeg"
     val PNG: String = "image/png"
     val GIF: String = "image/gif"
     val DOC: String = "application/msword"
@@ -20,18 +20,18 @@ object BaseFile {
     val XML: String = "text/xml"
     val CSS: String = "text/css"
     val HTML: String = "text/html"
-    val TXT: String = "text/txt"
+    val TXT: String = "text/plain"
     val JS: String = "text/javascript"
     val JSON: String = "application/json"
     val UNKNOWN: String = "unknown"
 
     lazy val textTypes = Seq(XML, CSS, HTML, TXT, JS, JSON, UNKNOWN)
-    lazy val binaryTypes = Seq(JPG, PNG, GIF, DOC, PDF)
+    lazy val binaryTypes = Seq(JPEG, PNG, GIF, DOC, PDF)
   }
 
   val SuffixToContentTypes = Map(
-    "jpg" -> ContentTypes.JPG,
-    "jpeg" -> ContentTypes.JPG,
+    "jpg" -> ContentTypes.JPEG,
+    "jpeg" -> ContentTypes.JPEG,
     "png" -> ContentTypes.PNG,
     "gif" -> ContentTypes.GIF,
     "doc" -> ContentTypes.DOC,
@@ -102,3 +102,6 @@ case class CloneFileFailure(val file: StoredFile, err: Throwable) extends CloneF
   override def successful: Boolean = false
 }
 
+case class NotFoundCloneFileFailure(val file: StoredFile, val err: Throwable) extends CloneFileResult {
+  override def successful: Boolean = false
+}

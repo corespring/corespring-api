@@ -156,6 +156,11 @@ Check application.conf for dynamo configuration properties.
 [aws console](https://corespring.signin.aws.amazon.com/console)
 Ask evan for a user account or use an account from passpack 
 
+### Releasing
+
+The release flow is very similar to that in [corespring-container](https://github.com/corespring/corespring-container/blob/develop/README.md#creating-a-release).
+
+The main difference being that this app runs `stage` as well as `publish`.
 
 ### Dev Tools
 

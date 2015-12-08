@@ -131,6 +131,7 @@ package object scopes {
   trait userAndItem extends user with HasItemId {
     val itemId = ItemHelper.create(collectionId)
     override def after: Any = {
+      println(s"[user][after]")
       super.after
       ItemHelper.delete(itemId)
     }
@@ -345,6 +346,13 @@ package object scopes {
     def makeFormRequest(call: Call, form: MultipartFormData[Files.TemporaryFile]): Request[AnyContentAsMultipartFormData] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*).withMultipartFormDataBody(form)
     }
+
+    def makeRawRequest(call: Call, bytes: Array[Byte]) = {
+      FakeRequest(call.method, call.url)
+        .withCookies(cookies: _*)
+        .withRawBody(bytes)
+    }
+
     def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*).withJsonBody(json)
     }

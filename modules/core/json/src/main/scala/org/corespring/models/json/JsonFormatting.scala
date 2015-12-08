@@ -90,9 +90,7 @@ trait JsonFormatting {
     override def fieldValues: FieldValue = JsonFormatting.this.fieldValue
   }
 
-  implicit lazy val formatAdditionalCopyright: Format[AdditionalCopyright] = new AdditionalCopyrightFormat {
-    override def fieldValues: FieldValue = JsonFormatting.this.fieldValue
-  }
+  implicit lazy val formatAdditionalCopyright: Format[AdditionalCopyright] = Json.format[AdditionalCopyright]
 
   implicit lazy val item: Format[Item] = new ItemFormat {
     override implicit def ac: Format[AdditionalCopyright] = JsonFormatting.this.formatAdditionalCopyright

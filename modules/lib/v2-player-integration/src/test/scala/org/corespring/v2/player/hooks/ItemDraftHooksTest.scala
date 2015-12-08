@@ -1,7 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
-import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
 import org.corespring.drafts.item.ItemDrafts
 import org.corespring.models.item.Item
 import org.corespring.models.json.JsonFormatting
@@ -28,7 +28,7 @@ class ItemDraftHooksTest
     val orgCollectionService = mock[OrgCollectionService]
     val transformer = mock[ItemTransformer]
     val jsonFormatting = mock[JsonFormatting]
-
+    val playerJsonToItem = mock[PlayerJsonToItem]
     def rh = FakeRequest("", "")
 
     def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
@@ -41,6 +41,7 @@ class ItemDraftHooksTest
       orgCollectionService,
       transformer,
       jsonFormatting,
+      playerJsonToItem,
       getOrgAndOptions,
       containerExecutionContext) {
 

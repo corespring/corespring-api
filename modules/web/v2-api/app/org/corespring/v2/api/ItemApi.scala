@@ -84,7 +84,8 @@ class ItemApi(
     }
   }
 
-  private def searchWithQuery(q: ItemIndexQuery,
+  private def searchWithQuery(
+    q: ItemIndexQuery,
     accessibleCollections: Seq[ContentCollRef]): Future[Validation[Error, ItemIndexSearchResult]] = {
     val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
     val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
@@ -105,7 +106,8 @@ class ItemApi(
   }
 
   //upgrade of v1 item api - listWithColl
-  def searchByCollectionId(collectionId: ObjectId,
+  def searchByCollectionId(
+    collectionId: ObjectId,
     q: Option[String] = None) = Action.async { request =>
 
     val queryString = q.getOrElse("{}")
@@ -113,7 +115,8 @@ class ItemApi(
     val out: Validation[V2Error, Future[SimpleResult]] = for {
       queryJson <- safeParse(queryString).leftMap(e => invalidJson(e.getMessage))
       query <- Json.fromJson[ItemIndexQuery](queryJson).toValidation
-      identity <- getOrgAndOptions(request)
+      //Note: mapping error statusCode to a BAD_REQUEST to fix api regression
+      identity <- getOrgAndOptions(request).leftMap(e => generalError(e.message, BAD_REQUEST))
     } yield {
       val scopedQuery = query.copy(collections = Seq(collectionId.toString))
       searchWithQuery(scopedQuery, identity.org.accessibleCollections).map { v =>
@@ -135,22 +138,29 @@ class ItemApi(
 
   def search(query: Option[String]) = Action.async { implicit request =>
 
+    logger.debug(s"function=search, rawQueryString=${request.rawQueryString}")
+
     logger.debug(s"function=search, query=$query")
 
-    def searchQueryResult(q: ItemIndexQuery,
+    def searchQueryResult(
+      q: ItemIndexQuery,
       accessibleCollections: Seq[ContentCollRef]): Future[SimpleResult] = {
+      logger.trace(s"function=search#searchQueryResult, q=$q")
       searchWithQuery(q, accessibleCollections).map(result => result match {
-        case Success(searchResult) => Ok(Json.prettyPrint(Json.toJson(searchResult)))
+        case Success(searchResult) => Ok(Json.toJson(searchResult))
         case Failure(error) => BadRequest(error.getMessage)
       })
     }
 
     val queryString = query.getOrElse("{}")
 
+    logger.trace(s"function=search, queryString=$queryString")
+
     getOrgAndOptions(request) match {
       case Success(orgAndOpts) => safeParse(queryString) match {
         case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
           case JsSuccess(query, _) => searchQueryResult(query, orgAndOpts.org.accessibleCollections)
+
           case _ => future {
             val error = invalidJson(queryString)
             Status(error.statusCode)(error.message)
@@ -173,7 +183,7 @@ class ItemApi(
       Future {
         val keyValues = itemTypes.map(it => Json.obj("key" -> it.componentType, "value" -> it.label))
         val json = JsArray(keyValues)
-        Ok(Json.prettyPrint(json))
+        Ok(Json.toJson(json))
       }
   }
 
@@ -282,7 +292,7 @@ class ItemApi(
     }
   }
 
-  def legacyCountSessions(itemId: VersionedId[ObjectId]) = Action.async { implicit request =>
+  def countSessions(itemId: VersionedId[ObjectId]) = Action.async { implicit request =>
     Future {
       val count = sessionService.sessionCount(itemId)
       Ok(Json.obj("sessionCount" -> count))

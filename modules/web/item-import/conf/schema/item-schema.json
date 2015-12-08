@@ -1,0 +1,24 @@
+{
+  "title" : "CoreSpring Item Schema",
+  "type" : "object",
+  "properties" : {
+    "files" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
+      }
+    },
+    "components" : {
+      "type" : "object"
+    },
+    "summaryFeedback" : {
+      "type" : "string"
+    },
+    "xhtml" : {
+      "type" : "string"
+    }
+  },
+  "required" : [
+    "components", "xhtml"
+  ]
+}

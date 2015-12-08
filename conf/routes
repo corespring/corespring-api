@@ -1,6 +1,6 @@
 GET         /                                                         web.controllers.PublicSite.redirect()
 
-
+GET         /version                                                  @web.controllers.Main.version()
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                             com.ee.assets.controllers.Assets.at(path="/public", file)
 
@@ -19,16 +19,18 @@ GET         /developer/*file                                          developer.
 
 
 # Auth endpoints
-POST /auth/register                                                   @developer.controllers.AuthController.register
-POST /auth/access_token                                               @developer.controllers.AuthController.getAccessToken
-GET /auth/isvalid                                                     @developer.controllers.AuthController.isValid(token)
+POST        /auth/register                                            @developer.controllers.AuthController.register
+POST        /auth/access_token                                        @developer.controllers.AuthController.getAccessToken
+GET         /auth/isvalid                                             @developer.controllers.AuthController.isValid(token)
 
 
 ->          /api/v1                                                   v1Api.Routes
 ->          /api/v2                                                   version2Api.Routes
 ->          /v2/player                                                v2Player.Routes
 ->          /v2/editor                                                v2Editor.Routes
+->          /import                                                   itemimport.Routes
 
+POST        /player/encrypt-options                                   org.corespring.legacy.LegacyEndpoints.encryptOptions
 
 # SecureSocial routes
 
@@ -65,3 +67,4 @@ POST        /password                                                 securesoci
 # Providers entry points
 GET         /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticate(provider)
 POST        /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticateByPost(provider)
+

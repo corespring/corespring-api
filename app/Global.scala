@@ -1,8 +1,8 @@
 import bootstrap.Main
 import com.amazonaws.services.s3.AmazonS3
-import filters.{ Headers, AccessControlFilter, AjaxFilter, IEHeaders }
+import filters.Headers
+import filters._
 import org.corespring.common.config.AppConfig
-import org.corespring.container.client.filters.CheckS3CacheFilter
 import org.corespring.play.utils.{ CallBlockOnHeaderFilter, ControllerInstanceResolver }
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
@@ -28,19 +28,6 @@ object Global
 
   lazy val controllers: Seq[Controller] = Main.controllers
 
-  lazy val componentSetFilter = new CheckS3CacheFilter {
-    override implicit def ec: ExecutionContext = ExecutionContext.global
-
-    override lazy val bucket: String = AppConfig.assetsBucket
-
-    override def appVersion: String = BuildInfo.commitHashShort
-
-    override def s3: AmazonS3 = bootstrap.Main.s3
-
-    override def intercept(path: String) = path.contains("component-sets")
-
-  }
-
   override def onStart(app: Application): Unit = {
 
     CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
@@ -62,7 +49,7 @@ object Global
   }
 
   override def doFilter(a: EssentialAction): EssentialAction = {
-    Filters(super.doFilter(a), Seq(componentSetFilter): _*)
+    Filters(super.doFilter(a), Seq(Main.componentSetFilter): _*)
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
@@ -89,7 +76,7 @@ object Global
     logger.error(uid)
     logger.error(throwable.getMessage)
 
-    if (logger.isDebugEnabled) {
+    if (logger.isWarnEnabled) {
       throwable.printStackTrace()
     }
 

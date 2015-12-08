@@ -1,6 +1,5 @@
 package org.corespring.v2.api
 
-import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.AssessmentTemplate
 import org.corespring.models.json.JsonFormatting
@@ -45,7 +44,7 @@ class AssessmentTemplateApi(
       case JsSuccess(jsonAssessment, _) => {
         val assessmentTemplate = new AssessmentTemplate().merge(jsonAssessment)
         assessmentTemplateService.insert(assessmentTemplate)
-        Created(Json.prettyPrint(Json.toJson(assessmentTemplate)))
+        Created(Json.toJson(assessmentTemplate))
       }
       case _ => incorrectJsonFormat(json).toResult
     }
@@ -60,7 +59,7 @@ class AssessmentTemplateApi(
           case Some(dbResult) => {
             val updatedAssessment = dbResult.merge(jsonAssessment)
             assessmentTemplateService.save(updatedAssessment)
-            Ok(Json.prettyPrint(Json.toJson(updatedAssessment)))
+            Ok(Json.toJson(updatedAssessment))
           }
           case _ => cantFindAssessmentTemplateWithId(assessmentTemplateId).toResult
         }

@@ -3,4 +3,4 @@ resolvers ++= Seq("cs snapshots" at "http://repository.corespring.org/artifactor
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
-addSbtPlugin("org.corespring" % "elasticsearch-indexer-sbt" % "0.0.9")
+addSbtPlugin("org.corespring" % "elasticsearch-indexer-sbt" % "0.0.10")

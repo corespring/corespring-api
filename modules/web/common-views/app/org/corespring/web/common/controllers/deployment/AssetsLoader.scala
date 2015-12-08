@@ -5,7 +5,7 @@ import com.ee.assets.deployment.Deployer
 import org.apache.commons.lang3.StringUtils
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.web.common.views.helpers.BuildInfo
-import play.api.{Mode, Logger, Play}
+import play.api.{ Mode, Logger, Play }
 
 object AssetsLoader {
 
@@ -18,7 +18,7 @@ object AssetsLoader {
 
   val bucketNameLengthMax = 63
 
-  lazy val loader: Loader = if(isProd) {
+  lazy val loader: Loader = if (isProd) {
 
     lazy val branch: String = if (BuildInfo.branch.isEmpty || BuildInfo.branch == "?") "no-branch" else BuildInfo.branch
 
@@ -28,7 +28,6 @@ object AssetsLoader {
     } else {
       BuildInfo.commitHashShort
     }
-
 
     val bucketName: String = {
       val publicAssets = "corespring-public-assets"
@@ -48,7 +47,6 @@ object AssetsLoader {
   } else {
     new Loader(None, Play.mode, configuration)
   }
-
 
   def init(implicit app: play.api.Application) = if (isProd) {
     logger.debug("running S3 deployments...")

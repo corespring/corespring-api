@@ -38,9 +38,10 @@ class FieldValuesApi(
   }
 
   private def get(field: String) = futureWithIdentity { (identity, _) =>
-    indexService.distinct(field,
+    indexService.distinct(
+      field,
       identity.org.accessibleCollections.map(_.collectionId.toString)).map(_ match {
-        case Success(contributors) => Ok(Json.prettyPrint(JsArray(contributors.map(JsString))))
+        case Success(contributors) => Ok(JsArray(contributors.map(JsString)))
         case Failure(error) => InternalServerError(error.getMessage)
       })
   }

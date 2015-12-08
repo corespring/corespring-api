@@ -1,6 +1,6 @@
 import sbt._
 import Keys._
-import play.Project._
+import org.corespring.sbt.repo.RepoAuthPlugin.Keys._
 
 object Builders {
 
@@ -11,41 +11,49 @@ object Builders {
     publishArtifact in (Compile, packageSrc) := false,
     sources in doc in Compile := List())
 
-  val moduleConfig = Seq(Dependencies.ModuleConfigurations.snapshots,
-    Dependencies.ModuleConfigurations.releases,
-    Dependencies.ModuleConfigurations.localSnapshots)
-
+  //Note: This is disabled at the moment due to: https://github.com/sbt/sbt/issues/2282
+  val moduleConfig = Nil /*Seq(
+    Dependencies.ModuleConfigurations.snapshots,
+    Dependencies.ModuleConfigurations.releases)*/
 }
-class Builders(root: String, org: String, appVersion: String, rootScalaVersion: String) {
+
+class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
 
   val forkInTests = false
 
+  val skipPublishSettings = Seq(
+    /** Note: publishArtifact := false seems to mess with routes */
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))))
+
   //TODO: This is not useful at the moment - when it works however it'll be amazing:
   // updateOptions := updateOptions.value.withConsolidatedResolution(true),
-  // see: https://github.com/sbt/sbt/issues/2105
+  // see: https://github.com/sbt/sbt/issues/2105 - update: fixed in 13.9 - but we're having issues using 13.9
   val sharedSettings = Seq(
     moduleConfigurations ++= Builders.moduleConfig,
     aggregate in update := false,
-    scalaVersion := rootScalaVersion,
     parallelExecution.in(Test) := false,
     resolvers ++= Dependencies.Resolvers.all,
-    credentials += LoadCredentials.cred,
+    shellPrompt := ShellPrompt.buildShellPrompt,
     Keys.fork.in(Test) := forkInTests,
-    scalacOptions ++= Seq("-feature", "-deprecation")) ++ Builders.disableDocsSettings
+    scalacOptions ++=
+      Seq("-feature", "-deprecation")) ++
+    Builders.disableDocsSettings ++ rootSettings
 
-  def lib(name: String, folder: String = "lib", deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty) =
+  def lib(name: String, folder: String = "lib", deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty, publish: Boolean = false) = {
 
-    sbt.Project(
+    val p = sbt.Project(
       makeName(name),
       file("modules/" + folder + "/" + name),
       dependencies = deps)
-      .settings(Defaults.defaultSettings ++ intellijCommandSettings: _*)
-      .settings(
-        organization := org,
-        version := appVersion,
-        scalaVersion := rootScalaVersion,
-        resolvers ++= Dependencies.Resolvers.all)
+      .settings(Defaults.defaultSettings: _*)
       .settings(sharedSettings: _*)
+
+    if (publish) {
+      p.settings(publishTo := authPublishTo.value)
+    } else {
+      p.settings(skipPublishSettings: _*)
+    }
+  }
 
   def testLib(name: String) = lib(name, "test-lib")
 
@@ -53,12 +61,11 @@ class Builders(root: String, org: String, appVersion: String, rootScalaVersion: 
 
     val rootFile = root.getOrElse(file(s"modules/web/$name"))
 
-    play.Project(makeName(name), appVersion, path = rootFile)
-      .settings(
-        organization := org,
-        scalaVersion := rootScalaVersion,
-        resolvers ++= Dependencies.Resolvers.all)
+    //Note until we use an updated play we have to to this:
+    play.Project(makeName(name), "NOT-USED", path = rootFile)
+      .settings(version := (version in ThisBuild).value)
       .settings(sharedSettings: _*)
+      .settings(skipPublishSettings: _*)
   }
 
   private def makeName(s: String): String = if (s == root) root else Seq(root, s).mkString("-")

@@ -40,7 +40,8 @@ trait V2Api extends Controller with LoadOrgAndOptions {
   }
 
   protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
-    def toResult: SimpleResult = Status(error.statusCode)(Json.prettyPrint(error.json))
+    def toResult: SimpleResult = Status(error.statusCode)(error.json)
+    def toResult(statusCode: Int): SimpleResult = Status(statusCode)(error.json)
   }
 
   protected implicit class ValidationToSimpleResult(v: Validation[V2Error, JsValue]) {
@@ -59,6 +60,18 @@ trait V2Api extends Controller with LoadOrgAndOptions {
           case Success(identity) => block(identity, request)
           case Failure(e) => e.toResult
         }
+      }
+    }
+
+  /**
+   * This is to support api status codes from pre-refactor
+   */
+  @deprecated("This is used to support overriding of status codes, but we should rely on the error's code", "core-refactor")
+  protected def futureWithIdentity(statusCode: Int)(block: (OrgAndOpts, Request[AnyContent]) => Future[SimpleResult]) =
+    Action.async { implicit request =>
+      getOrgAndOptions(request) match {
+        case Success(identity) => block(identity, request)
+        case Failure(e) => Future { e.toResult(statusCode) }
       }
     }
 
