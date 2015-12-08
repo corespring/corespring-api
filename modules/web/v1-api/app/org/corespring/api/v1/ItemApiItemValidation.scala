@@ -36,10 +36,13 @@ class ItemApiItemValidation {
   private def addStorageKeys(dbItemResource: Option[Resource], itemResource: Resource) = {
 
     def addStorageKeys(dbItemFiles: Seq[BaseFile], itemFiles: Seq[BaseFile]) = {
-      itemFiles.map(_ match {
-        case storedFile: StoredFile => dbItemFiles.find(_.name == storedFile.name) match {
-          case dbItemFile: Option[StoredFile] => storedFile.copy(storageKey = dbItemFile.get.storageKey)
-          case _ => throw new RuntimeException(s"ItemFile ${storedFile.name} not found in dbItem.data")
+      def findDbItemFile(name:String): Option[StoredFile] = {
+        dbItemFiles.find( x => x.isInstanceOf[StoredFile] && x.name == name).map(_.asInstanceOf[StoredFile])
+      }
+      itemFiles.map({
+        case storedFile: StoredFile => findDbItemFile(storedFile.name) match {
+          case Some(dbItemFile) => storedFile.copy(storageKey = dbItemFile.storageKey)
+          case _ => throw new RuntimeException(s"StoredFile ${storedFile.name} not found in dbItem.data")
         }
         case otherFile => otherFile
       })
