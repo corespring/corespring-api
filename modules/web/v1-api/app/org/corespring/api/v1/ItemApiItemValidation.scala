@@ -36,15 +36,14 @@ class ItemApiItemValidation {
   private def addStorageKeys(dbItemResource: Option[Resource], itemResource: Resource) = {
 
     def addStorageKeys(dbItemFiles: Seq[BaseFile], itemFiles: Seq[BaseFile]) = {
-      def findDbItemFile(name: String) = {
-        dbItemFiles
-          .map({
-            case x: StoredFile => Some(x)
-            case _ => None
-          })
-          .filter(_.isDefined)
-          .map(_.get)
-          .find(_.name == name)
+      def findDbItemFile(name: String): Option[StoredFile] = {
+        dbItemFiles.find({
+          case x:StoredFile if x.name == name => true
+          case _ => false
+        }).flatMap({
+          case x: StoredFile => Some(x)
+          case _ => None
+        })
       }
       itemFiles.map({
         case storedFile: StoredFile => findDbItemFile(storedFile.name) match {
