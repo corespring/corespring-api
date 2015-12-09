@@ -133,8 +133,9 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
           case Some(record) => {
             val recordJson = Json.parse(record.toString)
             val denormalized = contentDenormalizer.denormalize(recordJson)
-            logger.trace(s"function=reindex, id=$id, recordJson=$recordJson, denormalized=$denormalized")
-            contentIndex.add(id.id.toString, denormalized.toString)
+            val res = contentIndex.add(id.id.toString, denormalized.toString)
+            logger.trace(s"function=reindex, id=$id, recordJson=$recordJson, denormalized=$denormalized, res=$res")
+            res
           }
           case _ => future { Failure(new Error(s"Item with id=$id not found")) }
         }
