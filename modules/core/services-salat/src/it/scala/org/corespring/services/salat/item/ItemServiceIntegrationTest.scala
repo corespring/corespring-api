@@ -441,6 +441,4 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
   }
 
-
-
 }
