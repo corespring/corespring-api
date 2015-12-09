@@ -23,11 +23,11 @@ object ItemIndexHit {
     val logger = Logger(classOf[ItemIndexHit])
 
     private def subjectify(json: JsObject) = {
-      def emptyOption(string: String): Option[String] = string match {
-        case empty if (string.isEmpty) => None
-        case _ => Some(string)
+      def emptyOption(string: Option[String]): Option[String] = string match {
+        case Some(s) if (s.isEmpty) => None
+        case s => s
       }
-      (emptyOption((json \ "category").as[String]), emptyOption((json \ "subject").as[String])) match {
+      ((json \ "category").asOpt[String], (json \ "subject").asOpt[String]) match {
         case (Some(category), Some(subject)) => s"$category: $subject"
         case (None, Some(subject)) => subject
         case (Some(category), None) => category
@@ -56,9 +56,11 @@ object ItemIndexHit {
         interactionCount = (json \ "_source" \ "interactionCount").asOpt[Int].getOrElse(0),
         itemTypes = (json \ "_source" \ "taskInfo" \ "itemTypes").asOpt[Seq[String]].getOrElse(Seq.empty)))
     } catch {
+      case t: Throwable => throw t
       case exception: Exception => {
-        logger.error(s"Error parsing ${json \ "_id"}")
+        logger.error(s"Error parsing ${json \ "_id"} $json")
         JsError(s"Error parsing ${json \ "_id"}")
+
       }
     }
 

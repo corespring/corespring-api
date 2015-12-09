@@ -105,6 +105,8 @@ class DataQueryHooks(
       }
     }
 
+    lazy val clusterFromStandardsResult = uniqueClustersFromStandards(standardQueryService.list(0, 0).seq)
+
     def toResult[A](v: Validation[(Int, String), Stream[A]])(implicit w: Writes[A]): Either[(Int, String), JsArray] = {
       v.toEither.map(list => Json.toJson(list.toSeq).as[JsArray])
     }
@@ -114,7 +116,7 @@ class DataQueryHooks(
       case "subjects.related" => toResult(subjectQueryResult)
       case "standards" => toResult(standardQueryResult)
       case "standardsTree" => Right(standardsTree.json)
-      case "standardClusters" => Right(uniqueClustersFromStandards(standardQueryService.list(0, 0).seq))
+      case "standardClusters" => Right(clusterFromStandardsResult)
       case _ => {
         implicit val fv = jsonFormatting.writesFieldValue
         val fieldValueJson = Json.toJson(jsonFormatting.fieldValue).as[JsObject]
