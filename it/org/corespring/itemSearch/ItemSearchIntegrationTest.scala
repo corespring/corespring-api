@@ -5,7 +5,7 @@ import org.corespring.it.helpers.{ StandardHelper, ItemHelper }
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
 import org.corespring.models.Standard
-import org.corespring.models.item.{ Item, PlayerDefinition }
+import org.corespring.models.item.{StandardCluster, TaskInfo, Item, PlayerDefinition}
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json
 
@@ -23,13 +23,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
     val itemIndexService = bootstrap.Main.itemIndexService
 
-    val mathStandard = mkStandard("Math", "M.1.2.3")
-    val elaStandard = mkStandard("ELA", "E.1.2.3")
-    val elaLiteracyStandard = mkStandard("ELA-Literacy", "EL.1.2.3")
-
-    val mathItemId = insertItemWithStandard(mathStandard)
-    val elaItemId = insertItemWithStandard(elaStandard)
-    val elaLiteracyItemId = insertItemWithStandard(elaLiteracyStandard)
+    val itemWithClusterId = insertItemWithStandardCluster("test-cluster")
 
     override def after = {
       logger.info("after.. cleaning up..")
@@ -37,23 +31,13 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
       cleanIndex()
     }
 
-    protected def insertItemWithStandard(standard: Standard) = {
-      StandardHelper.create(standard)
-      ItemHelper.create(collectionId, itemWithStandard(standard))
+    protected def insertItemWithStandardCluster(cluster: String) = {
+      ItemHelper.create(collectionId, itemWithStandardCluster(cluster))
     }
 
-    protected def itemWithStandard(s: Standard): Item = {
+    protected def itemWithStandardCluster(c: String): Item = {
       Item(collectionId = collectionId.toString,
-        standards = Seq(s.dotNotation.get))
-    }
-
-    protected def mkStandard(subject: String, dotNotation: String) = {
-      Standard(
-        subject = Some(subject),
-        dotNotation = Some(dotNotation),
-        standard = Some("AAA"),
-        category = Some("BBB"),
-        subCategory = Some("CCC"))
+        taskInfo = Some(TaskInfo(standardClusters = Seq(StandardCluster(c, false, "manual")))))
     }
 
     protected def search(text: Option[String]) = {
@@ -79,37 +63,16 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
   "search" should {
 
-    "find item with Math standard by standard.category" in new scope {
+    "find item by standardCluster" in new scope {
 
-      search(mathStandard.category) match {
+      search(Some("test-cluster")) match {
         case Failure(e) => failure(s"Unexpected error $e")
         case Success(v) => {
           v.total should_== 1
-          hitsToSet(v.hits) should_== idsToSet(mathItemId)
+          hitsToSet(v.hits) should_== idsToSet(itemWithClusterId)
         }
       }
     }
 
-    "find item with ELA standard by standard.subCategory" in new scope {
-
-      search(elaStandard.subCategory) match {
-        case Failure(e) => failure(s"Unexpected error $e")
-        case Success(v) => {
-          v.total should_== 2
-          hitsToSet(v.hits) should_== idsToSet(elaItemId, elaLiteracyItemId)
-        }
-      }
-    }
-
-    "find item with ELA-Literacy standard by standard.subCategory" in new scope {
-
-      search(elaLiteracyStandard.subCategory) match {
-        case Failure(e) => failure(s"Unexpected error $e")
-        case Success(v) => {
-          v.total should_== 2
-          hitsToSet(v.hits) should_== idsToSet(elaLiteracyItemId, elaItemId)
-        }
-      }
-    }
   }
 }
