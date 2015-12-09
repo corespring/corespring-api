@@ -27,7 +27,7 @@ object CustomRelease {
   //Run stage
   val runStage = ReleaseStep(action = st => {
     val extracted = Project.extract(st)
-    import com.typesafe.sbt.packager.universal.Keys.stage
+    import com.typesafe.sbt.packager.Keys._
     val (newState, _) = extracted.runTask(stage, st)
     newState
   })

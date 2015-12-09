@@ -1,27 +1,13 @@
 import sbt._
 import sbt.Keys._
 import com.typesafe.sbt.SbtNativePackager._
+import com.typesafe.sbt.packager.Keys._
+import com.typesafe.sbt.packager.MappingsHelper.directory
 
-object Tgz {
-
-  /** return a Seq of mappings which effect is to add a whole directory in the generated package */
-  def directory(sourceDir: File): Seq[(File, String)] = {
-    val parentFile = sourceDir.getParentFile
-    if (parentFile != null)
-      sourceDir.*** pair relativeTo(sourceDir.getParentFile)
-    else
-      sourceDir.*** pair basic
-  }
-
-  /** It lightens the build file if one wants to give a string instead of file. */
-  def directory(sourceDir: String): Seq[(File, String)] = {
-    directory(file(sourceDir))
-  }
-
+/** Settings on what to package into the tarball */
+object Tgz{
   val settings = Seq(
-    //topLevelDirectory := None, - not available in 0.6.2 sbt-native-packager
+    topLevelDirectory := None,
     mappings in Universal += file("Procfile") -> "Procfile",
-    mappings in Universal ++= directory("corespring-components/components") //.map{ t => t._1.get.head -> t._2}
-    )
-
+    mappings in Universal ++= directory("corespring-components/components").map({case (f,p) => f -> s"corespring-components/$p"}))
 }

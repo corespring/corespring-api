@@ -240,7 +240,7 @@ object Build extends sbt.Build {
     .configs(IntegrationTest)
     .settings(IntegrationTestSettings.settings: _*)
     .settings(CustomRelease.settings: _*)
-    .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
+    .settings(buildComponentsTask) //disable for now, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
     .settings(Indexing.indexTask)
     .dependsOn(
       apiUtils,
