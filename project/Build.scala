@@ -209,9 +209,10 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
-  val main = builders.web("root", Some(file(".")))
+  val main = builders.web("root", Some(file(".")), disablePackaging = false)
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
+    .settings(Tgz.settings: _*)
     .settings(
       //disable publishing of the root project
       shellPrompt := ShellPrompt.buildShellPrompt,
