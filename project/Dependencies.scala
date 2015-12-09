@@ -5,14 +5,15 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.57.0-SNAPSHOT"
+  val containerVersion = "0.56.0"
   val qtiVersion = "0.8"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
   object ModuleConfigurations {
-    val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolvers.corespringSnapshots)
-    val localSnapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolver.defaultLocal)
+
+    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, Resolvers.corespringSnapshots))
+    val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", chainedSnapshots)
     val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
   }
 
@@ -67,7 +68,7 @@ object Dependencies {
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.20.0-SNAPSHOT"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.20.0"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"

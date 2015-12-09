@@ -254,6 +254,13 @@
     function loadDraftItem(ignoreConflict) {
       ignoreConflict = ignoreConflict === true;
 
+      $scope.sessionCount = "?";
+      itemService.countSessionsForItem(function(o) {
+        $scope.sessionCount = o.sessionCount;
+      }, function() {
+        Logger.warn(err);
+      }, $routeParams.id);
+
       ItemDraftService.get({
           id: $routeParams.itemId,
           ignoreConflict: ignoreConflict
