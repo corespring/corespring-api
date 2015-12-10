@@ -28,7 +28,7 @@ function RootController($scope, $rootScope, $http, Modals, ItemService, V2Search
   };
 
 
-  $scope.getLaunchCode = function(id) {
+  $scope.showLaunchCode = function(id) {
     $scope.playerCode  = "Generating launcher code";
     Modals.launchCodePreview(function() {
     });
