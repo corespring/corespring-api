@@ -14,16 +14,15 @@ function RootController($scope, $rootScope, $http, Modals, ItemService, V2Search
   };
 
   $scope.copyCodeToClipboard = function() {
+    var successful;
     $('.launch-code-text-area')[0].select();
     try {
-      var successful = document.execCommand('copy');
-      var msg = successful ? 'successful' : 'unsuccessful';
-      if (successful) {
-        $scope.codeCopied = true;
-      } else {
-        alert("Couldn't copy code to clipboard. Please press the copy to clipboard shortcut.");
-      }
+      successful = document.execCommand('copy');
     } catch (err) {
+    }
+    if (successful) {
+      $scope.codeCopied = true;
+    } else {
       alert("Couldn't copy code to clipboard. Please press the copy to clipboard shortcut.");
     }
   };
