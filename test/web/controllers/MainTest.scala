@@ -7,6 +7,7 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.v2.api.services.PlayerTokenService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -39,6 +40,11 @@ class MainTest extends Specification with Mockito with PlaySpecification {
     lazy val userService = {
       val m = mock[UserService]
       m
+
+    }
+    lazy val playerTokenService = {
+      val m = mock[PlayerTokenService]
+      m
     }
 
     lazy val orgService = {
@@ -69,7 +75,8 @@ class MainTest extends Specification with Mockito with PlaySpecification {
       itemType,
       widgetType,
       containerVersion,
-      webExecutionContext)
+      webExecutionContext,
+      playerTokenService)
   }
 
   "defaultValues" should {
