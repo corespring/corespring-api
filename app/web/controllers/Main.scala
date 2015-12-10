@@ -71,7 +71,8 @@ class Main(
         case Success(ctr) =>
           val html = web.views.html.sampleLaunchCode(id, ctr.token, ctr.apiClient, "http://"+request.host)
           Ok(html)
-
+        case _ =>
+          BadRequest("Couldn't generate player token")
       }
   }
 
