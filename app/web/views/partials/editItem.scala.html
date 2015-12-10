@@ -83,11 +83,9 @@
                     <b class="caret"></b>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-actions">
-                        <li> <button class="btn btn-default btn-sm"
-                        ng-click="clone()"><i class="fa fa-copy"></i>&nbsp;Clone</button>
-                        
-                        </li>
+                        <li><button class="btn btn-default btn-sm" ng-click="clone()"><i class="fa fa-copy"></i>&nbsp;Clone</button></li>
                         <li><button ng-show="!isPublished" class="btn btn-info btn-sm" href="" ng-click="publish()"><i class="fa fa-bolt"></i>&nbsp;Publish</button></li>
+                        <li><button class="btn btn-default btn-sm" ng-click="getLaunchCode(itemData.id)"><i class="fa fa-code"></i>&nbsp;Get launch code</button></li>
                     </ul>
                 </div>
                 <i id="togglePreviewButton" class="icon-preview" ng-class="previewClassName"

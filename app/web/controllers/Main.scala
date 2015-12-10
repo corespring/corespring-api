@@ -1,20 +1,25 @@
 package web.controllers
 
+import java.util.Date
+
+import com.softwaremill.macwire.MacwireMacros._
 import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ User }
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.services.item.FieldValueService
+import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Logger
-import play.api.libs.json.{ JsValue, Json, JsObject }
+import play.api.libs.json.{JsString, JsValue, Json, JsObject}
 import play.api.mvc._
 import play.api.libs.json.Json._
 import securesocial.core.{ SecuredRequest }
 import web.models.{ WebExecutionContext, ContainerVersion }
 
 import scala.concurrent.Future
+import scalaz.Success
 
 class Main(
   fieldValueService: FieldValueService,
@@ -24,7 +29,8 @@ class Main(
   itemType: ItemType,
   widgetType: WidgetType,
   containerVersionInfo: ContainerVersion,
-  webExecutionContext: WebExecutionContext) extends Controller with securesocial.core.SecureSocial {
+  webExecutionContext: WebExecutionContext,
+  playerTokenService: PlayerTokenService) extends Controller with securesocial.core.SecureSocial {
 
   implicit val context = webExecutionContext.context
 
@@ -51,6 +57,22 @@ class Main(
       val json = BuildInfo.json.deepMerge(Json.obj("container" -> containerVersionInfo.json))
       Ok(json)
     }
+  }
+
+  def sampleLaunchCode(id:String) = SecuredAction {
+    request =>
+      val userId = request.user.identityId
+      val user: User = userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
+      val token = playerTokenService.createToken(user.org.orgId, Json.obj(
+        "expires" -> (new Date().getTime + 60 * 60 * 1000),
+        "itemId" -> id
+      ))
+      token match {
+        case Success(ctr) =>
+          val html = web.views.html.sampleLaunchCode(id, ctr.token, ctr.apiClient, "http://"+request.host)
+          Ok(html)
+
+      }
   }
 
   def index = SecuredAction {

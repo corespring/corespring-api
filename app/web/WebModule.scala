@@ -5,12 +5,14 @@ import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.v2.api.services.PlayerTokenService
 import web.controllers.{ Main, ShowResource }
 import web.models.{ ContainerVersion, WebExecutionContext }
 
 trait WebModule {
 
   def itemService: ItemService
+  def playerTokenService: PlayerTokenService
   def s3Service: S3Service
   def fieldValueService: FieldValueService
   def jsonFormatting: JsonFormatting
@@ -30,7 +32,8 @@ trait WebModule {
     itemType,
     widgetType,
     containerVersion,
-    webExecutionContext)
+    webExecutionContext,
+    playerTokenService)
 
   lazy val webControllers = Seq(showResource, webMain)
 }
