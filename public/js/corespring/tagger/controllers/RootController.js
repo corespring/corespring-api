@@ -1,4 +1,4 @@
-function RootController($scope, $rootScope, ItemService, V2SearchService, CollectionManager) {
+function RootController($scope, $rootScope, $http, Modals, ItemService, V2SearchService, CollectionManager) {
   "use strict";
   $scope.uiState = {
     showCollectionsPane: false
@@ -11,6 +11,30 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
   });
 
   $scope.navigationHooks = {
+  };
+
+  $scope.copyCodeToClipboard = function() {
+    var successful;
+    $('.launch-code-text-area')[0].select();
+    try {
+      successful = document.execCommand('copy');
+    } catch (err) {
+    }
+    if (successful) {
+      $scope.codeCopied = true;
+    } else {
+      alert("Couldn't copy code to clipboard. Please press the copy to clipboard shortcut.");
+    }
+  };
+
+
+  $scope.showLaunchCode = function(id) {
+    $scope.playerCode  = "Generating launcher code";
+    Modals.launchCodePreview(function() {
+    });
+    $http.get("/items/"+id+"/sample-launch-code").then(function(res) {
+      $scope.playerCode  =  res.data;
+    });
   };
 
   $scope.$on("error", function(event, errorSubType, data){
@@ -97,4 +121,4 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
   }
 }
 
-RootController.$inject = ['$scope', '$rootScope', 'ItemService', 'V2SearchService','CollectionManager'];
+RootController.$inject = ['$scope', '$rootScope', '$http', 'Modals', 'ItemService', 'V2SearchService','CollectionManager'];
