@@ -8,6 +8,8 @@ import org.corespring.models.{ Standard, Subject }
 import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.v2.api.services.PlayerTokenService
+import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -42,6 +44,12 @@ class MainTest extends Specification with Mockito with PlaySpecification {
       m
 
     }
+
+    lazy val userSessionOrgIdentity = {
+      val m = mock[UserSessionOrgIdentity[OrgAndOpts]]
+      m
+    }
+
     lazy val playerTokenService = {
       val m = mock[PlayerTokenService]
       m
@@ -76,7 +84,8 @@ class MainTest extends Specification with Mockito with PlaySpecification {
       widgetType,
       containerVersion,
       webExecutionContext,
-      playerTokenService)
+      playerTokenService,
+      userSessionOrgIdentity)
   }
 
   "defaultValues" should {

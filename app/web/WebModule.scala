@@ -6,6 +6,8 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.v2.api.services.PlayerTokenService
+import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
+import org.corespring.v2.auth.models.OrgAndOpts
 import web.controllers.{ Main, ShowResource }
 import web.models.{ ContainerVersion, WebExecutionContext }
 
@@ -22,6 +24,7 @@ trait WebModule {
   def widgetType: WidgetType
   def containerVersion: ContainerVersion
   def webExecutionContext: WebExecutionContext
+  def userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts]
 
   lazy val showResource = new ShowResource(itemService, s3Service)
   lazy val webMain = new Main(
@@ -33,7 +36,8 @@ trait WebModule {
     widgetType,
     containerVersion,
     webExecutionContext,
-    playerTokenService)
+    playerTokenService,
+    userSessionOrgIdentity)
 
   lazy val webControllers = Seq(showResource, webMain)
 }
