@@ -67,7 +67,7 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
     });
   };
 
-  $scope.loadMore = function() {
+  $scope.loadMore = function(idx, callback) {
     V2SearchService.loadMore(function() {
       // re-bind the scope collection to the services model after result comes back
       $rootScope.items = applyPermissions(V2SearchService.itemDataCollection);
@@ -75,7 +75,7 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
       setTimeout(function() {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }, 200);
-
+      _.isFunction(callback) && callback();
     });
   };
 
