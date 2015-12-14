@@ -98,8 +98,14 @@ class PlayerHooks(
     }.toEither
   }
 
-  override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = playerAssets.loadItemFile(itemId, file)(header)
+  override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = {
+    println(s"XXXXXXXXXXXXXXx loadItemFile itemId $itemId file $file")
+    playerAssets.loadItemFile(itemId, file)(header)
+  }
 
-  override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = playerAssets.loadFile(id, path)(request)
+  override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+    println(s"XXXXXXXXXXXXXXx loadFile itemId $id file $path")
+    playerAssets.loadFile(id, path)(request)
+  }
 }
 
