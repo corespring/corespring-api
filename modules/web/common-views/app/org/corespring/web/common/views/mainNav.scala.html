@@ -27,12 +27,21 @@
                 >
                     <li style="padding-top: 11px;">
                         <div class="pager">
-                            <div ng-show="pagerText" class="muted pager-text">{{pagerText}} items</div>
+                            <div ng-show="pagerText" class="muted pager-text">
+                              {{pagerText}} items
+                            </div>
                             <div class="progress progress-success progress-striped
                                  active pager-progress-bar" network-progress ng-show="isLoading">
                                 <div class="bar"></div>
                             </div>
                         </div>
+                    </li>
+                    <li ng-show="hasIndex" style="padding-top: 11px;">
+                       <span class="prevNext" ng-click="previous()" ng-disabled="prevDisabled">
+                         <i class="fa fa-chevron-left"></i>&nbsp;Previous
+                       </span>
+                       <span class="prevNext" ng-click="next()" ng-disabled="nextDisabled">
+                           Next&nbsp;<i class="fa fa-chevron-right"></i></span>
                     </li>
                 </ul>
             </div>

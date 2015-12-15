@@ -12,6 +12,7 @@ object StandardFormat extends Format[Standard] with JsonUtil {
     val Category = "category"
     val SubCategory = "subCategory"
     val Standard = "standard"
+    val Domain = "domain"
     val guid = "guid"
     val grades = "grades"
   }
@@ -19,12 +20,13 @@ object StandardFormat extends Format[Standard] with JsonUtil {
   def writes(obj: Standard) = {
 
     partialObj(
-      Keys.Id -> Some(JsString(obj.id.toString)),
-      Keys.DotNotation -> Some(JsString(obj.dotNotation.getOrElse(""))),
-      Keys.Subject -> Some(JsString(obj.subject.getOrElse(""))),
       Keys.Category -> Some(JsString(obj.category.getOrElse(""))),
-      Keys.SubCategory -> Some(JsString(obj.subCategory.getOrElse(""))),
+      Keys.Domain -> Some(JsString(obj.domain.getOrElse(""))),
+      Keys.DotNotation -> Some(JsString(obj.dotNotation.getOrElse(""))),
+      Keys.Id -> Some(JsString(obj.id.toString)),
       Keys.Standard -> Some(JsString(obj.standard.getOrElse(""))),
+      Keys.SubCategory -> Some(JsString(obj.subCategory.getOrElse(""))),
+      Keys.Subject -> Some(JsString(obj.subject.getOrElse(""))),
       Keys.grades -> (obj.grades match {
         case nonEmpty if Keys.grades.nonEmpty => Some(JsArray(obj.grades.map(JsString(_))))
         case _ => None

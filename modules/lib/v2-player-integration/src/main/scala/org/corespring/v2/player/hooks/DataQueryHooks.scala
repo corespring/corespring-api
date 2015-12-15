@@ -55,6 +55,17 @@ class DataQueryHooks(
       (json \ "filters" \ "subCategory").asOpt[String])
   }
 
+  def uniqueClustersFromStandards( standards: Seq[Standard]) = {
+    Json.toJson(standards.map(s => (
+      s.domain,
+      s.subject))
+      .toMap
+      .toSeq
+      .map(p => Json.obj(
+        "subject" -> p._2,
+        "domain" -> p._1))).as[JsArray]
+  }
+
   override def list(topic: String, query: Option[String])(implicit header: RequestHeader): Future[Either[(Int, String), JsArray]] = Future {
     logger.trace(s"list: $topic - query: $query")
 
@@ -94,6 +105,8 @@ class DataQueryHooks(
       }
     }
 
+    lazy val clusterFromStandardsResult = uniqueClustersFromStandards(standardQueryService.list(0, 0).seq)
+
     def toResult[A](v: Validation[(Int, String), Stream[A]])(implicit w: Writes[A]): Either[(Int, String), JsArray] = {
       v.toEither.map(list => Json.toJson(list.toSeq).as[JsArray])
     }
@@ -103,6 +116,7 @@ class DataQueryHooks(
       case "subjects.related" => toResult(subjectQueryResult)
       case "standards" => toResult(standardQueryResult)
       case "standardsTree" => Right(standardsTree.json)
+      case "standardClusters" => Right(clusterFromStandardsResult)
       case _ => {
         implicit val fv = jsonFormatting.writesFieldValue
         val fieldValueJson = Json.toJson(jsonFormatting.fieldValue).as[JsObject]

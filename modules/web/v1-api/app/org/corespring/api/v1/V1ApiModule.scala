@@ -70,6 +70,7 @@ trait V1ApiModule {
   def context: Context
 
   lazy val salatContentService = new ItemApiContentService(itemService, salatItemDao)
+  lazy val itemApiItemValidation = new ItemApiItemValidation()
 
   lazy val v1ItemApi: Controller = wire[org.corespring.api.v1.ItemApi]
   lazy val v1FieldValuesApi: Controller = wire[org.corespring.api.v1.FieldValuesApi]

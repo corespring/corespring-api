@@ -8,7 +8,11 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrganizationService, UserService }
 import play.api.Mode.Mode
-import web.controllers.{ Partials, PublicSite, Main, ShowResource }
+import web.controllers.{ Partials, PublicSite }
+import org.corespring.v2.api.services.PlayerTokenService
+import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
+import org.corespring.v2.auth.models.OrgAndOpts
+import web.controllers.{ Main, ShowResource }
 import web.models.{ ContainerVersion, WebExecutionContext }
 
 case class PublicSiteConfig(url: String)
@@ -17,6 +21,7 @@ case class DefaultOrgs(v2Player: Seq[ObjectId], root: ObjectId)
 trait WebModule {
 
   def itemService: ItemService
+  def playerTokenService: PlayerTokenService
   def s3Service: S3Service
   def fieldValueService: FieldValueService
   def jsonFormatting: JsonFormatting
@@ -30,6 +35,7 @@ trait WebModule {
   def defaultOrgs: DefaultOrgs
   def bucket: Bucket
   def publicSiteConfig: PublicSiteConfig
+  def userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts]
 
   lazy val showResource = new ShowResource(itemService, s3Service, bucket)
   lazy val partials = new Partials(mode, defaultOrgs)
@@ -41,7 +47,9 @@ trait WebModule {
     itemType,
     widgetType,
     containerVersion,
-    webExecutionContext)
+    webExecutionContext,
+    playerTokenService,
+    userSessionOrgIdentity)
 
   lazy val publicSite = new PublicSite(publicSiteConfig.url, mode)
 
