@@ -1,6 +1,8 @@
 GET         /                                                         web.controllers.PublicSite.redirect()
 
 GET         /version                                                  @web.controllers.Main.version()
+GET         /items/:id/sample-launch-code                             @web.controllers.Main.sampleLaunchCode(id)
+
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                             com.ee.assets.controllers.Assets.at(path="/public", file)
 

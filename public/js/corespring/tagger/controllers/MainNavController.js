@@ -24,16 +24,7 @@ function MainNavController(
   });
 
   $scope.goToItem = function (itemId) {
-    $location.path('/edit/' + itemId);
-  };
-
-  $scope.loadMore = function (index, onLoaded) {
-    V2SearchService.loadMore(function() {
-      $rootScope.items = V2SearchService.itemDataCollection;
-      if (onLoaded) {
-        onLoaded();
-      }
-    });
+    $rootScope.$broadcast('editItem', itemId);
   };
 
   $scope.$on('onListViewOpened', function (evt) {

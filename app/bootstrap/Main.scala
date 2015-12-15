@@ -16,7 +16,7 @@ import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTrackin
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
 import org.corespring.common.config.{ AppConfig, ContainerConfig }
-import org.corespring.container.client.ComponentSetExecutionContext
+import org.corespring.container.client.{ComponentSetExecutionContext, ItemAssetResolver}
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
@@ -162,6 +162,8 @@ object Main
     if (containerConfig.cdnAddVersionAsQueryParam) Some(mainAppVersion) else None)
 
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
+
+  lazy val itemAssetResolver: ItemAssetResolver = new CDNItemAssetResolver(cdnResolver)
 
   override lazy val elasticSearchConfig = ElasticSearchConfig(
     AppConfig.elasticSearchUrl,

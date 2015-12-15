@@ -1,20 +1,30 @@
 package web.controllers
 
+import java.util.Date
+
+import com.softwaremill.macwire.MacwireMacros._
+import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ User }
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.services.item.FieldValueService
+import org.corespring.v2.api.services.PlayerTokenService
+import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Logger
-import play.api.libs.json.{ JsValue, Json, JsObject }
+import play.api.libs.json.{JsString, JsValue, Json, JsObject}
 import play.api.mvc._
 import play.api.libs.json.Json._
 import securesocial.core.{ SecuredRequest }
 import web.models.{ WebExecutionContext, ContainerVersion }
+import scalaz.Scalaz._
 
 import scala.concurrent.Future
+import scalaz.Success
+import scalaz.Failure
 
 class Main(
   fieldValueService: FieldValueService,
@@ -24,7 +34,9 @@ class Main(
   itemType: ItemType,
   widgetType: WidgetType,
   containerVersionInfo: ContainerVersion,
-  webExecutionContext: WebExecutionContext) extends Controller with securesocial.core.SecureSocial {
+  webExecutionContext: WebExecutionContext,
+  playerTokenService: PlayerTokenService,
+  userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts]) extends Controller with securesocial.core.SecureSocial {
 
   implicit val context = webExecutionContext.context
 
@@ -51,6 +63,29 @@ class Main(
       val json = BuildInfo.json.deepMerge(Json.obj("container" -> containerVersionInfo.json))
       Ok(json)
     }
+  }
+
+  def sampleLaunchCode(id:String) = Action.async {
+    request =>
+      Future {
+
+        val token = for {
+          maybeUser <- userSessionOrgIdentity(request).map(_.user)
+          user <- maybeUser.toSuccess("could not find user")
+          token <- playerTokenService.createToken(user.org.orgId, Json.obj(
+            "expires" -> (new Date().getTime + 60 * 60 * 1000),
+            "itemId" -> id
+          ))
+        } yield token
+
+        token match {
+          case Success(ctr) =>
+            val html = web.views.html.sampleLaunchCode(id, ctr.token, ctr.apiClient, BaseUrl(request))
+            Ok(html)
+          case Failure(f) =>
+            BadRequest("Couldn't generate player token"+f)
+        }
+      }
   }
 
   def index = SecuredAction {

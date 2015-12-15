@@ -50,11 +50,11 @@ corespringDirectivesModule.directive("resultPager", function () {
 
       $scope.$watch(itemCount, function (newItemCount) {
         totalNoOfItems = newItemCount;
-        updatePageText(0);
+        updatePageText(-1);
       });
 
       $scope.$watch(listModel, function (newValue) {
-        updatePageText(0);
+        updatePageText(-1);
       });
 
       $scope.$watch(currentItem, function (newCurrentItem) {
@@ -63,13 +63,17 @@ corespringDirectivesModule.directive("resultPager", function () {
       });
 
       var updatePageText = function (index) {
+        $scope.hasIndex = false;
         if (!totalNoOfItems || totalNoOfItems == 0) {
           $scope.pagerText = null;
         } else if (index == -1) {
-          $scope.pagerText = null;
-        } else {
           $scope.pagerText = totalNoOfItems;
+        } else {
+          $scope.pagerText = (index+1) + " / " + totalNoOfItems;
+          $scope.hasIndex = true;
         }
+        $scope.prevDisabled = index < 1;
+        $scope.nextDisabled = index >= totalNoOfItems - 1;
       };
 
       var uid = ($attrs['uid'] || "id");
