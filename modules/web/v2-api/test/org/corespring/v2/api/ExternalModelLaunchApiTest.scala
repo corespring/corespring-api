@@ -52,7 +52,7 @@ class ExternalModelLaunchApiTest extends V2ApiSpec {
 
   def fakeRequest(json: JsValue) = FakeRequest("", "", FakeHeaders(), AnyContentAsJson(json))
 
-  "ExternalModelApi" should {
+  "ExternalModelLaunchApi" should {
 
     "fail if a sessionId other than * is specified" in new apiScope() {
       override lazy val json = createJson ++ Json.obj(
