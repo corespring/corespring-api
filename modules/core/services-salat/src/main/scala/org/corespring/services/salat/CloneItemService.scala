@@ -1,5 +1,6 @@
 package org.corespring.services.salat
 
+import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.auth.Permission
@@ -13,6 +14,8 @@ class CloneItemService(
   itemService: interface.item.ItemService,
   orgCollectionService: interface.OrgCollectionService) extends interface.CloneItemService {
 
+  private lazy val logger = Logger(classOf[CloneItemService])
+
   override def cloneItem(itemId: VersionedId[ObjectId], orgId: ObjectId, targetCollectionId: ObjectId): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
 
     for {
@@ -21,7 +24,12 @@ class CloneItemService(
       _ <- canOrgWriteTo(orgId, targetCollectionId)
       _ <- canOrgCloneFrom(orgId, itemCollectionId)
       clonedItem <- itemService.cloneToCollection(item, targetCollectionId).toSuccess(err(s"Cloning item: $itemId failed"))
-    } yield clonedItem.id
+    } yield {
+      if(itemCollectionId == targetCollectionId) {
+        logger.warn(s"the item collectionId (${itemCollectionId}) is the same as the collectionId ($targetCollectionId) - so the cloned Item will be in the same collection")
+      }
+      clonedItem.id
+    }
   }
 
   def err(msg: String) = new GeneralError(msg, None)

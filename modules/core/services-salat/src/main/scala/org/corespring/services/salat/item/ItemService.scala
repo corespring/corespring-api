@@ -42,7 +42,8 @@ class ItemService(
   override def clone(item: Item): Option[Item] = cloneItem(item)
 
   private def cloneItem(item: Item, otherCollectionId: Option[ObjectId] = None) = {
-    val itemClone = item.cloneItem.copy(collectionId = otherCollectionId.map(_.toString).getOrElse(item.collectionId))
+    val collectionId = otherCollectionId.map(_.toString).getOrElse(item.collectionId)
+    val itemClone = item.cloneItem(collectionId)
     val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, itemClone)
     logger.debug(s"clone itemId=${item.id} result=$result")
     result match {

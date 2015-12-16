@@ -95,13 +95,16 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
   "clone" should {
     trait clone extends scope {
-      val item = Item(collectionId = "1234567")
+      val collectionId = ObjectId.get.toString
+      val item = Item(collectionId = collectionId)
       val clonedItem = service.clone(item)
     }
+
     "return the cloned item" in new clone {
       clonedItem.isDefined must_== true
       clonedItem.get.id must_!= item.id
     }
+
     "create a new item in the db" in new clone {
       loadItem(clonedItem.get.id).isDefined must_== true
     }
