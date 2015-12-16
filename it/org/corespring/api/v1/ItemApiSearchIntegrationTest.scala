@@ -1,6 +1,6 @@
 package org.corespring.api.v1
 
-import bootstrap.Main
+import global.Global.main
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ StandardHelper, CollectionHelper, ItemHelper }
 import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessToken }
@@ -13,12 +13,12 @@ class ItemApiSearchIntegrationTest extends IntegrationSpecification {
 
   val Routes = org.corespring.api.v1.routes.ItemApi
 
-  import bootstrap.Main.jsonFormatting._
+  import main.jsonFormatting._
 
   def mkStandards(count: Int): Seq[Standard] = {
     (1 to count).flatMap { c =>
       val standard = Standard(dotNotation = Some(s"MOCK.DOTNOTATION.$count"))
-      Main.standardService.insert(standard).map { id =>
+      main.standardService.insert(standard).map { id =>
         standard.copy(id = id)
       }
     }

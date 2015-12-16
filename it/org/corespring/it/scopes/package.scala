@@ -1,17 +1,11 @@
 package org.corespring.it
 
-import java.io.File
-
-import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.services.s3.AmazonS3Client
+import global.Global
 import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import grizzled.slf4j.Logger
-import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
-import org.corespring.common.aws.AwsUtil
-import org.corespring.common.config.AppConfig
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.helpers._
@@ -33,7 +27,7 @@ package object scopes {
 
   trait WithV2SessionHelper {
     def usePreview: Boolean = false
-    lazy val v2SessionHelper = V2SessionHelper(bootstrap.Main.sessionDbConfig, usePreview)
+    lazy val v2SessionHelper = V2SessionHelper(Global.main.sessionDbConfig, usePreview)
   }
 
   val logger = Logger("it.scopes")
@@ -146,7 +140,7 @@ package object scopes {
     def imagePath: String
     lazy val logger = Logger("it.add-image-and-item")
     lazy val sessionId = v2SessionHelper.create(itemId)
-    lazy val bucketName = AppConfig.assetsBucket
+    lazy val bucketName = Global.main.bucket.bucket
 
     logger.info("[before]")
     logger.debug(s"[before] sessionId: $sessionId")
@@ -175,12 +169,12 @@ package object scopes {
     def materialName: String
 
     //TODO: Remove dependency on mongo collection - everything should be run via the service.
-    lazy val itemCollection = bootstrap.Main.db(CollectionNames.item)
+    lazy val itemCollection = Global.main.db(CollectionNames.item)
     lazy val logger = Logger("it.add-supporting-material-image-and-item")
-    implicit val ctx = bootstrap.Main.context
+    implicit val ctx = Global.main.context
 
     lazy val sessionId = v2SessionHelper.create(itemId)
-    lazy val bucketName = AppConfig.assetsBucket
+    lazy val bucketName = Global.main.bucket.bucket
     lazy val file = ImageUtils.resourcePathToFile(imagePath)
 
     lazy val fileBytes: Array[Byte] = {
@@ -255,9 +249,9 @@ package object scopes {
     def getCall(itemId: DraftId): Call
 
     lazy val itemDraftHelper = new ItemDraftHelper {
-      override implicit def context: Context = bootstrap.Main.context
+      override implicit def context: Context = Global.main.context
 
-      override def itemService: ItemService = bootstrap.Main.itemService
+      override def itemService: ItemService = Global.main.itemService
     }
 
     lazy val draftName = scala.util.Random.alphanumeric.take(12).mkString

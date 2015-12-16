@@ -1,5 +1,6 @@
 package org.corespring.v2.api
 
+import global.Global
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.scopes._
@@ -14,7 +15,7 @@ import play.api.mvc.{ AnyContentAsJson, AnyContent, Call, RequestHeader }
 class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2SessionHelper {
   val Routes = org.corespring.v2.api.routes.ItemSessionApi
 
-  lazy val itemService = bootstrap.Main.itemService
+  lazy val itemService = Global.main.itemService
 
   "ItemSessionApi" should {
 
@@ -200,12 +201,12 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
 
     "return apiClient" in new cloneSession {
       (contentAsJson(result) \ "apiClient").as[String] must be equalTo (
-        bootstrap.Main.apiClientService.findOneByOrgId(orgId).map(_.clientId).getOrElse(throw new Exception("Boop")).toString)
+        Global.main.apiClientService.findOneByOrgId(orgId).map(_.clientId).getOrElse(throw new Exception("Boop")).toString)
     }
 
     "return encrypted options, decryptable by provided apiClient" in new cloneSession {
       val apiClientId = (contentAsJson(result) \ "apiClient").as[String]
-      val encrypter = bootstrap.Main.apiClientEncryptionService
+      val encrypter = Global.main.apiClientEncryptionService
       encrypter.decrypt(apiClientId, (contentAsJson(result) \ "options").as[String]) must be equalTo (
         Some(ItemSessionApi.clonedSessionOptions.toString))
     }

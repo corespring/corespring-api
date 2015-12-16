@@ -27,7 +27,7 @@ class Developer(config: DeveloperConfig) extends Controller with SecureSocial {
   import ExecutionContext.Implicits.global
 
   implicit val writeOid = ObjectIdFormat
-  implicit val writeOrg = ServiceLookup.jsonFormatting.writeOrg
+  implicit lazy val writeOrg = ServiceLookup.jsonFormatting.writeOrg
 
   def at(path: String, file: String) = Assets.at(path, file)
 

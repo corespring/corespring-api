@@ -1,7 +1,7 @@
 package org.corespring.it
 
+import global.Global.main
 import akka.util.Timeout
-import bootstrap.Main
 import grizzled.slf4j.Logger
 import org.corespring.itemSearch.ItemIndexDeleteService
 import org.corespring.models.item.FieldValue
@@ -18,6 +18,7 @@ import scala.concurrent.duration._
  */
 abstract class IntegrationSpecification
   extends PlaySpecification
+  with MainModule
   with Results
   with Around {
 
@@ -29,8 +30,8 @@ abstract class IntegrationSpecification
 
   protected def removeData() = {
     logger.debug(s"function=removeData - dropping collections")
-    Main.db.collectionNames.filterNot(_.contains("system")).foreach { n =>
-      Main.db(n).dropCollection()
+    main.db.collectionNames.filterNot(_.contains("system")).foreach { n =>
+      main.db(n).dropCollection()
     }
   }
 
@@ -43,7 +44,7 @@ trait FieldValuesIniter {
 
   def initFieldValues() = {
     val fv = FieldValue()
-    bootstrap.Main.fieldValueService.insert(fv)
+    main.fieldValueService.insert(fv)
   }
 }
 
@@ -57,8 +58,8 @@ trait ItemIndexCleaner {
     import ExecutionContext.Implicits.global
 
     val out = for {
-      deleteResult <- bootstrap.Main.itemIndexService.asInstanceOf[ItemIndexDeleteService].delete()
-      createResult <- bootstrap.Main.itemIndexService.asInstanceOf[ItemIndexDeleteService].create()
+      deleteResult <- main.itemIndexService.asInstanceOf[ItemIndexDeleteService].delete()
+      createResult <- main.itemIndexService.asInstanceOf[ItemIndexDeleteService].create()
     } yield (deleteResult, createResult)
 
     val result = Await.result(out, 2.seconds)

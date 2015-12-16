@@ -1,5 +1,6 @@
 package org.corespring.v2.player
 
+import global.Global
 import org.corespring.it.IntegrationSpecification
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.{ FieldValue, ListKeyValue, StringKeyValue }
@@ -16,10 +17,10 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
 
   trait listScope extends After {
 
-    lazy val fieldValueService = bootstrap.Main.fieldValueService
-    lazy val subjectService = bootstrap.Main.subjectService
+    lazy val fieldValueService = Global.main.fieldValueService
+    lazy val subjectService = Global.main.subjectService
 
-    lazy val standardService = bootstrap.Main.standardService
+    lazy val standardService = Global.main.standardService
 
     val dummy = StringKeyValue("dummy", "dummy")
     val dummyList = ListKeyValue("dummy", Seq.empty)

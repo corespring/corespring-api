@@ -7,6 +7,8 @@ import org.corespring.models.appConfig.Bucket
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.web.common.controllers.deployment.AssetsLoader
+import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Mode.Mode
 import web.controllers.{ Partials, PublicSite }
 import org.corespring.v2.api.services.PlayerTokenService
@@ -36,6 +38,8 @@ trait WebModule {
   def bucket: Bucket
   def publicSiteConfig: PublicSiteConfig
   def userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts]
+  def buildInfo : BuildInfo
+  def assetsLoader : AssetsLoader
 
   lazy val showResource = new ShowResource(itemService, s3Service, bucket)
   lazy val partials = new Partials(mode, defaultOrgs)
@@ -49,7 +53,9 @@ trait WebModule {
     containerVersion,
     webExecutionContext,
     playerTokenService,
-    userSessionOrgIdentity)
+    userSessionOrgIdentity,
+    buildInfo,
+    assetsLoader)
 
   lazy val publicSite = new PublicSite(publicSiteConfig.url, mode)
 

@@ -20,7 +20,7 @@ trait SessionDbModule {
 
   def awsCredentials: AWSCredentials
 
-  private lazy val dbClient: AmazonDynamoDBClient = new AmazonDynamoDBClient(awsCredentials)
+  def dbClient: AmazonDynamoDBClient
 
   private lazy val dynamoDB = new DynamoDB(dbClient)
 

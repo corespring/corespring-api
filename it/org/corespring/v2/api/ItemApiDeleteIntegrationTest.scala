@@ -1,5 +1,6 @@
 package org.corespring.v2.api
 
+import global.Global
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.ItemHelper
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
@@ -12,7 +13,7 @@ class ItemApiDeleteIntegrationTest extends IntegrationSpecification {
 
   val routes = org.corespring.v2.api.routes.ItemApi
 
-  lazy val contentCollectionService = bootstrap.Main.contentCollectionService
+  lazy val contentCollectionService = Global.main.contentCollectionService
 
   "V2 - ItemApi" should {
     "delete" should {

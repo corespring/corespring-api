@@ -2,6 +2,7 @@ package org.corespring.v2.player.customScoring
 
 import java.io.File
 
+import global.Global
 import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
@@ -63,8 +64,8 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
     def rootPath: String
     def base = s"/custom-scoring/$rootPath"
 
-    lazy val transformer = bootstrap.Main.itemTransformer
-    lazy val sessionService = bootstrap.Main.sessionServices.main
+    lazy val transformer = Global.main.itemTransformer
+    lazy val sessionService = Global.main.sessionServices.main
 
     private def mkSession(itemId: VersionedId[ObjectId], path: String): JsObject = {
       val id = Json.obj("itemId" -> itemId.toString)

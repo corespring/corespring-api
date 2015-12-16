@@ -1,5 +1,6 @@
 package org.corespring.v2.player.itemDraft
 
+import global.Global
 import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.ItemDraftHelper
@@ -14,8 +15,8 @@ import play.api.mvc.Call
 class UpdateItemDraftProfileIntegrationTest extends UpdateProfileIntegrationTest {
 
   val itemDraftHelper = new ItemDraftHelper {
-    override def itemService: ItemService = bootstrap.Main.itemService
-    override implicit def context: Context = bootstrap.Main.context
+    override def itemService: ItemService = Global.main.itemService
+    override implicit def context: Context = Global.main.context
   }
 
   override def getUpdateProfileCall(itemId: VersionedId[ObjectId], username: String): Call = {

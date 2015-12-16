@@ -1,5 +1,6 @@
 package org.corespring.v2.api
 
+import global.Global
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.scopes.orgWithAccessToken
 import org.corespring.v2.auth.models.PlayerAccessSettings
@@ -11,7 +12,7 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 
 class PlayerTokenApiIntegrationTest extends IntegrationSpecification {
 
-  lazy val encryptionService = bootstrap.Main.apiClientEncryptionService
+  lazy val encryptionService = Global.main.apiClientEncryptionService
 
   "PlayerTokenApi" should {
     s"$UNAUTHORIZED - create a player token" in new token_createPlayerToken {

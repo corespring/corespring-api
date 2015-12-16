@@ -17,8 +17,8 @@ import scalaz.{ Failure, Success }
 
 class ItemDraftsIntegrationTest extends IntegrationSpecification {
 
-  lazy val itemService = bootstrap.Main.itemService
-  lazy val draftService = bootstrap.Main.draftService
+  lazy val itemService = main.itemService
+  lazy val draftService = main.draftService
 
   def bump(vid: VersionedId[ObjectId], count: Int = 1) = vid.copy(version = vid.version.map(_ + count))
 
@@ -27,7 +27,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification {
 
     lazy val item = itemService.findOneById(itemId).get
 
-    lazy val drafts = bootstrap.Main.itemDrafts
+    lazy val drafts = main.itemDrafts
 
     override def before: Any = {
       super.before

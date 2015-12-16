@@ -1,5 +1,6 @@
 package org.corespring.v2.api.drafts.item
 
+import global.Global
 import com.novus.salat.Context
 import org.corespring.assets.ItemAssetKeys
 import org.corespring.drafts.item.ItemDraftHelper
@@ -20,9 +21,9 @@ class ItemDraftsApiIntegrationTest extends IntegrationSpecification with PlaySpe
   val routes = org.corespring.v2.api.drafts.item.routes.ItemDrafts
 
   lazy val helper = new ItemDraftHelper {
-    override def itemService: ItemService = bootstrap.Main.itemService
+    override def itemService: ItemService = Global.main.itemService
 
-    override implicit def context: Context = bootstrap.Main.context
+    override implicit def context: Context = Global.main.context
   }
 
   "ItemDrafts" should {

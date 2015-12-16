@@ -1,13 +1,12 @@
 package org.corespring.itemSearch
 
+import global.Global
 import org.bson.types.ObjectId
 import org.corespring.it.helpers.{ StandardHelper, ItemHelper }
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
-import org.corespring.models.Standard
 import org.corespring.models.item.{StandardCluster, TaskInfo, Item, PlayerDefinition}
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.Json
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -21,7 +20,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
     cleanIndex()
 
-    val itemIndexService = bootstrap.Main.itemIndexService
+    val itemIndexService = Global.main.itemIndexService
 
     val itemWithClusterId = insertItemWithStandardCluster("test-cluster")
 

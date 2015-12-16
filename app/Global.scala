@@ -1,3 +1,5 @@
+package global
+
 import bootstrap.Main
 import filters.Headers
 import filters._
@@ -23,7 +25,6 @@ object Global
   private lazy val logger = Logger(Global.getClass)
 
   lazy val main = Main(Play.current)
-
   lazy val controllers: Seq[Controller] = main.controllers
 
   override def onStart(app: Application): Unit = {
@@ -43,7 +44,7 @@ object Global
       }
     }
 
-    AssetsLoader.init(app)
+    main.assetsLoader.init()
   }
 
   override def doFilter(a: EssentialAction): EssentialAction = {

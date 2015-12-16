@@ -4,12 +4,12 @@ import java.io.InputStream
 
 import bootstrap.Actors.UpdateItem
 import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.s3.transfer.TransferManager
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3Client, S3ClientOptions}
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
-import common.db.Db
-import developer.DeveloperModule
+import developer.{DeveloperConfig, DeveloperModule}
 import filters.{BlockingFutureQueuer, CacheFilter, FutureQueuer}
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
@@ -44,7 +44,7 @@ import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api._
 import org.corespring.v2.api.services.{BasicScoreService, ScoreService}
-import org.corespring.v2.auth.V2AuthModule
+import org.corespring.v2.auth.{AccessSettingsCheckConfig, V2AuthModule}
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
@@ -52,6 +52,7 @@ import org.corespring.v2.player._
 import org.corespring.v2.player.hooks.StandardsTree
 import org.corespring.v2.player.services.item.{DraftSupportingMaterialsService, ItemSupportingMaterialsService, MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService}
 import org.corespring.v2.sessiondb._
+import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import org.corespring.web.user.SecureSocial
 import org.joda.time.DateTime
@@ -60,7 +61,8 @@ import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
 import play.api.{Configuration, Logger, Mode}
 import play.libs.Akka
-import web.WebModule
+import se.radley.plugin.salat.SalatPlugin
+import web.{DefaultOrgs, PublicSiteConfig, WebModule}
 import web.models.{ContainerVersion, WebExecutionContext}
 
 import scala.concurrent.ExecutionContext
@@ -68,11 +70,24 @@ import scalaz.Validation
 
 object Main {
   def apply(app: play.api.Application): Main = {
-    new Main(app.configuration, app.mode, app.classloader, app.resourceAsStream)
+
+   lazy val db: MongoDB = {
+      app.plugins
+        .find(p => classOf[SalatPlugin].isAssignableFrom(p.getClass))
+        .map(_.asInstanceOf[SalatPlugin])
+        .map(_.db("default"))
+        .getOrElse{
+          throw new RuntimeException("Can't find SalatPlugin so can't load the db")
+        }
+    }
+
+    new Main(db, app.configuration, app.mode, app.classloader, app.resourceAsStream)
   }
 }
 
-class Main(val configuration: Configuration,
+class Main(
+  val db: MongoDB,
+  val configuration: Configuration,
   val mode: PlayMode,
   classLoader: ClassLoader,
   resourceAsStream: String => Option[InputStream])
@@ -95,7 +110,15 @@ class Main(val configuration: Configuration,
 
   lazy val appConfig = AppConfig(configuration)
 
-  lazy val buildInfo = BuildInfo(resourceAsStream)
+  override def accessSettingsCheckConfig: AccessSettingsCheckConfig = AccessSettingsCheckConfig(appConfig.allowAllSessions)
+
+  override def developerConfig: DeveloperConfig = DeveloperConfig(appConfig.demoOrgId)
+
+  override def defaultOrgs: DefaultOrgs = DefaultOrgs(appConfig.v2playerOrgIds, appConfig.rootOrgId)
+
+  override def publicSiteConfig: PublicSiteConfig = PublicSiteConfig(appConfig.publicSite)
+
+  override lazy val buildInfo = BuildInfo(resourceAsStream)
 
   private def ecLookup(id: String) = {
     def hasEnabledAkkaConfiguration(id: String) = {
@@ -196,12 +219,14 @@ class Main(val configuration: Configuration,
   }
 
   override lazy val awsCredentials: AWSCredentials = appConfig.s3Config.credentials
+  override lazy val dbClient: AmazonDynamoDBClient = new AmazonDynamoDBClient(awsCredentials)
 
   override lazy val itemTransformer: ItemTransformer = wire[AllItemVersionTransformer]
 
+  private lazy val actor = Actors.itemTransformerActor(itemTransformer)
+
   override lazy val sessionCreatedCallback: VersionedId[ObjectId] => Unit = {
-    (itemId) =>
-      Actors.itemTransformerActor ! UpdateItem(itemId)
+    (itemId) => actor ! UpdateItem(itemId)
   }
 
   override lazy val componentTypes: Seq[ComponentType] = {
@@ -218,6 +243,7 @@ class Main(val configuration: Configuration,
 
   override lazy val itemSessionApiExecutionContext: ItemSessionApiExecutionContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
 
+  //Used for wiring RequestIdentifiers
   private lazy val secureSocial: SecureSocial = new SecureSocial {}
 
   override lazy val userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts] = requestIdentifiers.userSession
@@ -258,7 +284,6 @@ class Main(val configuration: Configuration,
     client
   }
 
-  override lazy val db: MongoDB = Db.salatDb()
 
   override lazy val context: Context = new ServicesContext(classLoader)
 
@@ -293,6 +318,7 @@ class Main(val configuration: Configuration,
   }
 
   def initServiceLookup() = {
+    ServiceLookup.demoOrgId = appConfig.demoOrgId
     ServiceLookup.apiClientService = apiClientService
     ServiceLookup.contentCollectionService = contentCollectionService
     ServiceLookup.itemService = itemService
@@ -374,4 +400,8 @@ class Main(val configuration: Configuration,
   }
 
   override lazy val playerJsonToItem: PlayerJsonToItem = new PlayerJsonToItem(jsonFormatting)
+
+  override lazy val assetsLoader: AssetsLoader = new AssetsLoader(playMode, configuration, s3, buildInfo)
+
+  initServiceLookup()
 }
