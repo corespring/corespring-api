@@ -93,6 +93,7 @@ object Build extends sbt.Build {
         playJson,
         playFramework,
         elasticsearchPlayWS,
+        specs2 % "test",
         jsoup,
         commonsCodec,
         grizzledLog,

@@ -26,11 +26,10 @@ class ItemApiItemValidation {
   }
 
   private def addSupportingMaterialsStorageKeys(dbItem: Item, item: Item): Seq[Resource] = {
-    val res = item.supportingMaterials.map(sm => dbItem.supportingMaterials.find(_.name == sm.name) match {
+    item.supportingMaterials.map(sm => dbItem.supportingMaterials.find(_.name == sm.name) match {
       case Some(dbItemResource) => addStorageKeys(Some(dbItemResource), sm)
       case _ => throw new RuntimeException(s"Resource ${sm.name} not found in dbItem.supportingMaterials")
     })
-    res
   }
 
   private def addStorageKeys(dbItemResource: Option[Resource], itemResource: Resource) = {

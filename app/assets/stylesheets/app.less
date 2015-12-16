@@ -37,6 +37,14 @@
   right: 0px;
 }
 
+.prevNext {
+  color: #006dcc;
+  cursor: pointer;
+  &[disabled] {
+    color: #999;
+  }
+}
+
 .pager {
   margin-bottom: 0px;
   .pager-progress-bar,
@@ -1530,6 +1538,15 @@ fieldset[disabled] .btn-success.active {
 
 .search-results {
   padding-top: 90px;
+  tr {
+    td {
+      transition: background-color 1s ease-out;
+    }
+    &.highlighted td {
+      background-color: #ff9f5a !important;
+      transition: none;
+    }
+  }
   .btn-edit {
     min-width: 42px;
     &:hover {

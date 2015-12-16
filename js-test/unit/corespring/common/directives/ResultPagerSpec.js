@@ -51,24 +51,45 @@ describe('corespring-directives', function () {
 
       addItems(1);
 
-      expect(rootScope.pagerText).toBe(1);
+      expect(rootScope.pagerText).toBe("1 / 1");
 
       addItems(3);
 
-      expect(rootScope.pagerText).toBe(3);
+      expect(rootScope.pagerText).toBe("1 / 3");
 
       rootScope.$apply(function () {
         rootScope.currentItem = null;
       });
 
-      expect(rootScope.pagerText).toBe(null);
+      expect(rootScope.pagerText).toBe(3);
 
       rootScope.$apply(function () {
         rootScope.currentItem = {id: 2};
       });
 
-      expect(rootScope.pagerText).toBe(3);
+      expect(rootScope.pagerText).toBe("3 / 3");
 
+    });
+
+    it('should update prevDisabled / nextDisabled', function () {
+      addItems(3);
+      rootScope.$apply(function () {
+        rootScope.currentItem = {id: 0};
+      });
+      expect(rootScope.prevDisabled).toBe(true);
+      expect(rootScope.nextDisabled).toBe(false);
+
+      rootScope.$apply(function () {
+        rootScope.currentItem = {id: 1};
+      });
+      expect(rootScope.prevDisabled).toBe(false);
+      expect(rootScope.nextDisabled).toBe(false);
+
+      rootScope.$apply(function () {
+        rootScope.currentItem = {id: 2};
+      });
+      expect(rootScope.prevDisabled).toBe(false);
+      expect(rootScope.nextDisabled).toBe(true);
     });
 
     it('should add previous to scope', function () {

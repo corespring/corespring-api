@@ -238,7 +238,7 @@ class ResourceApi(
   }
 
   /**
-   * Copy the file and okoptionally override the isMain attribute
+   * Copy the file and optionally override the isMain attribute
    * @param file
    * @param enforceIsMain
    * @return
@@ -257,9 +257,13 @@ class ResourceApi(
     }
   }
 
-  private def updateKey(update: BaseFile, file: BaseFile): BaseFile = {
-    if (file.name == update.name && file.isInstanceOf[StoredFile]) {
-      update.asInstanceOf[StoredFile].copy(storageKey = file.asInstanceOf[StoredFile].storageKey)
+  private def applyUpdate(update: BaseFile, file: BaseFile): BaseFile = {
+    if (file.name == update.name) {
+      (update, file) match {
+        case (up:StoredFile, old:StoredFile) => up.copy(storageKey = old.storageKey)
+        case (up:VirtualFile, old:VirtualFile) => up
+        case _ => file
+      }
     } else {
       file
     }
@@ -276,9 +280,13 @@ class ResourceApi(
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {
                 val processedUpdate = ensureDataFileIsMainIsCorrect(update)
-                val updatedData = item.data.map(d => d.copy(files = d.files.map(updateKey(update, _))))
+
+                val updatedData = item.data.map(d => d.copy(files = d.files.map(applyUpdate(processedUpdate, _))))
                 val i = item.copy(data = updatedData)
+
+                //item is implicitely saved in here
                 itemTransformer.updateV2Json(i)
+
                 Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)
@@ -312,7 +320,7 @@ class ResourceApi(
                   case Some(f) => {
 
                     val updateAndUnset: BaseFile => BaseFile = {
-                      val f: BaseFile => BaseFile = updateKey(update, _)
+                      val f: BaseFile => BaseFile = applyUpdate(update, _)
                       f.andThen(unsetIsMain _)
                     }
 
@@ -322,7 +330,7 @@ class ResourceApi(
                       (nameMatches, update.isMain) match {
                         case (true, true) => updateAndUnset(f)
                         case (false, true) => unsetIsMain(f)
-                        case (true, false) => updateKey(update, f)
+                        case (true, false) => applyUpdate(update, f)
                         case (false, false) => f
                       }
                     }
