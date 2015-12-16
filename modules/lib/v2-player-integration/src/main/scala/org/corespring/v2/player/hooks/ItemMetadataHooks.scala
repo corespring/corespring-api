@@ -31,19 +31,12 @@ class ItemMetadataHooks(
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
   override def get(id:String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
-    println("joco"+id)
-
     getOrg(header) match {
       case Success(org) =>
-        println("org "+org.id)
         val sets = metadataSetService.list(org.id)
-        println(sets)
         val vid = VersionedId(id).get
-        println(vid)
         val metadata = metadataService.get(vid, sets.map(_.metadataKey))
-        println(metadata)
         val setAndData = sets.map(s => (s, metadata.find(_.key == s.metadataKey)))
-        println(setAndData)
         Right(Json.toJson(setAndData.map(t => SetJson(t._1, t._2))))
       case Failure(_) =>
         val error = generalError(s"couldn't get metadata for item $id")

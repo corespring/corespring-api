@@ -8,27 +8,16 @@ import org.corespring.services
 class MetadataService(itemService: services.item.ItemService)
   extends services.metadata.MetadataService {
 
-  def get(itemId: VersionedId[ObjectId], keys: Seq[String]): Seq[Metadata] = {
-
-    val maybeSeq: Option[Seq[Metadata]] = for {
-      i <- itemService.findOneById(itemId)
-      info <- i.taskInfo
-      extendedMetadata <- toMetadataMap(info.extended)
-    } yield extendedMetadata.filter(e => keys.exists(_ == e.key))
-
-    maybeSeq.getOrElse(Seq.empty)
-  }
-
   def get(itemId: VersionedId[ObjectId]): Seq[Metadata] = {
-
     val maybeSeq: Option[Seq[Metadata]] = for {
       i <- itemService.findOneById(itemId)
       info <- i.taskInfo
       extendedMetadata <- toMetadataMap(info.extended)
     } yield extendedMetadata
-
     maybeSeq.getOrElse(Seq())
   }
+
+  def get(itemId: VersionedId[ObjectId], keys: Seq[String]): Seq[Metadata] = get(itemId).filter(e => keys.exists(_ == e.key))
 
   def toMetadataMap(m: Map[String, DBObject]): Option[Seq[Metadata]] = {
 
