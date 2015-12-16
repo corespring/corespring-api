@@ -37,8 +37,12 @@ class ItemService(
 
   private val baseQuery = MongoDBObject(Keys.contentType -> Item.contentType)
 
-  override def clone(item: Item): Option[Item] = {
-    val itemClone = item.cloneItem
+  override def cloneToCollection(item: Item, targetCollectionId: ObjectId): Option[Item] = cloneItem(item, Some(targetCollectionId))
+
+  override def clone(item: Item): Option[Item] = cloneItem(item)
+
+  private def cloneItem(item: Item, otherCollectionId: Option[ObjectId] = None) = {
+    val itemClone = item.cloneItem.copy(collectionId = otherCollectionId.map(_.toString).getOrElse(item.collectionId))
     val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, itemClone)
     logger.debug(s"clone itemId=${item.id} result=$result")
     result match {
@@ -52,6 +56,7 @@ class ItemService(
         })
         None
     }
+
   }
 
   override def publish(id: VersionedId[ObjectId]): Boolean = {

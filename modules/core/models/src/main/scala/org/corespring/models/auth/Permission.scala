@@ -1,20 +1,26 @@
 package org.corespring.models.auth
 
-case class Permission(value: Long, name: String) {
-  def has(p: Permission): Boolean = {
-    (value & p.value) == p.value
+case class Permission(value: Long, name: String, read: Boolean = false, write: Boolean = false, canClone: Boolean = false) {
+
+  @deprecated("You can now query the permission directly, eg: p.read, p.write, p.canClone", "5.7.0")
+  def has(p: Permission): Boolean = p match {
+    case Permission.Write => this.write
+    case Permission.Read => this.read
+    case Permission.Clone => this.canClone
   }
 }
 
 object Permission {
 
-  val Read = new Permission(1, "read")
-  val Write = new Permission(3, "write") // write is 3 instead of two (11 instead of 10) because read permission is implied in write
+  val Read = new Permission(1, "read", read = true)
+  val Clone = new Permission(5, "clone", read = true, canClone = true)
+  val Write = new Permission(3, "write", read = true, canClone = true, write = true)
 
   def fromLong(value: Long): Option[Permission] = value match {
     case 0 => None
-    case x if ((x & Write.value) == Write.value) => Some(Write)
-    case x if ((x & Read.value) == Read.value) => Some(Read)
+    case 1 => Some(Read)
+    case 3 => Some(Write)
+    case 5 => Some(Clone)
     case _ => None
   }
 
@@ -22,6 +28,7 @@ object Permission {
     case "none" => None
     case "read" => Some(Read)
     case "write" => Some(Write)
+    case "clone" => Some(Clone)
     case _ => None
   }
 

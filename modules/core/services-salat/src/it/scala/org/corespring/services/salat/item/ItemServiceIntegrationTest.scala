@@ -109,6 +109,19 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "clone stored files" in pending
   }
 
+  "cloneToCollection" should {
+
+    trait cloneToCollection extends scope {
+      val otherOrg = insertOrg("other-org")
+      val otherOrgCollection = services.orgCollectionService.getDefaultCollection(otherOrg.id).toOption.get
+      val clonedItem = service.cloneToCollection(itemOne, otherOrgCollection.id)
+    }
+
+    "cloned item has the new collection id" in new cloneToCollection {
+      clonedItem.get.collectionId must_== otherOrgCollection.id.toString
+    }
+  }
+
   "collectionIdForItem" should {
     trait collectionIdForItem extends scope {
       val itemId = ObjectId.get
