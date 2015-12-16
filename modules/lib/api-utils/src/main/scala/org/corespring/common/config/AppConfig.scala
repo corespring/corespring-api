@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 import play.api.Configuration
 import scala.language.implicitConversions
 
-class AppConfig(config: Configuration) {
+case class AppConfig(config: Configuration) extends ConfigurationHelper {
 
   protected object Key extends Enumeration {
     type Key = Value
@@ -39,8 +39,6 @@ class AppConfig(config: Configuration) {
   lazy val sessionService: String = config.getString(Key.SESSION_SERVICE).getOrElse("?")
   lazy val sessionServiceUrl: String = config.getString(Key.SESSION_SERVICE_URL).getOrElse("?")
   lazy val sessionServiceAuthToken: String = config.getString(Key.SESSION_SERVICE_AUTHTOKEN).getOrElse("?")
-
-  private def getString(key: String): String = config.getString(key).getOrElse(throw new RuntimeException(s"Key not found: $key"))
 
 }
 
