@@ -41,7 +41,7 @@ class CloneItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       val destinationColl = insertCollection(s"coll-${destinationCollectionPerm.name}", otherOrg)
       services.orgCollectionService.grantAccessToCollection(orgOne.id, destinationColl.id, destinationCollectionPerm)
       val itemToClone = insertItem(coll.id)
-      val cloneResult = service.cloneItem(itemToClone.id, orgOne.id, destinationColl.id)
+      val cloneResult = service.cloneItem(itemToClone.id, orgOne.id, Some(destinationColl.id))
       val clonedItemResult = cloneResult.map{id => services.itemService.findOneById(id).get}
       fn(clonedItemResult, destinationColl)
     }
@@ -49,7 +49,13 @@ class CloneItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
   "cloneItem" should {
     "clone an item to the same collection as the item" in new scope {
-      val clonedItemId = service.cloneItem(itemOne.id, orgOne.id, orgOneCollectionOne.id).toOption.get
+      val clonedItemId = service.cloneItem(itemOne.id, orgOne.id, Some(orgOneCollectionOne.id)).toOption.get
+      val clonedItem = services.itemService.findOneById(clonedItemId).get
+      clonedItem.collectionId must_== orgOneCollectionOne.id.toString
+    }
+
+    "clone an item to the same collection as the item if you don't specify a target" in new scope {
+      val clonedItemId = service.cloneItem(itemOne.id, orgOne.id, None).toOption.get
       val clonedItem = services.itemService.findOneById(clonedItemId).get
       clonedItem.collectionId must_== orgOneCollectionOne.id.toString
     }

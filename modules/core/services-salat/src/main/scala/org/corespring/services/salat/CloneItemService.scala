@@ -17,21 +17,21 @@ class CloneItemService(
 
   private lazy val logger = Logger(classOf[CloneItemService])
 
-  override def cloneItem(itemId: VersionedId[ObjectId], orgId: ObjectId, targetCollectionId: ObjectId): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
-
+  override def cloneItem(itemId: VersionedId[ObjectId], orgId: ObjectId, targetCollectionId: Option[ObjectId] = None): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
     for {
       item <- itemService.findOneById(itemId).toSuccess(err(s"Can't find item with id: $itemId"))
       itemCollectionId <- if (ObjectId.isValid(item.collectionId)) Success(new ObjectId(item.collectionId)) else Failure(err(s"Item: $itemId has an invalid collection id: ${item.collectionId}"))
+      targetId <- Success(targetCollectionId.getOrElse(itemCollectionId))
       //Note: retrieve multiple permissions in one call - should be lighter on the backend
-      perms <- Success(orgCollectionService.getPermissions(orgId, itemCollectionId, targetCollectionId))
-      targetPermission <- perms.find(_._1 == targetCollectionId).toSuccess(err(s"Can't find permission for $targetCollectionId"))
+      perms <- Success(orgCollectionService.getPermissions(orgId, itemCollectionId, targetId))
+      targetPermission <- perms.find(_._1 == targetId).toSuccess(err(s"Can't find permission for $targetId"))
       itemCollectionPermission <- perms.find(_._1 == itemCollectionId).toSuccess(err(s"Can't find permission for $itemCollectionId"))
       _ <- canWrite(targetPermission)
       _ <- canClone(itemCollectionPermission)
-      clonedItem <- itemService.cloneToCollection(item, targetCollectionId).toSuccess(err(s"Cloning item: $itemId failed"))
+      clonedItem <- itemService.cloneToCollection(item, targetId).toSuccess(err(s"Cloning item: $itemId failed"))
     } yield {
-      if(itemCollectionId == targetCollectionId) {
-        logger.warn(s"the item collectionId (${itemCollectionId}) is the same as the collectionId ($targetCollectionId) - so the cloned Item will be in the same collection")
+      if(itemCollectionId == targetId) {
+        logger.info(s"the item collectionId (${itemCollectionId}) is the same as the collectionId ($targetCollectionId) - so the cloned Item will be in the same collection")
       }
       clonedItem.id
     }

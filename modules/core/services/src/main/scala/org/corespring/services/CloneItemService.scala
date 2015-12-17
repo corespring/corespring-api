@@ -15,5 +15,5 @@ trait CloneItemService {
    * @param collectionId
    * @return
    */
-  def cloneItem(itemId: VersionedId[ObjectId], orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, VersionedId[ObjectId]]
+  def cloneItem(itemId: VersionedId[ObjectId], orgId: ObjectId, collectionId: Option[ObjectId] = None): Validation[PlatformServiceError, VersionedId[ObjectId]]
 }
