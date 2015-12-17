@@ -117,7 +117,7 @@ abstract class UpdateProfileIntegrationTest extends IntegrationSpecification {
       credentials = Seq(sk(contributorDetails.credentials)),
       keySkills = Seq(ListKeyValue("dummy", Seq("Define", "Discuss", "Distinguish", "Choose", "Analyze", "Examine"))))
 
-    val id = Global.main.fieldValueService.insert(fieldValue).toOption.get
+    val id = main.fieldValueService.insert(fieldValue).toOption.get
     initData(itemId, user.userName, orgId)
     val call = getUpdateProfileCall(itemId, user.userName)
     val request: Request[AnyContentAsJson] = makeJsonRequest(call, profileJson)
@@ -129,7 +129,7 @@ abstract class UpdateProfileIntegrationTest extends IntegrationSpecification {
 
     override def after = {
       super.after
-      Global.main.fieldValueService.delete(id)
+      main.fieldValueService.delete(id)
     }
   }
 

@@ -16,7 +16,7 @@ class WidgetTypeIntegrationTest extends IntegrationSpecification {
 
     cleanIndex()
 
-    val widgetType = Global.main.widgetType
+    val widgetType = main.widgetType
 
     override def after = {
       logger.info("after.. cleaning up..")

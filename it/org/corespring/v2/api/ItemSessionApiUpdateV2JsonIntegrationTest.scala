@@ -10,7 +10,7 @@ class ItemSessionApiUpdateV2JsonIntegrationTest extends IntegrationSpecification
 
   class orgWithTokenAndTwoItems extends orgWithAccessTokenAndItem {
 
-    lazy val itemService = Global.main.itemService
+    lazy val itemService = main.itemService
     val secondItemId = {
       println(s"find: $itemId")
       itemService.findOneById(itemId).map { item =>

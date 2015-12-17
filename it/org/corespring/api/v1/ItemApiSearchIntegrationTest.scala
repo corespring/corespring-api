@@ -1,6 +1,5 @@
 package org.corespring.api.v1
 
-import global.Global.main
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ StandardHelper, CollectionHelper, ItemHelper }
 import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessToken }

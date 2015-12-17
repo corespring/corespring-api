@@ -66,7 +66,7 @@ class LoadEditorIntegrationTest
 
   class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelper {
     override lazy val draftName = user.userName
-    lazy val orgService = Global.main.orgService
+    lazy val orgService = main.orgService
     override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
   }
 

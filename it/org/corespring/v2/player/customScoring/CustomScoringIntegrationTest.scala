@@ -64,8 +64,8 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
     def rootPath: String
     def base = s"/custom-scoring/$rootPath"
 
-    lazy val transformer = Global.main.itemTransformer
-    lazy val sessionService = Global.main.sessionServices.main
+    lazy val transformer = main.itemTransformer
+    lazy val sessionService = main.sessionServices.main
 
     private def mkSession(itemId: VersionedId[ObjectId], path: String): JsObject = {
       val id = Json.obj("itemId" -> itemId.toString)

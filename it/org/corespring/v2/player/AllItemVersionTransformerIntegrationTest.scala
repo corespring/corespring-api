@@ -1,6 +1,5 @@
 package org.corespring.v2.player
 
-import global.Global
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
@@ -13,9 +12,9 @@ import org.specs2.mutable.BeforeAfter
 class AllItemVersionTransformerIntegrationTest extends IntegrationSpecification {
 
   trait WithItem extends BeforeAfter {
-    lazy val itemService = Global.main.itemService
-    lazy val currentCollection = Global.main.db(CollectionNames.item)
-    lazy val versionedCollection = Global.main.db(CollectionNames.versionedItem)
+    lazy val itemService = main.itemService
+    lazy val currentCollection = main.db(CollectionNames.item)
+    lazy val versionedCollection = main.db(CollectionNames.versionedItem)
     lazy val oid = ObjectId.get
     lazy val idQuery = MongoDBObject("_id._id" -> oid)
     lazy val item = Item(
@@ -32,7 +31,7 @@ class AllItemVersionTransformerIntegrationTest extends IntegrationSpecification 
     itemService.insert(item)
     lazy val update = item.copy(taskInfo = Some(TaskInfo(title = Some("New title"))))
     itemService.save(update, createNewVersion = true)
-    lazy val transformer = Global.main.itemTransformer
+    lazy val transformer = main.itemTransformer
 
     override def after: Any = {
       currentCollection.remove(idQuery)

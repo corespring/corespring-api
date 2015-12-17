@@ -10,9 +10,9 @@ import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 
 class ItemServiceIntegrationTest extends IntegrationSpecification {
 
-  lazy val itemService = Global.main.itemService
+  lazy val itemService = main.itemService
 
-  implicit val ctx = Global.main.context
+  implicit val ctx = main.context
 
   "ItemService" should {
     "saveNewUnpublishedVersion" should {
@@ -33,7 +33,7 @@ class ItemServiceIntegrationTest extends IntegrationSpecification {
 
           val dbo = com.mongodb.util.JSON.parse(json).asInstanceOf[DBObject]
 
-          Global.main.itemDao.update(itemId, dbo, false)
+          main.itemDao.update(itemId, dbo, false)
           val path = S3Paths.itemFile(itemId, "ervin.png")
           ImageUtils.getS3Object(path).getKey must_== path
 

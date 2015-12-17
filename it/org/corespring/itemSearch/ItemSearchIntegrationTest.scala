@@ -20,7 +20,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
     cleanIndex()
 
-    val itemIndexService = Global.main.itemIndexService
+    val itemIndexService = main.itemIndexService
 
     val itemWithClusterId = insertItemWithStandardCluster("test-cluster")
 

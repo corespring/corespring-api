@@ -13,7 +13,7 @@ class ItemApiDeleteIntegrationTest extends IntegrationSpecification {
 
   val routes = org.corespring.v2.api.routes.ItemApi
 
-  lazy val contentCollectionService = Global.main.contentCollectionService
+  lazy val contentCollectionService = main.contentCollectionService
 
   "V2 - ItemApi" should {
     "delete" should {

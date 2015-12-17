@@ -1,6 +1,6 @@
 package org.corespring.it
 
-import global.Global
+import global.Global.main
 import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
@@ -27,7 +27,7 @@ package object scopes {
 
   trait WithV2SessionHelper {
     def usePreview: Boolean = false
-    lazy val v2SessionHelper = V2SessionHelper(Global.main.sessionDbConfig, usePreview)
+    lazy val v2SessionHelper = V2SessionHelper(main.sessionDbConfig, usePreview)
   }
 
   val logger = Logger("it.scopes")
@@ -140,7 +140,7 @@ package object scopes {
     def imagePath: String
     lazy val logger = Logger("it.add-image-and-item")
     lazy val sessionId = v2SessionHelper.create(itemId)
-    lazy val bucketName = Global.main.bucket.bucket
+    lazy val bucketName = main.bucket.bucket
 
     logger.info("[before]")
     logger.debug(s"[before] sessionId: $sessionId")
@@ -169,12 +169,12 @@ package object scopes {
     def materialName: String
 
     //TODO: Remove dependency on mongo collection - everything should be run via the service.
-    lazy val itemCollection = Global.main.db(CollectionNames.item)
+    lazy val itemCollection = main.db(CollectionNames.item)
     lazy val logger = Logger("it.add-supporting-material-image-and-item")
-    implicit val ctx = Global.main.context
+    implicit val ctx = main.context
 
     lazy val sessionId = v2SessionHelper.create(itemId)
-    lazy val bucketName = Global.main.bucket.bucket
+    lazy val bucketName = main.bucket.bucket
     lazy val file = ImageUtils.resourcePathToFile(imagePath)
 
     lazy val fileBytes: Array[Byte] = {
@@ -249,9 +249,9 @@ package object scopes {
     def getCall(itemId: DraftId): Call
 
     lazy val itemDraftHelper = new ItemDraftHelper {
-      override implicit def context: Context = Global.main.context
+      override implicit def context: Context = main.context
 
-      override def itemService: ItemService = Global.main.itemService
+      override def itemService: ItemService = main.itemService
     }
 
     lazy val draftName = scala.util.Random.alphanumeric.take(12).mkString

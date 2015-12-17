@@ -12,7 +12,7 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 
 class PlayerTokenApiIntegrationTest extends IntegrationSpecification {
 
-  lazy val encryptionService = Global.main.apiClientEncryptionService
+  lazy val encryptionService = main.apiClientEncryptionService
 
   "PlayerTokenApi" should {
     s"$UNAUTHORIZED - create a player token" in new token_createPlayerToken {

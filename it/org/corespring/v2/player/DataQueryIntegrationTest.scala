@@ -17,10 +17,10 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
 
   trait listScope extends After {
 
-    lazy val fieldValueService = Global.main.fieldValueService
-    lazy val subjectService = Global.main.subjectService
+    lazy val fieldValueService = main.fieldValueService
+    lazy val subjectService = main.subjectService
 
-    lazy val standardService = Global.main.standardService
+    lazy val standardService = main.standardService
 
     val dummy = StringKeyValue("dummy", "dummy")
     val dummyList = ListKeyValue("dummy", Seq.empty)

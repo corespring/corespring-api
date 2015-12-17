@@ -59,7 +59,7 @@ class ItemApiCreateIntegrationTest extends IntegrationSpecification {
 
       s"$OK - for token based request with json header - with json body" in new orgWithAccessToken {
 
-        Global.main.fieldValueService.insert(FieldValue())
+        main.fieldValueService.insert(FieldValue())
         assertCall(
           createRequest[AnyContentAsJson](s"access_token=$accessToken", Some("application/json"), Some(Json.obj())),
           OK)

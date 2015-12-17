@@ -21,7 +21,7 @@ class MainIntegrationTest extends IntegrationSpecification {
 
     "return version info" in {
       val result = route(req).get
-      contentAsJson(result) must_== Global.main.buildInfo.json.deepMerge(Json.obj("container" -> Global.main.containerVersion.json))
+      contentAsJson(result) must_== main.buildInfo.json.deepMerge(Json.obj("container" -> main.containerVersion.json))
     }
 
   }

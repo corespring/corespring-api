@@ -21,9 +21,9 @@ class ItemDraftsApiIntegrationTest extends IntegrationSpecification with PlaySpe
   val routes = org.corespring.v2.api.drafts.item.routes.ItemDrafts
 
   lazy val helper = new ItemDraftHelper {
-    override def itemService: ItemService = Global.main.itemService
+    override def itemService: ItemService = main.itemService
 
-    override implicit def context: Context = Global.main.context
+    override implicit def context: Context = main.context
   }
 
   "ItemDrafts" should {

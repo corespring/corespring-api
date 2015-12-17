@@ -18,11 +18,13 @@ import scala.concurrent.duration._
  */
 abstract class IntegrationSpecification
   extends PlaySpecification
-  with MainModule
   with Results
   with Around {
 
   sequential
+
+
+  lazy val main = global.Global.main
 
   lazy val logger: grizzled.slf4j.Logger = Logger(this.getClass)
 

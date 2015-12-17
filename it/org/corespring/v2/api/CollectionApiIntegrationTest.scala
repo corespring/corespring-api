@@ -1,6 +1,5 @@
 package org.corespring.v2.api
 
-import global.Global
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ CollectionHelper, ItemHelper, AccessTokenHelper, OrganizationHelper }
@@ -31,7 +30,7 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
 
     "return a contentCollection" in new get {
       status(result) === OK
-      val coll = Global.main.contentCollectionService.findOneById(collectionId).get
+      val coll = main.contentCollectionService.findOneById(collectionId).get
       contentAsJson(result) === Json.toJson(coll)(ContentCollectionWrites)
     }
   }
@@ -53,17 +52,17 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
       override lazy val request = makeJsonRequest(call, json)
       status(result) === OK
       (contentAsJson(result) \ "name").asOpt[String] === Some("zowie")
-      Global.main.contentCollectionService.findOneById(collectionId).get.name === "zowie"
+      main.contentCollectionService.findOneById(collectionId).get.name === "zowie"
     }
 
     "update the name and isPublic" in new update {
-      val collection = Global.main.contentCollectionService.findOneById(collectionId).get
+      val collection = main.contentCollectionService.findOneById(collectionId).get
       override lazy val json = Json.obj("name" -> "zowie", "isPublic" -> !collection.isPublic)
       override lazy val request = makeJsonRequest(call, json)
       status(result) === OK
       (contentAsJson(result) \ "name").asOpt[String] === Some("zowie")
 
-      val updated = global.Global.main.contentCollectionService.findOneById(collectionId).get
+      val updated = main.contentCollectionService.findOneById(collectionId).get
       updated.name === "zowie"
       updated.isPublic === !collection.isPublic
     }
@@ -103,7 +102,7 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
       override lazy val request = makeJsonRequest(call, json)
       status(result) === CREATED
       val newId = (contentAsJson(result) \ "id").asOpt[String].get
-      Global.main.contentCollectionService.findOneById(new ObjectId(newId)).get.name === "my-new-collection"
+      main.contentCollectionService.findOneById(new ObjectId(newId)).get.name === "my-new-collection"
     }
   }
 

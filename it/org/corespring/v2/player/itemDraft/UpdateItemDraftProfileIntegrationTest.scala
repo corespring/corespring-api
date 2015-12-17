@@ -15,8 +15,8 @@ import play.api.mvc.Call
 class UpdateItemDraftProfileIntegrationTest extends UpdateProfileIntegrationTest {
 
   val itemDraftHelper = new ItemDraftHelper {
-    override def itemService: ItemService = Global.main.itemService
-    override implicit def context: Context = Global.main.context
+    override def itemService: ItemService = main.itemService
+    override implicit def context: Context = main.context
   }
 
   override def getUpdateProfileCall(itemId: VersionedId[ObjectId], username: String): Call = {
