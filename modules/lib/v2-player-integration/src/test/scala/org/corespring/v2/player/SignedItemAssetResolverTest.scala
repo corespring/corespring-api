@@ -3,10 +3,12 @@ package org.corespring.v2.player
 import java.util.Date
 
 import org.joda.time.DateTime
-import org.specs2.matcher.{Expectable, Matcher}
+import org.specs2.matcher.{ Expectable, Matcher }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+
+import scala.util.{ Try, Failure }
 
 class SignedItemAssetResolverTest extends Specification with Mockito {
 
@@ -25,7 +27,7 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
         m
       }
 
-      def createAndResolve(domain: Option[String], validInHours: Int, version: Option[String]):String = {
+      def createAndResolve(domain: Option[String], validInHours: Int, version: Option[String]): String = {
         val sut = new SignedItemAssetResolver(domain, validInHours, urlSigner, version)
         sut.resolve("123456789012345678901234:0")("test.jpeg")
       }
@@ -40,34 +42,21 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
           e)
     }
 
-    def catchAndReturn(block:(Any=>Any)): Option[Throwable] = {
-      try {
-        block()
-        None
-      } catch {
-        case t: Throwable => Some(t)
-      }
-    }
-
-
     "resolve" should {
 
       "throw error when domain is not set" in new scope {
-        catchAndReturn { _ =>
-          createAndResolve(emptyDomain, 24, version)
-        } equals Some(new IllegalArgumentException("domain is not defined"))
+        Try(createAndResolve(emptyDomain, 24, version)) equals
+          Failure(new IllegalArgumentException("domain is not defined"))
       }
 
       "throw error when domain is not valid" in new scope {
-        catchAndReturn { _ =>
-          createAndResolve(invalidDomain, 24, version)
-        } equals Some( new IllegalArgumentException("domain must start with two slashes. Actual domain is: invalid-domain"))
+        Try(createAndResolve(invalidDomain, 24, version)) equals
+          Failure(new IllegalArgumentException("domain must start with two slashes. Actual domain is: invalid-domain"))
       }
 
       "throw error when validInHours is <= 0" in new scope {
-        catchAndReturn { _ =>
-          createAndResolve(validDomain, 0, version)
-        } equals Some( new IllegalArgumentException("validInHours should be an Int >= 0"))
+        Try(createAndResolve(validDomain, 0, version)) equals
+          Failure(new IllegalArgumentException("validInHours should be an Int >= 0"))
       }
 
       "return signed url" in new scope {
