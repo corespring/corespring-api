@@ -76,6 +76,8 @@ trait V2ApiModule
 
   private lazy val organizationApi: Controller = wire[OrganizationApi]
 
+  private lazy val passageApi: Controller = wire[PassageApi]
+
   //Expose this api so v1 api can use it
   lazy val v2ItemApi: ItemApi = itemApi.asInstanceOf[ItemApi]
   lazy val v2CollectionApi: CollectionApi = collectionApi.asInstanceOf[CollectionApi]
@@ -93,6 +95,7 @@ trait V2ApiModule
     playerTokenApi,
     utilsApi,
     collectionApi,
-    organizationApi)
+    organizationApi,
+    passageApi)
 
 }

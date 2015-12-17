@@ -118,3 +118,7 @@ GET     /assessment-templates/:assessmentTemplateId     @org.corespring.v2.api.A
 POST    /assessment-templates                           @org.corespring.v2.api.AssessmentTemplateApi.create()
 
 PUT     /assessment-templates/:assessmentTemplateId     @org.corespring.v2.api.AssessmentTemplateApi.update(assessmentTemplateId: ObjectId)
+
+# Passages
+
+GET     /passages/:passageId                            @org.corespring.v2.api.PassageApi.get(passageId: VersionedId[ObjectId])

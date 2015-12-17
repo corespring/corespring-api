@@ -11,7 +11,7 @@ import org.corespring.models._
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.models.assessment.{ Assessment, AssessmentTemplate }
 import org.corespring.models.auth.{ AccessToken, ApiClient }
-import org.corespring.models.item.{ FieldValue, Item }
+import org.corespring.models.item.{Passage, FieldValue, Item}
 import org.corespring.models.metadata.MetadataSet
 import org.corespring.models.registration.RegistrationToken
 import org.corespring.platform.data.VersioningDao
@@ -40,6 +40,7 @@ object CollectionNames {
   val item = "content"
   val metadataSet = "metadataSets"
   val organization = "orgs"
+  val passage = "content"
   val registrationToken = "regTokens"
   val standard = "ccstandards"
   val subject = "subjects"
@@ -148,6 +149,10 @@ trait SalatServices extends interface.bootstrap.Services {
     salatItemDao
   }
 
+  def passageDao: VersioningDao[Passage, VersionedId[ObjectId]] = {
+    salatPassageDao
+  }
+
   lazy val salatItemDao = new SalatVersioningDao[Item] {
 
     def db: MongoDB = SalatServices.this.db
@@ -158,6 +163,14 @@ trait SalatServices extends interface.bootstrap.Services {
 
     protected implicit def context: Context = SalatServices.this.context
 
+    override def checkCurrentCollectionIntegrity: Boolean = false
+  }
+
+  lazy val salatPassageDao = new SalatVersioningDao[Passage] {
+    def db: MongoDB = SalatServices.this.db
+    protected def collectionName: String = CollectionNames.passage
+    protected implicit def entityManifest: Manifest[Passage] = Manifest.classType(classOf[Passage])
+    protected implicit def context: Context = SalatServices.this.context
     override def checkCurrentCollectionIntegrity: Boolean = false
   }
 
@@ -199,6 +212,10 @@ trait SalatServices extends interface.bootstrap.Services {
     salatServicesExecutionContext,
     context)
   override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, orgCollectionService, contentCollectionService, metadataSetService, itemService)
+  override lazy val passageService: interface.PassageService = new PassageService(
+    passageDao,
+    salatServicesExecutionContext
+  )
   override lazy val registrationTokenService: interface.RegistrationTokenService = wire[RegistrationTokenService]
   override lazy val shareItemWithCollectionsService: interface.ShareItemWithCollectionsService = new ShareItemWithCollectionsService(itemDao, itemService, orgCollectionService)
   override lazy val standardService: interface.StandardService = wire[StandardService]

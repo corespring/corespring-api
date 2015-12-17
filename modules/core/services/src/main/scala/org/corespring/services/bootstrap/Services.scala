@@ -21,6 +21,7 @@ trait Services {
   def assessmentTemplateService: AssessmentTemplateService
   def apiClientService: ApiClientService
   def tokenService: AccessTokenService
+  def passageService: PassageService
   def subjectService: SubjectService
   def standardService: StandardService
   def fieldValueService: FieldValueService
