@@ -1,8 +1,6 @@
 package org.corespring.models.auth
 
 case class Permission(value: Long, name: String, read: Boolean = false, write: Boolean = false, canClone: Boolean = false) {
-
-  @deprecated("You can now query the permission directly, eg: p.read, p.write, p.canClone", "5.7.0")
   def has(p: Permission): Boolean = p match {
     case Permission.Write => this.write
     case Permission.Read => this.read

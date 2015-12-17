@@ -180,56 +180,60 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     collectionDao.findOne(query)
   }
 
+  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
+    isAuthorizedBatch(orgId, (collId -> p)).find{ {case (id, _) => id == collId}}.map(_._2).getOrElse(false)
+  }
+
+  override def isAuthorizedBatch(orgId: ObjectId, idsAndPermissions: (ObjectId, Permission)*): Seq[(ObjectId,Boolean)] = {
+    logger.trace(s"function=isAuthorizedBatch, idsAndPermissions=$idsAndPermissions")
+
+    val rawIds = idsAndPermissions.map(_._1)
+    require(rawIds.distinct.length == rawIds.length, "There are duplicate ids passed in - can't return a non-ambiguous result")
+
+    val grantedPermissions = getPermissions(orgId, idsAndPermissions.map(_._1) : _*)
+
+    grantedPermissions.map{ case (id, granted) =>
+      idsAndPermissions.find( {case (i, _) => i == id}) match {
+        case None => id -> false
+        case Some((_, p)) =>
+          val authorized = granted.map( g => g.has(p)).getOrElse(false)
+          id ->  authorized
+      }
+    }
+  }
+
   override def getPermission(orgId: ObjectId, collId: ObjectId): Option[Permission] = {
-    logger.debug(s"fuction=getPermission, orgId=$orgId, collId=$collId")
-
-    val stream = orgService.orgsWithPath(orgId, true)
-
-    lazy val publicPermission = collectionDao.findOneById(collId).flatMap { c =>
-      if (c.isPublic) Some(Permission.Read) else None
-    }
-
-    val allRefs = stream.map(_.contentcolls).flatten.distinct
-
-    logger.trace(s"function=getPermission, allRefs=$allRefs")
-
-    if (allRefs.isEmpty) {
-      publicPermission
-    } else {
-      allRefs.find(_.collectionId == collId).map { r =>
-        Permission.fromLong(r.pval)
-      }.getOrElse(publicPermission)
-    }
+    getPermissions(orgId, collId).find({ case (id, p) => id == collId }).flatMap(_._2)
   }
 
-  override def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Seq[Permission] = {
-    logger.debug(s"fuction=getPermission, orgId=$orgId, collectionIds=$collectionIds")
 
-    val stream = orgService.orgsWithPath(orgId, true)
+  override def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Stream[(ObjectId,Option[Permission])] = {
+    logger.debug(s"function=getPermissions, orgId=$orgId, collectionIds=$collectionIds")
+
+    val distinctIds = collectionIds.distinct
+
+    lazy val stream = orgService.orgsWithPath(orgId, true)
     lazy val allRefs = stream.map(_.contentcolls).flatten.distinct
+    logger.trace(s"function=getPermissions, allRefs=$allRefs")
 
-    val query = "_id" $in collectionIds
+    val query = "_id" $in distinctIds
 
-    def permissionFromRef(c:util.Collection) : Permission = {
-      
+    def permissionFromRef(c:ContentCollection) : (ObjectId, Option[Permission]) = {
+      val p = if (c.isPublic) {
+        Some(Permission.Read)
+      } else {
+        allRefs.find(_.collectionId == c.id).flatMap{ r => Permission.fromLong(r.pval)}
+      }
+      c.id -> p
     }
 
-    lazy val publicPermission = collectionDao.find(query).map { collection =>
-      if (collection.isPublic) Permission.Read else permissionFromRef(collection)
-    }
-
-    val allRefs = stream.map(_.contentcolls).flatten.distinct
-
-    logger.trace(s"function=getPermission, allRefs=$allRefs")
-
-    if (allRefs.isEmpty) {
-      publicPermission
-    } else {
-      allRefs.find(_.collectionId == collId).map { r =>
-        Permission.fromLong(r.pval)
-      }.getOrElse(publicPermission)
-    }
+    val foundIdPermissions = collectionDao.find(query).toStream.map(permissionFromRef)
+    val notFoundIds = distinctIds.filterNot( id => foundIdPermissions.exists(_._1 == id))
+    val out  = foundIdPermissions ++ notFoundIds.map(_ -> None)
+    logger.trace(s"function=getPermissions, out=$out")
+    out
   }
+
 
   private def getCollRef(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
     import scalaz.Scalaz._
@@ -256,20 +260,4 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     orgDao.find(query).toStream
   }
 
-  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
-    getPermission(orgId, collId).map { permissionForOrg =>
-      logger.trace(s"function=isAuthorized, permissionForOrg=$permissionForOrg, p=$p")
-      permissionForOrg.has(p)
-    }.getOrElse(false)
-  }
-
-  /**
-    * A batch api for checking multiple authorizations at once.
-    * does the given organization have access to the given collection with given permission.
-    *
-    * @param orgId
-    * @param collectionIdAndPermission
-    * @return
-    */
-  override def isAuthorized(orgId: Imports.ObjectId, collectionIdAndPermission: (Imports.ObjectId, Permission)*): Seq[Boolean] = ???
 }

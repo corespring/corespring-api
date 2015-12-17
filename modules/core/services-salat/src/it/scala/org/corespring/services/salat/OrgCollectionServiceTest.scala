@@ -84,6 +84,45 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
 
   }
 
+
+  "isAuthorizedBatch" should {
+
+    trait isAuthorized extends scope {
+      val testOrg = insertOrg("test owner of public collection")
+      val testOrgOne = insertCollection("test org writable collection", testOrg)
+      val publicCollection = insertCollection("test public collection", testOrg, true)
+      val otherOrg = insertOrg("other-org")
+      val otherOrgOne = insertCollection("other-org-one", otherOrg)
+      giveOrgAccess(org, otherOrgOne, Permission.Read)
+
+    }
+
+    "throw an exception if the idsAndPermisions has duplicate ids" in new isAuthorized {
+      service.isAuthorizedBatch(testOrg.id, (publicCollection.id -> Permission.Read),
+          (publicCollection.id -> Permission.Read)
+      ) must throwA[IllegalArgumentException]
+    }
+
+    "return 1 result" in new isAuthorized {
+      service.isAuthorizedBatch(testOrg.id, (publicCollection.id -> Permission.Read)) must_== Seq(publicCollection.id -> true)
+    }
+
+    "return 2 results" in new isAuthorized {
+      service.isAuthorizedBatch(testOrg.id,
+        (publicCollection.id -> Permission.Read),
+        (otherOrgOne.id -> Permission.Write)
+        ) must_== Seq(publicCollection.id -> true, otherOrgOne.id -> false)
+    }
+
+    "return 3 results" in new isAuthorized {
+      service.isAuthorizedBatch(testOrg.id,
+        (publicCollection.id -> Permission.Read),
+        (otherOrgOne.id -> Permission.Write),
+        (collection.id -> Permission.Write)
+      ) must_== Seq(publicCollection.id -> true, otherOrgOne.id -> false, collection.id -> false)
+    }
+  }
+
   "isAuthorized" should {
     trait isAuthorized extends scope {
 
@@ -285,6 +324,58 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
   }
+
+  "getPermissions" should {
+    trait getPermissions extends scope {
+      val root = insertOrg("root")
+      val child = insertOrg("child", Some(root.id))
+      val otherOrg = insertOrg("otherOrg")
+      val rootOne = insertCollection("one", root)
+      val otherOrgOne = insertCollection("other-org-one", otherOrg)
+    }
+
+    "return n permissions of None for unknown org" in new getPermissions{
+      val someOrgId = ObjectId.get
+      val collectionIds = (1 to 50).map{ i => ObjectId.get }
+      val permissions = service.getPermissions(someOrgId, collectionIds : _*)
+      permissions.length must_== 50
+      permissions.filter(_._2.isDefined).length must_== 0
+    }
+
+
+    "return 1 permission for multiple duplicate ids" in new getPermissions {
+      service.getPermissions(root.id, rootOne.id, rootOne.id, rootOne.id) must_== Seq((rootOne.id -> Some(Permission.Write)))
+    }
+
+    "return 1 permission" in new getPermissions{
+      service.getPermissions(root.id, rootOne.id) must_== Seq((rootOne.id -> Some(Permission.Write)))
+    }
+
+    "return 2 permissions" in new getPermissions{
+      service.getPermissions(root.id, rootOne.id, otherOrgOne.id) must_== Seq(
+        (rootOne.id -> Some(Permission.Write)),
+        (otherOrgOne.id -> None)
+      )
+    }
+
+    "return 3 permissions" in new getPermissions{
+
+      service.grantAccessToCollection(root.id, otherOrgOne.id, Permission.Clone)
+
+      val randomId = ObjectId.get
+      val permissions = service.getPermissions(root.id, rootOne.id, otherOrgOne.id, randomId)
+
+      permissions.length must_== 3
+
+      permissions must_== Seq(
+        (rootOne.id -> Some(Permission.Write)),
+        (otherOrgOne.id -> Some(Permission.Clone)),
+        (randomId -> None)
+      )
+    }
+  }
+
+
 
   "getPermission" should {
 
