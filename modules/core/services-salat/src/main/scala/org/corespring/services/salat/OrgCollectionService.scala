@@ -139,9 +139,12 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
       updatedOrg
     }
 
-    orgDao.findOneById(orgId)
-      .map(updateOrAddNewReference)
-      .toSuccess(PlatformServiceError(s"Can't find org with id: $orgId"))
+    for {
+      _ <- collectionDao.findOneById(collId).toSuccess(PlatformServiceError(s"Can't find a collection with the id: $collId"))
+      o <- orgDao.findOneById(orgId)
+        .map(updateOrAddNewReference)
+        .toSuccess(PlatformServiceError(s"Can't find org with id: $orgId"))
+    } yield o
   }
 
   override def removeAccessToCollection(orgId: Imports.ObjectId, collId: Imports.ObjectId): Validation[PlatformServiceError, Organization] = {
@@ -181,7 +184,12 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
   }
 
   override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
-    isAuthorizedBatch(orgId, (collId -> p)).find{ {case (id, _) => id == collId}}.map(_._2).getOrElse(false)
+    logger.debug(s"function=isAuthorized, orgId=$orgId, collId=$collId, p=$p")
+    val batchResult = isAuthorizedBatch(orgId, (collId -> p))
+    logger.trace(s"function=isAuthorized, batchResult=$batchResult")
+    val maybeAuthorized = batchResult.find{ {case (id, _) => id == collId}}
+    logger.trace(s"function=isAuthorized, maybeAuthorized=$maybeAuthorized")
+    maybeAuthorized.map(_._2).getOrElse(false)
   }
 
   override def isAuthorizedBatch(orgId: ObjectId, idsAndPermissions: (ObjectId, Permission)*): Seq[(ObjectId,Boolean)] = {
@@ -219,11 +227,8 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     val query = "_id" $in distinctIds
 
     def permissionFromRef(c:ContentCollection) : (ObjectId, Option[Permission]) = {
-      val p = if (c.isPublic) {
-        Some(Permission.Read)
-      } else {
-        allRefs.find(_.collectionId == c.id).flatMap{ r => Permission.fromLong(r.pval)}
-      }
+      val fallbackPermission = if(c.isPublic) Some(Permission.Read) else None
+      val p = allRefs.find(_.collectionId == c.id).flatMap{ r => Permission.fromLong(r.pval)}.orElse(fallbackPermission)
       c.id -> p
     }
 

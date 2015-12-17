@@ -1,5 +1,6 @@
 package org.corespring.services.salat
 
+import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
@@ -10,6 +11,9 @@ import org.specs2.specification.Scope
 import scalaz.{ Failure, Success }
 
 class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
+
+
+  private lazy val testLogger = Logger(classOf[OrgCollectionServiceTest])
 
   trait scope extends BeforeAfter with Scope with InsertionHelper {
     lazy val service = services.orgCollectionService
@@ -27,7 +31,9 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     trait grant extends scope {
 
       def p: Permission
-      val newCollectionId = ObjectId.get
+      val otherOrg = insertOrg("other-org")
+      val newCollection = insertCollection("new-collection", otherOrg)
+      val newCollectionId = newCollection.id
       val expected = {
         val o = services.orgService.findOneById(org.id).get
         o.copy(contentcolls = org.contentcolls :+ ContentCollRef(newCollectionId, p.value, true))
@@ -46,6 +52,11 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
 
     "read: return the updated org" in new grantRead {
       result must_== Success(expected)
+    }
+
+    "returns a failure if the collectionId doesn't belong to any collection" in new scope {
+      val randomCollectionId = ObjectId.get
+      service.grantAccessToCollection(org.id, randomCollectionId, Permission.Write) must_== Failure(_ : PlatformServiceError)
     }
 
     "read: read is allowed" in new grantRead {
@@ -69,8 +80,9 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "update an existing ref if it already exists" in new scope {
-
-      val newCollectionId = ObjectId.get
+      val otherOrg = insertOrg("other-org")
+      val newCollection = insertCollection("new-collection", otherOrg)
+      val newCollectionId = newCollection.id
       val ref = ContentCollRef(newCollectionId, Permission.Read.value, true)
       services.orgService.findOneById(org.id).map { o =>
         val update = o.copy(contentcolls = o.contentcolls :+ ref)
@@ -441,8 +453,12 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "not remove childOne's access to the collection if it's public" in new removeAccessToAll {
-      services.orgCollectionService.grantAccessToCollection(childOne.id, publicOne.id, Permission.Write)
+      val r = services.orgCollectionService.grantAccessToCollection(childOne.id, publicOne.id, Permission.Write)
+      testLogger.debug(s"childOne id: ${childOne.id}")
+      testLogger.debug(s"r: $r")
       service.isAuthorized(childOne.id, publicOne.id, Permission.Read) must_== true
+      val perms = service.getPermission(childOne.id, publicOne.id)
+      testLogger.debug(s"perms for childOne: $perms")
       service.isAuthorized(childOne.id, publicOne.id, Permission.Write) must_== true
       service.removeAllAccessToCollection(publicOne.id)
       service.isAuthorized(childOne.id, publicOne.id, Permission.Read) must_== true
