@@ -199,7 +199,7 @@ class Main(
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
   lazy val itemAssetResolver: ItemAssetResolver = {
-    val config = ItemAssetResolverConfig(configuration, current.mode)
+    val config = ItemAssetResolverConfig(configuration, mode)
     val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
     if (config.signUrls){
       new SignedItemAssetResolver(
