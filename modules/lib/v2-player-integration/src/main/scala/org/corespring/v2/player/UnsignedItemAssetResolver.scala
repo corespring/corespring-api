@@ -4,7 +4,7 @@ import org.corespring.container.client.ItemAssetResolver
 
 import org.corespring.drafts.item.S3Paths
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.joda.time.DateTime
+
 
 class UnsignedItemAssetResolver(
   cdnResolver: CDNResolver) extends ItemAssetResolver {

@@ -20,7 +20,7 @@ class UnsignedItemAssetResolverTest extends Specification with Mockito {
 
       "return resolved url" in new scope {
         val sut = new UnsignedItemAssetResolver(mkCdnResolver(Some("//valid-domain")))
-        sut.resolve("123456789012345678901234:0")("test.jpeg") === "//test-domain/123456789012345678901234/0/data/test.jpeg"
+        sut.resolve("123456789012345678901234:0")("test.jpeg") === "//valid-domain/123456789012345678901234/0/data/test.jpeg"
       }
 
       "return file when cdnDomain is not defined" in new scope {

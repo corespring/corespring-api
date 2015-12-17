@@ -6,7 +6,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 
 class SignedItemAssetResolver(
-  domain: Option[String],
+  domain: String,
   validInHours: Int,
   cdnUrlSigner: CdnUrlSigner,
   version: Option[String]) extends ItemAssetResolver {
@@ -17,11 +17,8 @@ class SignedItemAssetResolver(
   }
 
   private def assertParameters(): Unit ={
-    if(!domain.isDefined){
-      throw new IllegalArgumentException("domain is not defined")
-    }
-    if(!domain.get.startsWith("//")){
-      throw new IllegalArgumentException(s"domain must start with two slashes. Actual domain is: ${domain.get}")
+    if(!domain.startsWith("//")){
+      throw new IllegalArgumentException(s"domain must start with two slashes. Actual domain is: ${domain}")
     }
     if(!(validInHours > 0)){
       throw new IllegalArgumentException("validInHours should be an Int >= 0")
@@ -30,7 +27,7 @@ class SignedItemAssetResolver(
 
   private def signUrl(s3ObjectKey: String): String = {
     val dateValidUntil = DateTime.now().plusHours(validInHours).toDate
-    cdnUrlSigner.signUrl("https:" + domain.get + "/" + s3ObjectKey, dateValidUntil)
+    cdnUrlSigner.signUrl("https:" + domain + "/" + s3ObjectKey, dateValidUntil)
   }
 
   protected def s3ObjectPath(itemId: String, file: String) = {

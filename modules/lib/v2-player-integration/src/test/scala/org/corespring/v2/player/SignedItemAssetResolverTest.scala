@@ -15,9 +15,8 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
   "SignedItemAssetResolver" should {
 
     trait scope extends Scope {
-      val validDomain = Some("//domain")
-      val invalidDomain = Some("invalid-domain")
-      val emptyDomain = None
+      val validDomain = "//domain"
+      val invalidDomain = "invalid-domain"
       val emptyVersion = None
       val version = Some("1234")
 
@@ -27,8 +26,8 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
         m
       }
 
-      def createAndResolve(domain: Option[String], validInHours: Int, version: Option[String]): String = {
-        val sut = new SignedItemAssetResolver(domain, validInHours, urlSigner, version)
+      def createAndResolve(domain: String, validInHours: Int, version: Option[String]): String = {
+        val sut = new SignedItemAssetResolver(validDomain, validInHours, urlSigner, version)
         sut.resolve("123456789012345678901234:0")("test.jpeg")
       }
 
@@ -43,11 +42,6 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
     }
 
     "resolve" should {
-
-      "throw error when domain is not set" in new scope {
-        Try(createAndResolve(emptyDomain, 24, version)) equals
-          Failure(new IllegalArgumentException("domain is not defined"))
-      }
 
       "throw error when domain is not valid" in new scope {
         Try(createAndResolve(invalidDomain, 24, version)) equals

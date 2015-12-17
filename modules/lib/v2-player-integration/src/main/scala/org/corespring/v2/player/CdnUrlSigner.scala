@@ -9,26 +9,19 @@ import com.amazonaws.auth.PEM
 import com.amazonaws.services.cloudfront.CloudFrontUrlSigner
 
 class CdnUrlSigner(
-  keyPairId: Option[String],
-  privateKeyString: Option[String]) {
+  keyPairId: String,
+  privateKeyString: String) {
 
   def signUrl(url: String, validUntil: Date): String = {
-    if(!keyPairId.isDefined){
-      throw new IllegalArgumentException("keyPairId is not defined")
-    }
-    if(!privateKeyString.isDefined){
-      throw new IllegalArgumentException("privateKeyString is not defined")
-    }
 
     CloudFrontUrlSigner.getSignedURLWithCannedPolicy(
       url,
-      keyPairId.get,
+      keyPairId,
       privateKey,
       validUntil)
   }
 
   lazy val privateKey: PrivateKey = {
-    val s = privateKeyString.get
-    PEM.readPrivateKey(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)))
+    PEM.readPrivateKey(new ByteArrayInputStream(privateKeyString.getBytes(StandardCharsets.UTF_8)))
   }
 }

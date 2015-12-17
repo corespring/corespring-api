@@ -202,10 +202,13 @@ class Main(
     val config = ItemAssetResolverConfig(configuration, mode)
     val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
     if (config.signUrls){
+      val domain = config.domain.getOrElse(throw new RuntimeException("ItemAssetResolver: domain is not set"))
+      val keyPairId = config.keyPairId.getOrElse(throw new RuntimeException("ItemAssetResolver: keyPairId is not set"))
+      val privateKey = config.privateKey.getOrElse(throw new RuntimeException("ItemAssetResolver: privateKey is not set"))
       new SignedItemAssetResolver(
-        config.domain,
+        domain,
         config.urlValidInHours,
-        new CdnUrlSigner(config.keyPairId, config.privateKey),
+        new CdnUrlSigner(keyPairId, privateKey),
         version)
     } else {
       new UnsignedItemAssetResolver(
