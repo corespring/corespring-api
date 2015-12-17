@@ -36,7 +36,7 @@ class CdnResolverTest extends Specification with Mockito {
       cdnResolver.resolveDomain("/path?query") === "//blah.com/path?query&version=v1234"
     }
 
-    "should sign url if urlSigner is passed in" in {
+    "should sign url when urlSigner is defined" in {
       val urlSigner = {
         val m = mock[CdnUrlSigner]
         m.signUrl(any[String]) returns "signed url"
