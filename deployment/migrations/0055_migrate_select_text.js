@@ -77,10 +77,10 @@ function up() {
             }
           }
         }
+        // Save item
+        db.content.save(item);
       }
     }
-    // Save item
-    db.content.save(item);
   });
 }
 
