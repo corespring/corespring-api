@@ -11,36 +11,28 @@ class UnsignedItemAssetResolverTest extends Specification with Mockito {
   "UnsignedItemAssetResolver" should {
 
     trait scope extends Scope {
-      val cdnResolver = {
-        val m = mock[CDNResolver]
-        m.resolveDomain(any[String]) returns "fake resolved domain"
-        m
+      def mkCdnResolver(domain: Option[String]) = {
+        new CDNResolver(domain, None)
       }
-
-      val sut = new UnsignedItemAssetResolver(cdnResolver)
     }
 
-    "on creation" should {
+    "resolve" should {
 
-      "not throw when all parameters are set" in new scope {
-        sut should haveClass[UnsignedItemAssetResolver]
+      "return resolved url" in new scope {
+        val sut = new UnsignedItemAssetResolver(mkCdnResolver(Some("//valid-domain")))
+        sut.resolve("123456789012345678901234:0")("test.jpeg") === "//test-domain/123456789012345678901234/0/data/test.jpeg"
       }
 
-      "on calling resolve" should {
-
-        "return resolved url" in new scope {
-          sut.resolve("123456789012345678901234:0")("test.jpeg") === "fake resolved domain"
-        }
-
-        "use correct s3 path" in new scope {
-          val itemId = "123456789012345678901234"
-          val itemVersion = 0
-          val file = "test.jpeg"
-          sut.resolve(itemId + ":" + itemVersion)(file)
-          there was one(cdnResolver).resolveDomain(find(itemId + "/" + itemVersion + "/data/" + file))
-        }
-
+      "return file when cdnDomain is not defined" in new scope {
+        val sut = new UnsignedItemAssetResolver(mkCdnResolver(None))
+        sut.resolve("123456789012345678901234:0")("test.jpeg") === "test.jpeg"
       }
+
+      "return file when cdnDomain does not start with two slashes" in new scope {
+        val sut = new UnsignedItemAssetResolver(mkCdnResolver(Some("invalid-domain")))
+        sut.resolve("123456789012345678901234:0")("test.jpeg") === "test.jpeg"
+      }
+
     }
 
   }

@@ -10,7 +10,11 @@ class UnsignedItemAssetResolver(
   cdnResolver: CDNResolver) extends ItemAssetResolver {
 
   override def resolve(itemId: String)(file: String): String = {
-    cdnResolver.resolveDomain(s3ObjectPath(itemId, file))
+    if(cdnResolver.cdnDomain.isDefined) {
+      cdnResolver.resolveDomain(s3ObjectPath(itemId, file))
+    } else {
+      file
+    }
   }
 
   protected def s3ObjectPath(itemId: String, file: String) = {
