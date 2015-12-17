@@ -35,10 +35,10 @@ class MainTest extends Specification with Mockito{
       "orgId" -> ObjectId.get.toString
     ),
     "ELASTIC_SEARCH_URL" -> "http://elastic-search.com",
+    "container.cdn.domain" -> domain,
     "container" -> Map(
       "components.path" -> "path",
       "cdn" -> Map(
-        "domain" -> domain,
         "add-version-as-query-param" -> queryParam)))
 
   def resourceAsStream(s:String) : Option[InputStream] = None
@@ -57,6 +57,12 @@ class MainTest extends Specification with Mockito{
     }
 
     "resolveDomain" should {
+
+      "return the path directly if no cdn is configured" in {
+        val minusCdn = config - "container.cdn.domain"
+        val main = new Main(db, Configuration.from(minusCdn), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+        main.resolveDomain("hi") must_== "hi"
+      }
 
       "return the path with the cdn prefixed if the cdn is configured" in {
         val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)

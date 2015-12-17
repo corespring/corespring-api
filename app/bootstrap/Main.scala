@@ -87,6 +87,7 @@ object Main {
 
 class Main(
   val db: MongoDB,
+  //TODO: rm Configuration (needed for [[HasConfig]]) and use appConfig + containerConfig instead.
   val configuration: Configuration,
   val mode: PlayMode,
   classLoader: ClassLoader,
@@ -318,6 +319,7 @@ class Main(
   }
 
   def initServiceLookup() = {
+    logger.info("Initialising legacy services using `ServiceLookup`...")
     ServiceLookup.demoOrgId = appConfig.demoOrgId
     ServiceLookup.apiClientService = apiClientService
     ServiceLookup.contentCollectionService = contentCollectionService
