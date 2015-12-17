@@ -11,7 +11,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 
 class PassageServiceTest extends Specification with Mockito {
 
