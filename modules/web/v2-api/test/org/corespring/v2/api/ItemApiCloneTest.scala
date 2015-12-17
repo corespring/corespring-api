@@ -32,8 +32,7 @@ class ItemApiCloneTest extends ItemApiSpec {
         id: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
         itemAuthLoadsItem: Boolean = true,
         itemServiceClones: Boolean = true,
-        item: Option[Item] = Some(clonedItem),
-        request : FakeRequest[Any] = FakeRequest("", "")) extends ItemApiScope {
+        item: Option[Item] = Some(clonedItem)) extends ItemApiScope {
 
         itemService.clone(any[Item]) returns (if (itemServiceClones) item else None)
 
@@ -47,7 +46,7 @@ class ItemApiCloneTest extends ItemApiSpec {
 
         override val orgAndOpts: Validation[V2Error, OrgAndOpts] = id
 
-        lazy val result = api.cloneItem(vid.toString)(FakeRequest("", ""))
+        lazy val result = api.cloneItem(vid.toString)
       }
 
       "return 200" in new ItemApiCloneScope {
