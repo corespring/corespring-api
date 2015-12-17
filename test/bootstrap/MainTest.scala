@@ -36,10 +36,8 @@ class MainTest extends Specification with Mockito{
     ),
     "ELASTIC_SEARCH_URL" -> "http://elastic-search.com",
     "container.cdn.domain" -> domain,
-    "container" -> Map(
-      "components.path" -> "path",
-      "cdn" -> Map(
-        "add-version-as-query-param" -> queryParam)))
+    "container.components.path" -> "path",
+    "container.cdn.add-version-as-query-param" -> queryParam)
 
   def resourceAsStream(s:String) : Option[InputStream] = None
 
