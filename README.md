@@ -185,13 +185,15 @@ Note: The Cloudfront console is slow. Changing any of the settings in there easi
 1. Create CloudFront Key Pairs    
 see [Amazon howto] (http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html#private-content-creating-cloudfront-key-pairs)
 
-2. Restrict bucket access   
+2. Create CloudFront distribution for the s3-assets folder of the deployment target 
+
+3. Restrict bucket access   
 In the Cloudfront Origin tab for your distribution choose restrict bucket access = yes with a new or existing identity. Choose "Yes, Update Bucket Policy" to automatically update the bucket policy. If you don't do that, you will see "Forbidden" answers to your requests 
 
-3. Restrict viewer access    
+4. Restrict viewer access    
 In the Cloudfront Behaviour tab for your distribution choose restrict viewer access = yes. Choose "self" as the trused signer 
 
-4. Heroku settings  
+5. Heroku settings  
 (IAR is short for Item Asset Resolver)
 ENV_IAR_CDN_DOMAIN - set it to the the cloudfront domain with two leading slashes - no default
 ENV_IAR_CDN_KEY_PAIR_ID - set it to the name of the key pair that you created in step 1 - no default 
