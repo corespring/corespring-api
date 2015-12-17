@@ -7,12 +7,14 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
-import play.api.test.FakeRequest
+import play.api.libs.json.Json
+import play.api.mvc.{AnyContent, AnyContentAsJson}
+import play.api.test.{FakeHeaders, FakeRequest}
 
 import scala.concurrent._
 import scalaz.{ Failure, Success, Validation }
 
-class ItemApiTest extends ItemApiSpec {
+class ItemApiCloneTest extends ItemApiSpec {
 
   import ExecutionContext.Implicits.global
 
@@ -30,7 +32,8 @@ class ItemApiTest extends ItemApiSpec {
         id: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
         itemAuthLoadsItem: Boolean = true,
         itemServiceClones: Boolean = true,
-        item: Option[Item] = Some(clonedItem)) extends ItemApiScope {
+        item: Option[Item] = Some(clonedItem),
+        request : FakeRequest[Any] = FakeRequest("", "")) extends ItemApiScope {
 
         itemService.clone(any[Item]) returns (if (itemServiceClones) item else None)
 
@@ -49,6 +52,12 @@ class ItemApiTest extends ItemApiSpec {
 
       "return 200" in new ItemApiCloneScope {
         status(result) === OK
+      }
+
+      s"return $BAD_REQUEST if a bad collection id is passed in" in new ItemApiCloneScope(
+        request = FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("collectionId" -> "bad-id")))
+      ){
+        status(result) must_== BAD_REQUEST
       }
 
       "return the cloned id" in new ItemApiCloneScope {
