@@ -9,11 +9,11 @@ case class ItemAssetResolverConfig(rootConfig: Configuration, mode: Mode) extend
     rootConfig.getConfig("item-asset-resolver.cdn")
   }.getOrElse(Configuration.empty)
 
-  lazy val cdnAddVersionAsQueryParam: Boolean = getBoolean("add-version-as-query-param", Some(false))
-  lazy val cdnDomain: Option[String] = getMaybeString("domain")
-  lazy val cdnKeyPairId: Option[String] = getMaybeString("key-pair-id")
-  lazy val cdnPrivateKey: Option[String] = getMaybeString("private-key")
-  lazy val cdnSignUrls: Boolean = getBoolean("sign-urls", Some(mode == Mode.Prod))
-  lazy val cdnUrlValidInHours: Int = getInt("url-valid-in-hours", Some(24))
+  lazy val addVersionAsQueryParam: Boolean = getBoolean("add-version-as-query-param", Some(false))
+  lazy val domain: Option[String] = getMaybeString("domain")
+  lazy val keyPairId: Option[String] = getMaybeString("key-pair-id")
+  lazy val privateKey: Option[String] = getMaybeString("private-key")
+  lazy val signUrls: Boolean = getBoolean("sign-urls", Some(mode == Mode.Prod))
+  lazy val urlValidInHours: Int = getInt("url-valid-in-hours", Some(24))
 }
 

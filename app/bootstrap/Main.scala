@@ -200,16 +200,16 @@ class Main(
 
   lazy val itemAssetResolver: ItemAssetResolver = {
     val config = ItemAssetResolverConfig(configuration, current.mode)
-    val version = if (config.cdnAddVersionAsQueryParam) Some(mainAppVersion) else None
-    if (config.cdnSignUrls){
+    val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
+    if (config.signUrls){
       new SignedItemAssetResolver(
-        config.cdnDomain,
-        config.cdnUrlValidInHours,
-        new CdnUrlSigner(config.cdnKeyPairId, config.cdnPrivateKey),
+        config.domain,
+        config.urlValidInHours,
+        new CdnUrlSigner(config.keyPairId, config.privateKey),
         version)
     } else {
       new UnsignedItemAssetResolver(
-        new CDNResolver(config.cdnDomain, version)
+        new CDNResolver(config.domain, version)
       )
     }
   }
