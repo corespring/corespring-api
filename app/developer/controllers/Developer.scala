@@ -1,10 +1,9 @@
 package developer.controllers
 
 import controllers.Assets
+import developer.DeveloperConfig
 import developer.controllers.routes.{ Developer => DeveloperRoutes }
 import org.bson.types.ObjectId
-import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.auth.{ ApiClient, Permission }
 import org.corespring.models.json.ObjectIdFormat
@@ -19,17 +18,16 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-/**
- * TODO: remove magic strings
- */
-object Developer extends Controller with SecureSocial {
+class Developer(config: DeveloperConfig) extends Controller with SecureSocial {
 
-  val logger = Logger(Developer.getClass)
+  val logger = Logger(classOf[Developer])
+
+  lazy val myRegistration = new MyRegistration(config)
 
   import ExecutionContext.Implicits.global
 
   implicit val writeOid = ObjectIdFormat
-  implicit val writeOrg = ServiceLookup.jsonFormatting.writeOrg
+  implicit lazy val writeOrg = ServiceLookup.jsonFormatting.writeOrg
 
   def at(path: String, file: String) = Assets.at(path, file)
 
@@ -51,7 +49,7 @@ object Developer extends Controller with SecureSocial {
   }
 
   private def hasRegisteredOrg(u: User) = {
-    u.org.orgId != AppConfig.demoOrgId
+    u.org.orgId != config.demoOrgId
   }
 
   def home = Action.async {
@@ -105,7 +103,7 @@ object Developer extends Controller with SecureSocial {
           val org: Option[Organization] = ServiceLookup.userService.getOrg(user, Permission.Read)
           //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
           //TODO: this doesn't look right - need to discuss a fix for it.
-          org.find(o => o.id != AppConfig.demoOrgId) match {
+          org.find(o => o.id != config.demoOrgId) match {
             case Some(o) => Ok(Json.toJson(o))
             case None => NotFound(Json.toJson(ApiError.MissingOrganization))
           }
@@ -189,6 +187,6 @@ object Developer extends Controller with SecureSocial {
       action
   }
 
-  def handleSignUp(token: String) = Action.async { request => MyRegistration.handleSignUp(token)(request) }
+  def handleSignUp(token: String) = Action.async { request => myRegistration.handleSignUp(token)(request) }
 }
 

@@ -1,4 +1,4 @@
-GET         /                                                         web.controllers.PublicSite.redirect()
+GET         /                                                         @web.controllers.PublicSite.redirect()
 
 GET         /version                                                  @web.controllers.Main.version()
 GET         /items/:id/sample-launch-code                             @web.controllers.Main.sampleLaunchCode(id)
@@ -7,17 +7,17 @@ GET         /items/:id/sample-launch-code                             @web.contr
 GET         /assets/*file                                             com.ee.assets.controllers.Assets.at(path="/public", file)
 
 #developer home page with secure social integration
-GET         /developer/login                                          developer.controllers.Developer.login
-GET         /developer/register                                       developer.controllers.Developer.register
-GET         /developer/isloggedin                                     developer.controllers.Developer.isLoggedIn
-GET         /developer/logout                                         developer.controllers.Developer.logout
-GET         /developer/org                                            developer.controllers.Developer.getOrganization
-GET         /developer/org/form                                       developer.controllers.Developer.createOrganizationForm
-POST        /developer/org                                            developer.controllers.Developer.createOrganization
-GET         /developer/org/:orgid                                     developer.controllers.Developer.getOrganizationCredentials(orgid: ObjectId)
+GET         /developer/login                                          @developer.controllers.Developer.login
+GET         /developer/register                                       @developer.controllers.Developer.register
+GET         /developer/isloggedin                                     @developer.controllers.Developer.isLoggedIn
+GET         /developer/logout                                         @developer.controllers.Developer.logout
+GET         /developer/org                                            @developer.controllers.Developer.getOrganization
+GET         /developer/org/form                                       @developer.controllers.Developer.createOrganizationForm
+POST        /developer/org                                            @developer.controllers.Developer.createOrganization
+GET         /developer/org/:orgid                                     @developer.controllers.Developer.getOrganizationCredentials(orgid: ObjectId)
 
-GET         /developer/home                                           developer.controllers.Developer.home
-GET         /developer/*file                                          developer.controllers.Developer.at(path="/public/developer", file)
+GET         /developer/home                                           @developer.controllers.Developer.home
+GET         /developer/*file                                          @developer.controllers.Developer.at(path="/public/developer", file)
 
 
 # Auth endpoints
@@ -42,9 +42,9 @@ GET         /logout                                                   common.con
 
 # User Registration
 # Leave the POST route in for regression/manual dev signup
-POST        /signup                                                   developer.controllers.Developer.handleStartSignUp
+POST        /signup                                                   @developer.controllers.Developer.handleStartSignUp
 GET         /signup/:token                                            securesocial.controllers.Registration.signUp(token)
-POST        /signup/:token                                            developer.controllers.Developer.handleSignUp(token)
+POST        /signup/:token                                            @developer.controllers.Developer.handleSignUp(token)
 GET         /reset                                                    securesocial.controllers.Registration.startResetPassword
 POST        /reset                                                    securesocial.controllers.Registration.handleStartResetPassword
 GET         /reset/:token                                             securesocial.controllers.Registration.resetPassword(token)
@@ -54,8 +54,8 @@ POST        /reset/:token                                             securesoci
 GET         /web                                                      @web.controllers.Main.index
 
 # Item Preview
-GET         /web/partials/editItem                                    web.controllers.Partials.editItem
-GET         /web/views/*path                                          web.controllers.Partials.loadFromPath(path:String)
+GET         /web/partials/editItem                                    @web.controllers.Partials.editItem
+GET         /web/views/*path                                          @web.controllers.Partials.loadFromPath(path:String)
 GET         /web/javascripts/routes                                   @web.controllers.ShowResource.javascriptRoutes
 
 GET         /web/show-resource/:itemId/:resourceName/main             @web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)

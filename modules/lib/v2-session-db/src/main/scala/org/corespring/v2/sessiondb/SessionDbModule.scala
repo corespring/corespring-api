@@ -4,7 +4,6 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.document.DynamoDB
 import com.mongodb.casbah.MongoDB
-import org.corespring.common.config.AppConfig
 import org.corespring.sessions.SessionServiceClient
 import org.corespring.v2.sessiondb.dynamo.{ DynamoSessionDbTableHelper, DynamoSessionService }
 import org.corespring.v2.sessiondb.mongo.MongoSessionService
@@ -21,7 +20,7 @@ trait SessionDbModule {
 
   def awsCredentials: AWSCredentials
 
-  private lazy val dbClient: AmazonDynamoDBClient = new AmazonDynamoDBClient(awsCredentials)
+  def dbClient: AmazonDynamoDBClient
 
   private lazy val dynamoDB = new DynamoDB(dbClient)
 

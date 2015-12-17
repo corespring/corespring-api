@@ -1,15 +1,13 @@
+package global
+
 import bootstrap.Main
-import com.amazonaws.services.s3.AmazonS3
 import filters.Headers
 import filters._
-import org.corespring.common.config.AppConfig
 import org.corespring.play.utils.{ CallBlockOnHeaderFilter, ControllerInstanceResolver }
-import org.corespring.web.common.controllers.deployment.AssetsLoader
-import org.corespring.web.common.views.helpers.BuildInfo
 import org.joda.time.DateTime
 import play.api.http.ContentTypes
 import play.api.libs.json.Json
-import play.api.{ Mode, Logger, GlobalSettings, Application }
+import play.api._
 import play.api.mvc._
 import play.api.mvc.Results._
 import scala.concurrent.{ Future, ExecutionContext }
@@ -26,30 +24,31 @@ object Global
 
   private lazy val logger = Logger(Global.getClass)
 
-  lazy val controllers: Seq[Controller] = Main.controllers
+  lazy val main = Main(Play.current)
+  lazy val controllers: Seq[Controller] = main.controllers
 
   override def onStart(app: Application): Unit = {
 
     CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
 
       if (app.mode != Mode.Prod &&
-        Main.componentLoader != null &&
+        main.componentLoader != null &&
         rh.path.contains("/v2/player") &&
         rh.path.endsWith("player")) {
         logger.info("reload components!")
-        Main.componentLoader.reload
+        main.componentLoader.reload
 
-        if (Main.componentLoader.all.length == 0) {
+        if (main.componentLoader.all.length == 0) {
           throw new RuntimeException("No components loaded - check your component path configuration: 'components.path'")
         }
       }
     }
 
-    AssetsLoader.init(app)
+    main.assetsLoader.init()
   }
 
   override def doFilter(a: EssentialAction): EssentialAction = {
-    Filters(super.doFilter(a), Seq(Main.componentSetFilter): _*)
+    Filters(super.doFilter(a), Seq(main.componentSetFilter): _*)
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
@@ -57,7 +56,7 @@ object Global
       //return the default access control headers for all OPTION requests.
       case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
-        Main.apiTracking.handleRequest(request)
+        main.apiTracking.handleRequest(request)
         super.onRouteRequest(request)
       }
     }

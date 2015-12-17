@@ -1,7 +1,11 @@
 package org.corespring.itemSearch
 
+import java.net.URL
+
 import org.corespring.itemSearch.AggregateType._
 import org.corespring.models.item.ComponentType
+
+case class ItemSearchConfig(url:URL)
 
 trait ItemSearchModule {
 
