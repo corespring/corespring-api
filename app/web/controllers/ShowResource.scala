@@ -2,7 +2,7 @@ package web.controllers
 
 import org.apache.commons.httpclient.util.URIUtil
 import org.corespring.amazon.s3.S3Service
-import org.corespring.common.config.AppConfig
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ BaseFile, Resource, StoredFile, VirtualFile }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -26,7 +26,7 @@ object ShowResource {
   }
 }
 
-class ShowResource(itemService: ItemService, s3Service: S3Service)
+class ShowResource(itemService: ItemService, s3Service: S3Service, bucket: Bucket)
   extends Controller {
 
   def getResourceFile(itemId: String, resourceName: String, filename: String) = getFile(itemId, resourceName, Some(filename))
@@ -74,7 +74,7 @@ class ShowResource(itemService: ItemService, s3Service: S3Service)
           Ok(text).withHeaders((HeaderNames.CONTENT_TYPE, vFile.contentType))
         }
         case sFile: StoredFile => {
-          s3Service.download(AppConfig.assetsBucket, sFile.storageKey, Some(request.headers))
+          s3Service.download(bucket.bucket, sFile.storageKey, Some(request.headers))
         }
       }
   }

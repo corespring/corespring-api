@@ -2,17 +2,17 @@ package org.corespring.api.v1
 
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.common.config.AppConfig
 import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest, BaseApi }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{ OrgCollectionService, ContentCollectionService }
+import org.corespring.services.{ OrgCollectionService }
 import org.corespring.services.item.ItemService
-import org.corespring.v2.sessiondb.{ SessionServices, SessionService }
+import org.corespring.v2.sessiondb.{ SessionServices }
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.Logger
 import play.api.libs.json.Json._
@@ -21,6 +21,7 @@ import play.api.mvc._
 
 class ResourceApi(
   s3service: S3Service,
+  bucket: Bucket,
   itemTransformer: ItemTransformer,
   itemService: ItemService,
   orgCollectionService: OrgCollectionService,
@@ -107,7 +108,7 @@ class ResourceApi(
         val updated = resource.copy(files = resource.files.filterNot(_.name == filename))
         val updatedItem = putResourceInItem(updated)
         f match {
-          case StoredFile(_, _, _, key) => s3service.delete(AppConfig.assetsBucket, key)
+          case StoredFile(_, _, _, key) => s3service.delete(bucket.bucket, key)
           case _ => //do nothing
         }
         itemService.save(updatedItem)
@@ -388,7 +389,7 @@ class ResourceApi(
     HasItem(
       itemId,
       Seq(editCheck(), isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_, _)),
-      s3service.upload(AppConfig.assetsBucket, key(itemId, DATA_PATH, filename)))(
+      s3service.upload(bucket.bucket, key(itemId, DATA_PATH, filename)))(
         {
           request =>
 
@@ -424,7 +425,7 @@ class ResourceApi(
         editCheck(),
         canFindResource(materialName)(_, _),
         isFilenameTaken(filename, materialName)(_, _)),
-      s3service.upload(AppConfig.assetsBucket, storageKey(itemId, materialName, filename)))(
+      s3service.upload(bucket.bucket, storageKey(itemId, materialName, filename)))(
         {
           request =>
             val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -455,7 +456,7 @@ class ResourceApi(
 
   def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
     val s3Key = storageKey(itemId, name, filename)
-    HasItem(itemId, Seq(editCheck()), s3service.upload(AppConfig.assetsBucket, s3Key))(
+    HasItem(itemId, Seq(editCheck()), s3service.upload(bucket.bucket, s3Key))(
       {
         request =>
           val item = request.asInstanceOf[ItemRequest[AnyContent]].item

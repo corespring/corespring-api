@@ -4,7 +4,6 @@ import com.amazonaws.services.dynamodbv2.document.{ DynamoDB, Item }
 import com.amazonaws.services.dynamodbv2.model.{ AttributeValue, QueryRequest }
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.common.aws.AwsUtil
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.sessiondb.SessionDbConfig
 import play.api.Play
@@ -33,7 +32,7 @@ object V2SessionHelper {
 
 private class V2DynamoSessionHelper(tableName: String) extends V2SessionHelper {
 
-  lazy val dbClient = AwsUtil.dynamoDbClient()
+  lazy val dbClient = global.Global.main.dbClient
 
   lazy val db = new DynamoDB(dbClient)
 

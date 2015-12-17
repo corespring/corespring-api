@@ -19,7 +19,7 @@ class V1ItemApiDeleteIntegrationTest extends IntegrationSpecification with PlayS
       val item = ItemHelper.get(itemId)
       route(request).map { r =>
         status(r) === OK
-        ItemHelper.get(itemId).get.collectionId === bootstrap.Main.archiveConfig.contentCollectionId.toString
+        ItemHelper.get(itemId).get.collectionId === main.archiveConfig.contentCollectionId.toString
       }
     }
   }
