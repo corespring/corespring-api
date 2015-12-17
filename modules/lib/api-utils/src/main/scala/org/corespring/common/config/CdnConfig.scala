@@ -3,7 +3,7 @@ package org.corespring.common.config
 import play.api.Mode.Mode
 import play.api.{ Configuration, Mode }
 
-case class ItemAssetResolverConfig(
+case class CdnConfig(
   addVersionAsQueryParam: Boolean,
   domain: Option[String],
   keyPairId: Option[String],
@@ -11,15 +11,15 @@ case class ItemAssetResolverConfig(
   signUrls: Boolean,
   urlValidInHours: Int)
 
-object ItemAssetResolverConfig extends ConfigurationHelper {
+object CdnConfig extends ConfigurationHelper {
 
-  def apply(rootConfig: Configuration, mode: Mode): ItemAssetResolverConfig = {
+  def apply(rootConfig: Configuration, mode: Mode): CdnConfig = {
 
     implicit val config = {
-      rootConfig.getConfig("item-asset-resolver.cdn")
+      rootConfig.getConfig("cdn")
     }.getOrElse(Configuration.empty)
 
-    ItemAssetResolverConfig(
+    CdnConfig(
       getBoolean("add-version-as-query-param", Some(false)),
       getMaybeString("domain"),
       getMaybeString("key-pair-id"),
