@@ -17,7 +17,7 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.api.tracking.{ApiTracking, ApiTrackingLogger, NullTracking}
 import org.corespring.api.v1.{V1ApiExecutionContext, V1ApiModule}
 import org.corespring.assets.{CorespringS3ServiceExtended, ItemAssetKeys}
-import org.corespring.common.config.ContainerConfig
+import org.corespring.common.config.{ItemAssetResolverConfig, ContainerConfig}
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ComponentSetExecutionContext, ItemAssetResolver}
