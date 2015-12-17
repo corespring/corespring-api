@@ -2,11 +2,8 @@ var regexForTags = /(<([^>]+)>)/ig;
 function up() {
   db.content.find({"playerDefinition": {$exists: true}}).forEach(function(item) {
     var components = item && item.playerDefinition && item.playerDefinition.components ? item.playerDefinition.components : {};
-    var propertyName = '';
-    // First loop gets all select text components
     for (var prop in components) {
       if (components[prop].componentType === 'corespring-select-text') {
-        propertyName = prop;
         var passage = '';
         var correctResponses = [];
         components[prop].model.choices.forEach(function(choice, index) {
@@ -48,38 +45,36 @@ function up() {
         delete components[prop].model.config.showFeedback;
         delete components[prop].model.config.checkIfCorrect;
         delete components[prop].model.config.minSelections;
-        break;
-      }
-    }
-    if (propertyName !== '') {
-      for (var comp in components) {
-        var normalizedPropName = comp.toLowerCase();
-        if (normalizedPropName.indexOf(propertyName.toLowerCase() + '_feedback') >= 0) {
-          if (normalizedPropName.indexOf('responsescorrect') >= 0
-              && components[propertyName].feedback.correctFeedbackType) {
-            if (components[comp].feedback
-                && components[comp].feedback.outcome
-                && components[comp].feedback.outcome.responsesCorrect
-                && components[comp].feedback.outcome.responsesCorrect.text) {
-              components[propertyName].feedback.correctFeedbackType = 'custom';
-              components[propertyName].feedback.correctFeedback = components[comp].feedback.outcome.responsesCorrect.text.replace(regexForTags, '').trim();
+        // This inner loop iterates over feedback block components related to the select text component
+        for (var comp in components) {
+          var normalizedPropName = comp.toLowerCase();
+          if (normalizedPropName.indexOf(prop.toLowerCase() + '_feedback') >= 0) {
+            if (normalizedPropName.indexOf('responsescorrect') >= 0
+                && components[prop].feedback.correctFeedbackType) {
+              if (components[comp].feedback
+                  && components[comp].feedback.outcome
+                  && components[comp].feedback.outcome.responsesCorrect
+                  && components[comp].feedback.outcome.responsesCorrect.text) {
+                components[prop].feedback.correctFeedbackType = 'custom';
+                components[prop].feedback.correctFeedback = components[comp].feedback.outcome.responsesCorrect.text.replace(regexForTags, '').trim();
+                delete components[comp];
+              }
+            }
+            if (normalizedPropName.indexOf('responsesincorrect') >= 0) {
+              if (components[comp].feedback
+                  && components[comp].feedback.outcome
+                  && components[comp].feedback.outcome.responsesIncorrect
+                  && components[comp].feedback.outcome.responsesIncorrect.text) {
+                components[prop].feedback.incorrectFeedbackType = 'custom';
+                components[prop].feedback.incorrectFeedback = components[comp].feedback.outcome.responsesIncorrect.text.replace(regexForTags, '').trim();
+                delete components[comp];
+              }
+            }
+            if (normalizedPropName.indexOf('exceedmax') >= 0
+                || normalizedPropName.indexOf('belowmin') >= 0
+                || normalizedPropName.indexOf('numbercorrect') >= 0) {
               delete components[comp];
             }
-          }
-          if (normalizedPropName.indexOf('responsesincorrect') >= 0) {
-            if (components[comp].feedback
-                && components[comp].feedback.outcome
-                && components[comp].feedback.outcome.responsesIncorrect
-                && components[comp].feedback.outcome.responsesIncorrect.text) {
-              components[propertyName].feedback.incorrectFeedbackType = 'custom';
-              components[propertyName].feedback.incorrectFeedback = components[comp].feedback.outcome.responsesIncorrect.text.replace(regexForTags, '').trim();
-              delete components[comp];
-            }
-          }
-          if (normalizedPropName.indexOf('exceedmax') >= 0
-              || normalizedPropName.indexOf('belowmin') >= 0
-              || normalizedPropName.indexOf('numbercorrect') >= 0) {
-            delete components[comp];
           }
         }
       }
