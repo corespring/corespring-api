@@ -29,6 +29,7 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
         val sut = new SignedItemAssetResolver(domain, validInHours, urlSigner, version)
         sut.resolve("123456789012345678901234:0")("test.jpeg")
       }
+
     }
 
     def beCloseInTimeTo(date: Date, timeDiff: Int = 500) = new Matcher[Date] {
@@ -39,40 +40,34 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
           e)
     }
 
+    def catchAndReturn(block:(Any=>Any)): Option[Throwable] = {
+      try {
+        block()
+        None
+      } catch {
+        case t: Throwable => Some(t)
+      }
+    }
+
 
     "resolve" should {
 
       "throw error when domain is not set" in new scope {
-        try {
+        catchAndReturn { _ =>
           createAndResolve(emptyDomain, 24, version)
-        } catch {
-          case e: Throwable => {
-            e should haveClass[IllegalArgumentException]
-            e.getMessage === "domain is not defined"
-          }
-        }
+        } equals Some(new IllegalArgumentException("domain is not defined"))
       }
 
       "throw error when domain is not valid" in new scope {
-        try {
+        catchAndReturn { _ =>
           createAndResolve(invalidDomain, 24, version)
-        } catch {
-          case e: Throwable => {
-            e should haveClass[IllegalArgumentException]
-            e.getMessage === "domain must start with two slashes. Actual domain is: invalid-domain"
-          }
-        }
+        } equals Some( new IllegalArgumentException("domain must start with two slashes. Actual domain is: invalid-domain"))
       }
 
       "throw error when validInHours is <= 0" in new scope {
-        try {
+        catchAndReturn { _ =>
           createAndResolve(validDomain, 0, version)
-        } catch {
-          case e: Throwable => {
-            e should haveClass[IllegalArgumentException]
-            e.getMessage === "validInHours should be an Int >= 0"
-          }
-        }
+        } equals Some( new IllegalArgumentException("validInHours should be an Int >= 0"))
       }
 
       "return signed url" in new scope {
