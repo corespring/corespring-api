@@ -29,6 +29,16 @@ class ItemTest extends Specification {
       val item = Item(collectionId = collectionId, taskInfo = Some(TaskInfo()))
       item.cloneItem(newCollectionId).collectionId === newCollectionId
     }
+
+    "sets clonedFrom to None for new Item" in {
+      val item = Item(collectionId = collectionId, taskInfo = Some(TaskInfo()))
+      item.clonedFromId === None
+    }
+
+    "sets clonedFrom to original item" in {
+      val item = Item(collectionId = collectionId, taskInfo = Some(TaskInfo()))
+      item.cloneItem().clonedFromId === Some(item.id)
+    }
   }
 
 }

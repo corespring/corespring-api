@@ -48,6 +48,7 @@ trait ItemFormat extends Format[model.Item] with ValueGetter {
 
     val basics: Seq[Option[(String, JsValue)]] = Seq(
       Some(("id" -> Json.toJson(item.id))),
+      item.clonedFromId.map( c => "clonedFromId" -> Json.toJson(c)),
       Some(Keys.collectionId -> JsString(item.collectionId)),
       item.workflow.map((Keys.workflow -> Json.toJson(_))),
       item.data.map((Keys.data -> Json.toJson(_))),
@@ -65,7 +66,6 @@ trait ItemFormat extends Format[model.Item] with ValueGetter {
 
     val strings: Seq[Option[(String, JsValue)]] = Seq(
       (Keys.lexile, item.lexile),
-      (Keys.originId, item.originId),
       (Keys.pValue, item.pValue),
       (Keys.priorUse, item.priorUse)).map(makeJsString)
 
@@ -110,7 +110,6 @@ trait ItemFormat extends Format[model.Item] with ValueGetter {
       contributorDetails = json.asOpt[model.ContributorDetails],
       lexile = (json \ Keys.lexile).asOpt[String],
       pValue = (json \ Keys.pValue).asOpt[String],
-      originId = (json \ Keys.originId).asOpt[String],
       supportingMaterials = (json \ Keys.supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq()),
       priorUse = (json \ Keys.priorUse).asOpt[String],
       priorUseOther = (json \ Keys.priorUseOther).asOpt[String],

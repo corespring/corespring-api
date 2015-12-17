@@ -9,9 +9,6 @@ the integration tests.
     </appender>
 
 
-    <logger name="org.corespring.services.salat.OrgCollectionServiceTest" level="DEBUG"/>
-    <logger name="org.corespring.services.salat.OrgCollectionService" level="TRACE"/>
-
     <root level="WARN">
         <appender-ref ref="STDOUT" />
     </root>
