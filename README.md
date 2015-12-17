@@ -241,3 +241,4 @@ If your updates are slow due to snapshot updates, you may set the following in y
 ```
 
 This will disable snapshots updating themselves.
+
