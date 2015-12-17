@@ -11,18 +11,21 @@ class SignedItemAssetResolver(
   cdnUrlSigner: CdnUrlSigner,
   version: Option[String]) extends ItemAssetResolver {
 
-  if(!domain.isDefined){
-    throw new IllegalArgumentException("domain is not defined")
-  }
-  if(!domain.get.startsWith("//")){
-    throw new IllegalArgumentException(s"Domain must start with two slashes. Actual domain is: ${domain.get}")
-  }
-  if(!(validInHours > 0)){
-    throw new IllegalArgumentException("validInHours should be an Int >= 0")
+  override def resolve(itemId: String)(file: String): String = {
+    assertParameters()
+    signUrl(appendOptionalVersion(s3ObjectPath(itemId, file)))
   }
 
-  override def resolve(itemId: String)(file: String): String = {
-    signUrl(appendOptionalVersion(s3ObjectPath(itemId, file)))
+  private def assertParameters(): Unit ={
+    if(!domain.isDefined){
+      throw new IllegalArgumentException("domain is not defined")
+    }
+    if(!domain.get.startsWith("//")){
+      throw new IllegalArgumentException(s"domain must start with two slashes. Actual domain is: ${domain.get}")
+    }
+    if(!(validInHours > 0)){
+      throw new IllegalArgumentException("validInHours should be an Int >= 0")
+    }
   }
 
   private def signUrl(s3ObjectKey: String): String = {

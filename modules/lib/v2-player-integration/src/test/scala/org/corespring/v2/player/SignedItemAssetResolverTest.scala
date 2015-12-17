@@ -14,7 +14,7 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
 
     trait scope extends Scope {
       val validDomain = Some("//domain")
-      val invalidDomain = Some("invalid")
+      val invalidDomain = Some("invalid-domain")
       val emptyDomain = None
       val emptyVersion = None
       val version = Some("1234")
@@ -23,6 +23,11 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
         val m = mock[CdnUrlSigner]
         m.signUrl(any[String], any[Date]) returns "fake signed url"
         m
+      }
+
+      def createAndResolve(domain: Option[String], validInHours: Int, version: Option[String]):String = {
+        val sut = new SignedItemAssetResolver(domain, validInHours, urlSigner, version)
+        sut.resolve("123456789012345678901234:0")("test.jpeg")
       }
     }
 
@@ -35,70 +40,74 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
     }
 
 
-    "on creation" should {
+    "resolve" should {
 
-      "throw error when cdnDomain is not set" in new scope {
-        new SignedItemAssetResolver(emptyDomain, 24, urlSigner, version) should throwA[IllegalArgumentException]
+      "throw error when domain is not set" in new scope {
+        try {
+          createAndResolve(emptyDomain, 24, version)
+        } catch {
+          case e: Throwable => {
+            e should haveClass[IllegalArgumentException]
+            e.getMessage === "domain is not defined"
+          }
+        }
       }
 
-      "throw error when cdnDomain is not valid" in new scope {
-        new SignedItemAssetResolver(invalidDomain, 24, urlSigner, version) should throwA[IllegalArgumentException]
+      "throw error when domain is not valid" in new scope {
+        try {
+          createAndResolve(invalidDomain, 24, version)
+        } catch {
+          case e: Throwable => {
+            e should haveClass[IllegalArgumentException]
+            e.getMessage === "domain must start with two slashes. Actual domain is: invalid-domain"
+          }
+        }
       }
 
       "throw error when validInHours is <= 0" in new scope {
-        new SignedItemAssetResolver(validDomain, 0, urlSigner, version) should throwA[IllegalArgumentException]
+        try {
+          createAndResolve(validDomain, 0, version)
+        } catch {
+          case e: Throwable => {
+            e should haveClass[IllegalArgumentException]
+            e.getMessage === "validInHours should be an Int >= 0"
+          }
+        }
       }
-
-      "not throw when all parameters are set" in new scope {
-        new SignedItemAssetResolver(validDomain, 24, urlSigner, version) should haveClass[SignedItemAssetResolver]
-      }
-    }
-
-    "on calling resolve" should {
 
       "return signed url" in new scope {
-        val sut = new SignedItemAssetResolver(validDomain, 24, urlSigner, version)
-        sut.resolve("123456789012345678901234:0")("test.jpeg") === "fake signed url"
+        createAndResolve(validDomain, 24, version) === "fake signed url"
       }
 
       "append version" in new scope {
-        val sut = new SignedItemAssetResolver(validDomain, 24, urlSigner, version)
-        sut.resolve("123456789012345678901234:0")("test.jpeg")
+        createAndResolve(validDomain, 24, version)
         there was one(urlSigner).signUrl(find("version=1234"), any[Date])
       }
 
       "not append version if it is None" in new scope {
-        val sut = new SignedItemAssetResolver(validDomain, 24, urlSigner, version = None)
-        sut.resolve("123456789012345678901234:0")("test.jpeg")
+        createAndResolve(validDomain, 24, version = None)
         there was one(urlSigner).signUrl(not(find("version=1234")), any[Date])
       }
 
       "use domain" in new scope {
-        val sut = new SignedItemAssetResolver(validDomain, 24, urlSigner, version)
-        sut.resolve("123456789012345678901234:0")("test.jpeg")
+        createAndResolve(validDomain, 24, version)
         there was one(urlSigner).signUrl(find("://domain/"), any[Date])
       }
 
       "use https protocol" in new scope {
-        val sut = new SignedItemAssetResolver(validDomain, 24, urlSigner, version)
-        sut.resolve("123456789012345678901234:0")("test.jpeg")
+        createAndResolve(validDomain, 24, version)
         there was one(urlSigner).signUrl(find("https://"), any[Date])
       }
 
       "use correct s3 path" in new scope {
-        val sut = new SignedItemAssetResolver(validDomain, 24, urlSigner, version)
-        val itemId = "123456789012345678901234"
-        val itemVersion = 0
-        val file = "test.jpeg"
-        sut.resolve(itemId + ":" + itemVersion)(file)
-        there was one(urlSigner).signUrl(find("/" + itemId + "/" + itemVersion + "/data/" + file), any[Date])
+        createAndResolve(validDomain, 24, version)
+        there was one(urlSigner).signUrl(find("/123456789012345678901234/0/data/test.jpeg"), any[Date])
       }
 
       "pass correct valid-until-date" in new scope {
         val durationInHours = 24
         val expectedDate = DateTime.now().plusHours(durationInHours).toDate
-        val sut = new SignedItemAssetResolver(validDomain, durationInHours, urlSigner, version)
-        sut.resolve("123456789012345678901234:0")("test.jpeg")
+        createAndResolve(validDomain, durationInHours, version)
         there was one(urlSigner).signUrl(any[String], beCloseInTimeTo(expectedDate))
       }
 
