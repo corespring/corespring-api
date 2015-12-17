@@ -1,5 +1,7 @@
 package org.corespring.services.salat
 
+import java.util
+
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
@@ -200,6 +202,35 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     }
   }
 
+  override def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Seq[Permission] = {
+    logger.debug(s"fuction=getPermission, orgId=$orgId, collectionIds=$collectionIds")
+
+    val stream = orgService.orgsWithPath(orgId, true)
+    lazy val allRefs = stream.map(_.contentcolls).flatten.distinct
+
+    val query = "_id" $in collectionIds
+
+    def permissionFromRef(c:util.Collection) : Permission = {
+      
+    }
+
+    lazy val publicPermission = collectionDao.find(query).map { collection =>
+      if (collection.isPublic) Permission.Read else permissionFromRef(collection)
+    }
+
+    val allRefs = stream.map(_.contentcolls).flatten.distinct
+
+    logger.trace(s"function=getPermission, allRefs=$allRefs")
+
+    if (allRefs.isEmpty) {
+      publicPermission
+    } else {
+      allRefs.find(_.collectionId == collId).map { r =>
+        Permission.fromLong(r.pval)
+      }.getOrElse(publicPermission)
+    }
+  }
+
   private def getCollRef(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
     import scalaz.Scalaz._
 
@@ -232,4 +263,13 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     }.getOrElse(false)
   }
 
+  /**
+    * A batch api for checking multiple authorizations at once.
+    * does the given organization have access to the given collection with given permission.
+    *
+    * @param orgId
+    * @param collectionIdAndPermission
+    * @return
+    */
+  override def isAuthorized(orgId: Imports.ObjectId, collectionIdAndPermission: (Imports.ObjectId, Permission)*): Seq[Boolean] = ???
 }
