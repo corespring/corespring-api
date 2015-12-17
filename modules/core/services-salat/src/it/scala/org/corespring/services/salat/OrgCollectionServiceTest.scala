@@ -400,6 +400,11 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       val otherOrgOne = insertCollection("other-org-one", otherOrg)
     }
 
+    "return Permission.Write for a public collection that an org has write access to" in new getPermission {
+      val publicCollection = insertCollection("public", root, true)
+      service.getPermission(root.id, publicCollection.id) must_== Some(Permission.Write)
+    }
+
     "return None for an unknown org and collection" in new getPermission {
       service.getPermission(ObjectId.get, ObjectId.get) must_== None
     }

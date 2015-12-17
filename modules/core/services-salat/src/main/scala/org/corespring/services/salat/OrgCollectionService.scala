@@ -226,6 +226,7 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
 
     val query = "_id" $in distinctIds
 
+
     def permissionFromRef(c:ContentCollection) : (ObjectId, Option[Permission]) = {
       val fallbackPermission = if(c.isPublic) Some(Permission.Read) else None
       val p = allRefs.find(_.collectionId == c.id).flatMap{ r => Permission.fromLong(r.pval)}.orElse(fallbackPermission)
