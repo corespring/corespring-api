@@ -180,7 +180,8 @@ We are using cloudfront for the CDN. see: https://console.aws.amazon.com/cloudfr
 #### Deployment steps: 
 see [Amazon Docs] (http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html)
 
-Note: The Cloudfront console is slow. Changing any of the settings in there easily can take 5 minutes before it is applied. Better to do this in quiet hours on prod.  
+**Note 1:** The Cloudfront console is slow. Changing any of the settings in there easily can take 5 minutes before it is applied. Better to do this in quiet hours on prod.  
+**Note 2:** The settings for restricted access are tied to the cloudfront distribution. If you set the distribution to require signed urls, all items in there will need to be signed.    
 
 1. Create CloudFront Key Pairs    
 see [Amazon howto] (http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html#private-content-creating-cloudfront-key-pairs)
@@ -194,12 +195,12 @@ In the Cloudfront Origin tab for your distribution choose restrict bucket access
 In the Cloudfront Behaviour tab for your distribution choose restrict viewer access = yes. Choose "self" as the trused signer 
 
 5. Heroku settings  
-(IAR is short for Item Asset Resolver)
-ENV_IAR_CDN_DOMAIN - set it to the the cloudfront domain with two leading slashes - no default
-ENV_IAR_CDN_KEY_PAIR_ID - set it to the name of the key pair that you created in step 1 - no default 
-ENV_IAR_CDN_PRIVATE_KEY - set it to the content of the private key file - no default 
-ENV_IAR_CDN_SIGN_URLS - set it to true or false to activate/deactivate signing of urls - default is false 
-ENV_IAR_CDN_URL_VALID_IN_HOURS - set it to the number of hours a url should remain valid - default is 24 
+(IAR is short for Item Asset Resolver)  
+ENV_IAR_CDN_DOMAIN - set it to the the cloudfront domain with two leading slashes - no default  
+ENV_IAR_CDN_KEY_PAIR_ID - set it to the name of the key pair that you created in step 1 - no default  
+ENV_IAR_CDN_PRIVATE_KEY - set it to the content of the private key file - no default   
+ENV_IAR_CDN_SIGN_URLS - set it to true or false to activate/deactivate signing of urls - default is false   
+ENV_IAR_CDN_URL_VALID_IN_HOURS - set it to the number of hours a url should remain valid - default is 24   
 
 
 #### Deactivation 
