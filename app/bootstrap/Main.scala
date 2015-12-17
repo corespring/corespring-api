@@ -17,7 +17,7 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.api.tracking.{ApiTracking, ApiTrackingLogger, NullTracking}
 import org.corespring.api.v1.{V1ApiExecutionContext, V1ApiModule}
 import org.corespring.assets.{CorespringS3ServiceExtended, ItemAssetKeys}
-import org.corespring.common.config.ContainerConfig
+import org.corespring.common.config.{ItemAssetResolverConfig, ContainerConfig}
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ComponentSetExecutionContext, ItemAssetResolver}
@@ -198,7 +198,21 @@ class Main(
 
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
-  lazy val itemAssetResolver: ItemAssetResolver = new CDNItemAssetResolver(cdnResolver)
+  lazy val itemAssetResolver: ItemAssetResolver = {
+    val config = ItemAssetResolverConfig(configuration, current.mode)
+    val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
+    if (config.signUrls){
+      new SignedItemAssetResolver(
+        config.domain,
+        config.urlValidInHours,
+        new CdnUrlSigner(config.keyPairId, config.privateKey),
+        version)
+    } else {
+      new UnsignedItemAssetResolver(
+        new CDNResolver(config.domain, version)
+      )
+    }
+  }
 
   override lazy val elasticSearchConfig = ElasticSearchConfig(
     appConfig.elasticSearchUrl,
