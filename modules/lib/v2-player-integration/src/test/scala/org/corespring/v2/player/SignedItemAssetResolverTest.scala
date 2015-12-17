@@ -96,9 +96,10 @@ class SignedItemAssetResolverTest extends Specification with Mockito {
 
       "pass correct valid-until-date" in new scope {
         val durationInHours = 24
+        val expectedDate = DateTime.now().plusHours(durationInHours).toDate
         val sut = new SignedItemAssetResolver(validDomain, durationInHours, urlSigner, version)
         sut.resolve("123456789012345678901234:0")("test.jpeg")
-        there was one(urlSigner).signUrl(any[String], beCloseInTimeTo(DateTime.now().plusHours(durationInHours).toDate))
+        there was one(urlSigner).signUrl(any[String], beCloseInTimeTo(expectedDate))
       }
 
     }
