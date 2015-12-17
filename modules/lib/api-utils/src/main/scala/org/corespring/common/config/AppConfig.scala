@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 import play.api.Configuration
 import scala.language.implicitConversions
 
-class AppConfig(config: Configuration) {
+case class AppConfig(config: Configuration) extends ConfigurationHelper {
 
   protected object Key extends Enumeration {
     type Key = Value
@@ -15,32 +15,30 @@ class AppConfig(config: Configuration) {
 
   private implicit def keyToString(k: Key.Key): String = k.toString
 
-  private def notFound(n: String) = throw new RuntimeException("Not found: $n")
-  lazy val allowAllSessions: Boolean = config.getBoolean(Key.ALLOW_ALL_SESSIONS).getOrElse(false)
-  lazy val amazonKey: String = config.getString(Key.AMAZON_ACCESS_KEY).getOrElse("?")
-  lazy val amazonSecret: String = config.getString(Key.AMAZON_ACCESS_SECRET).getOrElse("?")
-  lazy val amazonEndpoint: Option[String] = config.getString(Key.AMAZON_ENDPOINT)
-  lazy val assetsBucket: String = config.getString(Key.AMAZON_ASSETS_BUCKET).getOrElse("?")
-  lazy val appVersionOverride: String = config.getString(Key.APP_VERSION_OVERRIDE).getOrElse("")
-  lazy val demoOrgId: ObjectId = config.getString(Key.DEMO_ORG_ID).map(new ObjectId(_)).getOrElse(throw new RuntimeException("Not found"))
-  lazy val dynamoDbActivate: Boolean = config.getBoolean(Key.DYNAMO_DB_ACTIVATE).getOrElse(false)
-  lazy val dynamoDbLocalInit: Boolean = config.getBoolean(Key.DYNAMO_DB_LOCAL_INIT).getOrElse(false)
-  lazy val dynamoDbLocalPort: Int = config.getInt(Key.DYNAMO_DB_LOCAL_PORT).getOrElse(8000)
-  lazy val dynamoDbUseLocal: Boolean = config.getBoolean(Key.DYNAMO_DB_USE_LOCAL).getOrElse(false)
-  lazy val elasticSearchUrl: URL = new URL(config.getString(Key.ELASTIC_SEARCH_URL).getOrElse("?"))
-  lazy val envName: String = config.getString(Key.ENV_NAME).getOrElse("dev")
-  lazy val rootOrgId: ObjectId = config.getString(Key.ROOT_ORG_ID).map(new ObjectId(_)).getOrElse(throw new RuntimeException("Not found"))
-  lazy val v2playerOrgIds: Seq[ObjectId] = config.getString(Key.V2_PLAYER_ORG_IDS).map(_.split(",").map(new ObjectId(_)).toSeq).getOrElse(Seq.empty[ObjectId])
+  lazy val allowAllSessions: Boolean = getBoolean(Key.ALLOW_ALL_SESSIONS, Some(false))
+  lazy val amazonKey: String = getString(Key.AMAZON_ACCESS_KEY, Some("?"))
+  lazy val amazonSecret: String = getString(Key.AMAZON_ACCESS_SECRET, Some("?"))
+  lazy val amazonEndpoint: Option[String] = getMaybeString(Key.AMAZON_ENDPOINT)
+  lazy val assetsBucket: String = getString(Key.AMAZON_ASSETS_BUCKET, Some("?"))
+  lazy val appVersionOverride: String = getString(Key.APP_VERSION_OVERRIDE, Some(""))
+  lazy val demoOrgId: ObjectId = new ObjectId(getString(Key.DEMO_ORG_ID))
+  lazy val dynamoDbActivate: Boolean = getBoolean(Key.DYNAMO_DB_ACTIVATE, Some(false))
+  lazy val dynamoDbLocalInit: Boolean = getBoolean(Key.DYNAMO_DB_LOCAL_INIT, Some(false))
+  lazy val dynamoDbLocalPort: Int = getInt(Key.DYNAMO_DB_LOCAL_PORT, Some(8000))
+  lazy val dynamoDbUseLocal: Boolean = getBoolean(Key.DYNAMO_DB_USE_LOCAL, Some(false))
+  lazy val elasticSearchUrl: URL = new URL(getString(Key.ELASTIC_SEARCH_URL, Some("?")))
+  lazy val envName: String = getString(Key.ENV_NAME, Some("dev"))
+  lazy val rootOrgId: ObjectId = new ObjectId(getString(Key.ROOT_ORG_ID))
+  lazy val v2playerOrgIds: Seq[ObjectId] = getMaybeString(Key.V2_PLAYER_ORG_IDS).map(_.split(",").map(new ObjectId(_)).toSeq).getOrElse(Seq.empty[ObjectId])
   lazy val archiveContentCollectionId: ObjectId = new ObjectId(getString("archive.contentCollectionId"))
   lazy val archiveOrgId: ObjectId = new ObjectId(getString("archive.orgId"))
-  lazy val publicSite = config.getString("publicSiteUrl").getOrElse("//www.corespring.org")
+  lazy val publicSite = getString("publicSiteUrl", Some("//www.corespring.org"))
   lazy val mongoUri = getString("mongodb.default.uri")
-  lazy val componentFilteringEnabled: Boolean = config.getBoolean(Key.COMPONENT_FILTERING_ENABLED).getOrElse(notFound(Key.COMPONENT_FILTERING_ENABLED))
-  lazy val sessionService: String = config.getString(Key.SESSION_SERVICE).getOrElse("?")
-  lazy val sessionServiceUrl: String = config.getString(Key.SESSION_SERVICE_URL).getOrElse("?")
-  lazy val sessionServiceAuthToken: String = config.getString(Key.SESSION_SERVICE_AUTHTOKEN).getOrElse("?")
+  lazy val componentFilteringEnabled: Boolean = getBoolean(Key.COMPONENT_FILTERING_ENABLED)
+  lazy val sessionService: String = getString(Key.SESSION_SERVICE, Some("?"))
+  lazy val sessionServiceUrl: String = getString(Key.SESSION_SERVICE_URL, Some("?"))
+  lazy val sessionServiceAuthToken: String = getString(Key.SESSION_SERVICE_AUTHTOKEN, Some("?"))
 
-  private def getString(key: String): String = config.getString(key).getOrElse(throw new RuntimeException(s"Key not found: $key"))
 
 }
 
