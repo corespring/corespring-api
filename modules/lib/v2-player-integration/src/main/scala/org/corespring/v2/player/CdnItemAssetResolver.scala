@@ -6,11 +6,10 @@ import org.corespring.drafts.item.S3Paths
 import org.corespring.platform.data.mongo.models.VersionedId
 
 
-class UnsignedItemAssetResolver(
-  cdnResolver: CDNResolver) extends ItemAssetResolver {
+class CdnItemAssetResolver(cdnResolver: CdnResolver) extends ItemAssetResolver {
 
   override def resolve(itemId: String)(file: String): String = {
-    if(cdnResolver.cdnDomain.isDefined) {
+    if(cdnResolver.enabled) {
       cdnResolver.resolveDomain(s3ObjectPath(itemId, file))
     } else {
       file

@@ -7,13 +7,15 @@ import java.util.Date
 
 import com.amazonaws.auth.PEM
 import com.amazonaws.services.cloudfront.CloudFrontUrlSigner
+import org.joda.time.DateTime
 
 class CdnUrlSigner(
   keyPairId: String,
-  privateKeyString: String) {
+  privateKeyString: String,
+  urlValidInHours: Int ) {
 
-  def signUrl(url: String, validUntil: Date): String = {
-
+  def signUrl(url: String): String = {
+    val validUntil = DateTime.now().plusHours(urlValidInHours).toDate
     CloudFrontUrlSigner.getSignedURLWithCannedPolicy(
       url,
       keyPairId,
@@ -21,7 +23,7 @@ class CdnUrlSigner(
       validUntil)
   }
 
-  lazy val privateKey: PrivateKey = {
+  private lazy val privateKey: PrivateKey = {
     PEM.readPrivateKey(new ByteArrayInputStream(privateKeyString.getBytes(StandardCharsets.UTF_8)))
   }
 }

@@ -6,36 +6,36 @@ import bootstrap.Actors.UpdateItem
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.s3.transfer.TransferManager
-import com.amazonaws.services.s3.{AmazonS3, AmazonS3Client, S3ClientOptions}
+import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
-import developer.{DeveloperConfig, DeveloperModule}
-import filters.{BlockingFutureQueuer, CacheFilter, FutureQueuer}
+import developer.{ DeveloperConfig, DeveloperModule }
+import filters.{ BlockingFutureQueuer, CacheFilter, FutureQueuer }
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.api.tracking.{ApiTracking, ApiTrackingLogger, NullTracking}
-import org.corespring.api.v1.{V1ApiExecutionContext, V1ApiModule}
-import org.corespring.assets.{CorespringS3ServiceExtended, ItemAssetKeys}
-import org.corespring.common.config.{ItemAssetResolverConfig, ContainerConfig}
+import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
+import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
+import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
+import org.corespring.common.config.{ CdnConfig, CdnConfig$, ContainerConfig }
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
-import org.corespring.container.client.{ComponentSetExecutionContext, ItemAssetResolver}
-import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
+import org.corespring.container.client.{ ComponentSetExecutionContext, ItemAssetResolver }
+import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
-import org.corespring.conversion.qti.transformers.{ItemTransformer, ItemTransformerConfig, PlayerJsonToItem}
+import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
 import org.corespring.drafts.item.DraftAssetKeys
-import org.corespring.drafts.item.models.{DraftId, OrgAndUser, SimpleOrg, SimpleUser}
+import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.encryption.EncryptionModule
 import org.corespring.importing.validation.ItemSchema
-import org.corespring.importing.{ImportingExecutionContext, ItemImportModule}
-import org.corespring.itemSearch.{ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule}
+import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
+import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
-import org.corespring.models.appConfig.{AccessTokenConfig, ArchiveConfig, Bucket}
-import org.corespring.models.item.{ComponentType, FieldValue, Item}
+import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
+import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.models.{Standard, Subject}
+import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.core.LegacyModule
 import org.corespring.platform.core.services.item.SupportingMaterialsAssets
 import org.corespring.platform.data.VersioningDao
@@ -43,27 +43,27 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api._
-import org.corespring.v2.api.services.{BasicScoreService, ScoreService}
-import org.corespring.v2.auth.{AccessSettingsCheckConfig, V2AuthModule}
+import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
+import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player._
 import org.corespring.v2.player.hooks.StandardsTree
-import org.corespring.v2.player.services.item.{DraftSupportingMaterialsService, ItemSupportingMaterialsService, MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService}
+import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService, MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService }
 import org.corespring.v2.sessiondb._
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import org.corespring.web.user.SecureSocial
 import org.joda.time.DateTime
-import play.api.Mode.{Mode => PlayMode}
-import play.api.libs.json.{JsArray, Json}
+import play.api.Mode.{ Mode => PlayMode }
+import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
-import play.api.{Configuration, Logger, Mode}
+import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import se.radley.plugin.salat.SalatPlugin
-import web.{DefaultOrgs, PublicSiteConfig, WebModule}
-import web.models.{ContainerVersion, WebExecutionContext}
+import web.{ DefaultOrgs, PublicSiteConfig, WebModule }
+import web.models.{ ContainerVersion, WebExecutionContext }
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -71,12 +71,12 @@ import scalaz.Validation
 object Main {
   def apply(app: play.api.Application): Main = {
 
-   lazy val db: MongoDB = {
+    lazy val db: MongoDB = {
       app.plugins
         .find(p => classOf[SalatPlugin].isAssignableFrom(p.getClass))
         .map(_.asInstanceOf[SalatPlugin])
         .map(_.db("default"))
-        .getOrElse{
+        .getOrElse {
           throw new RuntimeException("Can't find SalatPlugin so can't load the db")
         }
     }
@@ -192,30 +192,25 @@ class Main(
 
   lazy val containerConfig = ContainerConfig(configuration, mode)
 
-  lazy val cdnResolver = new CDNResolver(
-    containerConfig.cdnDomain,
-    if (containerConfig.cdnAddVersionAsQueryParam) Some(mainAppVersion) else None)
+  lazy val cdnConfig = CdnConfig(configuration, mode)
+
+  lazy val cdnResolver = {
+    val version = if (cdnConfig.addVersionAsQueryParam) Some(mainAppVersion) else None
+
+    if (cdnConfig.signUrls) {
+      val domain = cdnConfig.domain.getOrElse(throw new RuntimeException("Cdn: domain is not set"))
+      val keyPairId = cdnConfig.keyPairId.getOrElse(throw new RuntimeException("Cdn: keyPairId is not set"))
+      val privateKey = cdnConfig.privateKey.getOrElse(throw new RuntimeException("Cdn: privateKey is not set"))
+      val urlValidInHours = cdnConfig.urlValidInHours
+      new CdnResolver(cdnConfig.domain, version, Some(new CdnUrlSigner(keyPairId, privateKey, urlValidInHours)))
+    } else {
+      new CdnResolver(cdnConfig.domain, version)
+    }
+  }
 
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
-  lazy val itemAssetResolver: ItemAssetResolver = {
-    val config = ItemAssetResolverConfig(configuration, mode)
-    val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
-    if (config.signUrls){
-      val domain = config.domain.getOrElse(throw new RuntimeException("ItemAssetResolver: domain is not set"))
-      val keyPairId = config.keyPairId.getOrElse(throw new RuntimeException("ItemAssetResolver: keyPairId is not set"))
-      val privateKey = config.privateKey.getOrElse(throw new RuntimeException("ItemAssetResolver: privateKey is not set"))
-      new SignedItemAssetResolver(
-        domain,
-        config.urlValidInHours,
-        new CdnUrlSigner(keyPairId, privateKey),
-        version)
-    } else {
-      new UnsignedItemAssetResolver(
-        new CDNResolver(config.domain, version)
-      )
-    }
-  }
+  lazy val itemAssetResolver: ItemAssetResolver = new CdnItemAssetResolver(cdnResolver)
 
   override lazy val elasticSearchConfig = ElasticSearchConfig(
     appConfig.elasticSearchUrl,
@@ -301,7 +296,6 @@ class Main(
 
     client
   }
-
 
   override lazy val context: Context = new ServicesContext(classLoader)
 
