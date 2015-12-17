@@ -165,10 +165,18 @@ object Main
 
   lazy val itemAssetResolver: ItemAssetResolver = {
     val config = ItemAssetResolverConfig(configuration, current.mode)
-    val playerCdnResolver = new CDNResolver(
-      config.cdnDomain,
-      if (config.cdnAddVersionAsQueryParam) Some(mainAppVersion) else None)
-    new CdnItemAssetResolver(playerCdnResolver, config.cdnSignUrls, config.cdnKeyPairId, config.cdnPrivateKey)
+    val version = if (config.cdnAddVersionAsQueryParam) Some(mainAppVersion) else None
+    if (config.cdnSignUrls){
+      new SignedItemAssetResolver(
+        config.cdnDomain,
+        config.cdnUrlValidInHours,
+        new CdnUrlSigner(config.cdnKeyPairId, config.cdnPrivateKey),
+        version)
+    } else {
+      new UnsignedItemAssetResolver(
+        new CDNResolver(config.cdnDomain, version)
+      )
+    }
   }
 
   override lazy val elasticSearchConfig = ElasticSearchConfig(

@@ -15,5 +15,10 @@ trait ConfigurationHelper {
   protected def getBoolean(key: String, defaultValue: Option[Boolean] = None): Boolean = {
     config.getBoolean(key).getOrElse(defaultValue.getOrElse(throw new RuntimeException(s"Key not found: $key")))
   }
+
+  protected def getInt(key: String, defaultValue: Option[Int] = None): Int = {
+    config.getInt(key).getOrElse(defaultValue.getOrElse(throw new RuntimeException(s"Key not found: $key")))
+  }
+
 }
 

@@ -14,5 +14,6 @@ case class ItemAssetResolverConfig(rootConfig: Configuration, mode: Mode) extend
   lazy val cdnKeyPairId: Option[String] = getMaybeString("key-pair-id")
   lazy val cdnPrivateKey: Option[String] = getMaybeString("private-key")
   lazy val cdnSignUrls: Boolean = getBoolean("sign-urls", Some(mode == Mode.Prod))
+  lazy val cdnUrlValidInHours: Int = getInt("url-valid-in-hours", Some(24))
 }
 
