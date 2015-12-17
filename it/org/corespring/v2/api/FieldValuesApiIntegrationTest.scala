@@ -1,5 +1,6 @@
 package org.corespring.v2.api
 
+import global.Global
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.models.{ Subject, Standard }
@@ -32,12 +33,12 @@ class FieldValuesApiIntegrationTest extends IntegrationSpecification {
 
   trait standard extends scope[Standard] {
     lazy val call = org.corespring.v2.api.routes.FieldValuesApi.standard(queryString)
-    override def insert(t: Standard): Option[ObjectId] = bootstrap.Main.standardService.insert(t)
+    override def insert(t: Standard): Option[ObjectId] = main.standardService.insert(t)
   }
 
   trait subject extends scope[Subject] {
     lazy val call = org.corespring.v2.api.routes.FieldValuesApi.subject(queryString)
-    override def insert(t: Subject): Option[ObjectId] = bootstrap.Main.subjectService.insert(t)
+    override def insert(t: Subject): Option[ObjectId] = main.subjectService.insert(t)
   }
 
   "standard" should {

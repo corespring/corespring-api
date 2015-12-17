@@ -1,5 +1,6 @@
 package org.corespring.v2.player
 
+import global.Global
 import grizzled.slf4j.Logger
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.IntegrationSpecification
@@ -65,7 +66,7 @@ class LoadEditorIntegrationTest
 
   class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelper {
     override lazy val draftName = user.userName
-    lazy val orgService = bootstrap.Main.orgService
+    lazy val orgService = main.orgService
     override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
   }
 

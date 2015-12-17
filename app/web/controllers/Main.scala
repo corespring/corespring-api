@@ -13,6 +13,7 @@ import org.corespring.services.item.FieldValueService
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Logger
 import play.api.libs.json.{JsString, JsValue, Json, JsObject}
@@ -36,7 +37,9 @@ class Main(
   containerVersionInfo: ContainerVersion,
   webExecutionContext: WebExecutionContext,
   playerTokenService: PlayerTokenService,
-  userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts]) extends Controller with securesocial.core.SecureSocial {
+  userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts],
+  buildInfo:BuildInfo,
+  assetsLoader:AssetsLoader) extends Controller with securesocial.core.SecureSocial {
 
   implicit val context = webExecutionContext.context
 
@@ -60,7 +63,7 @@ class Main(
 
   def version = Action.async {
     Future {
-      val json = BuildInfo.json.deepMerge(Json.obj("container" -> containerVersionInfo.json))
+      val json = buildInfo.json.deepMerge(Json.obj("container" -> containerVersionInfo.json))
       Ok(json)
     }
   }
@@ -105,7 +108,7 @@ class Main(
         //Add old 'collections' field
         val legacyJson = Json.obj("collections" -> toJson(org.contentcolls)) ++ toJson(org).as[JsObject]
         val userOrgString = stringify(legacyJson)
-        val html = web.views.html.index(dbServer, dbName, user, userOrgString, fv)
+        val html = web.views.html.index(dbServer, dbName, user, userOrgString, fv, assetsLoader)
         Ok(html)
       }).getOrElse {
         InternalServerError("could not find organization of user")

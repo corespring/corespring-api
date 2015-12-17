@@ -2,7 +2,8 @@
 dbName : String,
 user:org.corespring.models.User,
 orgJsonString: String,
-fieldValues: String)
+fieldValues: String,
+assetsLoader: org.corespring.web.common.controllers.deployment.AssetsLoader)
 
 
 <!DOCTYPE html>
@@ -25,10 +26,10 @@ fieldValues: String)
     @org.corespring.web.common.views.html.head.angular()
     @org.corespring.web.common.views.html.head.select2()
     @org.corespring.web.common.views.html.head.aceEditor()
-    @org.corespring.web.common.views.html.head.corespringCommon()
+    @org.corespring.web.common.views.html.head.corespringCommon(assetsLoader)
     @org.corespring.web.common.views.html.head.fieldValues(fieldValues)
     @org.corespring.web.common.views.html.head.corespringNgComponents()
-    @web.views.html.taggerApp()
+    @web.views.html.taggerApp(assetsLoader)
 
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
     <link href="/assets/stylesheets/item-chooser.css" rel="stylesheet"/>

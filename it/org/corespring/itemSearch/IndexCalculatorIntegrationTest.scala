@@ -1,4 +1,6 @@
 package org.corespring.itemSearch
+
+import global.Global
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import org.corespring.elasticsearch.ContentIndexer
@@ -27,7 +29,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     lazy val orgId = OrganizationHelper.create("test-org")
     lazy val collectionId = CollectionHelper.create(orgId)
     lazy val query = ItemIndexQuery(widgets = Seq("corespring-calculator"))
-    lazy val searchResult = Await.result(bootstrap.Main.itemIndexService.search(query), 1.second)
+    lazy val searchResult = Await.result(main.itemIndexService.search(query), 1.second)
 
     override def after = {
       logger.debug(" ----------- >> after.. cleaning up..")
@@ -66,14 +68,14 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
   trait loadJson extends createItem {
     val dbo = com.mongodb.util.JSON.parse(jsonString).asInstanceOf[DBObject]
     logger.info(s"dbo: $dbo")
-    implicit val nc: Context = bootstrap.Main.context
+    implicit val nc: Context = main.context
     val dboItem = com.novus.salat.grater[Item].asObject(dbo)
     val item = dboItem.copy(collectionId = collectionId.toString)
   }
 
   "search" should {
     "find an item with an automatically inserted calculator when it's indexed via the app" in new loadJson {
-      implicit val itemFormat = bootstrap.Main.jsonFormatting.item
+      implicit val itemFormat = main.jsonFormatting.item
       logger.debug(s"loaded item json: ${Json.prettyPrint(Json.toJson(item))}")
       //This will add the item via the indexing dao
       ItemHelper.create(collectionId, item)
@@ -84,8 +86,8 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
 
     "find an item with an automatically inserted calculator when index is run manually" in new loadJson {
       //Add the raw dbo to the db
-      bootstrap.Main.db(CollectionNames.item).insert(dbo)
-      val cfg = bootstrap.Main.elasticSearchConfig
+      main.db(CollectionNames.item).insert(dbo)
+      val cfg = main.elasticSearchConfig
       //Run the indexer
       logger.info(s"config: $cfg")
       val result = ContentIndexer.reindex(cfg.url, cfg.mongoUri, cfg.componentPath)(ExecutionContext.Implicits.global)
