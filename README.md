@@ -175,6 +175,55 @@ If it's not set the assets will be retrieved locally. Note that this domain need
 
 We are using cloudfront for the CDN. see: https://console.aws.amazon.com/cloudfront/home
 
+### Using cloudfront for item assets in the player 
+
+#### Deployment steps: 
+see [Amazon Docs] (http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html)
+
+**Note 1:** The Cloudfront console is slow. Changing any of the settings in there easily can take 5 minutes before it is applied. Better to do this in quiet hours on prod.  
+**Note 2:** The settings for restricted access are tied to the cloudfront distribution. If you set the distribution to require signed urls, all items in there will need to be signed.  
+  
+
+1. Create CloudFront Key Pairs    
+see [Amazon howto] (http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html#private-content-creating-cloudfront-key-pairs)
+
+2. Create CloudFront distribution for the s3-assets folder of the deployment target 
+
+3. Restrict bucket access   
+In the Cloudfront Origin tab for your distribution choose restrict bucket access = yes with a new or existing identity. Choose "Yes, Update Bucket Policy" to automatically update the bucket policy. If you don't do that, you will see "Forbidden" answers to your requests 
+
+4. Restrict viewer access    
+In the Cloudfront Behaviour tab for your distribution choose restrict viewer access = yes. Choose "self" as the trused signer 
+
+5. Heroku settings  
+(IAR is short for Item Asset Resolver)  
+ENV_IAR_ENABLED - set it to true or false to enable the resolver. When it is disabled, the code will behave like it doesn't exist - default is false  
+ENV_IAR_SIGN_URLS - set it to true or false to activate/deactivate signing of urls - default is false  
+ENV_IAR_CDN_DOMAIN - set it to the the cloudfront domain with two leading slashes - no default    
+ENV_IAR_KEY_PAIR_ID - set it to the name of the key pair that you created in step 1 - no default    
+ENV_IAR_PRIVATE_KEY - set it to the content of the private key file - no default   
+ENV_IAR_URL_VALID_IN_HOURS - set it to the number of hours a url should remain valid - default is 24    
+ENV_IAR_ADD_VERSION_AS_QUERY_PARAM - set it to true to add the app version to the url - default is true 
+
+**Note:** Setting the Private Key via the heroku webapp sometimes doesn't seem to work. You can use 
+
+    heroku config:add ENV_IAR_PRIVATE_KEY="[paste the key here]" --app [the app name]
+    
+**Note 2:** The private key that is used on branch-two is compromised, because it is used in a test (bootstrap.MainTest)  and committed to github. Don't use it for a production system.
+    
+**Note 3:** In corespring-api/bin/shell.scripts/add-item-asset-resolver-vars you can find a script to setup all vars at once. Remember not to commit any secrets.      
+
+#### Deactivation 
+If you want to deactivate the item asset resolver, so that the app works like it did before:
+1. Remove the domain setting ENV_IAR_CDN_DOMAIN 
+2. Set  signUrls to false ENV_IAR_CDN_SIGN_URLS = false
+
+#### Don't sign 
+If you want to use the CDN for item assets but don't want to restrict access, set signUrls to false, ENV_IAR_CDN_SIGN_URLS = false. Make sure that the in the Cloudfront Behaviour tab "restrict viewer access = no" is choosen. 
+
+
+
+
 ## New Relic
 
 New Relic is included as a dependency. It is not our intention yet (as of 9/9) to use this in production, but as an option we can

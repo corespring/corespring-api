@@ -1,9 +1,9 @@
-package org.corespring.v2.player
+package org.corespring.v2.player.cdn
 
 import play.api.Logger
 
-class CDNResolver(domain: Option[String], version: Option[String]) {
-  lazy val logger = Logger(classOf[CDNResolver])
+class CdnResolver(domain: Option[String], version: Option[String]) {
+  lazy val logger = Logger(classOf[CdnResolver])
 
   lazy val cdnDomain = domain.flatMap { d =>
     if (!d.startsWith("//")) {

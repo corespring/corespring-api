@@ -22,8 +22,12 @@ trait ConfigurationHelper {
     config.getBoolean(key).getOrElse(throw new RuntimeException(s"Key not found: $key"))
   }
 
-  protected def getInt(key: String, defaultValue: Option[Int] = None)(implicit config: Configuration): Int = {
-    config.getInt(key).getOrElse(defaultValue.getOrElse(throw new RuntimeException(s"Key not found: $key")))
+  protected def getInt(key: String, defaultValue: Int)(implicit config: Configuration): Int = {
+    config.getInt(key).getOrElse(defaultValue)
+  }
+
+  protected def getInt(key: String)(implicit config: Configuration): Int = {
+    config.getInt(key).getOrElse(throw new RuntimeException(s"Key not found: $key"))
   }
 
 }

@@ -1,13 +1,10 @@
-package org.corespring.v2.player
+package org.corespring.v2.player.cdn
 
 import org.corespring.container.client.ItemAssetResolver
-
 import org.corespring.drafts.item.S3Paths
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.joda.time.DateTime
 
-class UnsignedItemAssetResolver(
-  cdnResolver: CDNResolver) extends ItemAssetResolver {
+class CdnItemAssetResolver(cdnResolver: CdnResolver) extends ItemAssetResolver {
 
   override def resolve(itemId: String)(file: String): String = {
     cdnResolver.resolveDomain(s3ObjectPath(itemId, file))
