@@ -11,10 +11,6 @@ object FutureValidation {
   def apply[E, A](validation: => Validation[E, A])(implicit executor: ExecutionContext): FutureValidation[E, A] = {
     apply(Future(validation))
   }
-
-//  def apply[A](f: => Future[A])(implicit executor : ExecutionContext) : FutureValidation[Throwable,A] = {
-//    FutureValidation(f.map{ r => Success(r) })
-//  }
 }
 
 case class FutureValidation[+E, +A](future: Future[Validation[E, A]]) {

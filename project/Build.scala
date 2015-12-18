@@ -45,7 +45,8 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
   lazy val futureValidation = builders.lib("future-validation", "core")
-    .settings(libraryDependencies ++= Seq(scalaz))
+    .settings(libraryDependencies ++= Seq(scalaz, specs2 % "test"))
+
   lazy val coreServices = builders.lib("services", "core", publish = true)
     .settings(
       libraryDependencies ++= Seq(specs2 % "test"))
