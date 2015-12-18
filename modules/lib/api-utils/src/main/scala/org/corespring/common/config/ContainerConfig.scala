@@ -10,7 +10,6 @@ case class ContainerConfig(
   componentsMinify: Boolean,
   componentsPath: String,
   debounceInMillis: String,
-  devToolsEnabled: String,
   showNonReleasedComponents: Boolean,
   config:Configuration )
 
@@ -33,14 +32,13 @@ object ContainerConfig extends ConfigurationHelper {
     }.getOrElse(Configuration.empty)
 
     ContainerConfig(
-      getBoolean("cdn.add-version-as-query-param", Some(false)),
+      getBoolean("cdn.add-version-as-query-param", false),
       getMaybeString("cdn.domain"),
-      getBoolean("components.gzip", Some(mode == Mode.Prod)),
-      getBoolean("components.minify", Some(mode == Mode.Prod)),
+      getBoolean("components.gzip", mode == Mode.Prod),
+      getBoolean("components.minify", mode == Mode.Prod),
       getString("components.path"),
       getString("editor.autosave.debounceInMillis"),
-      getString("common.DEV_TOOLS_ENABLED"),
-      getBoolean("components.showNonReleasedComponents", Some(mode == Mode.Dev)),
+      getBoolean("components.showNonReleasedComponents", mode == Mode.Dev),
       config)
   }
 }

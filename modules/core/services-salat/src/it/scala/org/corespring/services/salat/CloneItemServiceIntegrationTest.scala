@@ -7,9 +7,13 @@ import org.corespring.models.item.Item
 import org.specs2.execute.Result
 import org.specs2.specification.{Fragment, Scope}
 
+import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.duration._
 import scalaz.{Success, Validation}
 
 class CloneItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
+
+  import ExecutionContext.Implicits.global
 
   trait scope extends Scope with InsertionHelper{
 
@@ -42,20 +46,20 @@ class CloneItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       services.orgCollectionService.grantAccessToCollection(orgOne.id, destinationColl.id, destinationCollectionPerm)
       val itemToClone = insertItem(coll.id)
       val cloneResult = service.cloneItem(itemToClone.id, orgOne.id, Some(destinationColl.id))
-      val clonedItemResult = cloneResult.map{id => services.itemService.findOneById(id).get}
+      val clonedItemResult = Await.result(cloneResult.map{id => services.itemService.findOneById(id).get}.future, 2.seconds)
       fn(clonedItemResult, destinationColl)
     }
   }
 
   "cloneItem" should {
     "clone an item to the same collection as the item" in new scope {
-      val clonedItemId = service.cloneItem(itemOne.id, orgOne.id, Some(orgOneCollectionOne.id)).toOption.get
+      val clonedItemId = Await.result(service.cloneItem(itemOne.id, orgOne.id, Some(orgOneCollectionOne.id)).future, 2.seconds).toOption.get
       val clonedItem = services.itemService.findOneById(clonedItemId).get
       clonedItem.collectionId must_== orgOneCollectionOne.id.toString
     }
 
     "clone an item to the same collection as the item if you don't specify a target" in new scope {
-      val clonedItemId = service.cloneItem(itemOne.id, orgOne.id, None).toOption.get
+      val clonedItemId = Await.result(service.cloneItem(itemOne.id, orgOne.id, None).future, 2.seconds).toOption.get
       val clonedItem = services.itemService.findOneById(clonedItemId).get
       clonedItem.collectionId must_== orgOneCollectionOne.id.toString
     }

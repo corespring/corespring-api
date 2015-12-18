@@ -260,33 +260,37 @@ class ItemApi(
     }
   }
 
-  def cloneItem(id: String) = Action.async { implicit request =>
-    Future {
+  def cloneItem(id:String) = futureWithIdentity((identity, request) => {
 
-      def getTargetCollectionId(vid:VersionedId[ObjectId]) : Validation[V2Error, Option[ObjectId]] = {
 
-        val rawId : Option[String] = request.body.asJson.flatMap{ j =>
-          (j \ "collectionId" ).asOpt[String]
-        }
-
-        rawId.map{ r =>
-          if(ObjectId.isValid(r)){
-            Success(Some(new ObjectId(r)))
-          }  else {
-            Failure(generalError(s"Not a valid object id string: $r"))
-          }
-        }.getOrElse(Success(None))
+    lazy val targetCollectionId : Validation[V2Error, Option[ObjectId]] = {
+      val rawId : Option[String] = request.body.asJson.flatMap{ j =>
+        (j \ "collectionId" ).asOpt[String]
       }
 
-      val out = for {
-        identity <- getOrgAndOptions(request)
-        vid <- VersionedId(id).toSuccess(cantParseItemId(id))
-        maybeTargetId <- getTargetCollectionId(vid)
-        cloned <- cloneItemService.cloneItem(vid, identity.org.id, maybeTargetId).leftMap(e => generalError(s"Error cloning item with id: $id: ${e.message}"))
-      } yield Json.obj("id" -> cloned.id.toString)
-      validationToResult[JsValue](i => Ok(i))(out)
+      rawId.map{ r =>
+        if(ObjectId.isValid(r)){
+          Success(Some(new ObjectId(r)))
+        }  else {
+          Failure(generalError(s"Not a valid object id string: $r"))
+        }
+      }.getOrElse(Success(None))
     }
-  }
+
+    VersionedId(id).map{ vid =>
+      targetCollectionId match {
+        case Success(collectionId) => {
+          cloneItemService.cloneItem(vid, identity.org.id, collectionId).future.map{ v =>
+            val asJson = v.bimap(
+              e => generalError(s"Error cloning item with id: $id: ${e.message}"),
+              id => Json.obj("id" -> id.toString))
+            validationToResult[JsValue](i => Ok(i))(asJson)
+          }
+        }
+        case Failure(e) => Future(e.toResult)
+      }
+    }.getOrElse(Future(cantParseItemId(id).toResult))
+  })
 
   def publish(id: String) = Action.async { implicit request =>
     Future {

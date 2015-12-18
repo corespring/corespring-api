@@ -2,6 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
+import org.corespring.futureValidation.FutureValidation
 import org.corespring.itemSearch.{ ItemIndexQuery, ItemIndexSearchResult }
 import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -38,7 +39,7 @@ class ItemApiCloneTest extends ItemApiSpec {
         item: Option[Item] = Some(clonedItem)) extends ItemApiScope {
 
         cloneItemService.cloneItem(any[VersionedId[ObjectId]], any[ObjectId], any[Option[ObjectId]]) returns {
-          if (itemServiceClones) Success(clonedId) else Failure(PlatformServiceError("cloneItem failed"))
+          FutureValidation(if (itemServiceClones) Success(clonedId) else Failure(PlatformServiceError("cloneItem failed")))
         }
 
         itemIndexService.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult.empty) }

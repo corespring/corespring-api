@@ -8,6 +8,8 @@ import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection
 import org.specs2.mutable.{ After, BeforeAfter }
 import org.specs2.specification.Scope
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scalaz.{ Failure, Success }
 
 class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
@@ -112,18 +114,18 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     "throw an exception if the idsAndPermisions has duplicate ids" in new isAuthorized {
       service.isAuthorizedBatch(testOrg.id, (publicCollection.id -> Permission.Read),
           (publicCollection.id -> Permission.Read)
-      ) must throwA[IllegalArgumentException]
+      ) must throwA[IllegalArgumentException].await
     }
 
     "return 1 result" in new isAuthorized {
-      service.isAuthorizedBatch(testOrg.id, (publicCollection.id -> Permission.Read)) must_== Seq(publicCollection.id -> true)
+      service.isAuthorizedBatch(testOrg.id, (publicCollection.id -> Permission.Read)) must equalTo(Seq(publicCollection.id -> true)).await
     }
 
     "return 2 results" in new isAuthorized {
       service.isAuthorizedBatch(testOrg.id,
         (publicCollection.id -> Permission.Read),
         (otherOrgOne.id -> Permission.Write)
-        ) must_== Seq(publicCollection.id -> true, otherOrgOne.id -> false)
+        ) must equalTo(Seq(publicCollection.id -> true, otherOrgOne.id -> false)).await
     }
 
     "return 3 results" in new isAuthorized {
@@ -131,7 +133,7 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
         (publicCollection.id -> Permission.Read),
         (otherOrgOne.id -> Permission.Write),
         (collection.id -> Permission.Write)
-      ) must_== Seq(publicCollection.id -> true, otherOrgOne.id -> false, collection.id -> false)
+      ) must equalTo(Seq(publicCollection.id -> true, otherOrgOne.id -> false, collection.id -> false)).await
     }
   }
 
@@ -349,25 +351,25 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     "return n permissions of None for unknown org" in new getPermissions{
       val someOrgId = ObjectId.get
       val collectionIds = (1 to 50).map{ i => ObjectId.get }
-      val permissions = service.getPermissions(someOrgId, collectionIds : _*)
+      val permissions = Await.result(service.getPermissions(someOrgId, collectionIds : _*), 2.seconds)
       permissions.length must_== 50
       permissions.filter(_._2.isDefined).length must_== 0
     }
 
 
     "return 1 permission for multiple duplicate ids" in new getPermissions {
-      service.getPermissions(root.id, rootOne.id, rootOne.id, rootOne.id) must_== Seq((rootOne.id -> Some(Permission.Write)))
+      service.getPermissions(root.id, rootOne.id, rootOne.id, rootOne.id) must equalTo(Seq((rootOne.id -> Some(Permission.Write)))).await
     }
 
     "return 1 permission" in new getPermissions{
-      service.getPermissions(root.id, rootOne.id) must_== Seq((rootOne.id -> Some(Permission.Write)))
+      service.getPermissions(root.id, rootOne.id) must equalTo(Seq((rootOne.id -> Some(Permission.Write)))).await
     }
 
     "return 2 permissions" in new getPermissions{
-      service.getPermissions(root.id, rootOne.id, otherOrgOne.id) must_== Seq(
+      service.getPermissions(root.id, rootOne.id, otherOrgOne.id) must equalTo(Seq(
         (rootOne.id -> Some(Permission.Write)),
         (otherOrgOne.id -> None)
-      )
+      )).await
     }
 
     "return 3 permissions" in new getPermissions{
@@ -375,7 +377,7 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       service.grantAccessToCollection(root.id, otherOrgOne.id, Permission.Clone)
 
       val randomId = ObjectId.get
-      val permissions = service.getPermissions(root.id, rootOne.id, otherOrgOne.id, randomId)
+      val permissions = Await.result(service.getPermissions(root.id, rootOne.id, otherOrgOne.id, randomId), 2.seconds)
 
       permissions.length must_== 3
 

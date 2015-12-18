@@ -20,11 +20,11 @@ object ItemAssetResolverConfig extends ConfigurationHelper {
     }.getOrElse(Configuration.empty)
 
     ItemAssetResolverConfig(
-      getBoolean("add-version-as-query-param", Some(false)),
+      getBoolean("add-version-as-query-param", false),
       getMaybeString("domain"),
       getMaybeString("key-pair-id"),
       getMaybeString("private-key"),
-      getBoolean("sign-urls", Some(mode == Mode.Prod)),
+      getBoolean("sign-urls", mode == Mode.Prod),
       getInt("url-valid-in-hours", Some(24)))
   }
 }

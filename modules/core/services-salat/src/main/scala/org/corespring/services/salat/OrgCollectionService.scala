@@ -1,7 +1,5 @@
 package org.corespring.services.salat
 
-import java.util
-
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
@@ -13,8 +11,10 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
 import org.corespring.services.salat.OrgCollectionService.OrgKeys
 import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
+import org.omg.CORBA.TIMEOUT
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
@@ -35,6 +35,8 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
   collectionDao: SalatDAO[ContentCollection, ObjectId],
   salatServicesExecutionContext: SalatServicesExecutionContext,
   implicit val context: Context) extends org.corespring.services.OrgCollectionService {
+
+  private val TIMEOUT = 5.seconds
 
   implicit val ec: ExecutionContext = salatServicesExecutionContext.ctx
 
@@ -183,39 +185,43 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     collectionDao.findOne(query)
   }
 
+
   override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
     logger.debug(s"function=isAuthorized, orgId=$orgId, collId=$collId, p=$p")
-    val batchResult = isAuthorizedBatch(orgId, (collId -> p))
+    val batchResult = Await.result(isAuthorizedBatch(orgId, (collId -> p)), TIMEOUT)
     logger.trace(s"function=isAuthorized, batchResult=$batchResult")
     val maybeAuthorized = batchResult.find{ {case (id, _) => id == collId}}
     logger.trace(s"function=isAuthorized, maybeAuthorized=$maybeAuthorized")
     maybeAuthorized.map(_._2).getOrElse(false)
   }
 
-  override def isAuthorizedBatch(orgId: ObjectId, idsAndPermissions: (ObjectId, Permission)*): Seq[(ObjectId,Boolean)] = {
+  override def isAuthorizedBatch(orgId: ObjectId, idsAndPermissions: (ObjectId, Permission)*): Future[Seq[(ObjectId,Boolean)]] = {
     logger.trace(s"function=isAuthorizedBatch, idsAndPermissions=$idsAndPermissions")
 
     val rawIds = idsAndPermissions.map(_._1)
     require(rawIds.distinct.length == rawIds.length, "There are duplicate ids passed in - can't return a non-ambiguous result")
 
-    val grantedPermissions = getPermissions(orgId, idsAndPermissions.map(_._1) : _*)
+    val f = getPermissions(orgId, idsAndPermissions.map(_._1) : _*)
 
-    grantedPermissions.map{ case (id, granted) =>
-      idsAndPermissions.find( {case (i, _) => i == id}) match {
-        case None => id -> false
-        case Some((_, p)) =>
-          val authorized = granted.map( g => g.has(p)).getOrElse(false)
-          id ->  authorized
+    f.map{ grantedPermissions =>
+      grantedPermissions.map{ case (id, granted) =>
+        idsAndPermissions.find( {case (i, _) => i == id}) match {
+          case None => id -> false
+          case Some((_, p)) =>
+            val authorized = granted.map( g => g.has(p)).getOrElse(false)
+            id ->  authorized
+        }
       }
     }
   }
 
   override def getPermission(orgId: ObjectId, collId: ObjectId): Option[Permission] = {
-    getPermissions(orgId, collId).find({ case (id, p) => id == collId }).flatMap(_._2)
+    val perms = Await.result(getPermissions(orgId, collId), TIMEOUT)
+    perms.find({ case (id, p) => id == collId }).flatMap(_._2)
   }
 
 
-  override def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Stream[(ObjectId,Option[Permission])] = {
+  override def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Future[Stream[(ObjectId,Option[Permission])]] = Future{
     logger.debug(s"function=getPermissions, orgId=$orgId, collectionIds=$collectionIds")
 
     val distinctIds = collectionIds.distinct

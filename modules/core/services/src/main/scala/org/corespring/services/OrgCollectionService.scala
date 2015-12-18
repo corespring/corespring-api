@@ -24,11 +24,11 @@ trait OrgCollectionService {
     * @param collectionIdAndPermission
     * @return
     */
-  def isAuthorizedBatch(orgId: ObjectId, collectionIdAndPermission: (ObjectId,Permission)*): Seq[(ObjectId,Boolean)]
+  def isAuthorizedBatch(orgId: ObjectId, collectionIdAndPermission: (ObjectId,Permission)*): Future[Seq[(ObjectId,Boolean)]]
 
   def getPermission(orgId: ObjectId, collectionId: ObjectId): Option[Permission]
 
-  def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Seq[(ObjectId,Option[Permission])]
+  def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Future[Seq[(ObjectId,Option[Permission])]]
 
   def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean]
 

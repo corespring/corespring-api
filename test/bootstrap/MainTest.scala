@@ -34,6 +34,7 @@ class MainTest extends Specification with Mockito{
       "contentCollectionId" -> ObjectId.get.toString,
       "orgId" -> ObjectId.get.toString
     ),
+    "container.editor.autosave.debounceInMillis" -> 1000,
     "ELASTIC_SEARCH_URL" -> "http://elastic-search.com",
     "container.cdn.domain" -> domain,
     "container.components.path" -> "path",
