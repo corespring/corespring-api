@@ -203,7 +203,8 @@ ENV_IAR_CDN_DOMAIN - set it to the the cloudfront domain with two leading slashe
 ENV_IAR_KEY_PAIR_ID - set it to the name of the key pair that you created in step 1 - no default    
 ENV_IAR_PRIVATE_KEY - set it to the content of the private key file - no default   
 ENV_IAR_URL_VALID_IN_HOURS - set it to the number of hours a url should remain valid - default is 24    
-ENV_IAR_ADD_VERSION_AS_QUERY_PARAM - set it to true to add the app version to the url - default is true 
+ENV_IAR_ADD_VERSION_AS_QUERY_PARAM - set it to true to add the app version to the url - default is true
+ENV_IAR_HTTP_PROTOCOL_FOR_SIGNED_URLS - the signed url will get this protocol - default is https: 
 
 **Note:** Setting the Private Key via the heroku webapp doesn't seem to work. In a shell you can use 
 
@@ -233,6 +234,7 @@ Still cannot access?
 * Open the origin tab and have a look at the column named Origin Access Identity, eg. origin-access-identity/cloudfront/E3V4529M09EC7F  
 * Go to the s3 bucket and open the properties/permissions/edit bucket policy   
 * Verify that the origin access identity in there has the same id
+* Verify that the protocol of the url matches the protocol that the url has been signed with (https: by default)
   
 Works now with signUrl=false
 * Go back to deployment step 4 "Restrict viewer access"

@@ -3,12 +3,18 @@
 export APP_NAME="corespring-app-branch-two"
 
 heroku maintenance:on --app $APP_NAME
+
 heroku config:add ENV_IAR_ENABLED=false --app $APP_NAME
 heroku config:add ENV_IAR_SIGN_URLS=false --app $APP_NAME
-heroku config:add ENV_IAR_ADD_VERSION_AS_QUERY_PARAM=true --app $APP_NAME
-heroku config:add ENV_IAR_URL_VALID_IN_HOURS=24 --app $APP_NAME
+
+#only set the following vars if you want a value different from the default
+#heroku config:add ENV_IAR_ADD_VERSION_AS_QUERY_PARAM=true --app $APP_NAME
+#heroku config:add ENV_IAR_URL_VALID_IN_HOURS=1 --app $APP_NAME
+#heroku config:add ENV_IAR_HTTP_PROTOCOL_FOR_SIGNED_URLS="https:"
+
 heroku config:add ENV_IAR_CDN_DOMAIN="" --app $APP_NAME
 heroku config:add ENV_IAR_KEY_PAIR_ID="" --app $APP_NAME
 heroku config:add ENV_IAR_PRIVATE_KEY="" --app $APP_NAME
+
 heroku maintenance:off --app $APP_NAME
 
