@@ -2,6 +2,7 @@ package org.corespring.common.config
 
 import play.api.{ Configuration }
 
+
 trait ConfigurationHelper {
 
   protected def getString(key: String)(implicit config: Configuration): String = {
