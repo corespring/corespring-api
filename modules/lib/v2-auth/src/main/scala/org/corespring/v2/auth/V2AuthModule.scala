@@ -4,7 +4,7 @@ import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.conversion.qti.transformers.ItemTransformer
-import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.services.{PassageService, OrgCollectionService, OrganizationService}
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.{ PlayerAccessSettings, OrgAndOpts }
 import org.corespring.v2.auth.wired.{ HasPermissions, ItemAuthWired, SessionAuthWired }
@@ -21,6 +21,7 @@ trait V2AuthModule {
   def archiveConfig: ArchiveConfig
   def jsonFormatting: JsonFormatting
   def itemService: ItemService
+  def passageService: PassageService
   def orgService: OrganizationService
   def itemTransformer: ItemTransformer
   def orgCollectionService: OrgCollectionService
@@ -37,6 +38,8 @@ trait V2AuthModule {
   def sessionServices: SessionServices
 
   lazy val itemAccess: ItemAccess = wire[ItemAccess]
+  lazy val passageAccess: PassageAccess = wire[PassageAccess]
   lazy val itemAuth: ItemAuth[OrgAndOpts] = wire[ItemAuthWired]
+  lazy val passageAuth: PassageAuth[OrgAndOpts] = wire[PassageAuthWired]
   lazy val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = wire[SessionAuthWired]
 }

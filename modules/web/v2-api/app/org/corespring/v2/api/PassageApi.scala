@@ -5,24 +5,25 @@ import org.corespring.models.item.Passage
 import org.corespring.models.item.resource.VirtualFile
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.PassageService
+import org.corespring.v2.auth.PassageAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import play.api.mvc.{SimpleResult, RequestHeader}
 
-import scala.concurrent.ExecutionContext
-import scalaz.Validation
+import scala.concurrent.{Future, ExecutionContext}
+import scalaz.{Failure, Success, Validation}
 
 class PassageApi(
-  passageService: PassageService,
+  passageAuth: PassageAuth[OrgAndOpts],
   v2ApiContext: V2ApiExecutionContext,
   override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
   def get(passageId: VersionedId[ObjectId]) = futureWithIdentity { (identity, request) =>
-    passageService.get(passageId).map(_ match {
-      case Some(passage) => PassageResponseWriter.write(passage)
-      case _ => NotFound
+    Future.successful(passageAuth.loadForRead(passageId.toString)(identity) match {
+      case Success(passage) => PassageResponseWriter.write(passage)
+      case Failure(error) => Status(error.statusCode)(error.message)
     })
   }
 

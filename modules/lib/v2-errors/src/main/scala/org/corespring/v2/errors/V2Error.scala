@@ -97,6 +97,8 @@ private[v2] object Errors {
 
   case class cantFindOrgWithId(orgId: ObjectId) extends cantFindById("Can't Find Organization with ID", "The organization with the id provided by the request could not be found.", "org", orgId.toString)
 
+  case class cantFindPassageWithId(passageId: VersionedId[ObjectId]) extends cantFindById("Cant Find Passage with ID", "The passage with the id provided by the request could not be found.", "passage", passageId.toString())
+
   case class cantFindMetadataSetWithId(metadataSetId: ObjectId) extends cantFindById("Can't Find Metadata Set with ID", "The metadata set with the id provided by the request could not be found.", "metadataSet", metadataSetId.toString)
 
   case class cantFindAssessmentWithId(assessmentId: ObjectId) extends cantFindById("Can't Find Assessment with ID", "The assessment with the id provided by the request could not be found.", "assessment", assessmentId.toString)
@@ -142,6 +144,9 @@ private[v2] object Errors {
 
   case class inaccessibleItem(itemId: VersionedId[ObjectId], orgId: ObjectId, p: Permission)
     extends V2Error("Inaccessible Item", "The organization specified by the request cannot access the item with the specified permission.", s"org: $orgId can't access item: $itemId with permission ${p.name}", UNAUTHORIZED)
+
+  case class inaccessiblePassage(passageId: VersionedId[ObjectId], orgId: ObjectId, p: Permission)
+    extends V2Error("Inaccessible Passage", "The organization specified by the request cannot access the passage with the specified permission.", s"org: $orgId can't access passage: $passageId with permission ${p.name}", UNAUTHORIZED)
 
   case class unAuthorized(errors: String*) extends V2Error("Unauthorized", "The request was not authorized with the provided credentials.", errors.mkString(", "), UNAUTHORIZED)
 

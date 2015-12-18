@@ -5,8 +5,9 @@ import org.corespring.models.item.Passage
 import org.corespring.models.item.resource.{VirtualFile, BaseFile}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.PassageService
+import org.corespring.v2.auth.PassageAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.generalError
+import org.corespring.v2.errors.Errors.{cantFindPassageWithId, generalError}
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -21,13 +22,13 @@ import scalaz.{Success, Validation, Failure}
 class PassageApiTest extends Specification with Mockito {
 
   trait PassageApiScope extends Scope {
-    val passageService = mock[PassageService]
+    val passageAuth: PassageAuth[OrgAndOpts] = mock[PassageAuth[OrgAndOpts]]
     val v2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
     def authResponse: Validation[V2Error, OrgAndOpts] = Failure(generalError("Nope", UNAUTHORIZED))
     lazy val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts] = {
       request => authResponse
     }
-    val passageApi = new PassageApi(passageService, v2ApiExecutionContext, getOrgAndOptionsFn)
+    val passageApi = new PassageApi(passageAuth, v2ApiExecutionContext, getOrgAndOptionsFn)
     val passageId = new VersionedId[ObjectId](new ObjectId(), Some(0))
     def file(): BaseFile = mock[VirtualFile]
     lazy val passage = Passage(id = passageId, collectionId = new ObjectId().toString, file = file())
@@ -43,13 +44,14 @@ class PassageApiTest extends Specification with Mockito {
     "authorized request" should {
 
       trait AuthorizedApiPassageScope extends PassageApiScope {
-        override def authResponse = Success(mock[OrgAndOpts])
+        val auth = mock[OrgAndOpts]
+        override def authResponse = Success(auth)
       }
 
       "passage does not exist" should {
 
         trait PassageMissingScope extends AuthorizedApiPassageScope {
-          passageService.get(passageId) returns Future.successful(None)
+          passageAuth.loadForRead(passageId.toString)(auth) returns Failure(cantFindPassageWithId(passageId))
         }
 
         "return 404" in new PassageMissingScope {
@@ -71,7 +73,7 @@ class PassageApiTest extends Specification with Mockito {
             mockFile
           }
 
-          passageService.get(passageId) returns Future.successful(Some(passage))
+          passageAuth.loadForRead(passageId.toString)(auth) returns Success(passage)
           val result = passageApi.get(passageId)(FakeRequest())
         }
 

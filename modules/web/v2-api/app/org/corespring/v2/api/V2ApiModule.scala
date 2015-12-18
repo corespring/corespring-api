@@ -7,7 +7,7 @@ import org.corespring.models.item.{ PlayerDefinition, ComponentType }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.ItemDraftsModule
 import org.corespring.v2.api.services.{ PlayerTokenService, ScoreService }
-import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
+import org.corespring.v2.auth.{PassageAuth, SessionAuth, ItemAuth}
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
@@ -29,6 +29,8 @@ trait V2ApiModule
   def itemIndexService: ItemIndexService
 
   def itemAuth: ItemAuth[OrgAndOpts]
+
+  def passageAuth: PassageAuth[OrgAndOpts]
 
   def componentTypes: Seq[ComponentType]
 
