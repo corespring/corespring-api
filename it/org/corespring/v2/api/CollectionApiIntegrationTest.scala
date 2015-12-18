@@ -125,17 +125,7 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
     }
 
     trait share extends baseShare {
-
       override def getShareResult(c:Call) = route(makeRequest(c)).get
-//      val otherOrgId = OrganizationHelper.create("other org")
-//      val call = Routes.shareCollection(collectionId, otherOrgId)
-//      val result = route(makeRequest(call)).get
-//      val listCollectionsCall = Routes.list()
-//      val otherAccessToken = AccessTokenHelper.create(otherOrgId)
-//      val request = FakeRequest(listCollectionsCall.method, mkUrl(listCollectionsCall.url, otherAccessToken))
-//      val listCollectionsResult = route(makeRequest(listCollectionsCall)).get
-//      val json = contentAsJson(listCollectionsResult)
-//      val ids = (json \\ "id").map(_.as[String])
     }
 
     "should return OK" in new share {
