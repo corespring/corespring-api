@@ -1,20 +1,13 @@
-package org.corespring.v2.player
+package org.corespring.v2.player.cdn
 
 import org.corespring.container.client.ItemAssetResolver
-
 import org.corespring.drafts.item.S3Paths
 import org.corespring.platform.data.mongo.models.VersionedId
 
-
-class UnsignedItemAssetResolver(
-  cdnResolver: CDNResolver) extends ItemAssetResolver {
+class CdnItemAssetResolver(cdnResolver: CdnResolver) extends ItemAssetResolver {
 
   override def resolve(itemId: String)(file: String): String = {
-    if(cdnResolver.cdnDomain.isDefined) {
-      cdnResolver.resolveDomain(s3ObjectPath(itemId, file))
-    } else {
-      file
-    }
+    cdnResolver.resolveDomain(s3ObjectPath(itemId, file))
   }
 
   protected def s3ObjectPath(itemId: String, file: String) = {

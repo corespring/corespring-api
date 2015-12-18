@@ -1,4 +1,4 @@
-package org.corespring.v2.player
+package org.corespring.v2.player.cdn
 
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets

@@ -49,6 +49,7 @@ import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player._
+import org.corespring.v2.player.cdn._
 import org.corespring.v2.player.hooks.StandardsTree
 import org.corespring.v2.player.services.item.{DraftSupportingMaterialsService, ItemSupportingMaterialsService, MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService}
 import org.corespring.v2.sessiondb._
@@ -192,7 +193,7 @@ class Main(
 
   lazy val containerConfig = ContainerConfig(configuration, mode)
 
-  lazy val cdnResolver = new CDNResolver(
+  lazy val cdnResolver = new CdnResolver(
     containerConfig.cdnDomain,
     if (containerConfig.cdnAddVersionAsQueryParam) Some(mainAppVersion) else None)
 
@@ -200,20 +201,19 @@ class Main(
 
   lazy val itemAssetResolver: ItemAssetResolver = {
     val config = ItemAssetResolverConfig(configuration, mode)
-    val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
-    if (config.signUrls){
-      val domain = config.domain.getOrElse(throw new RuntimeException("ItemAssetResolver: domain is not set"))
-      val keyPairId = config.keyPairId.getOrElse(throw new RuntimeException("ItemAssetResolver: keyPairId is not set"))
-      val privateKey = config.privateKey.getOrElse(throw new RuntimeException("ItemAssetResolver: privateKey is not set"))
-      new SignedItemAssetResolver(
-        domain,
-        config.urlValidInHours,
-        new CdnUrlSigner(keyPairId, privateKey),
-        version)
+    if(config.enabled) {
+      val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
+      val cdnResolver: CdnResolver = if (config.signUrls) {
+        val keyPairId = config.keyPairId.getOrElse(throw new RuntimeException("ItemAssetResolver: keyPairId is not set"))
+        val privateKey = config.privateKey.getOrElse(throw new RuntimeException("ItemAssetResolver: privateKey is not set"))
+        val urlSigner = new CdnUrlSigner(keyPairId, privateKey)
+        new SignedUrlCdnResolver(config.domain, version, urlSigner, config.urlValidInHours)
+      } else {
+        new CdnResolver(config.domain, version)
+      }
+      new CdnItemAssetResolver(cdnResolver)
     } else {
-      new UnsignedItemAssetResolver(
-        new CDNResolver(config.domain, version)
-      )
+      new DisabledItemAssetResolver
     }
   }
 
