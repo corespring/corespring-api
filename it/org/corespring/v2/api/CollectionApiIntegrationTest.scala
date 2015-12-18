@@ -10,8 +10,11 @@ import org.corespring.v2.errors.Errors.{ propertyNotFoundInJson, propertyNotAllo
 import org.specs2.mutable.After
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsArray, JsValue, Json }
-import play.api.mvc.{ Request, AnyContentAsJson }
+import play.api.mvc.{Call, Request, AnyContentAsJson}
 import play.api.test.FakeRequest
+import play.api.mvc.SimpleResult
+
+import scala.concurrent.Future
 
 class CollectionApiIntegrationTest extends IntegrationSpecification {
 
@@ -108,10 +111,11 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
 
   "shareCollection" should {
 
-    trait share extends scope {
+    trait baseShare extends scope {
       val otherOrgId = OrganizationHelper.create("other org")
       val call = Routes.shareCollection(collectionId, otherOrgId)
-      val result = route(makeRequest(call)).get
+      def getShareResult(call:Call) : Future[SimpleResult]
+      lazy val shareResult = getShareResult(call)
       val listCollectionsCall = Routes.list()
       val otherAccessToken = AccessTokenHelper.create(otherOrgId)
       val request = FakeRequest(listCollectionsCall.method, mkUrl(listCollectionsCall.url, otherAccessToken))
@@ -120,8 +124,22 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
       val ids = (json \\ "id").map(_.as[String])
     }
 
+    trait share extends baseShare {
+
+      override def getShareResult(c:Call) = route(makeRequest(c)).get
+//      val otherOrgId = OrganizationHelper.create("other org")
+//      val call = Routes.shareCollection(collectionId, otherOrgId)
+//      val result = route(makeRequest(call)).get
+//      val listCollectionsCall = Routes.list()
+//      val otherAccessToken = AccessTokenHelper.create(otherOrgId)
+//      val request = FakeRequest(listCollectionsCall.method, mkUrl(listCollectionsCall.url, otherAccessToken))
+//      val listCollectionsResult = route(makeRequest(listCollectionsCall)).get
+//      val json = contentAsJson(listCollectionsResult)
+//      val ids = (json \\ "id").map(_.as[String])
+    }
+
     "should return OK" in new share {
-      status(result) === OK
+      status(shareResult) === OK
     }
 
     "list for other org should return OK" in new share {
@@ -130,6 +148,15 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
 
     "list for other org should contain the shared id" in new share {
       ids.contains(collectionId.toString) === true
+    }
+
+    "shareCollection with permission" should {
+      trait shareWithPermission extends baseShare
+
+      "allow the client to pass in Permission.Clone" in pending
+      "allow the client to pass in Permission.Write - verify with Ev" in pending
+      "allow the client to pass in Permission.Read" in pending
+
     }
   }
 

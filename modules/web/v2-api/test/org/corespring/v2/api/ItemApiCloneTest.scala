@@ -53,8 +53,7 @@ class ItemApiCloneTest extends ItemApiSpec {
         status(result(req)) === OK
       }
 
-      s"return $BAD_REQUEST if a bad collection id is passed in" in new ItemApiCloneScope(
-      ){
+      s"return $BAD_REQUEST if a bad collection id is passed in" in new ItemApiCloneScope {
         val request = FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("collectionId" -> "bad-id")))
         val r = result(request)
         status(r) must_== BAD_REQUEST
