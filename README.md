@@ -208,6 +208,10 @@ ENV_IAR_ADD_VERSION_AS_QUERY_PARAM - set it to true to add the app version to th
 **Note:** Setting the Private Key via the heroku webapp sometimes doesn't seem to work. You can use 
 
     heroku config:add ENV_IAR_PRIVATE_KEY="[paste the key here]" --app [the app name]
+    
+**Note 2:** The private key that is used on branch-two is compromised, because it is used in a test (bootstrap.MainTest)  and committed to github. Don't use it for a production system.
+    
+**Note 3:** In corespring-api/bin/shell.scripts/add-item-asset-resolver-vars you can find a script to setup all vars at once. Remember not to commit any secrets.      
 
 #### Deactivation 
 If you want to deactivate the item asset resolver, so that the app works like it did before:
