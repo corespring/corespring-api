@@ -10,7 +10,8 @@ case class ItemAssetResolverConfig(
   keyPairId: Option[String],
   privateKey: Option[String],
   signUrls: Boolean,
-  urlValidInHours: Int)
+  urlValidInHours: Int,
+  httpProtocolForSignedUrls:String)
 
 object ItemAssetResolverConfig extends ConfigurationHelper {
 
@@ -27,6 +28,7 @@ object ItemAssetResolverConfig extends ConfigurationHelper {
       getMaybeString("key-pair-id"),
       getMaybeString("private-key"),
       getBoolean("sign-urls", Some(mode == Mode.Prod)),
-      getInt("url-valid-in-hours", Some(24)))
+      getInt("url-valid-in-hours", Some(24)),
+      getString("http-protocol-for-signed-urls", Some("https:")))
   }
 }

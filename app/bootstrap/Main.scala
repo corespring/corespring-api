@@ -207,7 +207,7 @@ class Main(
         val keyPairId = config.keyPairId.getOrElse(throw new RuntimeException("ItemAssetResolver: keyPairId is not set"))
         val privateKey = config.privateKey.getOrElse(throw new RuntimeException("ItemAssetResolver: privateKey is not set"))
         val urlSigner = new CdnUrlSigner(keyPairId, privateKey)
-        new SignedUrlCdnResolver(config.domain, version, urlSigner, config.urlValidInHours)
+        new SignedUrlCdnResolver(config.domain, version, urlSigner, config.urlValidInHours, "https:")
       } else {
         new CdnResolver(config.domain, version)
       }

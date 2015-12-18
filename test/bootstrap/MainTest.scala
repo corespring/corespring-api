@@ -103,7 +103,7 @@ class MainTest extends Specification with Mockito{
     "return the signed url when signUrl is true" in new scope {
       val config = mkItemAssetResolverConfig(true, true)
       val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
-      main.itemAssetResolver.resolve(itemId)(file) must startingWith("//blah/123456789012345678901234/0/data/test.jpeg?Expires=")
+      main.itemAssetResolver.resolve(itemId)(file) must startingWith("https://blah/123456789012345678901234/0/data/test.jpeg?Expires=")
     }
   }
 }

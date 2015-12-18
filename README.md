@@ -205,23 +205,47 @@ ENV_IAR_PRIVATE_KEY - set it to the content of the private key file - no default
 ENV_IAR_URL_VALID_IN_HOURS - set it to the number of hours a url should remain valid - default is 24    
 ENV_IAR_ADD_VERSION_AS_QUERY_PARAM - set it to true to add the app version to the url - default is true 
 
-**Note:** Setting the Private Key via the heroku webapp sometimes doesn't seem to work. You can use 
+**Note:** Setting the Private Key via the heroku webapp doesn't seem to work. In a shell you can use 
 
     heroku config:add ENV_IAR_PRIVATE_KEY="[paste the key here]" --app [the app name]
     
-**Note 2:** The private key that is used on branch-two is compromised, because it is used in a test (bootstrap.MainTest)  and committed to github. Don't use it for a production system.
-    
-**Note 3:** In corespring-api/bin/shell.scripts/add-item-asset-resolver-vars you can find a script to setup all vars at once. Remember not to commit any secrets.      
+**Note 2:** In corespring-api/bin/shell.scripts/add-item-asset-resolver-vars you can find a script to setup all vars at once. Remember not to commit any secrets.
+      
+#### Testing
+* Create a new item, add an image to it and save it. 
+* Take note of the itemId
+* Open the item in [your server]/items/[your itemId]/sample-launch-code
+ 
+#### Troubleshooting 
+Let's say you have everything set-up to sign urls   
+If the image is not shown or you are forbidden to access it
+* Set ENV_IAR_SIGN_URLS to false  
+* Set restrict viewer access = no in the behaviour tab of your distribution  
+* When the distribution is finished with deployment, you can test again     
+
+If you still cannot access the image, your distribution might not have the right to access the s3 bucket.      
+* Open the origin tab and edit your distribution.   
+* Select the correct Origin Access Identity in the "Your Identities" drop down.  
+* Select "Yes, Update Bucket Policy" for Grant Read Permissions on Bucket  
+* When the distribution is finished with deployment, you can test again  
+
+Still cannot access?     
+* Open the origin tab and have a look at the column named Origin Access Identity, eg. origin-access-identity/cloudfront/E3V4529M09EC7F  
+* Go to the s3 bucket and open the properties/permissions/edit bucket policy   
+* Verify that the origin access identity in there has the same id
+  
+Works now with signUrl=false
+* Go back to deployment step 4 "Restrict viewer access"
+* Set ENV_IAR_SIGN_URLS to true          
+* When the distribution is finished with deployment, you can test again
+  
 
 #### Deactivation 
-If you want to deactivate the item asset resolver, so that the app works like it did before:
-1. Remove the domain setting ENV_IAR_CDN_DOMAIN 
-2. Set  signUrls to false ENV_IAR_CDN_SIGN_URLS = false
+If you cannot get it to work or you want to disable the resolver for other reasons:
+2. Set enabled to false ENV_IAR_ENABLED = false
 
 #### Don't sign 
-If you want to use the CDN for item assets but don't want to restrict access, set signUrls to false, ENV_IAR_CDN_SIGN_URLS = false. Make sure that the in the Cloudfront Behaviour tab "restrict viewer access = no" is choosen. 
-
-
+If you want to use the CDN for item assets but don't want to restrict access, set signUrls to false, ENV_IAR_SIGN_URLS = false. Make sure that the in the Cloudfront Behaviour tab "restrict viewer access = no" is choosen. 
 
 
 ## New Relic
