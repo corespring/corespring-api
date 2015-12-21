@@ -1,7 +1,8 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
-import org.corespring.errors.{ ItemAuthorizationError, CollectionAuthorizationError, PlatformServiceError }
+import org.corespring.errors.{ ItemAuthorizationError, PlatformServiceError }
+import org.corespring.errors.collection._
 import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -27,10 +28,6 @@ class ShareItemWithCollectionsIntegrationServiceTest extends ServicesSalatIntegr
     val otherItem = insertItem(otherOrgCollection.id)
 
     override def after: Any = removeAllData()
-
-    def authorizationError[R](p: Permission, colls: ContentCollection*): Validation[CollectionAuthorizationError, R] = {
-      Failure(CollectionAuthorizationError(rootOrg.id, p, colls.map(_.id): _*))
-    }
 
     def itemAuthorizationError(orgId: ObjectId, p: Permission, itemIds: VersionedId[ObjectId]*) = {
       Failure(ItemAuthorizationError(orgId, p, itemIds: _*))
@@ -107,7 +104,7 @@ class ShareItemWithCollectionsIntegrationServiceTest extends ServicesSalatIntegr
     }
 
     "return error when org cannot write into collection" in new scope {
-      service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id) must_== authorizationError(Permission.Write, readableCollection)
+      service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id) must_== Failure(CantWriteToCollection(rootOrg.id, None, readableCollection.id))
     }
 
     "return error when org cannot write for all items" in new scope {

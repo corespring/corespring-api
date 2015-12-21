@@ -4,7 +4,8 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.errors.{ ItemNotFoundError, GeneralError, PlatformServiceError }
+import org.corespring.errors.item.{ ItemNotFound, OrgNotAuthorized }
+import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys
@@ -168,11 +169,11 @@ class ItemService(
         Success()
       } else {
         logger.error(s"item: $contentId has an invalid collectionId: $collectionId")
-        Failure(ItemNotFoundError(orgId, p, contentId))
+        Failure(OrgNotAuthorized(orgId, p, contentId))
       }
     }.getOrElse {
       logger.debug("isAuthorized: can't find item with id: " + contentId)
-      Failure(ItemNotFoundError(orgId, p, contentId))
+      Failure(ItemNotFound(contentId))
     }
   }
 

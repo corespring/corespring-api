@@ -1,21 +1,18 @@
 package org.corespring.services.salat
 
-import org.corespring.errors.PlatformServiceError
-import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.Item
 import org.specs2.execute.Result
-import org.specs2.specification.{Fragment, Scope}
+import org.specs2.specification.{ Fragment, Scope }
 
-import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.{ ExecutionContext, Await }
 import scala.concurrent.duration._
-import scalaz.{Success, Validation}
+import scalaz.{ Failure, Success }
 
 class CloneItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
   import ExecutionContext.Implicits.global
 
-  trait scope extends Scope with InsertionHelper{
+  trait scope extends Scope with InsertionHelper {
 
     val orgOne = insertOrg("org-one")
     val orgOneCollectionOne = services.orgCollectionService.getDefaultCollection(orgOne.id).toOption.get
@@ -23,31 +20,35 @@ class CloneItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     val service = services.cloneItemService
   }
 
-  def assertClone(
-    itemCollectionPerm: Permission,
-    destinationCollectionPerm:Permission,
-    fn: (Validation[PlatformServiceError,Item], ContentCollection) => Result) : Fragment = {
-    assertClone("")(itemCollectionPerm, destinationCollectionPerm, fn)
+  trait cloneScope extends scope {
+    def itemCollectionPerm: Permission
+    def destinationCollectionPerm: Permission
+    val otherOrg = insertOrg("other-org")
+    //add the item collection permission
+    val itemCollection = insertCollection(s"other-org-coll-${itemCollectionPerm.name}", otherOrg)
+    services.orgCollectionService.grantAccessToCollection(orgOne.id, itemCollection.id, itemCollectionPerm)
+    val destinationColl = insertCollection(s"coll-${destinationCollectionPerm.name}", otherOrg)
+    services.orgCollectionService.grantAccessToCollection(orgOne.id, destinationColl.id, destinationCollectionPerm)
+    val itemToClone = insertItem(itemCollection.id)
+    val cloneFutureV = service.cloneItem(itemToClone.id, orgOne.id, Some(destinationColl.id))
+    val cloneResult = Await.result(cloneFutureV.future, 2.seconds)
+    val clonedItemResult = cloneResult.map { id => services.itemService.findOneById(id).get }
   }
 
-  def assertClone(msg:String)(
-                   itemCollectionPerm: Permission,
-                   destinationCollectionPerm:Permission,
-                   fn: (Validation[PlatformServiceError,Item], ContentCollection) => Result) : Fragment = {
-    val base =  s"clone from collection: ${itemCollectionPerm.name} -> ${destinationCollectionPerm.name}"
-    val specLabel = if(msg.isEmpty) base else s"$base - $msg"
+  def assertClone(
+    itemCollectionPerm: Permission,
+    destinationCollectionPerm: Permission)(fn: (cloneScope) => Result): Fragment = {
+    assertClone("")(itemCollectionPerm, destinationCollectionPerm)(fn)
+  }
 
-    specLabel in new scope{
-      val otherOrg = insertOrg("other-org")
-      //add the item collection permission
-      val coll = insertCollection(s"other-org-coll-${itemCollectionPerm.name}", otherOrg)
-      services.orgCollectionService.grantAccessToCollection(orgOne.id, coll.id, itemCollectionPerm)
-      val destinationColl = insertCollection(s"coll-${destinationCollectionPerm.name}", otherOrg)
-      services.orgCollectionService.grantAccessToCollection(orgOne.id, destinationColl.id, destinationCollectionPerm)
-      val itemToClone = insertItem(coll.id)
-      val cloneResult = service.cloneItem(itemToClone.id, orgOne.id, Some(destinationColl.id))
-      val clonedItemResult = Await.result(cloneResult.map{id => services.itemService.findOneById(id).get}.future, 2.seconds)
-      fn(clonedItemResult, destinationColl)
+  def assertClone(msg: String)(icp: Permission, dcp: Permission)(fn: (cloneScope) => Result): Fragment = {
+    val base = s"clone from item collection ${icp.name} --> destination collection ${dcp.name}"
+    val specLabel = if (msg.isEmpty) base else s"$base - $msg"
+
+    specLabel in new cloneScope {
+      override def itemCollectionPerm: Permission = icp
+      override def destinationCollectionPerm: Permission = dcp
+      fn(this)
     }
   }
 
@@ -64,44 +65,52 @@ class CloneItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       clonedItem.collectionId must_== orgOneCollectionOne.id.toString
     }
 
-    assertClone(Permission.Clone, Permission.Write, (cloneResult, _) =>{
-      cloneResult.isSuccess must_== true
+    import Permission._
+
+    assertClone(Clone, Write)((s: cloneScope) => {
+      s.cloneResult.isSuccess must_== true
     })
 
-    assertClone("has the destination collection id")(Permission.Clone, Permission.Write, (cloneResult, d) =>{
-      cloneResult.map(_.collectionId) must_== Success(d.id.toString)
+    import org.corespring.errors.collection.{ CantWriteToCollection, CantCloneFromCollection }
+
+    assertClone("has the destination collection id")(Clone, Write)(s => {
+      s.clonedItemResult.map(_.collectionId) must_== Success(s.destinationColl.id.toString)
     })
 
-    assertClone("fails")(Permission.Clone, Permission.Clone, (cloneResult, _) =>{
-      cloneResult.isFailure must_== true
+    assertClone(Clone, Write)(s => {
+      s.cloneResult.isSuccess must_== true
     })
 
-    assertClone("fails")(Permission.Clone, Permission.Read, (cloneResult, _) =>{
-      cloneResult.isFailure must_== true
+    assertClone("fails")(Clone, Clone)(s => {
+      s.cloneResult must_== Failure(CantWriteToCollection(s.orgOne.id, Some(Clone), s.destinationColl.id))
     })
 
-    assertClone(Permission.Write, Permission.Write, (cloneResult, _) =>{
-      cloneResult.isSuccess must_== true
+    assertClone("fails")(Clone, Read)(s => {
+      s.cloneResult must_== Failure(CantWriteToCollection(s.orgOne.id, Some(Read), s.destinationColl.id))
     })
 
-    assertClone("fails")(Permission.Write, Permission.Clone, (cloneResult, _) =>{
-      cloneResult.isFailure must_== true
+    assertClone(Write, Write)(s => {
+      s.cloneResult.isSuccess must_== true
     })
 
-    assertClone("fails")(Permission.Write, Permission.Read, (cloneResult, _) =>{
-      cloneResult.isFailure must_== true
+    assertClone("fails")(Write, Clone)(s => {
+      s.cloneResult must_== Failure(CantWriteToCollection(s.orgOne.id, Some(Clone), s.destinationColl.id))
     })
 
-    assertClone("fails")(Permission.Read, Permission.Write, (cloneResult, _) =>{
-      cloneResult.isFailure must_== true
+    assertClone("fails")(Write, Read)(s => {
+      s.cloneResult must_== Failure(CantWriteToCollection(s.orgOne.id, Some(Read), s.destinationColl.id))
     })
 
-    assertClone("fails")(Permission.Read, Permission.Clone, (cloneResult, _) =>{
-      cloneResult.isFailure must_== true
+    assertClone("fails")(Read, Write)(s => {
+      s.cloneResult must_== Failure(CantCloneFromCollection(s.orgOne.id, Some(Read), s.itemCollection.id))
     })
 
-    assertClone("fails")(Permission.Read, Permission.Read, (cloneResult, _) =>{
-      cloneResult.isFailure must_== true
+    assertClone("fails")(Read, Clone)(s => {
+      s.cloneResult must_== Failure(CantWriteToCollection(s.orgOne.id, Some(Clone), s.destinationColl.id))
+    })
+
+    assertClone("fails")(Read, Read)(s => {
+      s.cloneResult must_== Failure(CantWriteToCollection(s.orgOne.id, Some(Read), s.destinationColl.id))
     })
 
   }
