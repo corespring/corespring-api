@@ -11,11 +11,12 @@ import org.corespring.v2.errors.Errors.{ propertyNotFoundInJson, propertyNotAllo
 import org.specs2.mutable.After
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsArray, JsValue, Json }
-import play.api.mvc.{Call, Request, AnyContentAsJson}
+import play.api.mvc.{ Call, Request, AnyContentAsJson }
 import play.api.test.FakeRequest
 import play.api.mvc.SimpleResult
 
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
 
 class CollectionApiIntegrationTest extends IntegrationSpecification {
 
@@ -114,19 +115,25 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
 
     trait baseShare extends scope {
       val otherOrgId = OrganizationHelper.create("other org")
+      logger.debug(s"share collectionId: $collectionId with: orgId: $otherOrgId")
       val call = Routes.shareCollection(collectionId, otherOrgId)
-      def getShareResult(call:Call) : Future[SimpleResult]
+      def getShareResult(call: Call): Future[SimpleResult]
       lazy val shareResult = getShareResult(call)
+
+      Await.result(shareResult, 2.seconds)
+
       val listCollectionsCall = Routes.list()
+
+      logger.debug(s"call list for otherOrgId: $otherOrgId")
       val otherAccessToken = AccessTokenHelper.create(otherOrgId)
-      val request = FakeRequest(listCollectionsCall.method, mkUrl(listCollectionsCall.url, otherAccessToken))
-      val listCollectionsResult = route(makeRequest(listCollectionsCall)).get
-      val json = contentAsJson(listCollectionsResult)
-      val ids = (json \\ "id").map(_.as[String])
+      val listRequest = FakeRequest(listCollectionsCall.method, mkUrl(listCollectionsCall.url, otherAccessToken))
+      lazy val listCollectionsResult = route(listRequest).get
+      lazy val json = contentAsJson(listCollectionsResult)
+      lazy val ids = (json \\ "id").map(_.as[String])
     }
 
     trait share extends baseShare {
-      override def getShareResult(c:Call) = route(makeRequest(c)).get
+      override def getShareResult(c: Call) = route(makeRequest(c)).get
     }
 
     "should return OK" in new share {
@@ -142,20 +149,28 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
     }
 
     "shareCollection with permission" should {
-      trait shareWithPermission extends baseShare{
-        def permission : Permission
+      trait shareWithPermission extends baseShare {
+        def permission: Permission
         override def getShareResult(call: Call): Future[SimpleResult] = {
           route(makeJsonRequest(call, Json.obj("permission" -> permission.name))).get
         }
       }
 
-      """return 200 when the client passes in {"permission""clone"}""" in new shareWithPermission{
+      """return 200 when the client passes in {"permission""clone"}""" in new shareWithPermission {
         override def permission: Permission = Permission.Clone
         status(shareResult) must_== OK
       }
 
-//      "allow the client to pass in Permission.Write" in pending
-//      "allow the client to pass in Permission.Read" in pending
+      """list the clone permission for the newly shared collection""" in new shareWithPermission {
+        override def permission: Permission = Permission.Clone
+        Await.result(shareResult, 2.seconds)
+        val info = json.as[Seq[JsValue]].find(j => (j \ "id").asOpt[String] == Some(collectionId.toString))
+        val permissionString = info.map(j => (j \ "permission").asOpt[String].getOrElse("?"))
+        permissionString must_== Some(Permission.Clone.name)
+      }
+
+      //      "allow the client to pass in Permission.Write" in pending
+      //      "allow the client to pass in Permission.Read" in pending
 
     }
   }

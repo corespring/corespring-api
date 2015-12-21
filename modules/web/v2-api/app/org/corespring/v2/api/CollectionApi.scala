@@ -253,6 +253,7 @@ class CollectionApi(
     sort: Option[String] = None) = futureWithIdentity(BAD_REQUEST) { (identity, _) =>
 
     logger.info(s"[list] params: q=$q, f=$f, c=$c, sk=$sk, l=$l, sort=$sort")
+    logger.info(s"[list] orgId: ${identity.org.id}")
 
     implicit val writes = CollectionInfoWrites
 
