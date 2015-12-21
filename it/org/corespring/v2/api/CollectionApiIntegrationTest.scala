@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ CollectionHelper, ItemHelper, AccessTokenHelper, OrganizationHelper }
 import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessTokenAndItem }
+import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.ContentCollectionWrites
 import org.corespring.v2.errors.Errors.{ propertyNotFoundInJson, propertyNotAllowedInJson }
@@ -141,11 +142,20 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
     }
 
     "shareCollection with permission" should {
-      trait shareWithPermission extends baseShare
+      trait shareWithPermission extends baseShare{
+        def permission : Permission
+        override def getShareResult(call: Call): Future[SimpleResult] = {
+          route(makeJsonRequest(call, Json.obj("permission" -> permission.name))).get
+        }
+      }
 
-      "allow the client to pass in Permission.Clone" in pending
-      "allow the client to pass in Permission.Write - verify with Ev" in pending
-      "allow the client to pass in Permission.Read" in pending
+      """return 200 when the client passes in {"permission""clone"}""" in new shareWithPermission{
+        override def permission: Permission = Permission.Clone
+        status(shareResult) must_== OK
+      }
+
+//      "allow the client to pass in Permission.Write" in pending
+//      "allow the client to pass in Permission.Read" in pending
 
     }
   }
