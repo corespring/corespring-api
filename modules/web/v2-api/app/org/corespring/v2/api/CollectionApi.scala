@@ -104,8 +104,9 @@ class CollectionApi(
 
       val permission = (for {
         json <- request.body.asJson
+        _ <- Some(logger.debug(s"[shareCollection] raw json: $json"))
         permissionString <- (json \ "permission").asOpt[String]
-        permission <-  Permission.fromString(p)
+        permission <- Permission.fromString(permissionString)
       } yield permission).getOrElse(Permission.Read)
 
       logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId, permission=$permission")

@@ -9,7 +9,7 @@ import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.ContentCollectionWrites
 import org.corespring.v2.errors.Errors.{ propertyNotFoundInJson, propertyNotAllowedInJson }
 import org.specs2.mutable.After
-import org.specs2.specification.Scope
+import org.specs2.specification.{ Fragments, Scope }
 import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.mvc.{ Call, Request, AnyContentAsJson }
 import play.api.test.FakeRequest
@@ -130,6 +130,11 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
       lazy val listCollectionsResult = route(listRequest).get
       lazy val json = contentAsJson(listCollectionsResult)
       lazy val ids = (json \\ "id").map(_.as[String])
+
+      protected def getPermissionForCollectionId(id: ObjectId) = {
+        val info = json.as[Seq[JsValue]].find(j => (j \ "id").asOpt[String] == Some(id.toString))
+        info.map(j => (j \ "permission").asOpt[String].getOrElse("?"))
+      }
     }
 
     trait share extends baseShare {
@@ -148,29 +153,40 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
       ids.contains(collectionId.toString) === true
     }
 
-    "shareCollection with permission" should {
+    s"""list the ${Permission.Read.name} permission for the newly shared collection""" in new share {
+      Await.result(shareResult, 2.seconds)
+      val permissionString = getPermissionForCollectionId(collectionId)
+      permissionString must_== Some(Permission.Read.name)
+    }
+
+    "shareCollection" should {
       trait shareWithPermission extends baseShare {
         def permission: Permission
         override def getShareResult(call: Call): Future[SimpleResult] = {
-          route(makeJsonRequest(call, Json.obj("permission" -> permission.name))).get
+          route(makeJsonRequest(call, Json.obj("permission" -> permission.name)))(writeableOf_AnyContentAsJson).get
         }
       }
 
-      """return 200 when the client passes in {"permission""clone"}""" in new shareWithPermission {
-        override def permission: Permission = Permission.Clone
-        status(shareResult) must_== OK
+      def assertShare(p: Permission): Fragments = {
+
+        s"with ${p.name}" should {
+          s"""return 200 when the client passes in {"permission":"${p.name}"}""" in new shareWithPermission {
+            override def permission: Permission = p
+            status(shareResult) must_== OK
+          }
+
+          s"""list the ${p.name} permission for the newly shared collection""" in new shareWithPermission {
+            override def permission: Permission = p
+            Await.result(shareResult, 2.seconds)
+            val permissionString = getPermissionForCollectionId(collectionId)
+            permissionString must_== Some(p.name)
+          }
+        }
       }
 
-      """list the clone permission for the newly shared collection""" in new shareWithPermission {
-        override def permission: Permission = Permission.Clone
-        Await.result(shareResult, 2.seconds)
-        val info = json.as[Seq[JsValue]].find(j => (j \ "id").asOpt[String] == Some(collectionId.toString))
-        val permissionString = info.map(j => (j \ "permission").asOpt[String].getOrElse("?"))
-        permissionString must_== Some(Permission.Clone.name)
-      }
-
-      //      "allow the client to pass in Permission.Write" in pending
-      //      "allow the client to pass in Permission.Read" in pending
+      assertShare(Permission.Clone)
+      assertShare(Permission.Write)
+      assertShare(Permission.Read)
 
     }
   }
