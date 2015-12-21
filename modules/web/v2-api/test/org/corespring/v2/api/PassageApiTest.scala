@@ -22,7 +22,7 @@ import scalaz.{Success, Validation, Failure}
 class PassageApiTest extends Specification with Mockito {
 
   trait PassageApiScope extends Scope {
-    val passageAuth: PassageAuth[OrgAndOpts] = mock[PassageAuth[OrgAndOpts]]
+    val passageAuth: PassageAuth = mock[PassageAuth]
     val v2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
     def authResponse: Validation[V2Error, OrgAndOpts] = Failure(generalError("Nope", UNAUTHORIZED))
     lazy val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts] = {
@@ -37,7 +37,7 @@ class PassageApiTest extends Specification with Mockito {
   "get" should {
 
     "should return 401" in new PassageApiScope {
-      val result = passageApi.get(passageId)(FakeRequest())
+      val result = passageApi.get(passageId, None)(FakeRequest())
       status(result) must be equalTo(UNAUTHORIZED)
     }
 
@@ -51,11 +51,11 @@ class PassageApiTest extends Specification with Mockito {
       "passage does not exist" should {
 
         trait PassageMissingScope extends AuthorizedApiPassageScope {
-          passageAuth.loadForRead(passageId.toString)(auth) returns Failure(cantFindPassageWithId(passageId))
+          passageAuth.loadForRead(passageId.toString, None)(auth) returns Failure(cantFindPassageWithId(passageId))
         }
 
         "return 404" in new PassageMissingScope {
-          val result = passageApi.get(passageId)(FakeRequest())
+          val result = passageApi.get(passageId, None)(FakeRequest())
           status(result) must be equalTo(NOT_FOUND)
         }
 
@@ -73,8 +73,8 @@ class PassageApiTest extends Specification with Mockito {
             mockFile
           }
 
-          passageAuth.loadForRead(passageId.toString)(auth) returns Success(passage)
-          val result = passageApi.get(passageId)(FakeRequest())
+          passageAuth.loadForRead(passageId.toString, None)(auth) returns Success(passage)
+          val result = passageApi.get(passageId, None)(FakeRequest())
         }
 
         "return 200" in new HtmlPassageFoundScope {

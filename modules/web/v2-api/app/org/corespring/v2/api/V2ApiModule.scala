@@ -30,7 +30,7 @@ trait V2ApiModule
 
   def itemAuth: ItemAuth[OrgAndOpts]
 
-  def passageAuth: PassageAuth[OrgAndOpts]
+  def passageAuth: PassageAuth
 
   def componentTypes: Seq[ComponentType]
 

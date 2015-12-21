@@ -66,7 +66,7 @@ class PassageAuthWiredTest extends Specification with Mockito {
 
       "access not granted" should {
         trait PassagePresentAccessNotGrantedScope extends PassageExistsScope {
-          access.grant(identity, Permission.Read, passage) returns Success(false)
+          access.grant(identity, Permission.Read, (passage, None)) returns Success(false)
         }
 
         "return inaccessiblePassage error" in new PassagePresentAccessNotGrantedScope {
@@ -78,7 +78,7 @@ class PassageAuthWiredTest extends Specification with Mockito {
       "access granted" should {
 
         trait PassagePresentAccessGrantedScope extends PassageExistsScope {
-          access.grant(identity, Permission.Read, passage) returns Success(true)
+          access.grant(identity, Permission.Read, (passage, None)) returns Success(true)
         }
 
         "return passage" in new PassagePresentAccessGrantedScope {

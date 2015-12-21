@@ -14,14 +14,14 @@ import scala.concurrent.{Future, ExecutionContext}
 import scalaz.{Failure, Success, Validation}
 
 class PassageApi(
-  passageAuth: PassageAuth[OrgAndOpts],
+  passageAuth: PassageAuth,
   v2ApiContext: V2ApiExecutionContext,
   override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
-  def get(passageId: VersionedId[ObjectId]) = futureWithIdentity { (identity, request) =>
-    Future.successful(passageAuth.loadForRead(passageId.toString)(identity) match {
+  def get(passageId: VersionedId[ObjectId], itemId: Option[String]) = futureWithIdentity { (identity, request) =>
+    Future.successful(passageAuth.loadForRead(passageId.toString, itemId.map(VersionedId(_)).flatten)(identity) match {
       case Success(passage) => PassageResponseWriter.write(passage)
       case Failure(error) => Status(error.statusCode)(error.message)
     })

@@ -40,6 +40,6 @@ trait V2AuthModule {
   lazy val itemAccess: ItemAccess = wire[ItemAccess]
   lazy val passageAccess: PassageAccess = wire[PassageAccess]
   lazy val itemAuth: ItemAuth[OrgAndOpts] = wire[ItemAuthWired]
-  lazy val passageAuth: PassageAuth[OrgAndOpts] = wire[PassageAuthWired]
+  lazy val passageAuth: PassageAuth = wire[PassageAuthWired]
   lazy val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = wire[SessionAuthWired]
 }

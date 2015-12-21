@@ -13,19 +13,18 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scalaz.{Success, Failure, Validation}
 
-trait PassageAuth[A] extends Auth[Passage, A, VersionedId[ObjectId]] {
-  def canCreateInCollection(collectionId: String)(identity: A): Validation[V2Error, Boolean]
-  def canWrite(id: String)(implicit identity: A): Validation[V2Error, Boolean]
-  def delete(id: String)(implicit identity: A): Validation[V2Error, VersionedId[ObjectId]]
+trait PassageAuth {
+  def loadForRead(passageId: String, itemId: Option[VersionedId[ObjectId]])(implicit identity: OrgAndOpts): Validation[V2Error, Passage]
 }
 
-class PassageAuthWired(passageService: PassageService, access: PassageAccess) extends PassageAuth[OrgAndOpts] {
+class PassageAuthWired(passageService: PassageService, access: PassageAccess) extends PassageAuth {
 
   private val DB_TIMEOUT = 20.seconds
 
-  override def loadForRead(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, Passage] = VersionedId(id) match {
+  override def loadForRead(id: String, itemId: Option[VersionedId[ObjectId]] = None)
+                          (implicit identity: OrgAndOpts): Validation[V2Error, Passage] = VersionedId(id) match {
     case Some(id) => Await.result(passageService.get(id), DB_TIMEOUT) match { // TODO: Async
-      case Some(passage) => access.grant(identity, Permission.Read, passage) match {
+      case Some(passage) => access.grant(identity, Permission.Read, (passage, itemId)) match {
         case Success(true) => Success(passage)
         case Success(false) => Failure(inaccessiblePassage(id, identity.org.id, Permission.Read))
         case Failure(error) => Failure(error)
@@ -34,14 +33,5 @@ class PassageAuthWired(passageService: PassageService, access: PassageAccess) ex
     }
     case _ => Failure(invalidObjectId(id, ""))
   }
-
-
-  /** We don't need these yet. **/
-  override def canCreateInCollection(collectionId: String)(identity: OrgAndOpts): Validation[V2Error, Boolean] = ???
-  override def canWrite(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = ???
-  override def delete(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, VersionedId[ObjectId]] = ???
-  override def loadForWrite(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, Passage] = ???
-  override def insert(data: Passage)(implicit identity: OrgAndOpts): Option[VersionedId[ObjectId]] = ???
-  override def save(data: Passage, createNewVersion: Boolean)(implicit identity: OrgAndOpts): Unit = ???
 
 }
