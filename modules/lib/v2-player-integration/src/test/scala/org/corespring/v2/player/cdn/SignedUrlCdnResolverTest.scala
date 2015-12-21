@@ -3,14 +3,14 @@ package org.corespring.v2.player.cdn
 import java.util.Date
 
 import org.joda.time.DateTime
-import org.specs2.matcher.{Matcher, Expectable}
+import org.specs2.matcher.{ Matcher, Expectable }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
 class SignedUrlCdnResolverTest extends Specification with Mockito {
 
-  class TestUrlSigner extends CdnUrlSigner("",""){
+  class TestUrlSigner extends CdnUrlSigner("", "") {
     override def signUrl(url: String, validUntil: Date): String = url
   }
 
@@ -18,7 +18,7 @@ class SignedUrlCdnResolverTest extends Specification with Mockito {
     val urlSigner = spy(new TestUrlSigner)
 
     def mkResolver(domain: Option[String], version: Option[String] = None, hours: Int = 24): CdnResolver = {
-      new SignedUrlCdnResolver(domain, version, urlSigner, hours)
+      new SignedUrlCdnResolver(domain, version, urlSigner, hours, "https:")
     }
 
     def beCloseInTimeTo(date: Date, timeDiff: Int = 500) = new Matcher[Date] {
@@ -28,7 +28,6 @@ class SignedUrlCdnResolverTest extends Specification with Mockito {
           "Dates are different",
           e)
     }
-
 
   }
 
@@ -73,7 +72,7 @@ class SignedUrlCdnResolverTest extends Specification with Mockito {
     "pass the correct url to signUrl" in new scope {
       val cdnResolver = mkResolver(Some("//blah.com"), Some("v1234"))
       cdnResolver.resolveDomain("/path?query")
-      there was one(urlSigner).signUrl(===("//blah.com/path?query&version=v1234"), any[Date])
+      there was one(urlSigner).signUrl(===("https://blah.com/path?query&version=v1234"), any[Date])
     }
 
     "pass the correct validUntil date to signUrl" in new scope {

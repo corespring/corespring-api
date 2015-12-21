@@ -155,8 +155,7 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
 
     s"""list the ${Permission.Read.name} permission for the newly shared collection""" in new share {
       Await.result(shareResult, 2.seconds)
-      val permissionString = getPermissionForCollectionId(collectionId)
-      permissionString must_== Some(Permission.Read.name)
+      getPermissionForCollectionId(collectionId) must_== Some(Permission.Read.name)
     }
 
     "shareCollection" should {
@@ -178,8 +177,7 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
           s"""list the ${p.name} permission for the newly shared collection""" in new shareWithPermission {
             override def permission: Permission = p
             Await.result(shareResult, 2.seconds)
-            val permissionString = getPermissionForCollectionId(collectionId)
-            permissionString must_== Some(p.name)
+            getPermissionForCollectionId(collectionId) must_== Some(p.name)
           }
         }
       }
