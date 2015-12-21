@@ -102,11 +102,17 @@ class CollectionApi(
   def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = futureWithIdentity { (identity, request) =>
     Future {
 
-      logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId")
+      val permission = (for {
+        json <- request.body.asJson
+        permissionString <- (json \ "permission").asOpt[String]
+        permission <-  Permission.fromString(p)
+      } yield permission).getOrElse(Permission.Read)
+
+      logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId, permission=$permission")
 
       val v: Validation[V2Error, ObjectId] = for {
         _ <- orgCollectionService.ownsCollection(identity.org, collectionId).v2Error
-        o <- orgCollectionService.grantAccessToCollection(destinationOrgId, collectionId, Permission.Read).v2Error
+        o <- orgCollectionService.grantAccessToCollection(destinationOrgId, collectionId, permission).v2Error
       } yield collectionId
 
       v.map(r => Json.obj("updated" -> collectionId.toString)).toSimpleResult()
