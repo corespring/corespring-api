@@ -58,7 +58,6 @@ class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpec
 
       "return an error if an invalid collection id is passed in" in new clone {
         override val json = Json.obj("collectionId" -> "not-a-valid-object-id")
-        println(contentAsString(result))
         status(result) must_== BAD_REQUEST
       }
 
@@ -66,7 +65,6 @@ class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpec
         val otherOrg = OrganizationHelper.create()
         val otherCollectionId = CollectionHelper.create(otherOrg)
         override val json = Json.obj("collectionId" -> otherCollectionId.toString)
-        println(contentAsString(result))
         status(result) must_== BAD_REQUEST
       }
 
