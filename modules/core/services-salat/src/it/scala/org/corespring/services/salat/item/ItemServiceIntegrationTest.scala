@@ -95,18 +95,34 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
   "clone" should {
     trait clone extends scope {
-      val item = Item(collectionId = "1234567")
+      val collectionId = ObjectId.get.toString
+      val item = Item(collectionId = collectionId)
       val clonedItem = service.clone(item)
     }
+
     "return the cloned item" in new clone {
       clonedItem.isDefined must_== true
       clonedItem.get.id must_!= item.id
     }
+
     "create a new item in the db" in new clone {
       loadItem(clonedItem.get.id).isDefined must_== true
     }
     //TODO How much of file cloning do we want to test?
     "clone stored files" in pending
+  }
+
+  "cloneToCollection" should {
+
+    trait cloneToCollection extends scope {
+      val otherOrg = insertOrg("other-org")
+      val otherOrgCollection = services.orgCollectionService.getDefaultCollection(otherOrg.id).toOption.get
+      val clonedItem = service.cloneToCollection(itemOne, otherOrgCollection.id)
+    }
+
+    "cloned item has the new collection id" in new cloneToCollection {
+      clonedItem.get.collectionId must_== otherOrgCollection.id.toString
+    }
   }
 
   "collectionIdForItem" should {

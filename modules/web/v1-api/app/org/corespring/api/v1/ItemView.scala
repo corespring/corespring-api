@@ -8,6 +8,7 @@ import play.api.libs.json._
 
 case class ItemView(item: Item, searchFields: Option[SearchFields])
 
+@deprecated("use ItemFormat instead - this will be removed once v1 is gone", "5.7.0")
 object ItemView {
 
   import Item.Keys._
@@ -39,6 +40,7 @@ object ItemView {
 
       val basics: Seq[Option[(String, JsValue)]] = Seq(
         Some(("id" -> Json.toJson(item.id))),
+        item.clonedFromId.map("clonedFromId" -> Json.toJson(_)),
         Some("format" -> Json.obj("apiVersion" -> item.createdByApiVersion, "hasQti" -> item.hasQti, "hasPlayerDefinition" -> item.hasPlayerDefinition)),
         item.workflow.map((workflow -> Json.toJson(_))),
         item.data.map((data -> Json.toJson(_))),
@@ -57,7 +59,6 @@ object ItemView {
 
       val strings: Seq[Option[(String, JsValue)]] = Seq(
         (lexile, item.lexile),
-        (originId, item.originId),
         (pValue, item.pValue),
         (priorUse, item.priorUse)).map(makeJsString)
 

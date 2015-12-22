@@ -4,7 +4,8 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.errors.{ ItemNotFoundError, GeneralError, PlatformServiceError }
+import org.corespring.errors.item.{ ItemNotFound, OrgNotAuthorized }
+import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys
@@ -37,8 +38,13 @@ class ItemService(
 
   private val baseQuery = MongoDBObject(Keys.contentType -> Item.contentType)
 
-  override def clone(item: Item): Option[Item] = {
-    val itemClone = item.cloneItem
+  override def cloneToCollection(item: Item, targetCollectionId: ObjectId): Option[Item] = cloneItem(item, Some(targetCollectionId))
+
+  override def clone(item: Item): Option[Item] = cloneItem(item)
+
+  private def cloneItem(item: Item, otherCollectionId: Option[ObjectId] = None) = {
+    val collectionId = otherCollectionId.map(_.toString).getOrElse(item.collectionId)
+    val itemClone = item.cloneItem(collectionId)
     val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, itemClone)
     logger.debug(s"clone itemId=${item.id} result=$result")
     result match {
@@ -52,6 +58,7 @@ class ItemService(
         })
         None
     }
+
   }
 
   override def publish(id: VersionedId[ObjectId]): Boolean = {
@@ -162,11 +169,11 @@ class ItemService(
         Success()
       } else {
         logger.error(s"item: $contentId has an invalid collectionId: $collectionId")
-        Failure(ItemNotFoundError(orgId, p, contentId))
+        Failure(OrgNotAuthorized(orgId, p, contentId))
       }
     }.getOrElse {
       logger.debug("isAuthorized: can't find item with id: " + contentId)
-      Failure(ItemNotFoundError(orgId, p, contentId))
+      Failure(ItemNotFound(contentId))
     }
   }
 

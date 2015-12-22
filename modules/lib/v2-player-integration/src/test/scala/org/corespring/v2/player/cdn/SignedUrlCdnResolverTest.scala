@@ -3,14 +3,14 @@ package org.corespring.v2.player.cdn
 import java.util.Date
 
 import org.joda.time.DateTime
-import org.specs2.matcher.{Matcher, Expectable}
+import org.specs2.matcher.{ Matcher, Expectable }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
 class SignedUrlCdnResolverTest extends Specification with Mockito {
 
-  class TestUrlSigner extends CdnUrlSigner("",""){
+  class TestUrlSigner extends CdnUrlSigner("", "") {
     override def signUrl(url: String, validUntil: Date): String = url
   }
 
@@ -28,7 +28,6 @@ class SignedUrlCdnResolverTest extends Specification with Mockito {
           "Dates are different",
           e)
     }
-
 
   }
 

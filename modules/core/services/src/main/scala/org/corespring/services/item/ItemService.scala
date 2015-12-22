@@ -25,6 +25,15 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def clone(item: Item): Option[Item]
 
+  /**
+    * Note: it would be better to just have clone, but that method is used in the [[BaseContentService]],
+    * so hopefully we can remove that and the conflate the methods
+    * @param item
+    * @param targetCollectionId - clone the item to this collection if specified else use the same collection as the item
+    * @return
+    */
+  def cloneToCollection(item: Item, targetCollectionId: ObjectId): Option[Item]
+
   def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId]
 
   def contributorsForOrg(orgId: ObjectId): Seq[String]

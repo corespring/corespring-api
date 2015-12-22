@@ -40,7 +40,7 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
     }
   }
 
-  protected val logger = Logger(classOf[ServicesSalatIntegrationTest])
+  protected lazy val logger = Logger(classOf[ServicesSalatIntegrationTest])
 
   protected def waitFor[A](f: Future[A]): A = Await.result(f, 1.second)
 

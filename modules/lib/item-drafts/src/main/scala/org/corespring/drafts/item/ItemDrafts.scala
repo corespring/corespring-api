@@ -109,7 +109,7 @@ class ItemDrafts(
 
   def cloneDraft(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
     d <- load(user)(draftId)
-    cloned <- Success(d.change.data.cloneItem)
+    cloned <- Success(d.change.data.cloneItem())
     vid <- itemService.save(cloned).disjunction.validation.leftMap { s => SaveDraftFailed(s.message) }
     _ <- assets.copyDraftToItem(draftId, vid)
     newDraft <- create(draftId, user)
