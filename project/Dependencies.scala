@@ -71,6 +71,8 @@ object Dependencies {
   val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.20.0"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
+  val scalazContrib = "org.typelevel" %% "scalaz-contrib-210" % "0.1.5"
+
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.2.2" // "3.6.2"

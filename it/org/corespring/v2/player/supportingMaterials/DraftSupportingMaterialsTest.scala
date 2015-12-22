@@ -1,5 +1,6 @@
 package org.corespring.v2.player.supportingMaterials
 
+import global.Global
 import com.novus.salat.Context
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.drafts.item.{ DraftAssetKeys, ItemDraftHelper }
@@ -26,12 +27,12 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
     with testDefaults {
 
     val helper = new ItemDraftHelper {
-      override implicit def context: Context = bootstrap.Main.context
+      override implicit def context: Context = main.context
 
-      override def itemService: ItemService = bootstrap.Main.itemService
+      override def itemService: ItemService = main.itemService
     }
 
-    val orgService = bootstrap.Main.orgService
+    val orgService = main.orgService
     val draftId = {
       val draftId = DraftId(itemId.id, user.userName, orgId)
       val org = orgService.findOneById(orgId).get

@@ -14,6 +14,8 @@ import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services._
 import org.corespring.services.item.ItemService
+import org.corespring.services.metadata.MetadataService
+import org.corespring.services.metadata.MetadataSetService
 import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
@@ -46,6 +48,8 @@ trait V2PlayerModule extends DefaultIntegration {
   def playerJsonToItem: PlayerJsonToItem
 
   def itemService: ItemService
+  def metadataService: MetadataService
+  def metadataSetService: MetadataSetService
   def orgService: OrganizationService
   def orgCollectionService: OrgCollectionService
   def subjectService: SubjectService
@@ -115,6 +119,8 @@ trait V2PlayerModule extends DefaultIntegration {
   override lazy val sessionHooks: client.hooks.SessionHooks = wire[SessionHooks]
 
   override lazy val dataQueryHooks: client.hooks.DataQueryHooks = wire[DataQueryHooks]
+
+  override lazy val itemMetadataHooks: client.hooks.ItemMetadataHooks = wire[ItemMetadataHooks]
 
   override lazy val componentSets: client.controllers.ComponentSets = wire[CompressedComponentSets]
 

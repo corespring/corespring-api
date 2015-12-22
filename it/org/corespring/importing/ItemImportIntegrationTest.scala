@@ -55,10 +55,10 @@ class ItemImportIntegrationTest extends IntegrationSpecification {
         status(result) === OK
         val vidString = contentAsString(result)
         val vid = VersionedId(vidString).get
-        val item = bootstrap.Main.itemService.findOneById(vid)
+        val item = main.itemService.findOneById(vid)
         item.isDefined must_== true
-        val assetKey = bootstrap.Main.itemAssetKeys.file(vid, "ervin.png")
-        val metadata = bootstrap.Main.s3.getObjectMetadata(bootstrap.Main.bucket.bucket, assetKey)
+        val assetKey = main.itemAssetKeys.file(vid, "ervin.png")
+        val metadata = main.s3.getObjectMetadata(main.bucket.bucket, assetKey)
         metadata.getContentType must_== "image/png"
       }.getOrElse { ko }
     }

@@ -25,10 +25,10 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
     /** Note: publishArtifact := false seems to mess with routes */
     publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))))
 
-  //TODO: This is not useful at the moment - when it works however it'll be amazing:
-  // updateOptions := updateOptions.value.withConsolidatedResolution(true),
-  // see: https://github.com/sbt/sbt/issues/2105 - update: fixed in 13.9 - but we're having issues using 13.9
   val sharedSettings = Seq(
+    //TODO: This is not useful at the moment - when it works however it'll be amazing:
+    // see: https://github.com/sbt/sbt/issues/2105 - update: fixed in 13.9 - but we're having issues using 13.9
+    //updateOptions := updateOptions.value.withConsolidatedResolution(true),
     moduleConfigurations ++= Builders.moduleConfig,
     aggregate in update := false,
     parallelExecution.in(Test) := false,

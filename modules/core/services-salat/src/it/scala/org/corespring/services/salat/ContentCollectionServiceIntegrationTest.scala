@@ -1,15 +1,15 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
-import org.corespring.errors.{ ItemAuthorizationError, CollectionAuthorizationError }
+import org.corespring.errors.ItemAuthorizationError
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ TaskInfo, Item }
-import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
+import org.corespring.models.{ ContentCollection }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.ContentCollectionUpdate
 import org.specs2.mutable._
 
-import scalaz.{ Validation, Failure, Success }
+import scalaz.{ Failure, Success }
 
 class ContentCollectionServiceIntegrationTest
   extends ServicesSalatIntegrationTest {
@@ -42,14 +42,6 @@ class ContentCollectionServiceIntegrationTest
       val itemId = services.itemService.insert(item).get
 
       override def after: Any = removeAllData()
-
-      def authorizationError[R](p: Permission, colls: ContentCollection*): Validation[CollectionAuthorizationError, R] = {
-        Failure(CollectionAuthorizationError(rootOrg.id, p, colls.map(_.id): _*))
-      }
-
-      def itemAuthorizationError(orgId: ObjectId, p: Permission, itemIds: VersionedId[ObjectId]*) = {
-        Failure(ItemAuthorizationError(orgId, p, itemIds: _*))
-      }
     }
 
     "insertCollection" should {

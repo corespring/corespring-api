@@ -1,5 +1,6 @@
 package org.corespring.it.helpers
 
+import global.Global.main
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ User, UserOrg }
@@ -11,7 +12,7 @@ object UserHelper {
 
   val logger = Logger(UserHelper.getClass)
 
-  lazy val service = bootstrap.Main.userService
+  lazy val service = main.userService
 
   def create(orgId: ObjectId, fullName: String = Name.name, permission: Permission = Permission.Write) = {
 

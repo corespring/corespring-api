@@ -1,5 +1,6 @@
 package org.corespring.v2.player.update
 
+import global.Global
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.SecureSocialHelper
@@ -116,7 +117,7 @@ abstract class UpdateProfileIntegrationTest extends IntegrationSpecification {
       credentials = Seq(sk(contributorDetails.credentials)),
       keySkills = Seq(ListKeyValue("dummy", Seq("Define", "Discuss", "Distinguish", "Choose", "Analyze", "Examine"))))
 
-    val id = bootstrap.Main.fieldValueService.insert(fieldValue).toOption.get
+    val id = main.fieldValueService.insert(fieldValue).toOption.get
     initData(itemId, user.userName, orgId)
     val call = getUpdateProfileCall(itemId, user.userName)
     val request: Request[AnyContentAsJson] = makeJsonRequest(call, profileJson)
@@ -128,7 +129,7 @@ abstract class UpdateProfileIntegrationTest extends IntegrationSpecification {
 
     override def after = {
       super.after
-      bootstrap.Main.fieldValueService.delete(id)
+      main.fieldValueService.delete(id)
     }
   }
 

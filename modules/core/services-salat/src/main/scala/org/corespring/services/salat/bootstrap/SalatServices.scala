@@ -205,5 +205,5 @@ trait SalatServices extends interface.bootstrap.Services {
   override lazy val subjectService: interface.SubjectService = wire[SubjectService]
   override lazy val tokenService: interface.auth.AccessTokenService = wire[AccessTokenService]
   override lazy val userService: interface.UserService = wire[UserService]
-
+  override lazy val cloneItemService: interface.CloneItemService = wire[CloneItemService]
 }

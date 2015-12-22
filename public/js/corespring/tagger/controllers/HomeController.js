@@ -148,7 +148,7 @@
     function V1() {
 
       this.edit = function(item) {
-        $location.url('/edit/' + item.id);
+        $location.url('/edit/draft/' + item.id + '?devEditor=true');
       };
 
       this.cloneItem = function(item) {
