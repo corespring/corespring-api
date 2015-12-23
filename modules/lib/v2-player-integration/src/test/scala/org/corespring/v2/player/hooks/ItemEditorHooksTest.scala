@@ -30,6 +30,7 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
   val mockOrgAndOptsForSpecs = mockOrgAndOpts(AuthMode.AccessToken)
   val vid = VersionedId(ObjectId.get, Some(0))
+  val vidNoVersion = vid.copy(version = None)
 
   private class scope(
     val transformResult: JsValue = Json.obj(),
@@ -126,6 +127,12 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       status(Future(result)) === orgAndOpts.toEither.left.get.statusCode
       contentAsString(Future(result)) === orgAndOpts.toEither.left.get.message
     }
+
+    "default to latest version when itemid has no version" in new scope() {
+      val result = hooks.loadFile(vidNoVersion.toString, "path")(fakeRequest)
+      there was one(playS3).download("bucket", S3Paths.itemFile(vid, "path"), null)
+    }
+
   }
 
   "deleteFile" should {
