@@ -101,4 +101,3 @@ function up() {
 function down() {
   print("Irreversible migration.");
 }
-up();
