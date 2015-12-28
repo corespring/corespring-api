@@ -1,6 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.apache.commons.io.IOUtils
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ ItemEditorHooks => ContainerItemEditorHooks, UploadResult }
@@ -57,13 +58,27 @@ class ItemEditorHooks(
     } yield transformer.transformToV2Json(item)
   }
 
+  private def getVid(id: String): Validation[V2Error, VersionedId[ObjectId]] = {
+
+    def ensureVersionIsPresent(v: VersionedId[ObjectId]): VersionedId[ObjectId] = {
+      if (v.version.isEmpty) {
+        logger.warn(s"[getVid] Id is missing version: $v")
+      }
+      v.copy(version = v.version.orElse(Some(itemService.currentVersion(v))))
+    }
+
+    VersionedId(id)
+      .map(ensureVersionIsPresent)
+      .toSuccess(cantParseItemId(id))
+  }
+
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
     logger.trace(s"function=loadFile id=$id path=$path")
     val result = for {
       _ <- Success(logger.trace(s"function=loadFile id=$id"))
       identity <- getOrgAndOptions(request)
       _ <- Success(logger.trace(s"function=loadFile identity=$identity"))
-      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+      vid <- getVid(id)
     } yield playS3.download(bucket, S3Paths.itemFile(vid, path))
 
     result match {
@@ -78,7 +93,7 @@ class ItemEditorHooks(
     val v: Validation[V2Error, DeleteResponse] = for {
       identity <- getOrgAndOptions(header)
       owns <- itemAuth.canWrite(id)(identity)
-      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+      vid <- getVid(id)
       _ <- if (owns) Success(true) else Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
     } yield playS3.delete(bucket, S3Paths.itemFile(vid, path))
 
@@ -109,7 +124,14 @@ class ItemEditorHooks(
       itemService.addFileToPlayerDefinition(item, newFile)
     }
 
-    playS3.s3ObjectAndData[Item](bucket, i => S3Paths.itemFile(i.id, path))(loadItemPredicate).map { f =>
+    playS3.s3ObjectAndData[Item](bucket, i => {
+
+      if (i.id.version.isEmpty) {
+        logger.warn(s"[upload] The id is missing a version: ${i.id}")
+      }
+      val vid = i.id.copy(version = i.id.version.orElse(Some(itemService.currentVersion(i.id))))
+      S3Paths.itemFile(vid, path)
+    })(loadItemPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, item) = tuple
         val key = s3Object.getKey
