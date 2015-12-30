@@ -1,0 +1,33 @@
+@(itemId:String, playerToken:String, apiClient: String, host: String)
+<html>
+  <body>
+    <div id="my-div"></div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="@{host}@org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs.url?showControls=true&apiClient=@apiClient&playerToken=@playerToken"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        //Here are the client side override options
+        var options = {
+            itemId: '@itemId',
+            mode: 'gather'
+        };
+        options.onItemSessionCreated = function (sessionId) {
+          console.log("item session created.. " + sessionId);
+        };
+        options.onItemSessionRetrieved = function (sessionId) {
+          console.log("item session retrieved.. " + sessionId);
+        };
+        options.onItemSessionCompleted = function (sessionId) {
+          console.log("item session completed.. " + sessionId);
+        };
+
+        var onError = function (err) {
+          console.log(err);
+          throw "Error loading test player: "+err.msg;
+        };
+
+        var player = new org.corespring.players.ItemPlayer('#my-div', options, onError);
+      });
+    </script>
+  </body>
+</html>

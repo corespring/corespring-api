@@ -2,7 +2,7 @@ package org.corespring.models.json.item
 
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
-import org.corespring.models.item.{ Subjects, TaskInfo }
+import org.corespring.models.item.{ StandardCluster, Subjects, TaskInfo }
 import org.corespring.models.json.ValueGetter
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
@@ -10,14 +10,18 @@ import play.api.libs.json._
 trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
 
   object Keys {
-    val title = "title"
     val description = "description"
+    val domains = "domains"
+    val extended = "extended"
     val gradeLevel = "gradeLevel"
     val itemType = "itemType"
+    val standardClusters = "standardClusters"
     val subjects = "subjects"
-    val extended = "extended"
-    val domains = "domains"
+    val title = "title"
   }
+
+  implicit def sf: Format[Subjects]
+  implicit def scf: Format[StandardCluster]
 
   override def writes(info: TaskInfo): JsValue = {
 
@@ -29,6 +33,7 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
       info.description.map((description -> JsString(_))),
       info.itemType.map((itemType -> JsString(_))),
       Some(domains -> JsArray(info.domains.toSeq.map(d => JsString(d)))),
+      Some(standardClusters -> JsArray(info.standardClusters.map(Json.toJson(_)))),
       if (info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))).flatten)
 
     val subjectsJson: Option[JsValue] = info.subjects.map(subjects => Json.toJson(subjects))
@@ -57,11 +62,10 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
       extended = getExtended(json),
       subjects = getSubjects(json),
       domains = getDomains(json),
+      standardClusters = getStandardClusters(json),
       gradeLevel = getGradeLevel(json))
     JsSuccess(info)
   }
-
-  implicit def sf: Format[Subjects]
 
   private def getSubjects(json: JsValue): Option[Subjects] = {
     Json.fromJson[Subjects](json) match {
@@ -74,6 +78,13 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
     (json \ Keys.domains).asOpt[Seq[String]] match {
       case Some(domains) => domains.toSet
       case None => Set.empty
+    }
+  }
+
+  private def getStandardClusters(json: JsValue): Seq[StandardCluster] = {
+    (json \ Keys.standardClusters).asOpt[Seq[StandardCluster]] match {
+      case Some(clusters) => clusters
+      case None => Seq.empty
     }
   }
 

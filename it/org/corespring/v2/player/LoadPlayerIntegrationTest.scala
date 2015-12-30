@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.V2PlayerConfig
 import org.corespring.container.client.component.ComponentUrls
 import org.corespring.container.client.controllers.apps.ComponentScriptInfo
+import org.corespring.container.client.controllers.helpers.PlayerXhtml
 import org.corespring.container.client.hooks.PlayerHooks
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.model.Component
@@ -65,6 +66,8 @@ class LoadPlayerIntegrationTest
     override protected def buildJs(scriptInfo: ComponentScriptInfo, extras: Seq[String])(implicit rh: RequestHeader): Seq[String] = Seq.empty
 
     override protected def buildCss(scriptInfo: ComponentScriptInfo)(implicit rh: RequestHeader): Seq[String] = Seq.empty
+
+    override def playerXhtml: PlayerXhtml = mock[PlayerXhtml]
   }
 
   "when I load the player with orgId and options" should {

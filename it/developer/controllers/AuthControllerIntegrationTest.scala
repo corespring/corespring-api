@@ -52,7 +52,7 @@ class AuthControllerIntegrationTest extends IntegrationSpecification {
 
     s"return json with the new token in it" in new okAccessToken {
       val json = contentAsJson(result)
-      val token = bootstrap.Main.tokenService.find(orgId, None).get
+      val token = main.tokenService.find(orgId, None).get
       json must_== Json.obj(OAuthConstants.AccessToken -> token.tokenId)
     }
 

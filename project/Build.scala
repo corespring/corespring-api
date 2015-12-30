@@ -44,10 +44,13 @@ object Build extends sbt.Build {
   lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
     .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
+  lazy val futureValidation = builders.lib("future-validation", "core")
+    .settings(libraryDependencies ++= Seq(scalaz, specs2 % "test"))
+
   lazy val coreServices = builders.lib("services", "core", publish = true)
     .settings(
       libraryDependencies ++= Seq(specs2 % "test"))
-    .dependsOn(coreModels)
+    .dependsOn(coreModels, futureValidation)
 
   lazy val coreUtils = builders.lib("utils", "core", publish = true)
 
@@ -93,6 +96,7 @@ object Build extends sbt.Build {
         playJson,
         playFramework,
         elasticsearchPlayWS,
+        specs2 % "test",
         jsoup,
         commonsCodec,
         grizzledLog,
@@ -160,6 +164,7 @@ object Build extends sbt.Build {
     .settings(
       libraryDependencies ++= Seq(
         scalaz,
+        scalazContrib,
         mongoJsonService,
         salatVersioningDao,
         componentModel,

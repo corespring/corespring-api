@@ -7,7 +7,7 @@ import org.corespring.models.item.{ ComponentType, Item }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
-import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.services.{CloneItemService, OrgCollectionService, OrganizationService}
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -28,6 +28,7 @@ class ItemApi(
   itemService: ItemService,
   orgService: OrganizationService,
   orgCollectionService: OrgCollectionService,
+  cloneItemService: CloneItemService,
   itemIndexService: ItemIndexService,
   itemAuth: ItemAuth[OrgAndOpts],
   itemTypes: Seq[ComponentType],
@@ -45,6 +46,8 @@ class ItemApi(
   private implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
   protected lazy val logger = Logger(classOf[ItemApi])
+
+
 
   /**
    * Create an Item. Will set the collectionId to the default id for the
@@ -220,7 +223,8 @@ class ItemApi(
 
   /**
    * Check a score against a given item
-   * @param itemId
+    *
+    * @param itemId
    * @return
    */
   def checkScore(itemId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -256,17 +260,37 @@ class ItemApi(
     }
   }
 
-  def cloneItem(id: String) = Action.async { implicit request =>
-    Future {
-      val out = for {
-        identity <- getOrgAndOptions(request)
-        vid <- VersionedId(id).toSuccess(cantParseItemId(id))
-        item <- itemAuth.loadForRead(id)(identity)
-        cloned <- itemService.clone(item).toSuccess(generalError(s"Error cloning item with id: $id"))
-      } yield Json.obj("id" -> cloned.id.toString)
-      validationToResult[JsValue](i => Ok(i))(out)
+  def cloneItem(id:String) = futureWithIdentity((identity, request) => {
+
+
+    lazy val targetCollectionId : Validation[V2Error, Option[ObjectId]] = {
+      val rawId : Option[String] = request.body.asJson.flatMap{ j =>
+        (j \ "collectionId" ).asOpt[String]
+      }
+
+      rawId.map{ r =>
+        if(ObjectId.isValid(r)){
+          Success(Some(new ObjectId(r)))
+        }  else {
+          Failure(generalError(s"Not a valid object id string: $r"))
+        }
+      }.getOrElse(Success(None))
     }
-  }
+
+    VersionedId(id).map{ vid =>
+      targetCollectionId match {
+        case Success(collectionId) => {
+          cloneItemService.cloneItem(vid, identity.org.id, collectionId).future.map{ v =>
+            val asJson = v.bimap(
+              e => generalError(s"Error cloning item with id: $id: ${e.message}"),
+              id => Json.obj("id" -> id.toString))
+            validationToResult[JsValue](i => Ok(i))(asJson)
+          }
+        }
+        case Failure(e) => Future(e.toResult)
+      }
+    }.getOrElse(Future(cantParseItemId(id).toResult))
+  })
 
   def publish(id: String) = Action.async { implicit request =>
     Future {

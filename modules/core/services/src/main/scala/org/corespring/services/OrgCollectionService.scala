@@ -17,7 +17,18 @@ trait OrgCollectionService {
    */
   def isAuthorized(orgId: ObjectId, collectionId: ObjectId, p: Permission): Boolean
 
+  /**
+    * A batch api for checking multiple authorizations at once.
+    * does the given organization have access to the given collection with given permission.
+    * @param orgId
+    * @param collectionIdAndPermission
+    * @return
+    */
+  def isAuthorizedBatch(orgId: ObjectId, collectionIdAndPermission: (ObjectId,Permission)*): Future[Seq[(ObjectId,Boolean)]]
+
   def getPermission(orgId: ObjectId, collectionId: ObjectId): Option[Permission]
+
+  def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Future[Seq[(ObjectId,Option[Permission])]]
 
   def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean]
 

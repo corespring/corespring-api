@@ -62,19 +62,47 @@
       $timeout($scope.search, searchDelay);
     };
 
+    $rootScope.$on('editItem', function(ev, itemId) {
+      var item = _.find($scope.items, function(i) {
+        return i.id === itemId;
+      });
+      edit(item);
+    });
+
     $rootScope.$broadcast('onListViewOpened');
 
     init();
 
     //---------------------------------------------------
 
+    function highlightItem(id) {
+      var item = $(document.getElementById('row-'+id));
+      var prevPrev = $(document.getElementById('row-'+id)).prev().prev();
+      if (prevPrev.length > 0) {
+        prevPrev[0].scrollIntoView(true);
+      }
+      item.addClass('highlighted');
+      setTimeout(function() {
+        item.removeClass('highlighted');
+      }, 200);
+    }
+
     function init() {
+      if ($rootScope.itemData) {
+        var id = $rootScope.itemData.id;
+        $timeout(function() {
+          highlightItem(id);
+        }, 200);
+      }
+      $rootScope.itemData = undefined;
       $scope.userName = UserInfo.userName;
       $scope.org = UserInfo.org;
     }
 
     function edit(item) {
       route('edit', item);
+      $rootScope.$broadcast('editItemOpened', item);
+      $rootScope.itemData = item;
     }
 
     function publish(item, callback) {
@@ -120,7 +148,7 @@
     function V1() {
 
       this.edit = function(item) {
-        $location.url('/edit/' + item.id);
+        $location.url('/edit/draft/' + item.id + '?devEditor=true');
       };
 
       this.cloneItem = function(item) {

@@ -1,9 +1,8 @@
 package org.corespring.it.helpers
 
-import bootstrap.Main
+import global.Global.main
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.util.JSON
 import org.bson.types.ObjectId
 import org.corespring.models.item.resource.{ Resource, VirtualFile }
 import org.corespring.models.item.{ Item, TaskInfo }
@@ -16,8 +15,8 @@ object ItemHelper {
 
   val logger = Logger(ItemHelper.getClass)
 
-  lazy val itemService = Main.itemService
-  lazy val itemCollection = Main.db(CollectionNames.item)
+  lazy val itemService = main.itemService
+  lazy val itemCollection = main.db(CollectionNames.item)
 
   val qtiXmlTemplate = "<assessmentItem><itemBody>::version::</itemBody></assessmentItem>"
   def create(collectionId: ObjectId): VersionedId[ObjectId] = {
@@ -42,7 +41,7 @@ object ItemHelper {
   def create(collectionId: ObjectId, item: Item): VersionedId[ObjectId] = {
     itemService.insert(item.copy(collectionId = collectionId.toString)) match {
       case Some(versionedId) => {
-        logger.trace(s"function=create, dbo=${Main.salatItemDao.currentCollection.findOne(MongoDBObject("_id._id" -> versionedId.id)).toString}")
+        logger.trace(s"function=create, dbo=${main.salatItemDao.currentCollection.findOne(MongoDBObject("_id._id" -> versionedId.id)).toString}")
         versionedId
       }
       case _ => throw new Exception("Error creating item")
