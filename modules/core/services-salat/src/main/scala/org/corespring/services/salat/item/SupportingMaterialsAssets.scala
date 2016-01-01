@@ -2,6 +2,7 @@ package org.corespring.platform.core.services.item
 
 import java.io.ByteArrayInputStream
 
+import com.amazonaws.AmazonClientException
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.{ DeleteObjectsRequest, ObjectMetadata, S3Object }
 import grizzled.slf4j.Logger
@@ -37,8 +38,14 @@ class SupportingMaterialsAssets[A](s3: AmazonS3, bucketHolder: Bucket, assetKeys
 
   def getS3Object(id: A, materialName: String, filename: String, etag: Option[String]): Option[S3Object] = {
     logger.debug(s"[getS3Object] id=$id, resource=$materialName, file=$filename")
-    val key = assetKeys.supportingMaterialFile(id, materialName, filename)
-    Some(s3.getObject(bucket, key))
+    try {
+      val key = assetKeys.supportingMaterialFile(id, materialName, filename)
+      Some(s3.getObject(bucket, key))
+    } catch {
+      case x:AmazonClientException =>
+        val key = assetKeys.supportingMaterialFallbackFile(id, materialName, filename)
+        Some(s3.getObject(bucket, key))
+    }
   }
 
   def upload(id: A, resource: Resource, file: StoredFile, bytes: Array[Byte]): Validation[String, StoredFile] = {
