@@ -8,6 +8,7 @@ the integration tests.
         <encoder><pattern>%highlight(%.-1level) %boldYellow(%logger{30}) > %message%n%xException{5}</pattern></encoder>
     </appender>
 
+    <logger name="org.corespring.services.salat.OrgCollectionService" level="TRACE"/>
 
     <root level="WARN">
         <appender-ref ref="STDOUT" />

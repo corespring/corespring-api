@@ -7,7 +7,7 @@ import sbtrelease.Version
 import sbtrelease.ReleaseStateTransformations._
 import org.corespring.sbtrelease.ReleaseSteps._
 import org.corespring.sbtrelease.ReleaseExtrasPlugin._
-import org.corespring.sbtrelease.{ PrefixAndVersion, BranchNameConverter, FolderStyleConverter }
+import org.corespring.sbtrelease.{Git, PrefixAndVersion, BranchNameConverter, FolderStyleConverter}
 
 object HyphenNameConverter extends BranchNameConverter {
   val pattern = """^([^-]+)-([^-]+)$""".r
@@ -24,41 +24,50 @@ object HyphenNameConverter extends BranchNameConverter {
 
 object CustomRelease {
 
-  //Run stage
-  val runStage = ReleaseStep(action = st => {
+  def unsupportedBranch(b:String) = ReleaseStep(action = st => {
+    sys.error(s"Unsupported branch for releasing: $b, must be 'rc' for releases or 'hotfix' for hotfixes")
+  })
+
+  //Run `universal:packageZipTarball`
+  lazy val buildTgz = ReleaseStep(action = (st: State) => {
     val extracted = Project.extract(st)
-    import com.typesafe.sbt.packager.universal.Keys.stage
-    val (newState, _) = extracted.runTask(stage, st)
+    import com.typesafe.sbt.SbtNativePackager._
+    import com.typesafe.sbt.packager.Keys._
+    val (newState, _) = extracted.runTask(packageZipTarball in Universal, st)
     newState
   })
 
-  /**
-   * What will the ci have to do:
-   * for releases update the release var to X.X.X,
-   * - checkout that branch and do it's builds etc
-   * - when ready run `release --with-defaults`
-   *
-   * for hotfixes - create a new hotfix var - checkout the branch and do as above.
-   */
+  def shared(branchName: String, custom:Seq[ReleaseStep]) = Seq(
+    checkBranchName(branchName),
+    checkSnapshotDependencies,
+    runClean,
+    runTest,
+    runIntegrationTest,
+    prepareReleaseVersion,
+    setReleaseVersion,
+    commitReleaseVersion) ++
+    custom ++
+    Seq(
+      pushBranchChanges,
+      pushTags,
+      publishArtifacts,
+      buildTgz)
+
   lazy val settings = Seq(
     branchNameConverter := HyphenNameConverter,
     releaseVersionBump := Bump.Minor,
-    releaseProcess <<= thisProjectRef.apply { ref =>
-      Seq(
-        checkBranchName("rc"),
-        checkSnapshotDependencies,
-        runClean,
-        runTest,
-        runIntegrationTest,
-        prepareReleaseVersion,
-        setReleaseVersion,
-        commitReleaseVersion,
-        pushBranchChanges,
-        mergeCurrentBranchTo("master"),
-        tagBranchWithReleaseTag("master"),
-        pushBranchChanges,
-        pushTags,
-        publishArtifacts)
-    })
+    releaseProcess <<= baseDirectory.apply { bd =>
 
+      lazy val regularRelease = shared("rc", Seq(
+        mergeCurrentBranchTo("master"),
+        tagBranchWithReleaseTag("master")))
+
+      lazy val hotfixRelease = shared("hf", Seq(tagBranchWithReleaseTag("hf")))
+
+      Git(bd).currentBranch match {
+        case "rc" => regularRelease
+        case "hf" => hotfixRelease
+        case branch => Seq(unsupportedBranch(branch))
+      }
+    })
 }

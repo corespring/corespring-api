@@ -1,5 +1,4 @@
 500:se.radley.plugin.salat.SalatPlugin
-700:developer.init.InitAppBeforePlugins
 1500:com.typesafe.plugin.CommonsMailerPlugin
 9994:developer.controllers.CorespringAuthenticatorStore
 9995:developer.controllers.CorespringIdGenerator

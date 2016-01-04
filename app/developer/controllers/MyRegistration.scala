@@ -1,8 +1,8 @@
 package developer.controllers
 
 import com.typesafe.plugin._
+import developer.DeveloperConfig
 import org.bson.types.ObjectId
-import org.corespring.common.config.AppConfig
 import org.corespring.errors.PlatformServiceError
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.auth.Permission
@@ -21,7 +21,7 @@ import securesocial.core.providers.{ Token, UsernamePasswordProvider }
 
 import scalaz.{ Failure, Success, Validation }
 
-object MyRegistration extends Controller {
+class MyRegistration(config: DeveloperConfig) extends Controller {
 
   case class MyRegistrationInfo(
     userName: Option[String],
@@ -106,12 +106,12 @@ object MyRegistration extends Controller {
                 fullName = s"${info.firstName} ${info.lastName}",
                 email = t.email,
                 password = passwordInfo.password,
-                org = UserOrg(AppConfig.demoOrgId, Permission.Read.value),
+                org = UserOrg(config.demoOrgId, Permission.Read.value),
                 provider = providerId)
 
               def mkNewOrgOrGetDemoOrg: Validation[PlatformServiceError, ObjectId] = info.organization match {
                 case Some(name) => insertOrg(name).map(_.id)
-                case _ => Success(AppConfig.demoOrgId)
+                case _ => Success(config.demoOrgId)
               }
 
               lazy val socialUser = {

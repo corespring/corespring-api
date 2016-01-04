@@ -1,5 +1,6 @@
 package org.corespring.itemSearch
 
+import global.Global
 import org.corespring.it.helpers.ItemHelper
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{ ItemIndexCleaner, IntegrationSpecification }
@@ -15,7 +16,7 @@ class WidgetTypeIntegrationTest extends IntegrationSpecification {
 
     cleanIndex()
 
-    val widgetType = bootstrap.Main.widgetType
+    val widgetType = main.widgetType
 
     override def after = {
       logger.info("after.. cleaning up..")

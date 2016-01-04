@@ -36,7 +36,8 @@ class PlayerJsonToItem(jsonFormatting: JsonFormatting) {
     def taskInfo: Option[TaskInfo] =
       (profileJson \ "taskInfo").asOpt[TaskInfo].map { ti =>
         val s = subjects(profileJson \ "taskInfo").orElse(ti.subjects)
-        ti.copy(subjects = s)
+        val c = clusters(profileJson \ "taskInfo").getOrElse(ti.standardClusters)
+        ti.copy(subjects = s, standardClusters = c)
       }
 
     def subjects(taskInfoJson: JsValue): Option[Subjects] = {
@@ -44,6 +45,15 @@ class PlayerJsonToItem(jsonFormatting: JsonFormatting) {
         Subjects(
           primary = (subjects \ "primary" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)),
           related = (subjects \ "related" \\ "id").map(_.as[String]).filter(ObjectId.isValid(_)).map(new ObjectId(_)))
+      }
+    }
+
+    def clusters(taskInfoJson: JsValue): Option[Seq[StandardCluster]] = {
+      (taskInfoJson \ "standardClusters").asOpt[Seq[JsValue]].map { clusters =>
+        clusters.map((c: JsValue) => StandardCluster(
+          (c \ "text").as[String],
+          (c \ "hidden").as[Boolean],
+          (c \ "source").as[String]))
       }
     }
 

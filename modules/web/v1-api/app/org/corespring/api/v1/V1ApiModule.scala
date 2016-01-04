@@ -3,6 +3,7 @@ package org.corespring.api.v1
 import com.novus.salat.Context
 import org.corespring.amazon.s3.S3Service
 import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.Item
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.OAuthProvider
@@ -22,6 +23,8 @@ case class V1ApiExecutionContext(context: ExecutionContext)
 trait V1ApiModule {
 
   import com.softwaremill.macwire.MacwireMacros._
+
+  def bucket : Bucket
 
   def v1ApiExecutionContext: V1ApiExecutionContext
 
@@ -67,6 +70,7 @@ trait V1ApiModule {
   def context: Context
 
   lazy val salatContentService = new ItemApiContentService(itemService, salatItemDao)
+  lazy val itemApiItemValidation = new ItemApiItemValidation()
 
   lazy val v1ItemApi: Controller = wire[org.corespring.api.v1.ItemApi]
   lazy val v1FieldValuesApi: Controller = wire[org.corespring.api.v1.FieldValuesApi]

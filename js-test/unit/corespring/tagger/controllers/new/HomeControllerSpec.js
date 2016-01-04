@@ -181,7 +181,7 @@ describe('tagger.controllers.new.HomeController', function() {
         scope.v1.edit({
           id: '123'
         });
-        expect(location.url).toHaveBeenCalledWith('/edit/123');
+        expect(location.url).toHaveBeenCalledWith('/edit/draft/123?devEditor=true');
       });
     });
     describe('cloneItem', function() {

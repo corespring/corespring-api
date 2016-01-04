@@ -2,13 +2,13 @@ package org.corespring.it.helpers
 
 import org.bson.types.ObjectId
 import org.corespring.models.Organization
-
+import global.Global.main
 import scalaz.Success
 
 object OrganizationHelper {
 
   import faker._
-  lazy val service = bootstrap.Main.orgService
+  lazy val service = main.orgService
 
   def createAndReturnOrg(name: String = Company.name): Organization = service.insert(Organization(id = new ObjectId, name = name), None) match {
     case Success(organization) => organization

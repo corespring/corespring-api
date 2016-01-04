@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.56.0"
+  val containerVersion = "0.57.0-SNAPSHOT"
   val qtiVersion = "0.8"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
@@ -71,6 +71,8 @@ object Dependencies {
   val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.20.0"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
+  val scalazContrib = "org.typelevel" %% "scalaz-contrib-210" % "0.1.5"
+
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.2.2" // "3.6.2"
@@ -78,7 +80,7 @@ object Dependencies {
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.20-PLAY22").exclude("org.mongodb", "mongo-java-driver")
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.23-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
   val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.3"
 
