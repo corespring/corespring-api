@@ -214,9 +214,10 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
-  val main = builders.web("root", Some(file(".")))
+  val main = builders.web("root", Some(file(".")), disablePackaging = false)
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
+    .settings(Tgz.settings: _*)
     .settings(
       //disable publishing of the root project
       shellPrompt := ShellPrompt.buildShellPrompt,
@@ -244,7 +245,7 @@ object Build extends sbt.Build {
     .configs(IntegrationTest)
     .settings(IntegrationTestSettings.settings: _*)
     .settings(CustomRelease.settings: _*)
-    .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
+    .settings(ComponentsBuilder.settings : _*)
     .settings(Indexing.indexTask)
     .dependsOn(
       apiUtils,
