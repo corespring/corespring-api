@@ -1,7 +1,11 @@
 import sbt.Keys._
+import com.typesafe.sbt.SbtNativePackager._
 import sbt._
 
 object ComponentsBuilder {
+
+  //TODO: use the State api - need to find out how to update it within a task - this will do for now.
+  private var componentsBuilt = false
 
   def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
 
@@ -21,34 +25,45 @@ object ComponentsBuilder {
 
   val installComponents = TaskKey[Unit]("install-components", "install the corespring-components submodule and run `npm install`")
 
-  val installComponentsTask = installComponents <<= (baseDirectory, streams).map {
-    (bd, s) =>
-      s.log.info("[install-components] running - install components...")
-      s.log.info("[install-components] running - git submodule update...")
-      runCmd(s.log)("git submodule update --init --recursive", bd)
-      s.log.info("[install-components] running - npm install...")
-      runCmd(s.log)("npm install", bd / "corespring-components")
+  val installComponentsTask = installComponents <<= (baseDirectory, streams, state).map {
+    (bd, s, state) =>
+
+      val hasDir = new File("corespring-components").isDirectory
+      if(hasDir){
+        s.log.info("[install-components] found corespring-components directory - skipping - rm this dir to re-install")
+      } else {
+        s.log.info("[install-components] running - install components...")
+        s.log.info("[install-components] running - git submodule update...")
+        runCmd(s.log)("git submodule update --init --recursive", bd)
+        s.log.info("[install-components] running - npm install...")
+        runCmd(s.log)("npm install", bd / "corespring-components")
+      }
   }
 
   val buildComponents = TaskKey[Unit]("build-components", "Runs compilation for corespring-components assets")
 
   val buildComponentsTask = buildComponents <<= (baseDirectory, streams) map {
     (baseDir, s) => {
-      val clientRoot: File = baseDir
-      val componentsRoot: File = new File(clientRoot.getAbsolutePath + "/corespring-components/")
 
-      val commands = Seq(
-        // This should be done with -g, but can't assume root access on all machines
-        (npmCmd, "install grunt-cli"),
-        (npmCmd, "install"),
-        (bowerCmd, "install"),
-        (gruntCmd, "build"))
+      if(componentsBuilt){
+        s.log.info("components already built - skipping")
+      } else {
+        val componentsRoot: File = baseDir / "corespring-components"
 
-      commands.foreach {
-        c => {
-          val (cmd, args) = c
-          runCmd(s.log)(s"$cmd $args", componentsRoot)
+        val commands = Seq(
+          // This should be done with -g, but can't assume root access on all machines
+          (npmCmd, "install grunt-cli"),
+          (npmCmd, "install"),
+          (bowerCmd, "install"),
+          (gruntCmd, "build"))
+
+        commands.foreach {
+          c => {
+            val (cmd, args) = c
+            runCmd(s.log)(s"$cmd $args", componentsRoot)
+          }
         }
+        componentsBuilt = true
       }
     }
   }
@@ -59,7 +74,11 @@ object ComponentsBuilder {
     buildComponentsTask,
     installComponentsTask,
     buildComponents <<= buildComponents.dependsOn(installComponents),
-    (packagedArtifacts) <<= (packagedArtifacts).dependsOn(buildComponents)
+    (packagedArtifacts) <<= (packagedArtifacts).dependsOn(buildComponents),
+    //Ensure that the mappings have been updated
+    (mappings in Universal) <<= (mappings in Universal).dependsOn(buildComponents).map[Seq[(File,String)]]{ (mappings) =>
+      mappings ++ Tgz.componentsMapping
+    }
   )
 
 }
