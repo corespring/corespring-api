@@ -179,6 +179,7 @@ describe('tagger.controllers.new.HomeController', function() {
   });
 
   describe('v1', function() {
+
     describe('edit', function() {
       it("should launch the old editor", function() {
         scope.v1.edit({
@@ -194,6 +195,7 @@ describe('tagger.controllers.new.HomeController', function() {
         expect(modals.edit).toHaveBeenCalled();
       });
     });
+
     describe('cloneItem', function() {
       var newItem;
 
@@ -218,11 +220,13 @@ describe('tagger.controllers.new.HomeController', function() {
       it('calls ItemService.get', function() {
         expect(itemService.get).toHaveBeenCalled();
       });
+
       it('calls itemData.clone', function() {
         expect(newItem.clone).toHaveBeenCalled();
       });
-      it("launches the old editor with the clone", function() {
-        expect(location.url).toHaveBeenCalledWith('/edit/123-clone');
+
+      it("launches the v2 dev editor with the clone", function() {
+        expect(location.url).toHaveBeenCalledWith('/edit/draft/123-clone?devEditor=true');
       });
     });
   });

@@ -169,7 +169,7 @@
         }, function(itemData) {
           itemData.clone(
             function success(newItem) {
-              $location.url('/edit/' + newItem.id);
+              $location.url('/edit/draft/' + newItem.id + '?devEditor=true');
             },
             function error(err) {
               alert('cloneItem:', JSON.stringify(err));
