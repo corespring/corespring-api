@@ -1,9 +1,39 @@
 package org.corespring.models.item
 
 import org.bson.types.ObjectId
+import org.corespring.models.item.Item.QtiResource.QtiXml
+import org.corespring.models.item.resource.{VirtualFile, Resource}
 import org.specs2.mutable.Specification
 
 class ItemTest extends Specification {
+
+  "createdByApiVersion" should {
+
+    def item(qti: Boolean, playerDefinition: Boolean) : Item = {
+
+      val data = if(qti){
+        Some(Resource(name = "data", files = Seq(VirtualFile(isMain = true, name = QtiXml, content = "<xml/>", contentType = "text/xml"))))
+      } else None
+
+      val pd = if(playerDefinition){
+        Some(PlayerDefinition.empty)
+      } else None
+
+
+      Item(collectionId = ObjectId.get.toString, data = data, playerDefinition = pd)
+    }
+
+    def assertItem(qti:Boolean, playerDefinition: Boolean, version:Int) = {
+      s"return $version for qti: $qti, playerDefinition:$playerDefinition" in {
+        item(qti, playerDefinition).createdByApiVersion === version
+      }
+    }
+
+    assertItem(qti=true, playerDefinition=true, version = 1)
+    assertItem(qti=false, playerDefinition=true, version = 2)
+    assertItem(qti=true, playerDefinition=false, version = 1)
+    assertItem(qti=false, playerDefinition=false, version = -1)
+  }
 
   "cloning" should {
 
