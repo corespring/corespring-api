@@ -40,7 +40,6 @@ case class Item(
 
   /** We're going to update this with a flag **/
   def createdByApiVersion: Int = (hasQti, hasPlayerDefinition) match {
-    case (true, true) => 2
     case (true, _) => 1
     case (false, true) => 2
     case (false, false) => -1
