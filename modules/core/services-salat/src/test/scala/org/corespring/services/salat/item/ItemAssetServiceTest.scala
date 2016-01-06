@@ -123,7 +123,7 @@ class ItemAssetServiceTest extends Specification with Mockito {
         val fromItem = mkItem(supportingMaterials=supportingMaterials, files=Seq(fileInPlayerDefinition))
         val toItem = incVersion(fromItem)
         service.cloneStoredFiles(fromItem, toItem)
-        there was one(s3Mock).copyAsset("file from supportingMaterials", s"${itemIdToPath(toItem)}/test-resource/test-file")
+        there was one(s3Mock).copyAsset("file from supportingMaterials", s"${itemIdToPath(toItem)}/materials/test-resource/test-file")
         there was no(s3Mock).copyAsset("file from playerdefinition", s"${itemIdToPath(toItem)}/test-resource/test-file")
       }
 
@@ -148,7 +148,7 @@ class ItemAssetServiceTest extends Specification with Mockito {
         val fromItem = mkItem(supportingMaterials=supportingMaterials)
         val toItem = incVersion(fromItem)
         service.cloneStoredFiles(fromItem, toItem)
-        there was one(s3Mock).copyAsset("file from supportingMaterials", s"${itemIdToPath(toItem)}/test-resource/test-file")
+        there was one(s3Mock).copyAsset("file from supportingMaterials", s"${itemIdToPath(toItem)}/materials/test-resource/test-file")
       }
 
       trait missingScope extends scope {
