@@ -58,8 +58,13 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
       CloneResourceResult(result)
     }
 
-    def processFile(resource: Resource, file: StoredFile): CloneFileResult = tryClone(file, { file =>
-      val toKey = StoredFile.storageKey(to.id.id, to.id.version.get, resource, file.name)
+    def cloneSupportingMaterialResourceFiles(resource: Resource): CloneResourceResult = {
+      val result: Seq[CloneFileResult] = resource.files.filter(_.isInstanceOf[StoredFile]).map(f => processFile(resource, f.asInstanceOf[StoredFile], Some("materials/")))
+      CloneResourceResult(result)
+    }
+
+    def processFile(resource: Resource, file: StoredFile, resourcePrefix: Option[String] = None): CloneFileResult = tryClone(file, { file =>
+      val toKey = StoredFile.storageKey(to.id.id, to.id.version.get, resourcePrefix.getOrElse("") + resource.name, file.name)
 
       //V1 file key validation
       require(!file.storageKey.isEmpty, s"v1 file ${file.name} has no storageKey")
@@ -72,13 +77,12 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
       }
 
       logger.debug("[ItemFiles] clone file: " + from + " --> " + to)
-      println("[ItemFiles] clone file: " + from + " --> " + to)
+      println("[ItemFiles] clone file: " + fromKey + " --> " + toKey)
       copyAsset(fromKey, toKey)
       toKey
     })
 
-    val resources: Seq[Resource] = to.supportingMaterials ++ to.data
-    val result: Seq[CloneResourceResult] = resources.map(cloneResourceFiles)
+    val result: Seq[CloneResourceResult] = to.supportingMaterials.map(cloneSupportingMaterialResourceFiles) ++ to.data.map(cloneResourceFiles)
     val v1FileResults: Seq[CloneFileResult] = result.map(r => r.files).flatten
     v1FileResults
   }
