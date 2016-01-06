@@ -11,6 +11,7 @@ import org.corespring.v2.auth.{PassageAuth, SessionAuth, ItemAuth}
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
+import org.corespring.passage.search.PassageIndexService
 import play.api.mvc.{ Controller, RequestHeader }
 
 import scala.concurrent.ExecutionContext
@@ -27,6 +28,8 @@ trait V2ApiModule
   def mainSessionService: SessionService
 
   def itemIndexService: ItemIndexService
+
+  def passageIndexService: PassageIndexService
 
   def itemAuth: ItemAuth[OrgAndOpts]
 

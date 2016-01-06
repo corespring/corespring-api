@@ -4,17 +4,20 @@ import org.bson.types.ObjectId
 import org.corespring.models.item.Passage
 import org.corespring.models.item.resource.VirtualFile
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.PassageService
 import org.corespring.v2.auth.PassageAuth
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.errors.Errors.{incorrectJsonFormat, noJson}
 import org.corespring.v2.errors.V2Error
-import play.api.mvc.{SimpleResult, RequestHeader}
+import org.corespring.passage.search._
+import play.api.libs.json._
+import play.api.mvc._
 
 import scala.concurrent.{Future, ExecutionContext}
 import scalaz.{Failure, Success, Validation}
 
 class PassageApi(
   passageAuth: PassageAuth,
+  passageIndexService: PassageIndexService,
   v2ApiContext: V2ApiExecutionContext,
   override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
@@ -25,6 +28,33 @@ class PassageApi(
       case Success(passage) => PassageResponseWriter.write(passage)
       case Failure(error) => Status(error.statusCode)(error.message)
     })
+  }
+
+  def search = futureWithIdentity { (identity, request) =>
+    implicit val ApiReads = PassageIndexQuery.ApiReads
+    implicit val PassageIndexSearchResultFormat = PassageIndexSearchResult.Format
+
+    request.body.asJson match {
+      case Some(json) => Json.fromJson[PassageIndexQuery](json) match {
+        case JsSuccess(query, _) => {
+          passageIndexService.search(query.scopedTo(identity)).map(_ match {
+            case Success(result) => Ok(Json.prettyPrint(Json.toJson(result)))
+            case _ => {
+              val error = incorrectJsonFormat(json)
+              Status(error.statusCode)(error.message)
+            }
+          })
+        }
+        case _ => {
+          val error = incorrectJsonFormat(json)
+          Future.successful(Status(error.statusCode)(error.message))
+        }
+      }
+      case _ => {
+        val error = noJson
+        Future.successful(Status(error.statusCode)(error.message))
+      }
+    }
   }
 
   private object PassageResponseWriter {

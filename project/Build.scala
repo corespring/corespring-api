@@ -98,7 +98,7 @@ object Build extends sbt.Build {
         commonsCodec,
         grizzledLog,
         macWireMacro))
-    .dependsOn(coreModels, coreJson)
+    .dependsOn(coreModels, coreJson, v2Auth)
 
   lazy val commonViews = builders.web("common-views")
     .settings(

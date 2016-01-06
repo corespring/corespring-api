@@ -31,6 +31,7 @@ import org.corespring.encryption.EncryptionModule
 import org.corespring.importing.validation.ItemSchema
 import org.corespring.importing.{ImportingExecutionContext, ItemImportModule}
 import org.corespring.itemSearch.{ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule}
+import org.corespring.passage.search.PassageSearchModule
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{AccessTokenConfig, ArchiveConfig, Bucket}
 import org.corespring.models.item.{ComponentType, FieldValue, Item}
@@ -95,6 +96,7 @@ class Main(
   extends SalatServices
   with EncryptionModule
   with ItemSearchModule
+  with PassageSearchModule
   with V2AuthModule
   with V2ApiModule
   with V1ApiModule

@@ -48,6 +48,8 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
       val queryJson = Json.toJson(query)
       logger.trace(s"function=search, query=$queryJson")
 
+      println(Json.prettyPrint(queryJson))
+
       authed("/content/_search")(url, ec)
         .post(queryJson)
         .map(result => Json.fromJson[ItemIndexSearchResult](Json.parse(result.body)) match {

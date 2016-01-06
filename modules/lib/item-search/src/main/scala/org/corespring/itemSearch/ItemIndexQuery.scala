@@ -1,5 +1,6 @@
 package org.corespring.itemSearch
 
+import org.corespring.elasticsearch.ElasticSearchWrites
 import org.corespring.models.json.JsonUtil
 import play.api.libs.json._
 
@@ -149,23 +150,7 @@ object ItemIndexQuery {
   /**
    * Writes the query to a JSON format understood by Elastic Search.
    */
-  object ElasticSearchWrites extends Writes[ItemIndexQuery] with JsonUtil {
-
-    private def terms[A](field: String, values: Seq[A], execution: Option[String] = None)(implicit writes: Writes[A]) = filter("terms", field, values, execution): Option[JsObject]
-
-    private def term[A](field: String, values: Option[A])(implicit writes: Writes[A], execution: Option[String] = None): Option[JsObject] =
-      filter("term", field, values, execution)
-
-    private def filter[A](named: String, field: String, values: Seq[A], execution: Option[String])(implicit writes: Writes[A]): Option[JsObject] =
-      values.nonEmpty match {
-        case true => Some(Json.obj(named -> partialObj(
-          field -> Some(Json.toJson(values)), "execution" -> execution.map(JsString))))
-        case _ => None
-      }
-
-    private def filter[A](named: String, field: String, value: Option[A], execution: Option[String])(implicit writes: Writes[A]): Option[JsObject] =
-      value.map(v => partialObj(
-        named -> Some(Json.obj(field -> Json.toJson(v))), "execution" -> execution.map(JsString)))
+  object ElasticSearchWrites extends ElasticSearchWrites[ItemIndexQuery] {
 
     private def range[A <: Int](field: String, gte: Option[A] = None, gt: Option[A] = None, lte: Option[A] = None, lt: Option[A] = None)(implicit writes: Writes[A]): Option[JsObject] =
       if ((gte ++ gt ++ lte ++ lt).isEmpty) None
@@ -195,23 +180,14 @@ object ItemIndexQuery {
       }
     }
 
-    private def should(text: Option[String]): Option[JsObject] = text match {
-      case Some("") => None
-      case Some(text) => Some(Json.obj("should" -> Json.arr(
-        Json.obj("multi_match" -> Json.obj(
-          "query" -> text,
-          "fields" -> Seq("taskInfo.description", "taskInfo.title", "content", "taskInfo.standardClusters"),
-          "type" -> "phrase")),
-        Json.obj("ids" -> Json.obj(
-          "values" -> Json.arr(text))))))
-      case _ => None
-    }
-
     def writes(query: ItemIndexQuery): JsValue = {
       import query._
       implicit val SortWrites = Sort.ElasticSearchWrites
 
-      val clauses = Seq(must(metadata), should(text)).flatten.foldLeft(Json.obj()) { case (obj, acc) => acc ++ obj }
+      val clauses = Seq(
+        must(metadata),
+        should(text, Seq("taskInfo.description", "taskInfo.title", "content", "taskInfo.standardClusters"))
+      ).flatten.foldLeft(Json.obj()) { case (obj, acc) => acc ++ obj }
 
       partialObj(
         "from" -> Some(JsNumber(offset)),
