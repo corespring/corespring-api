@@ -13,10 +13,10 @@ import developer.{ DeveloperConfig, DeveloperModule }
 import filters.{ BlockingFutureQueuer, CacheFilter, FutureQueuer }
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
-import org.corespring.amazon.s3.S3Service
+import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
-import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
+import org.corespring.assets.{ DoubleKeyCheckS3Service, ItemAssetKeys }
 import org.corespring.common.config.{ ItemAssetResolverConfig, ContainerConfig }
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
@@ -349,7 +349,9 @@ class Main(
     ServiceLookup.subjectService = subjectService
   }
 
-  override def s3Service: S3Service = wire[CorespringS3ServiceExtended]
+  lazy val concreteS3Service: ConcreteS3Service = wire[ConcreteS3Service]
+
+  override def s3Service: S3Service = wire[DoubleKeyCheckS3Service]
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.componentsPath

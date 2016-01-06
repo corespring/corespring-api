@@ -35,7 +35,10 @@ object Build extends sbt.Build {
     .dependsOn(apiUtils)
 
   lazy val assets = builders.lib("assets")
-    .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
+    .settings(libraryDependencies ++= Seq(
+      specs2 % "test",
+      playS3,
+      httpClient))
     .dependsOn(apiUtils)
 
   lazy val coreModels = builders.lib("models", "core", publish = true).settings(
@@ -245,7 +248,7 @@ object Build extends sbt.Build {
     .configs(IntegrationTest)
     .settings(IntegrationTestSettings.settings: _*)
     .settings(CustomRelease.settings: _*)
-    .settings(ComponentsBuilder.settings : _*)
+    .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
     .dependsOn(
       apiUtils,
