@@ -12,13 +12,13 @@ class EncodingHelperTest extends Specification {
 
   def encode(s: String, count: Int) = count match {
     case 0 => s
-    case c if c > 0 => (1 to count).foldRight(s)((index: Int, acc: String) => URIUtil.encodeQuery(acc))
+    case c if c > 0 => (1 to count).foldRight(s)((index: Int, acc: String) => URIUtil.encodePath(acc))
   }
 
   "encodedOnce" should {
 
     def assertEncodedOnce(s: String, count: Int) = {
-      val expected = URIUtil.encodeQuery(helper.decodeCompletely(s), "utf-8")
+      val expected = URIUtil.encodePath(helper.decodeCompletely(s), "utf-8")
       val encoded = encode(s, count)
 
       s"encodedOnce('$encoded') => '$expected'" in {

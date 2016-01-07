@@ -6,7 +6,7 @@ import bootstrap.Actors.UpdateItem
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.s3.transfer.TransferManager
-import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client, S3ClientOptions }
+import com.amazonaws.services.s3.{ AmazonS3, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import developer.{ DeveloperConfig, DeveloperModule }
@@ -16,7 +16,7 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
-import org.corespring.assets.{ DoubleKeyCheckS3Service, ItemAssetKeys }
+import org.corespring.assets.{ EncodedKeyS3Client, ItemAssetKeys }
 import org.corespring.common.config.{ ItemAssetResolverConfig, ContainerConfig }
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
@@ -290,7 +290,8 @@ class Main(
 
   override lazy val s3: AmazonS3 = {
 
-    val client = new AmazonS3Client(awsCredentials)
+    logger.info("val=s3 - creating new CorespringS3Client")
+    val client = new EncodedKeyS3Client(awsCredentials)
 
     appConfig.s3Config.endpoint.foreach { e =>
       val options = new S3ClientOptions()
@@ -349,9 +350,7 @@ class Main(
     ServiceLookup.subjectService = subjectService
   }
 
-  lazy val concreteS3Service: ConcreteS3Service = wire[ConcreteS3Service]
-
-  override def s3Service: S3Service = wire[DoubleKeyCheckS3Service]
+  override def s3Service: S3Service = wire[ConcreteS3Service]
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.componentsPath
