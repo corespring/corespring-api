@@ -29,7 +29,8 @@ class PassageAccess(orgCollectionService: OrgCollectionService, itemService: Ite
   override def grant(identity: OrgAndOpts, permission: Permission,
                      passageAndItemId: (Passage, Option[VersionedId[ObjectId]])): Validation[V2Error, Boolean] = {
 
-    def orgCanAccess(collectionId: String) = orgCollectionService.isAuthorized(identity.org.id, new ObjectId(collectionId), permission)
+    def orgCanAccess(collectionId: String) =
+      orgCollectionService.isAuthorized(identity.org.id, new ObjectId(collectionId), permission)
 
     /**
      * Returns true if the item id in question can access (i.e., has a reference to) the provided passage. Also the
@@ -47,10 +48,11 @@ class PassageAccess(orgCollectionService: OrgCollectionService, itemService: Ite
 
     orgCanAccess(passage.collectionId) match {
       case true => Success(true)
-      case false => itemCanAccess(itemId, passage) match {
+      case false if (permission == Permission.Read) => itemCanAccess(itemId, passage) match {
         case true => Success(true)
         case _ => Failure(orgCantAccessCollection(identity.org.id, passage.collectionId, permission.name))
       }
+      case _ => Success(false)
     }
   }
 

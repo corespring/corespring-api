@@ -121,6 +121,8 @@ PUT     /assessment-templates/:assessmentTemplateId     @org.corespring.v2.api.A
 
 # Passages
 
+POST    /passages                                       @org.corespring.v2.api.PassageApi.create()
+
 GET     /passages/:passageId                            @org.corespring.v2.api.PassageApi.get(passageId: VersionedId[ObjectId], itemId: Option[String] ?= None)
 
 POST    /passages/search                                @org.corespring.v2.api.PassageApi.search

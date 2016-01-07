@@ -156,4 +156,6 @@ private[v2] object Errors {
   case class cantFindSession(id: String) extends V2Error("Can't Find Session", "The session with the id provided by the request could not be found.", s"Can't find session with id: $id", NOT_FOUND)
 
   case class sessionDoesNotContainResponses(sessionId: String) extends V2Error("Session Does Not Contain Responses", "The session specified by the request does not contain any responses.", s"session: $sessionId does not contain any responses")
+
+  case class couldNotCreatePassage() extends V2Error("Could not create passage", "The application was unable to create the passage.", "The passage could not be created.", BAD_REQUEST)
 }

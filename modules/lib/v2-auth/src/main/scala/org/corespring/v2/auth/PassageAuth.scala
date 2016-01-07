@@ -6,15 +6,16 @@ import org.corespring.models.item.Passage
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.PassageService
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{inaccessiblePassage, cantFindPassageWithId, invalidObjectId}
+import org.corespring.v2.errors.Errors.{couldNotCreatePassage, inaccessiblePassage, cantFindPassageWithId, invalidObjectId}
 import org.corespring.v2.errors.V2Error
 
-import scala.concurrent.Await
+import scala.concurrent.{ExecutionContext, Future, Await}
 import scala.concurrent.duration._
 import scalaz.{Success, Failure, Validation}
 
 trait PassageAuth {
   def loadForRead(passageId: String, itemId: Option[VersionedId[ObjectId]])(implicit identity: OrgAndOpts): Validation[V2Error, Passage]
+  def insert(passage: Passage)(implicit identity: OrgAndOpts, exeuctionContext: ExecutionContext): Future[Validation[V2Error, Passage]]
 }
 
 class PassageAuthWired(passageService: PassageService, access: PassageAccess) extends PassageAuth {
@@ -33,5 +34,11 @@ class PassageAuthWired(passageService: PassageService, access: PassageAccess) ex
     }
     case _ => Failure(invalidObjectId(id, ""))
   }
+
+  override def insert(passage: Passage)(implicit identity: OrgAndOpts, executionContext: ExecutionContext) =
+    passageService.insert(passage).map(_ match {
+      case Some(passageId) => Success(passage.copy(id = passageId))
+      case _ => Failure(couldNotCreatePassage())
+    })
 
 }
