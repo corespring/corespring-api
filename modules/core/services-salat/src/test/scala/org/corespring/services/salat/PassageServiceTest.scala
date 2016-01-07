@@ -12,6 +12,7 @@ import org.specs2.specification.Scope
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
+import scalaz.Success
 
 class PassageServiceTest extends Specification with Mockito {
 
@@ -38,7 +39,7 @@ class PassageServiceTest extends Specification with Mockito {
       }
 
       "return None" in new PassageMissingScope {
-        Await.result(passageService.get(id), Duration.Inf) must beEmpty
+        Await.result(passageService.get(id), Duration.Inf) must beEqualTo(Success(None))
       }
 
     }
@@ -50,7 +51,7 @@ class PassageServiceTest extends Specification with Mockito {
       }
 
       "return Some(passage)" in new PassageFoundScope {
-        Await.result(passageService.get(id), Duration.Inf) must beEqualTo(Some(passage))
+        Await.result(passageService.get(id), Duration.Inf) must beEqualTo(Success(Some(passage)))
       }
 
     }

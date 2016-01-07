@@ -9,7 +9,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrgCollectionService
 import org.corespring.v2.auth.PassageAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{incorrectJsonFormat, noJson}
+import org.corespring.v2.errors.Errors.{invalidJson, incorrectJsonFormat, noJson}
 import org.corespring.v2.errors.V2Error
 import org.corespring.passage.search._
 import play.api.libs.json._
@@ -73,11 +73,33 @@ class PassageApi(
         })
       }
       case Failure(error) => {
-        println(error.getClass)
         Future.successful(error match {
           case CollectionAuthorizationError(_, _, _*) => Status(UNAUTHORIZED)(error.message)
           case _ => Status(INTERNAL_SERVER_ERROR)(error.message)
         })
+      }
+    }
+  }
+
+  def update(passageId: VersionedId[ObjectId]) = futureWithIdentity { (identity, request) =>
+    implicit val Format = Passage.Format
+
+    request.body.asJson match {
+      case Some(json) => {
+        Json.fromJson[Passage](json) match {
+          case JsSuccess(passage, _) => passageAuth.save(passage)(identity, ec).map( _ match {
+            case Success(passage) => Ok(Json.prettyPrint(Json.toJson(passage)))
+            case Failure(error) => Status(error.statusCode)(error.message)
+          })
+          case JsError(error) => Future.successful({
+            val error = invalidJson(json.toString)
+            Status(error.statusCode)(error.message)
+          })
+        }
+      }
+      case _ => {
+        val error = noJson
+        Future.successful(Status(error.statusCode)(error.message))
       }
     }
   }

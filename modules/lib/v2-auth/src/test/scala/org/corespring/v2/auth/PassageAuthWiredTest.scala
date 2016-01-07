@@ -48,7 +48,7 @@ class PassageAuthWiredTest extends Specification with Mockito {
     "passage does not exist" should {
 
       trait PassageDoesntExistScope extends PassageAuthScope {
-        passageService.get(passageId) returns Future.successful(None)
+        passageService.get(passageId) returns Future.successful(Success(None))
       }
 
       "returns cantFindPassageWithId error" in new PassageDoesntExistScope {
@@ -61,7 +61,7 @@ class PassageAuthWiredTest extends Specification with Mockito {
     "passage exists" should {
 
       trait PassageExistsScope extends PassageAuthScope {
-        passageService.get(passageId) returns Future.successful(Some(passage))
+        passageService.get(passageId) returns Future.successful(Success(Some(passage)))
       }
 
       "access not granted" should {

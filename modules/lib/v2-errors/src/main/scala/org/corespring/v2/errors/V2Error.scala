@@ -157,5 +157,10 @@ private[v2] object Errors {
 
   case class sessionDoesNotContainResponses(sessionId: String) extends V2Error("Session Does Not Contain Responses", "The session specified by the request does not contain any responses.", s"session: $sessionId does not contain any responses")
 
-  case class couldNotCreatePassage() extends V2Error("Could not create passage", "The application was unable to create the passage.", "The passage could not be created.", BAD_REQUEST)
+  case class couldNotCreatePassage() extends V2Error("Could not create passage", "The application was unable to create the passage.", "The passage could not be created.", INTERNAL_SERVER_ERROR)
+
+  case class couldNotSavePassage(id: VersionedId[ObjectId]) extends V2Error(s"Could not save passage $id", s"The application was unable to save the passage $id", s"The passage $id could not be saved.", INTERNAL_SERVER_ERROR)
+
+  case class couldNotReadPassage(id: VersionedId[ObjectId]) extends V2Error(s"Could not read passage $id", s"The application was unable to read the passage $id", s"The passage $id could not be read", INTERNAL_SERVER_ERROR)
+
 }

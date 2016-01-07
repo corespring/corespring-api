@@ -42,6 +42,15 @@ case class ObjectIdError(val id: ObjectId*)
 case class OrganizationAddCollectionError(val org: ObjectId, val collId: ObjectId, val p: Permission, t: Option[Throwable])
   extends PlatformServiceError(s"Error adding collection $collId to org $org with permission $p.")
 
+case class PassageInsertError(t: Option[Throwable] = None)
+  extends PlatformServiceError("There was an error inserting the provided passage", t)
+
+case class PassageReadError(val id: VersionedId[ObjectId], val t: Option[Throwable] = None)
+  extends PlatformServiceError(s"There was an error reading passage $id from the database", t)
+
+case class PassageSaveError(val id: VersionedId[ObjectId], val t: Option[Throwable] = None)
+  extends PlatformServiceError(s"There was an error saving passage $id to the database", t)
+
 object PlatformServiceError {
   def apply(message: String, e: Throwable = null): PlatformServiceError = if (e == null) {
     GeneralError(message, None)

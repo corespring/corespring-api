@@ -288,4 +288,24 @@ class PassageApiTest extends Specification with Mockito {
 
   }
 
+  "update" should {
+
+    "return 401" in new PassageApiScope {
+      val result = passageApi.update(passageId)(FakeRequest().withJsonBody(Json.obj()))
+      status(result) must be equalTo(UNAUTHORIZED)
+    }
+
+
+    "authorized request" should {
+
+      trait AuthorizedUpdateScope extends AuthorizedApiPassageScope {
+      }
+
+      "be awesome" in new AuthorizedUpdateScope {
+        true === true
+      }
+    }
+
+  }
+
 }
