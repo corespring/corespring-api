@@ -148,7 +148,16 @@
     function V1() {
 
       this.edit = function(item) {
-        $location.url('/edit/draft/' + item.id + '?devEditor=true');
+        if (item.published) {
+          Modals.edit(function(cancelled) {
+            if (cancelled) {
+              return;
+            }
+            $location.url('/edit/draft/' + item.id + '?devEditor=true');
+          });
+        } else {
+          $location.url('/edit/draft/' + item.id + '?devEditor=true');
+        }
       };
 
       this.cloneItem = function(item) {
