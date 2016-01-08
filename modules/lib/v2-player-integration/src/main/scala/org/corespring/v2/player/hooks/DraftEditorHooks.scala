@@ -1,5 +1,6 @@
 package org.corespring.v2.player.hooks
 
+import org.apache.commons.httpclient.util.URIUtil
 import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
@@ -114,7 +115,10 @@ class DraftEditorHooks(
       backend.addFileToChangeSet(draft, newFile)
     }
 
-    playS3.s3ObjectAndData[ItemDraft](awsConfig.bucket, d => S3Paths.draftFile(d.id, path))(loadDraftPredicate).map { f =>
+    playS3.s3ObjectAndData[ItemDraft](awsConfig.bucket, d => {
+      val p = S3Paths.draftFile(d.id, path)
+      URIUtil.encodePath(p)
+    })(loadDraftPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, draft) = tuple
         val key = s3Object.getKey

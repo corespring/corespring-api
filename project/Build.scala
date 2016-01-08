@@ -35,7 +35,11 @@ object Build extends sbt.Build {
     .dependsOn(apiUtils)
 
   lazy val assets = builders.lib("assets")
-    .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
+    .settings(libraryDependencies ++= Seq(
+      specs2 % "test",
+      mockito,
+      playS3,
+      httpClient))
     .dependsOn(apiUtils)
 
   lazy val coreModels = builders.lib("models", "core", publish = true).settings(
@@ -116,8 +120,8 @@ object Build extends sbt.Build {
 
   lazy val itemDrafts = builders.lib("item-drafts")
     .settings(
-      libraryDependencies ++= Seq(containerClientWeb, specs2 % "test", salatVersioningDao, macWireMacro))
-    .dependsOn(coreSalatConfig % "compile->test", coreModels, coreServices, drafts, testLib)
+      libraryDependencies ++= Seq(specs2 % "test", salatVersioningDao, macWireMacro))
+    .dependsOn(assets, coreSalatConfig % "compile->test", coreModels, coreServices, drafts, testLib)
     .aggregate(coreModels, drafts)
 
   lazy val qtiToV2 = builders.lib("qti-to-v2")
@@ -148,7 +152,7 @@ object Build extends sbt.Build {
 
   lazy val apiTracking = builders.lib("api-tracking")
     .settings(
-      libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
+      libraryDependencies ++= Seq(containerClientWeb, playFramework)).dependsOn(v2Auth)
     .dependsOn(coreServices, v2Errors, testLib % "test->compile")
 
   lazy val itemImport = builders.web("item-import")
