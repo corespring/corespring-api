@@ -1,5 +1,6 @@
 package org.corespring.v2.player.hooks
 
+import org.apache.commons.httpclient.util.URIUtil
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
@@ -129,8 +130,10 @@ class ItemEditorHooks(
       if (i.id.version.isEmpty) {
         logger.warn(s"[upload] The id is missing a version: ${i.id}")
       }
-      val vid = i.id.copy(version = i.id.version.orElse(Some(itemService.currentVersion(i.id))))
-      S3Paths.itemFile(vid, path)
+      val vid: VersionedId[ObjectId] = i.id.copy(version = i.id.version.orElse(Some(itemService.currentVersion(i.id))))
+      val p = S3Paths.itemFile(vid, path)
+      URIUtil.encodePath(p)
+
     })(loadItemPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, item) = tuple
