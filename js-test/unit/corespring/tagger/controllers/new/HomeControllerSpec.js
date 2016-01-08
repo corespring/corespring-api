@@ -12,6 +12,9 @@ describe('tagger.controllers.new.HomeController', function() {
     this.publish = jasmine.createSpy('publish').andCallFake(function(cb) {
       cb(false);
     });
+    this.edit = jasmine.createSpy('edit').andCallFake(function(cb) {
+      cb(false);
+    });
     this.delete = jasmine.createSpy('publish').andCallFake(function(cb) {
       cb(false);
     });
@@ -183,6 +186,13 @@ describe('tagger.controllers.new.HomeController', function() {
           id: '123'
         });
         expect(location.url).toHaveBeenCalledWith('/edit/draft/123?devEditor=true');
+      });
+      it("should show edit modal when item is published", function() {
+        scope.v1.edit({
+          id: '123',
+          published: true
+        });
+        expect(modals.edit).toHaveBeenCalled();
       });
     });
 
