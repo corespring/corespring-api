@@ -38,8 +38,8 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
     .dependsOn(apiUtils)
 
-  lazy val coreModels = builders.lib("models", "core", publish = true).settings(
-    libraryDependencies ++= Seq(casbah, salatVersioningDao, playJson, commonsLang, specs2 % "test"))
+  lazy val coreModels = builders.lib("models", "core", publish = true)
+    .settings(libraryDependencies ++= Seq(casbah, salatVersioningDao, playJson, commonsLang, specs2 % "test"))
 
   lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
     .settings(libraryDependencies ++= Seq(specs2 % "test"))

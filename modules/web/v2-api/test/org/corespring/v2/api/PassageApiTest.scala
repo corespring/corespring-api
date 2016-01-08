@@ -11,23 +11,24 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrgCollectionService
 import org.corespring.v2.auth.PassageAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{couldNotCreatePassage, cantFindPassageWithId, generalError}
+import org.corespring.v2.errors.Errors.{invalidJson, couldNotCreatePassage, cantFindPassageWithId, generalError}
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsSuccess, JsObject, Json}
 import play.api.mvc.RequestHeader
 import play.api.test._
 import play.api.test.Helpers._
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{Success, Validation, Failure}
 
 class PassageApiTest extends Specification with Mockito {
 
   trait PassageApiScope extends Scope {
+    implicit val Format = Passage.Format
+
     val passageAuth: PassageAuth = mock[PassageAuth]
     val passageIndexService: PassageIndexService = mock[PassageIndexService]
     val orgCollectionService: OrgCollectionService = mock[OrgCollectionService]
@@ -299,11 +300,113 @@ class PassageApiTest extends Specification with Mockito {
     "authorized request" should {
 
       trait AuthorizedUpdateScope extends AuthorizedApiPassageScope {
+        override def authResponse = Success(identity)
+        passageAuth.save(any[Passage])(any[OrgAndOpts], any[ExecutionContext]) answers { (args, _) =>
+          val argArray = args.asInstanceOf[Array[Object]]
+          val passage = argArray(0).asInstanceOf[Passage]
+          Future.successful(Success(passage))
+        }
       }
 
-      "be awesome" in new AuthorizedUpdateScope {
-        true === true
+      "with empty JSON body" should {
+
+        trait AuthorizedUpdateEmptyJsonScope extends AuthorizedUpdateScope {
+          val result = passageApi.update(passageId)(FakeRequest()
+            .withJsonBody(Json.obj()))
+        }
+
+        "return 400" in new AuthorizedUpdateEmptyJsonScope {
+          status(result) must be equalTo(BAD_REQUEST)
+        }
+
+        "return body indicating JSON error" in new AuthorizedUpdateEmptyJsonScope {
+          contentAsString(result) must be equalTo(invalidJson(Json.obj().toString).message)
+        }
+
       }
+
+      "with collectionId in JSON body" should {
+
+        trait AuthorizedUpdateCollectionJsonScope extends AuthorizedUpdateScope {
+          val collectionId = "568fdbceef7f346597048377"
+          val result = passageApi.update(passageId)(FakeRequest()
+            .withJsonBody(Json.obj("collectionId" -> collectionId)))
+          val json = contentAsJson(result)
+        }
+
+        "return 200" in new AuthorizedUpdateCollectionJsonScope {
+          status(result) must be equalTo(OK)
+        }
+
+        "json" should {
+
+          "contain id" in new AuthorizedUpdateCollectionJsonScope {
+            (json \ "id").as[String] must be equalTo(passageId.toString)
+          }
+
+          "contain collectionId" in new AuthorizedUpdateCollectionJsonScope {
+            (json \ "collectionId").as[String] must be equalTo(collectionId)
+          }
+
+          "contain default file" in new AuthorizedUpdateCollectionJsonScope {
+            Json.fromJson[Passage](json) match {
+              case JsSuccess(passage, _) => passage.file must be equalTo Passage.defaultFile
+              case _ => failure("Could not deserialize Passage")
+            }
+          }
+
+        }
+
+      }
+
+      "with file in JSON body" should {
+
+        trait AuthorizedUpdateFileJsonScope extends AuthorizedUpdateScope {
+          object File {
+            val content = "This is the content of the file"
+            val contentType = "text/plain"
+            val name = "content.txt"
+          }
+          val collectionId = "568fdbceef7f346597048377"
+          val result = passageApi.update(passageId)(FakeRequest()
+            .withJsonBody(Json.obj(
+              "collectionId" -> collectionId,
+              "file" -> Json.obj(
+                "name" -> File.name,
+                "content" -> File.content,
+                "contentType" -> File.contentType
+              )
+            ))
+          )
+          val json = contentAsJson(result)
+        }
+
+        "return 200" in new AuthorizedUpdateFileJsonScope {
+          status(result) must be equalTo(OK)
+        }
+
+        "contain id" in new AuthorizedUpdateFileJsonScope {
+          (json \ "id").as[String] must be equalTo(passageId.toString)
+        }
+
+        "contain collectionId" in new AuthorizedUpdateFileJsonScope {
+          (json \ "collectionId").as[String] must be equalTo(collectionId)
+        }
+
+        "contain file name" in new AuthorizedUpdateFileJsonScope {
+          (json \ "file" \ "name").as[String] must be equalTo(File.name)
+        }
+
+        "contain file content" in new AuthorizedUpdateFileJsonScope {
+          (json \ "file" \ "content").as[String] must be equalTo(File.content)
+        }
+
+        "contain file contentType" in new AuthorizedUpdateFileJsonScope {
+          (json \ "file" \ "contentType").as[String] must be equalTo(File.contentType)
+        }
+
+      }
+
     }
 
   }

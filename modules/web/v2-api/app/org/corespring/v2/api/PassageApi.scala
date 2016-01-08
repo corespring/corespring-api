@@ -87,10 +87,13 @@ class PassageApi(
     request.body.asJson match {
       case Some(json) => {
         Json.fromJson[Passage](json) match {
-          case JsSuccess(passage, _) => passageAuth.save(passage)(identity, ec).map( _ match {
-            case Success(passage) => Ok(Json.prettyPrint(Json.toJson(passage)))
-            case Failure(error) => Status(error.statusCode)(error.message)
-          })
+          case JsSuccess(passage, _) => {
+            val withId = passage.copy(id = passageId)
+            passageAuth.save(withId)(identity, ec).map( _ match {
+              case Success(result) => Ok(Json.prettyPrint(Json.toJson(result)))
+              case Failure(error) => Status(error.statusCode)(error.message)
+            })
+          }
           case JsError(error) => Future.successful({
             val error = invalidJson(json.toString)
             Status(error.statusCode)(error.message)

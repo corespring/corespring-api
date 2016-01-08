@@ -1,11 +1,10 @@
 package org.corespring.v2.auth
 
 import org.bson.types.ObjectId
-import org.corespring.errors.PassageReadError
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.Passage
+import org.corespring.models.item.{Content, Passage}
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.PassageService
+import org.corespring.services.{OrgCollectionService, PassageService}
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -20,7 +19,9 @@ trait PassageAuth {
   def save(passage: Passage)(implicit identity: OrgAndOpts, executionContext: ExecutionContext): Future[Validation[V2Error, Passage]]
 }
 
-class PassageAuthWired(passageService: PassageService, access: PassageAccess) extends PassageAuth {
+class PassageAuthWired(
+    passageService: PassageService,
+    access: PassageAccess) extends PassageAuth {
 
   private val DB_TIMEOUT = 20.seconds
 
@@ -43,16 +44,28 @@ class PassageAuthWired(passageService: PassageService, access: PassageAccess) ex
   }
 
   override def insert(passage: Passage)(implicit identity: OrgAndOpts, executionContext: ExecutionContext) =
-    passageService.insert(passage).map(_ match {
-      case Success(passage) => Success(passage)
-      case Failure(error) => Failure(couldNotCreatePassage())
+    ifWritable(passage, { passage =>
+      passageService.insert(passage).map(_ match {
+        case Success(passage) => Success(passage)
+        case Failure(error) => Failure(couldNotCreatePassage())
+      })
     })
 
-  override def save(passage: Passage)(implicit identity: OrgAndOpts, executionContext: ExecutionContext) = {
-    passageService.save(passage).map(_ match {
-      case Success(passage) => Success(passage)
-      case Failure(error) => Failure(couldNotSavePassage(passage.id))
+
+  override def save(passage: Passage)(implicit identity: OrgAndOpts, executionContext: ExecutionContext) =
+    ifWritable(passage, { passage =>
+      passageService.save(passage).map(_ match {
+        case Success(passage) => Success(passage)
+        case Failure(error) => Failure(couldNotSavePassage(passage.id))
+      })
     })
-  }
+
+  def ifWritable(passage: Passage, block: Passage => Future[Validation[V2Error, Passage]])
+                 (implicit identity: OrgAndOpts) =
+    access.grant(identity, Permission.Write, (passage, None)) match {
+      case Success(true) => block(passage)
+      case Success(false) => Future.successful(Failure(couldNotWritePassage(passage.id)))
+      case Failure(error) => Future.successful(Failure(error))
+    }
 
 }
