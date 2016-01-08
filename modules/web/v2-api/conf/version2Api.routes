@@ -126,3 +126,5 @@ POST    /passages                                       @org.corespring.v2.api.P
 GET     /passages/:passageId                            @org.corespring.v2.api.PassageApi.get(passageId: VersionedId[ObjectId], itemId: Option[String] ?= None)
 
 POST    /passages/search                                @org.corespring.v2.api.PassageApi.search
+
+PUT     /passages/:passageId                            @org.corespring.v2.api.PassageApi.update(passageId: VersionedId[ObjectId])
