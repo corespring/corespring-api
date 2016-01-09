@@ -7,7 +7,7 @@ import org.corespring.models.item.{ ComponentType, Item }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
-import org.corespring.services.{CloneItemService, OrgCollectionService, OrganizationService}
+import org.corespring.services.{ CloneItemService, OrgCollectionService, OrganizationService }
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -46,8 +46,6 @@ class ItemApi(
   private implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
   protected lazy val logger = Logger(classOf[ItemApi])
-
-
 
   /**
    * Create an Item. Will set the collectionId to the default id for the
@@ -162,6 +160,14 @@ class ItemApi(
     getOrgAndOptions(request) match {
       case Success(orgAndOpts) => safeParse(queryString) match {
         case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
+
+          /**
+           * TODO: AC-293 - accessibleCollections will only return the refs for that collection
+           * but we support nested orgs so a parent org should have access to a child orgs collections too.
+           * Whilst supported it isn't active in the client so probably isn't an immediate issue.
+           * We'll probably either want to call orgCollectionService here or when building the authenticed identity,
+           * return the full list of accessible collections.
+           */
           case JsSuccess(query, _) => searchQueryResult(query, orgAndOpts.org.accessibleCollections)
 
           case _ => future {
@@ -223,8 +229,8 @@ class ItemApi(
 
   /**
    * Check a score against a given item
-    *
-    * @param itemId
+   *
+   * @param itemId
    * @return
    */
   def checkScore(itemId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -260,27 +266,26 @@ class ItemApi(
     }
   }
 
-  def cloneItem(id:String) = futureWithIdentity((identity, request) => {
+  def cloneItem(id: String) = futureWithIdentity((identity, request) => {
 
-
-    lazy val targetCollectionId : Validation[V2Error, Option[ObjectId]] = {
-      val rawId : Option[String] = request.body.asJson.flatMap{ j =>
-        (j \ "collectionId" ).asOpt[String]
+    lazy val targetCollectionId: Validation[V2Error, Option[ObjectId]] = {
+      val rawId: Option[String] = request.body.asJson.flatMap { j =>
+        (j \ "collectionId").asOpt[String]
       }
 
-      rawId.map{ r =>
-        if(ObjectId.isValid(r)){
+      rawId.map { r =>
+        if (ObjectId.isValid(r)) {
           Success(Some(new ObjectId(r)))
-        }  else {
+        } else {
           Failure(generalError(s"Not a valid object id string: $r"))
         }
       }.getOrElse(Success(None))
     }
 
-    VersionedId(id).map{ vid =>
+    VersionedId(id).map { vid =>
       targetCollectionId match {
         case Success(collectionId) => {
-          cloneItemService.cloneItem(vid, identity.org.id, collectionId).future.map{ v =>
+          cloneItemService.cloneItem(vid, identity.org.id, collectionId).future.map { v =>
             val asJson = v.bimap(
               e => generalError(s"Error cloning item with id: $id: ${e.message}"),
               id => Json.obj("id" -> id.toString))
