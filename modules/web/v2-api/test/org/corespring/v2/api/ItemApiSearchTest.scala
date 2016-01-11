@@ -96,7 +96,7 @@ class ItemApiSearchTest extends ItemApiSpec {
       val query = """{"offset":  4, "count" : 2, "text" : "hi"}"""
       val result = api.searchByCollectionId(collectionId, Some(query))(FakeJsonRequest(Json.obj()))
       status(result) must_== OK
-      there was one(itemIndexService).search(ItemIndexQuery(offset = 4, count = 2, text = Some("hi")))
+      there was one(itemIndexService).search(ItemIndexQuery(offset = 4, count = 2, text = Some("hi"), collections = Seq(collectionId.toString)))
     }
 
     def hit(title: String) = ItemIndexHit("id",
