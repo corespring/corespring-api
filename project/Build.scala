@@ -150,6 +150,10 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sprayCaching, grizzledLog))
     .dependsOn(coreModels, coreServices, coreWeb, coreJson, testLib, v2Errors, qtiToV2, itemDrafts, v2SessionDb, encryption)
 
+  lazy val v2Actions = builders.lib("v2-actions")
+    .settings(
+      libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
+
   lazy val apiTracking = builders.lib("api-tracking")
     .settings(
       libraryDependencies ++= Seq(containerClientWeb, playFramework)).dependsOn(v2Auth)
@@ -263,6 +267,7 @@ object Build extends sbt.Build {
       commonViews,
       testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
+      v2Actions,
       v1Api,
       v2Api,
       v2SessionDb,
