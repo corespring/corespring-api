@@ -61,7 +61,7 @@ GET         /web/javascripts/routes                                   @web.contr
 GET         /web/show-resource/:itemId/:resourceName/main             @web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
 GET         /web/show-resource/:itemId/:resourceName/:filename        @web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 GET         /web/print-resource/:itemId/data/main                     @web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
-GET         /web/item-search                                          @web.controllers.ItemSearch.search()
+GET         /web/item-search                                          @web.controllers.ItemSearch.search(query : Option[String] ?= None)
 
 GET         /password                                                 securesocial.controllers.PasswordChange.page
 POST        /password                                                 securesocial.controllers.PasswordChange.handlePasswordChange

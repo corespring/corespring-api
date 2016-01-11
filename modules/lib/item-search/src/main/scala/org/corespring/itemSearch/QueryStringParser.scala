@@ -1,36 +1,27 @@
 package org.corespring.itemSearch
 
-import org.corespring.models.ContentCollRef
+import org.bson.types.ObjectId
+import play.api.Logger
 import play.api.libs.json.Json
 
 import scalaz.Validation
 import scalaz.Scalaz._
+import ItemIndexQuery.ApiReads
 
 object QueryStringParser {
-  def scopedSearchQuery(query: Option[String], accessibleCollections: Seq[ContentCollRef]): Validation[Error, ItemIndexQuery] = {
 
+  private val logger = Logger(QueryStringParser.getClass)
+
+  def scopedSearchQuery(query: Option[String], accessibleCollectionIds: Seq[ObjectId]): Validation[Error, ItemIndexQuery] = {
     val rawQuery = query.getOrElse("{}")
+    logger.trace(s"function=search, rawQuery=$rawQuery")
 
+    implicit val r = ApiReads
     for {
-      json <- Validation.fromTryCatch(Json.parse(rawQuery))
+      json <- Validation.fromTryCatch(Json.parse(rawQuery)).leftMap(e => new Error(s"Error parsing query: $e"))
       iiq <- Json.fromJson[ItemIndexQuery](json).asOpt.toSuccess(new Error(s"Failed to parse query string: $query"))
     } yield {
-
+      iiq.scopeToCollections(accessibleCollectionIds.map(_.toString): _*)
     }
   }
-
-  private def searchWithQuery(
-    q: ItemIndexQuery,
-    accessibleCollections: Seq[ContentCollRef]): Future[Validation[Error, ItemIndexSearchResult]] = {
-    val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
-    val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
-    val scopedQuery = collections.isEmpty match {
-      case true => q.copy(collections = accessibleCollectionStrings)
-      case _ => q.copy(collections = collections)
-    }
-
-    logger.trace(s"function=searchWithQuery, scopedQuery=$scopedQuery")
-    itemIndexService.search(scopedQuery)
-  }
-
 }

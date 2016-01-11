@@ -5,10 +5,12 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import play.api.mvc._
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success }
 
 trait V2Actions extends LoadOrgAndOptions {
+
+  implicit def ec: ExecutionContext
 
   import play.api.mvc.Results.Status
 

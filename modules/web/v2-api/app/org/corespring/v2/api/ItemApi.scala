@@ -1,8 +1,8 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexQuery, ItemIndexSearchResult, ItemIndexService }
-import org.corespring.models.ContentCollRef
+import org.corespring.itemSearch._
+import org.corespring.futureValidation.FutureValidation._
 import org.corespring.models.item.{ ComponentType, Item }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -16,6 +16,7 @@ import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.SessionService
 import play.api.Logger
 import play.api.libs.json._
+import play.api.libs.json.Json._
 import play.api.mvc._
 
 import scala.concurrent._
@@ -85,20 +86,6 @@ class ItemApi(
     }
   }
 
-  private def searchWithQuery(
-    q: ItemIndexQuery,
-    accessibleCollections: Seq[ContentCollRef]): Future[Validation[Error, ItemIndexSearchResult]] = {
-    val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
-    val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
-    val scopedQuery = collections.isEmpty match {
-      case true => q.copy(collections = accessibleCollectionStrings)
-      case _ => q.copy(collections = collections)
-    }
-
-    logger.trace(s"function=searchWithQuery, scopedQuery=$scopedQuery")
-    itemIndexService.search(scopedQuery)
-  }
-
   private[ItemApi] implicit class JsResultToValidation[T](jsResult: JsResult[T]) {
     def toValidation: Validation[V2Error, T] = jsResult match {
       case JsSuccess(d, _) => Success(d)
@@ -106,84 +93,26 @@ class ItemApi(
     }
   }
 
-  //upgrade of v1 item api - listWithColl
+  def search(query: Option[String]) = futureWithIdentity { (identity, request) =>
+    logger.debug(s"function=search, query=$query")
+    searchWithQueryAndCollections(query, identity.org.accessibleCollections.map(_.collectionId): _*) { r => toJson(r) }
+  }
+
   def searchByCollectionId(
     collectionId: ObjectId,
-    q: Option[String] = None) = Action.async { request =>
-
-    val queryString = q.getOrElse("{}")
-
-    val out: Validation[V2Error, Future[SimpleResult]] = for {
-      queryJson <- safeParse(queryString).leftMap(e => invalidJson(e.getMessage))
-      query <- Json.fromJson[ItemIndexQuery](queryJson).toValidation
-      //Note: mapping error statusCode to a BAD_REQUEST to fix api regression
-      identity <- getOrgAndOptions(request).leftMap(e => generalError(e.message, BAD_REQUEST))
-    } yield {
-      val scopedQuery = query.copy(collections = Seq(collectionId.toString))
-      searchWithQuery(scopedQuery, identity.org.accessibleCollections).map { v =>
-        v match {
-          case Success(searchResult) => {
-            implicit val ItemIndexHitFormat = ItemIndexHit.Format
-            Ok(Json.toJson(searchResult.hits))
-          }
-          case Failure(error) => BadRequest(error.getMessage)
-        }
-      }
-    }
-
-    out match {
-      case Failure(e) => Future(Status(e.statusCode)(e.message))
-      case Success(f) => f
+    q: Option[String] = None) = futureWithIdentity(BAD_REQUEST) { (identity, request) =>
+    searchWithQueryAndCollections(q, collectionId) { searchResult =>
+      implicit val f = ItemIndexHit.Format
+      toJson(searchResult.hits)
     }
   }
 
-  def search(query: Option[String]) = Action.async { implicit request =>
-
-    logger.debug(s"function=search, rawQueryString=${request.rawQueryString}")
-
-    logger.debug(s"function=search, query=$query")
-
-    def searchQueryResult(
-      q: ItemIndexQuery,
-      accessibleCollections: Seq[ContentCollRef]): Future[SimpleResult] = {
-      logger.trace(s"function=search#searchQueryResult, q=$q")
-      searchWithQuery(q, accessibleCollections).map(result => result match {
-        case Success(searchResult) => Ok(Json.toJson(searchResult))
-        case Failure(error) => BadRequest(error.getMessage)
-      })
-    }
-
-    val queryString = query.getOrElse("{}")
-
-    logger.trace(s"function=search, queryString=$queryString")
-
-    getOrgAndOptions(request) match {
-      case Success(orgAndOpts) => safeParse(queryString) match {
-        case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
-
-          /**
-           * TODO: AC-293 - accessibleCollections will only return the refs for that collection
-           * but we support nested orgs so a parent org should have access to a child orgs collections too.
-           * Whilst supported it isn't active in the client so probably isn't an immediate issue.
-           * We'll probably either want to call orgCollectionService here or when building the authenticed identity,
-           * return the full list of accessible collections.
-           */
-          case JsSuccess(query, _) => searchQueryResult(query, orgAndOpts.org.accessibleCollections)
-
-          case _ => future {
-            val error = invalidJson(queryString)
-            Status(error.statusCode)(error.message)
-          }
-        }
-        case _ => future {
-          val error = invalidJson(queryString)
-          Status(error.statusCode)(error.message)
-        }
-      }
-      case _ => future {
-        val error = invalidToken(request)
-        Status(error.statusCode)(error.message)
-      }
+  private def searchWithQueryAndCollections(query: Option[String], collectionIds: ObjectId*)(mkJson: ItemIndexSearchResult => JsValue): Future[SimpleResult] = {
+    (for {
+      sq <- fv(QueryStringParser.scopedSearchQuery(query, collectionIds))
+      results <- fv(itemIndexService.search(sq))
+    } yield results).future.map { v =>
+      v.fold(e => BadRequest(e.getMessage), results => Ok(mkJson(results)))
     }
   }
 

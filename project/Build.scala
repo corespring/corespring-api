@@ -187,7 +187,8 @@ object Build extends sbt.Build {
       itemSearch,
       coreJson,
       qtiToV2,
-      draftsApi)
+      draftsApi,
+      futureValidation)
 
   lazy val v1Api = builders.web("v1-api")
     .settings(
