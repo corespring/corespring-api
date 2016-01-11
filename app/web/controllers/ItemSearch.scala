@@ -61,6 +61,7 @@ class ItemSearch(
 
         val ids = orgAndOpts.org.accessibleCollections.map(_.collectionId)
 
+        //Note: calling the future within the context causes the execution to be sequential - we want parallel
         val futureSearchResult = searchService.search(q)
         val futurePermissions = orgCollectionService.getPermissions(orgAndOpts.org.id, ids: _*)
 
