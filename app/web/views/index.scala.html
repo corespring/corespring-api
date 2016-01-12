@@ -143,7 +143,32 @@ assetsLoader: org.corespring.web.common.controllers.deployment.AssetsLoader)
   <p ng-show="codeCopied">Code has been copied to the clipboard.</p>
   <button class="btn" ng-click="copyCodeToClipboard()">Copy</button>
   <button class="btn" ng-click="modals.launchCodePreview.done(false)">Ok</button>
+</div>
 
+<div ui-modal
+     ng-model="modals.clone.show"
+     style="padding: 20px">
+    <h2>Clone Item</h2>
+    <br/>
+
+    <div ng-show="modals.clone.agreed == false">
+        <h3>Copyright Warning</h3>
+        <p>This item is licensed as: {{modals.clone.item.licenseType}}</p>
+        <p>Do you agree to the the terms of use?</p>
+        <button class="btn" ng-click="modals.clone.show = false">No</button>
+        <button class="btn" ng-click="modals.clone.agreed = true">Yes, I Agree</button>
+    </div>
+
+    <div ng-show="modals.clone.agreed">
+        <h3>Choose collection...</h3>
+        <select item
+                ng-options="c.name for c in collections"
+                ng-model="modals.clone.collection">
+        </select>
+        <button class="btn" ng-click="modals.clone.show = false">Cancel</button>
+        <button class="btn" ng-click="modals.clone.done(false, false)">Save for later</button>
+        <button class="btn" ng-click="modals.clone.done(false, true)">Save and open</button>
+    </div>
 </div>
 
 

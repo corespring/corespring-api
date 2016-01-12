@@ -5,6 +5,9 @@ angular.module('tagger.services')
 
 
   $rootScope.modals = {
+    clone: {
+      show : false
+    },
     publish: {
       show: false
     },
@@ -29,6 +32,33 @@ angular.module('tagger.services')
   };
 
   function Modals(){
+
+    this.clone = function(item, collections, done){
+
+      if(!item){
+        throw new Error('no item defined');
+      }
+
+      if(!collections){
+        throw new Error('no collections');
+      }
+
+      var cloneObj = $rootScope.modals.clone;
+      cloneObj.show = true;
+      cloneObj.item = item;
+      cloneObj.collections = collections;
+      cloneObj.agreed = false;
+      cloneObj.done = function(cancelled, open){
+        $rootScope.modals.clone.show = false;
+        $rootScope.modals.clone.item = null;
+
+        if(cloneObj.collection){
+          done(cancelled, open, cloneObj.collection);
+        } else {
+          throw new Error('no  object selected...');
+        }
+      };
+    };
 
     this.publish = function(done){
       showModal('publish', done);
@@ -59,8 +89,9 @@ angular.module('tagger.services')
     };
 
 
-    function showModal(name, done){
+    function showModal(name, done, item){
       $rootScope.modals[name].show = true;
+      $rootScope.modals[name].item = item;
       $rootScope.modals[name].done = function(cancelled){
         $rootScope.modals[name].show = false;
         done(cancelled);

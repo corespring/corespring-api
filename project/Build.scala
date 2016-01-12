@@ -256,6 +256,13 @@ object Build extends sbt.Build {
     .settings(CustomRelease.settings: _*)
     .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
+    .settings(
+      watchSources <<= (watchSources, streams).map{ (ws, st) =>
+        val filtered = ws.filterNot(_.getName.contains("public"))
+        st.log.info(s"sources: $filtered")
+        filtered
+      }
+    )
     .dependsOn(
       apiUtils,
       coreModels,

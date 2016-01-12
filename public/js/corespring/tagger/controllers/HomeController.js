@@ -15,7 +15,8 @@
     'Logger',
     'Modals',
     'UserInfo',
-    'V2ItemService'
+    'V2ItemService',
+    'CollectionManager'
   ];
 
   function HomeController(
@@ -30,7 +31,8 @@
     Logger,
     Modals,
     UserInfo,
-    V2ItemService
+    V2ItemService,
+    CollectionManager
   ) {
 
     //Mixin ItemFormattingUtils
@@ -130,7 +132,12 @@
     }
 
     function cloneItem(item) {
-      route('cloneItem', item);
+      ItemService.get({id: item.id}, function(itemData){
+        var collections = CollectionManager.writableCollections;
+        Modals.clone(itemData, collections, function(cancelled, open, targetCollection){
+          console.log(arguments);
+        });
+      });
     }
 
     function isV1(item) {
