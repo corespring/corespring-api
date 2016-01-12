@@ -520,6 +520,25 @@ class ItemDraftsTest extends Specification with Mockito {
 
       }
     }
+
+    "removeFileFromChangeSet" should {
+
+      class removeFileFromChangeSet(n: Int = 1) extends scope with withMockCollection {
+        draftService.collection returns mockCollection
+      }
+
+      "update the document in the db" in new removeFileFromChangeSet {
+        val draft = mkDraft(ed, item)
+        val file = StoredFile("test.png", "image/png", false)
+        itemDrafts.removeFileFromChangeSet(draft.id, file)
+        val expectedQuery = utils.convertToDbo(draft.id)
+        val (q, u) = captureUpdate
+        q.value === expectedQuery
+        val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+        val expectedUpdate = MongoDBObject("$removeFromSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
+        u.value === expectedUpdate
+      }
+    }
   }
 
 }
