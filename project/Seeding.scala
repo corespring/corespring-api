@@ -72,6 +72,7 @@ object Seeding {
 
   val seedCustomTask = seedCustom := {
 
+    val st = streams.value
     val args = sbt.complete.Parsers.spaceDelimited("<arg>").parsed
 
     args match {
@@ -79,6 +80,10 @@ object Seeding {
 
         if (file(path).isDirectory) {
           safeSeed(true)(path, "custom", MongoDbSeederPlugin.seederLogLevel.value, streams.value)
+
+          st.log.info("auto-indexing")
+          Indexing.index.value
+
         } else {
           sys.error(s"path: $path doesnt exist")
         }

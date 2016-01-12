@@ -1,0 +1,40 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "500000000000000000000294"
+    },
+    "version" : 0
+  },
+  "collectionId" : "500000000000000000000294",
+  "contentType" : "item",
+  "playerDefinition" : {
+    "files" : [],
+    "xhtml" : "<div>Cloneable item</div>",
+    "components" : {},
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse": "Other",
+  "published" : true,
+  "reviewsPassed" : [
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [
+    "7.RP.A.3"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "gradeLevel" : [
+      "07"
+    ],
+    "title" : "Cloners item one",
+    "itemType" : "Multiple Choice"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : false,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}

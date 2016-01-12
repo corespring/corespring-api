@@ -259,7 +259,6 @@
             </td>
             <td>
               <i class="label label-info fa fa-bolt" style="width: 10px"></i> = published<br/>
-              <i class="label label-info fa fa-history" style="width: 10px"></i> = authored in v1
             </td>
         </tr>
         </tbody>
@@ -276,8 +275,7 @@
         <table class="item-list table content-sort table-striped" style="margin: 0 auto; margin-top:20px; width:95%;">
             <thead>
             <tr>
-                <th width="10"></th>
-                <th width="150"></th>
+                <th width="70">Actions</th>
                 <th sort-column-header field="title" width="200">Title</th>
                 <th class="description-column" sort-column-header field="description" width="300">Description</th>
                 <th width="100" sort-column-header field="primarySubject">Subject</th>
@@ -285,49 +283,54 @@
                 <th width="100" sort-column-header field="itemType">Item Type</th>
                 <th width="150">Standard(s)</th>
                 <th width="80" sort-column-header field="contributor">Source</th>
-                <th width="70">Actions</th>
+                <th width="70" sort-column-header field="apiVersion">Format</th>
             </tr>
             </thead>
             <tbody>
             <tr id="row-{{item.id}}" ng-repeat="item in items" style="cursor: pointer;">
-                <td>
-                  <i ng-show="isV1(item)" class="label label-info fa fa-history"></i>
-                </td>
-                <td class="buttons-align-right">
-                  <button ng-click="edit(item)" ng-show="!item.readOnly" class="btn btn-default btn-edit btn-sm"><i class="fa fa-pencil"></i> edit</button>
-                  <a class="btn btn-default btn-preview btn-sm" ng-click="launchCatalogView()"><i class="fa fa-eye"></i> Preview</a>
-                </td>
-                <td>
-                    <span ng-show="item.published" class="label label-info">
-                      <i class="fa fa-bolt" title="Published"></i>&nbsp;
-                    </span>
-                    <a ng-click="launchCatalogView()" ui-jq="tooltip"
-                       ui-options="{title: buildTitleTooltip(item.title)}">{{buildTitleEllipsis(item.title)}}</a>
-                </td>
-                <td class="description-column">
-                    <a ng-click="launchCatalogView()" ui-jq="tooltip"
-                       ui-options="{title: buildDescriptionTooltip(item.description)}">{{buildDescriptionEllipsis(item.description)}}</a>
-               </td>
-                <td>{{item.subject}}</td>
-                <td>{{createGradeLevelString(item.gradeLevels)}} </td>
-                <td>{{showItemType(item)}}</td>
-                <td>
-                    <a ui-jq="tooltip"
-                       ui-options="{placement: 'right', title: buildStandardTooltip(item.standards)}"
-                       class="standards-list"
-                       >
-                       <span>{{buildStandardLabel(item.standards)}}</span>
-                     </a>
-                </td>
-                <td>{{getAuthorAbbreviation(item.contributor)}}</td>
+
                 <td>
                   <item-action-button
                     item="item"
+                    permission="item.permission"
                     edit="edit(item)"
                     publish="publish(item)"
-                    clone-item="cloneItem(item)"
-                    delete-item="deleteItem(item)"></item-action-button>
+                    clone="cloneItem(item)"
+                    delete="deleteItem(item)"></item-action-button>
                 </td>
+
+                <td>
+                  <span ng-show="item.published" class="label label-info">
+                    <i class="fa fa-bolt" title="Published"></i>&nbsp;
+                  </span>
+                  <a ng-click="launchCatalogView()" ui-jq="tooltip"
+                     ui-options="{title: buildTitleTooltip(item.title)}">{{buildTitleEllipsis(item.title)}}</a>
+                </td>
+
+
+                <td class="description-column">
+                  <a ng-click="launchCatalogView()" ui-jq="tooltip"
+                     ui-options="{title: buildDescriptionTooltip(item.description)}">{{buildDescriptionEllipsis(item.description)}}</a>
+               </td>
+
+                <td>{{item.subject}}</td>
+
+                <td>{{createGradeLevelString(item.gradeLevels)}} </td>
+
+                <td>{{showItemType(item)}}</td>
+
+                <td>
+                  <a ui-jq="tooltip"
+                     ui-options="{placement: 'right', title: buildStandardTooltip(item.standards)}"
+                     class="standards-list">
+                     <span>{{buildStandardLabel(item.standards)}}</span>
+                   </a>
+                </td>
+
+                <td>{{getAuthorAbbreviation(item.contributor)}}</td>
+
+                <td><item-format format="item.apiVersion"/></td>
+
             </tr>
             </tbody>
         </table>
