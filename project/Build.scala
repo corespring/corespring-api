@@ -257,12 +257,11 @@ object Build extends sbt.Build {
     .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
     .settings(
-      watchSources <<= (watchSources, streams).map{ (ws, st) =>
+      watchSources <<= (watchSources, streams).map { (ws, st) =>
         val filtered = ws.filterNot(_.getName.contains("public"))
         st.log.info(s"sources: $filtered")
         filtered
-      }
-    )
+      })
     .dependsOn(
       apiUtils,
       coreModels,
@@ -279,6 +278,7 @@ object Build extends sbt.Build {
       v1Api,
       v2Api,
       v2SessionDb,
+      v2Auth % "test->test;compile->compile",
       apiTracking,
       qtiToV2,
       itemImport,

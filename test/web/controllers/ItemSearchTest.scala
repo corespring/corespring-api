@@ -1,10 +1,105 @@
 package web.controllers
 
+import org.bson.types.ObjectId
+import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexSearchResult, ItemIndexQuery, ItemIndexService }
+import org.corespring.models.auth.Permission
+import org.corespring.services.OrgCollectionService
+import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts }
+import org.corespring.v2.errors.V2Error
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
+import play.api.libs.json.JsValue
+import play.api.mvc.RequestHeader
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
+import web.models.WebExecutionContext
 
-class ItemSearchTest extends Specification {
+import scala.concurrent.{ Future, ExecutionContext }
+import scalaz.{ Success, Validation }
+
+class ItemSearchTest extends Specification with Mockito with MockFactory {
+
+  import ExecutionContext.Implicits.global
+
+  def hit(collectionId: ObjectId) =
+    ItemIndexHit("hit",
+      Some(collectionId.toString),
+      None,
+      false,
+      Map.empty,
+      None,
+      Seq.empty,
+      None,
+      None,
+      None,
+      0,
+      Seq.empty)
+
+  val orgAndOpts = mockOrgAndOpts(AuthMode.UserSession)
+
+  trait scope extends Scope {
+
+    lazy val hits: Seq[ItemIndexHit] = Seq.empty
+
+    lazy val permissions: Seq[(ObjectId, Option[Permission])] = Seq.empty
+
+    lazy val searchService = {
+      val m = mock[ItemIndexService]
+      m.search(any[ItemIndexQuery]) returns {
+        Future { Success(ItemIndexSearchResult(hits.size, hits)) }
+      }
+      m
+    }
+
+    lazy val orgCollectionService = {
+      val m = mock[OrgCollectionService]
+      m.getPermissions(any[ObjectId], any[ObjectId]) returns {
+        Future(permissions)
+      }
+      m
+    }
+
+    lazy val webExecutionContext = WebExecutionContext(ExecutionContext.Implicits.global)
+
+    def getOrgAndOptsFn(rh: RequestHeader): Validation[V2Error, OrgAndOpts] = {
+      Success(orgAndOpts)
+    }
+
+    val controller = new ItemSearch(
+      searchService,
+      orgCollectionService,
+      webExecutionContext,
+      getOrgAndOptsFn)
+  }
 
   "search" should {
-    "add permission info to search results" in pending
+    "return an empty result set" in new scope {
+      val result = controller.search(None)(FakeRequest())
+      status(result) must_== OK
+      val json = contentAsJson(result)
+      (json \ "total").asOpt[Int] must_== Some(0)
+    }
+
+    "return 1 result with Write" in new scope {
+      lazy val collectionId = ObjectId.get
+      override lazy val hits = Seq(hit(collectionId))
+      override lazy val permissions = Seq(collectionId -> Some(Permission.Write))
+      val result = controller.search(None)(FakeRequest())
+      val json = contentAsJson(result)
+      (json \ "hits").as[Seq[JsValue]] must_== Seq(
+        ItemInfo(hit(collectionId), Some(Permission.Write)).json)
+    }
+
+    "return 2 results from the same collection with Write" in new scope {
+      lazy val collectionId = ObjectId.get
+      override lazy val hits = Seq(hit(collectionId), hit(collectionId))
+      override lazy val permissions = Seq(collectionId -> Some(Permission.Write))
+      val result = controller.search(None)(FakeRequest())
+      val json = contentAsJson(result)
+      (json \ "hits").as[Seq[JsValue]] must_== Seq(
+        ItemInfo(hit(collectionId), Some(Permission.Write)).json,
+        ItemInfo(hit(collectionId), Some(Permission.Write)).json)
+    }
   }
 }

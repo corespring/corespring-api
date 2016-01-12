@@ -12,6 +12,12 @@ object QueryStringParser {
 
   private val logger = Logger(QueryStringParser.getClass)
 
+  def invalidJson(e: String) = new Error(s"Error parsing query: $e")
+
+  def notValidQuery(s: String) = new Error(s"Failed to parse query string: $s")
+
+  private def parse(s: String) = Validation.fromTryCatch(Json.parse(s)).leftMap(_ => invalidJson(s))
+
   def scopedSearchQuery(query: Option[String], accessibleCollectionIds: Seq[ObjectId]): Validation[Error, ItemIndexQuery] = {
     val rawQuery = query.getOrElse("{}")
     logger.trace(s"function=scopedSearchQuery, rawQuery=$rawQuery")
@@ -19,8 +25,8 @@ object QueryStringParser {
     implicit val r = ApiReads
 
     for {
-      json <- Validation.fromTryCatch(Json.parse(rawQuery)).leftMap(e => new Error(s"Error parsing query: $e"))
-      iiq <- Json.fromJson[ItemIndexQuery](json).asOpt.toSuccess(new Error(s"Failed to parse query string: $query"))
+      json <- parse(rawQuery)
+      iiq <- Json.fromJson[ItemIndexQuery](json).asOpt.toSuccess(notValidQuery(rawQuery))
     } yield {
       iiq.scopeToCollections(accessibleCollectionIds.map(_.toString): _*)
     }

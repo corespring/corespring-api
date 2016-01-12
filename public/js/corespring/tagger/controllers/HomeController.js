@@ -140,7 +140,8 @@
         },
         function success(newItem) {
           if(open){
-            $location.url('/edit/draft/' + newItem.id);
+            var query = isV1(item) ? '?devEditor=true' : '';
+            $location.url('/edit/draft/' + newItem.id + query);
           }
           $scope.delayedSearch();
         },
@@ -184,23 +185,23 @@
         }
       };
 
-      this.cloneItem = function(item) {
-        //The item passed in is not coming from the v1 ItemService
-        //and therefore doesn't have the clone method. ItemService.get
-        //does that for us.
-        ItemService.get({
-          id: item.id
-        }, function(itemData) {
-          itemData.clone(
-            function success(newItem) {
-              $location.url('/edit/draft/' + newItem.id + '?devEditor=true');
-            },
-            function error(err) {
-              alert('cloneItem:', JSON.stringify(err));
-            }
-          );
-        });
-      };
+//      this.cloneItem = function(item) {
+//        //The item passed in is not coming from the v1 ItemService
+//        //and therefore doesn't have the clone method. ItemService.get
+//        //does that for us.
+//        ItemService.get({
+//          id: item.id
+//        }, function(itemData) {
+//          itemData.clone(
+//            function success(newItem) {
+//              $location.url('/edit/draft/' + newItem.id + '?devEditor=true');
+//            },
+//            function error(err) {
+//              alert('cloneItem:', JSON.stringify(err));
+//            }
+//          );
+//        });
+//      };
 
       this.publish = function(item) {
         publish(item, function() {
@@ -259,18 +260,18 @@
         publish(item);
       };
 
-      this.cloneItem = function(item) {
-        V2ItemService.clone({
-            id: item.id
-          },
-          function success(newItem) {
-            goToEditDraft(newItem.id);
-          },
-          function error(err) {
-            alert('cloneItem:', JSON.stringify(err));
-          }
-        );
-      };
+//      this.cloneItem = function(item) {
+//        V2ItemService.clone({
+//            id: item.id
+//          },
+//          function success(newItem) {
+//            goToEditDraft(newItem.id);
+//          },
+//          function error(err) {
+//            alert('cloneItem:', JSON.stringify(err));
+//          }
+//        );
+//      };
     }
 
     function deleteItem(item) {
