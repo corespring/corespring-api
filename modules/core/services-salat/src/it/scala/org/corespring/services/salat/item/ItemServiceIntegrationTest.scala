@@ -442,7 +442,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
   "removeFileFromPlayerDefinition" should {
     trait removeFileFromPlayerDefinition extends scope
 
-    "remove file from playerDefinition.files using item id" in new removeFileFromPlayerDefinition {
+    "remove file from playerDefinition.files" in new removeFileFromPlayerDefinition {
       val file = StoredFile("name.png", "image/png", false)
       service.addFileToPlayerDefinition(itemOne.id, file)
       loadItem(itemOne.id).map(_.playerDefinition.get.files) must_== Some(Seq(file))
