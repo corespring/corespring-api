@@ -206,4 +206,24 @@ class PassageAuthWiredTest extends Specification with Mockito {
 
   }
 
+  "delete" should {
+
+    "passage with specified id is not found" should {
+
+      trait CannotFindPassageScope extends PassageAuthScope {
+        passageService.get(passageId) returns Future.successful(Success(None))
+        access.grant(identity, Permission.Write, (passage, None)) returns Future.successful(Success(false))
+        val result = Await.result(passageAuthWired.delete(passageId.toString)(identity, executionContext), Duration.Inf)
+      }
+
+      "be awesome" in new CannotFindPassageScope {
+        result must be equalTo
+      }
+
+    }
+
+
+
+  }
+
 }

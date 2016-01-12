@@ -108,7 +108,12 @@ class PassageApi(
   }
 
   def delete(passageId: VersionedId[ObjectId]) = futureWithIdentity { (identity, request) =>
-    Future.successful(Ok(""))
+    implicit val Format = Passage.Format
+
+    passageAuth.delete(passageId.toString)(identity, ec).map(_ match {
+      case Success(deletedPassage) => Ok(Json.prettyPrint(Json.toJson(deletedPassage)))
+      case Failure(error) => Status(error.statusCode)(error.message)
+    })
   }
 
   private def getCollectionId(identity: OrgAndOpts, request: Request[AnyContent]): Validation[PlatformServiceError, String] = {

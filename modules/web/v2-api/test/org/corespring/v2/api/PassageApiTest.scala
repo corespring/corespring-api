@@ -11,7 +11,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrgCollectionService
 import org.corespring.v2.auth.PassageAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{invalidJson, couldNotCreatePassage, cantFindPassageWithId, generalError}
+import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -42,7 +42,7 @@ class PassageApiTest extends Specification with Mockito {
     val passageApi = new PassageApi(passageAuth, passageIndexService, orgCollectionService,
       v2ApiExecutionContext, getOrgAndOptionsFn)
     val passageId = new VersionedId[ObjectId](new ObjectId(), Some(0))
-    def file(): BaseFile = mock[VirtualFile]
+    def file(): BaseFile = Passage.defaultFile
     lazy val passage = Passage(id = passageId, collectionId = new ObjectId().toString, file = file())
   }
 
@@ -405,6 +405,58 @@ class PassageApiTest extends Specification with Mockito {
 
         "contain file contentType" in new AuthorizedUpdateFileJsonScope {
           (json \ "file" \ "contentType").as[String] must be equalTo(File.contentType)
+        }
+
+      }
+
+    }
+
+  }
+
+  "delete" should {
+
+    "return 401" in new PassageApiScope {
+      val result = passageApi.delete(passageId)(FakeRequest())
+      status(result) must be equalTo(UNAUTHORIZED)
+    }
+
+    "authorized request" should {
+
+      trait AuthorizedDeleteScope extends AuthorizedApiPassageScope {
+        override def authResponse = Success(identity)
+      }
+
+      "passageAuth#delete returns successfully" should {
+
+        trait AuthorizedDeleteSuccessScope extends AuthorizedDeleteScope {
+          passageAuth.delete(any[String])(any[OrgAndOpts], any[ExecutionContext]) returns Future.successful(Success(passage))
+          val result = passageApi.delete(passageId)(FakeRequest())
+        }
+
+        "return 200" in new AuthorizedDeleteSuccessScope {
+          status(result) must be equalTo(OK)
+        }
+
+        "return deleted passage in body" in new AuthorizedDeleteSuccessScope {
+          contentAsJson(result) must be equalTo(Json.toJson(passage))
+        }
+
+      }
+
+      "passageAuth#delete fails with error" should {
+
+        trait AuthorizedDeleteFailScope extends AuthorizedDeleteScope {
+          val error = couldNotDeletePassage(passage.id)
+          passageAuth.delete(any[String])(any[OrgAndOpts], any[ExecutionContext]) returns Future.successful(Failure(error))
+          val result = passageApi.delete(passageId)(FakeRequest())
+        }
+
+        "return error code from failure error" in new AuthorizedDeleteFailScope {
+          status(result) must be equalTo(error.statusCode)
+        }
+
+        "return error message from failure error" in new AuthorizedDeleteFailScope {
+          contentAsString(result) must be equalTo(error.message)
         }
 
       }

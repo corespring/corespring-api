@@ -33,17 +33,6 @@ class PassageAuthWired(
       })
     })
 
-
-  override def delete(passageId: String)(implicit identity: OrgAndOpts, executionContext: ExecutionContext) =
-    withPassage(passageId, { passage =>
-      ifWritable(passage, { passage =>
-        passageService.delete(passage.id).map(_ match {
-          case Success(passage) => Success(passage)
-          case Failure(error) => Failure(couldNotDeletePassage(passage.id))
-        })
-      })
-    })
-
   override def insert(passage: Passage)(implicit identity: OrgAndOpts, executionContext: ExecutionContext) =
     ifWritable(passage, { passage =>
       passageService.insert(passage).map(_ match {
@@ -61,6 +50,15 @@ class PassageAuthWired(
       })
     })
 
+  override def delete(passageId: String)(implicit identity: OrgAndOpts, executionContext: ExecutionContext) =
+    withPassage(passageId, { passage =>
+      ifWritable(passage, { passage =>
+        passageService.delete(passage.id).map(_ match {
+          case Success(passage) => Success(passage)
+          case Failure(error) => Failure(couldNotDeletePassage(passage.id))
+        })
+      })
+    })
 
   private def withPassage(passageId: String, block: Passage => Future[Validation[V2Error, Passage]])
                          (implicit identity: OrgAndOpts, executionContext: ExecutionContext): Future[Validation[V2Error, Passage]] =
