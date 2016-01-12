@@ -23,6 +23,7 @@ import play.api.libs.json.JsValue
 import play.api.mvc._
 
 import scala.concurrent.Future
+import scalaz.Scalaz._
 import scalaz.Validation
 
 class ItemEditorHooks(
@@ -91,22 +92,42 @@ class ItemEditorHooks(
   override def deleteFile(id: String, path: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
     logger.trace(s"function=deleteFile id=$id path=$path")
 
-    val v: Validation[V2Error, DeleteResponse] = for {
+    def canWriteItem(id:String, identity: OrgAndOpts) = {
+      itemAuth.canWrite(id)(identity) match {
+        case Success(false) => Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
+        case x => x
+      }
+    }
+
+    def deleteFromS3(vid:VersionedId[ObjectId], path: String) = {
+      val deleteResponse = playS3.delete(bucket, S3Paths.itemFile(vid, path))
+      if(deleteResponse.success){
+        Success(true)
+      } else {
+        Failure(generalError(deleteResponse.msg))
+      }
+    }
+
+    def removeFromData(vid: VersionedId[ObjectId], key: String) = {
+      val filename = grizzled.file.util.basename(key)
+      val storedFile = StoredFile(path, BaseFile.getContentType(filename), false, filename)
+      itemService.removeFileFromPlayerDefinition(vid, storedFile) match {
+        case Success(true) => Success(true)
+        case _ => Failure(generalError(s"Error removing file $path from item $vid"))
+      }
+    }
+
+    val v: Validation[V2Error, Boolean] = for {
       identity <- getOrgAndOptions(header)
-      owns <- itemAuth.canWrite(id)(identity)
+      canWrite <- canWriteItem(id, identity)
       vid <- getVid(id)
-      _ <- if (owns) Success(true) else Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
-    } yield playS3.delete(bucket, S3Paths.itemFile(vid, path))
+      deleted <- deleteFromS3(vid,path)
+      removed <- removeFromData(vid,path)
+    } yield removed
 
     v match {
       case Failure(e) => Some(e.statusCode, e.message)
-      case Success(r) => {
-        if (r.success) {
-          None
-        } else {
-          Some(BAD_REQUEST, r.msg)
-        }
-      }
+      case Success(r) => None
     }
   }
 
