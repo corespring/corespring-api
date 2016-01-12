@@ -278,7 +278,7 @@ class ItemDrafts(
   def removeFileFromChangeSet(draftId: DraftId, f: StoredFile): Boolean = {
     val query = idToDbo(draftId)
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
-    val update = MongoDBObject("$removeFromSet" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
+    val update = MongoDBObject("$pull" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
     val result = draftService.collection.update(query, update, false, false)
     logger.trace(s"function=removeFileFromChangeSet, draftId=${draftId}, docsChanged=${result.getN}")
     require(result.getN == 1, s"Exactly 1 document with id: ${draftId} must have been updated")

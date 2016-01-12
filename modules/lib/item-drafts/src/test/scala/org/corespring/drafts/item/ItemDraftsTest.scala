@@ -535,7 +535,7 @@ class ItemDraftsTest extends Specification with Mockito {
         val (q, u) = captureUpdate
         q.value === expectedQuery
         val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
-        val expectedUpdate = MongoDBObject("$removeFromSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
+        val expectedUpdate = MongoDBObject("$pull" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
         u.value === expectedUpdate
       }
     }

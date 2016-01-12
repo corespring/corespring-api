@@ -439,6 +439,31 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
   }
 
+  "removeFileFromPlayerDefinition" should {
+    trait removeFileFromPlayerDefinition extends scope
+
+    "remove file from playerDefinition.files using item id" in new removeFileFromPlayerDefinition {
+      val file = StoredFile("name.png", "image/png", false)
+      service.addFileToPlayerDefinition(itemOne.id, file)
+      loadItem(itemOne.id).map(_.playerDefinition.get.files) must_== Some(Seq(file))
+      service.removeFileFromPlayerDefinition(itemOne.id, file)
+      loadItem(itemOne.id).map(_.playerDefinition.get.files) must_== Some(Seq())
+    }
+
+    "return true when call was successful" in new removeFileFromPlayerDefinition {
+      val file = StoredFile("name.png", "image/png", false)
+      service.removeFileFromPlayerDefinition(itemOne.id, file) match {
+        case Success(res) => res must_== true
+        case Failure(e) => failure(s"Unexpected error $e")
+      }
+    }
+    //TODO Do we want it to throw?
+    "throw error when item cannot be found" in new removeFileFromPlayerDefinition {
+      val file = StoredFile("name.png", "image/png", false)
+      service.removeFileFromPlayerDefinition(randomItemId, file) must throwA[SalatVersioningDaoException]
+    }
+  }
+
   "saveNewUnpublishedVersion" should {
     "create new unpublished item when item is in current" in new scope {
       val res = service.saveNewUnpublishedVersion(itemOne.id)
