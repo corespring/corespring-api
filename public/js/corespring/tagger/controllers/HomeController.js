@@ -132,10 +132,27 @@
     }
 
     function cloneItem(item) {
+
+      function callService(collectionId, open){
+        V2ItemService.clone({
+          id: item.id,
+          collectionId: collectionId
+        },
+        function success(newItem) {
+          if(open){
+            $location.url('/edit/draft/' + newItem.id);
+          }
+          $scope.delayedSearch();
+        },
+        function error(err) {
+          alert('cloneItem:', JSON.stringify(err));
+        });
+      };
+
       ItemService.get({id: item.id}, function(itemData){
-        var collections = CollectionManager.writableCollections;
+        var collections = CollectionManager.writableCollections();
         Modals.clone(itemData, collections, function(cancelled, open, targetCollection){
-          console.log(arguments);
+          callService(targetCollection.id, open);
         });
       });
     }

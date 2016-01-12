@@ -213,7 +213,7 @@ angular.module('tagger.services')
         ShareCollection.update({id: collectionId, orgId : orgId }, {}, onSuccess, onError);
       },
       rawCollections: null,
-      writableCollections = function(){
+      writableCollections: function(){
         return _.filter(this.rawCollections, function(c){
           return c.permission == "write"
         });

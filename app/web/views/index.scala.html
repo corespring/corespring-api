@@ -152,22 +152,26 @@ assetsLoader: org.corespring.web.common.controllers.deployment.AssetsLoader)
     <br/>
 
     <div ng-show="modals.clone.agreed == false">
-        <h3>Copyright Warning</h3>
+        <h5>Copyright Warning</h5>
         <p>This item is licensed as: {{modals.clone.item.licenseType}}</p>
         <p>Do you agree to the the terms of use?</p>
+        <br/>
         <button class="btn" ng-click="modals.clone.show = false">No</button>
-        <button class="btn" ng-click="modals.clone.agreed = true">Yes, I Agree</button>
+        <button class="btn btn-success" ng-click="modals.clone.agreed = true">Yes, I Agree</button>
     </div>
 
     <div ng-show="modals.clone.agreed">
-        <h3>Choose collection...</h3>
-        <select item
-                ng-options="c.name for c in collections"
-                ng-model="modals.clone.collection">
-        </select>
+        <h5>Choose a collection to save the item to:</h5>
+        <div>
+          <select item
+            ng-options="c.name for c in modals.clone.collections"
+            ng-model="modals.clone.collection">
+          </select>
+        </div>
+        <br/>
         <button class="btn" ng-click="modals.clone.show = false">Cancel</button>
-        <button class="btn" ng-click="modals.clone.done(false, false)">Save for later</button>
-        <button class="btn" ng-click="modals.clone.done(false, true)">Save and open</button>
+        <button class="btn btn-primary" ng-click="modals.clone.done(false, false)">Save for later</button>
+        <button class="btn btn-success" ng-click="modals.clone.done(false, true)">Save and open</button>
     </div>
 </div>
 

@@ -47,13 +47,22 @@ angular.module('tagger.services')
       cloneObj.show = true;
       cloneObj.item = item;
       cloneObj.collections = collections;
+
+      var defaultCollection = _.find(collections, function(c){
+        return c.name === 'Default';
+      });
+
+      cloneObj.collection = defaultCollection;
+
       cloneObj.agreed = false;
+
       cloneObj.done = function(cancelled, open){
         $rootScope.modals.clone.show = false;
         $rootScope.modals.clone.item = null;
 
         if(cloneObj.collection){
           done(cancelled, open, cloneObj.collection);
+          cloneObj.collection = null;
         } else {
           throw new Error('no  object selected...');
         }
