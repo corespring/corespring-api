@@ -16,6 +16,8 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.Json
 
+import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.duration.Duration
 import scalaz.{Failure, Success}
 
 class PassageAccessTest extends Specification with Mockito {
@@ -33,6 +35,8 @@ class PassageAccessTest extends Specification with Mockito {
 
       val passage = Passage(collectionId = new ObjectId().toString, file = mock[BaseFile])
       val itemId = VersionedId[ObjectId](new ObjectId(), Some(0))
+
+      val executionContext = ExecutionContext.global
 
       val itemWithPassage = Item(collectionId = new ObjectId().toString,
         playerDefinition = Some(PlayerDefinition("", Json.obj(
@@ -52,7 +56,8 @@ class PassageAccessTest extends Specification with Mockito {
       }
 
       "grant access" in new OrgCanAccessScope {
-        passageAccess.grant(identity, Permission.Read, (passage, None)) must be equalTo(Success(true))
+        Await.result(passageAccess.grant(identity, Permission.Read, (passage, None)), Duration.Inf) must be equalTo(
+          Success(true))
       }
 
     }
@@ -64,7 +69,7 @@ class PassageAccessTest extends Specification with Mockito {
       }
 
       "deny access" in new OrgCannotAccessPassage {
-        passageAccess.grant(identity, Permission.Read, (passage, None)) must be equalTo(
+        Await.result(passageAccess.grant(identity, Permission.Read, (passage, None)), Duration.Inf) must be equalTo(
           Failure(orgCantAccessCollection(identity.org.id, passage.collectionId, Permission.Read.name)))
       }
 
@@ -76,7 +81,7 @@ class PassageAccessTest extends Specification with Mockito {
         }
 
         "grant access" in new ItemWithPassage {
-          passageAccess.grant(identity, Permission.Read, (passage, Some(itemId))) must be equalTo(Success(true))
+          Await.result(passageAccess.grant(identity, Permission.Read, (passage, Some(itemId))), Duration.Inf) must be equalTo(Success(true))
         }
 
       }
@@ -89,7 +94,7 @@ class PassageAccessTest extends Specification with Mockito {
         }
 
         "deny access" in new ItemWithoutPassage {
-          passageAccess.grant(identity, Permission.Read, (passage, Some(itemId))) must be equalTo(
+          Await.result(passageAccess.grant(identity, Permission.Read, (passage, Some(itemId))), Duration.Inf) must be equalTo(
             Failure(orgCantAccessCollection(identity.org.id, passage.collectionId, Permission.Read.name)))
         }
 

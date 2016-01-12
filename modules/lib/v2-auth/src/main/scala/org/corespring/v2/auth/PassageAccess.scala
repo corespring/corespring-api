@@ -11,10 +11,15 @@ import org.corespring.v2.errors.Errors.orgCantAccessCollection
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json._
 
+import scala.concurrent.Future
 import scalaz.{Success, Failure, Validation}
 
+trait FutureAccess[DATA, REQUESTER] {
+  def grant(identity: REQUESTER, permission: Permission, data: DATA): Future[Validation[V2Error, Boolean]]
+}
+
 class PassageAccess(orgCollectionService: OrgCollectionService, itemService: ItemService)
-  extends Access[(Passage, Option[VersionedId[ObjectId]]), OrgAndOpts] {
+  extends FutureAccess[(Passage, Option[VersionedId[ObjectId]]), OrgAndOpts] {
 
   private def containsPassageWithId(item: Item, passageId: String): Boolean = item.playerDefinition.map(pd => pd.components match {
     case obj: JsObject =>
@@ -27,7 +32,7 @@ class PassageAccess(orgCollectionService: OrgCollectionService, itemService: Ite
   }).getOrElse(false)
 
   override def grant(identity: OrgAndOpts, permission: Permission,
-                     passageAndItemId: (Passage, Option[VersionedId[ObjectId]])): Validation[V2Error, Boolean] = {
+                     passageAndItemId: (Passage, Option[VersionedId[ObjectId]])): Future[Validation[V2Error, Boolean]] = {
 
     def orgCanAccess(collectionId: String) =
       orgCollectionService.isAuthorized(identity.org.id, new ObjectId(collectionId), permission)
@@ -46,14 +51,14 @@ class PassageAccess(orgCollectionService: OrgCollectionService, itemService: Ite
 
     val (passage, itemId) = passageAndItemId
 
-    orgCanAccess(passage.collectionId) match {
+    Future.successful(orgCanAccess(passage.collectionId) match {
       case true => Success(true)
       case false if (permission == Permission.Read) => itemCanAccess(itemId, passage) match {
         case true => Success(true)
         case _ => Failure(orgCantAccessCollection(identity.org.id, passage.collectionId, permission.name))
       }
       case _ => Success(false)
-    }
+    })
   }
 
 }

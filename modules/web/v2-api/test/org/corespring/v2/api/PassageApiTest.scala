@@ -29,6 +29,8 @@ class PassageApiTest extends Specification with Mockito {
   trait PassageApiScope extends Scope {
     implicit val Format = Passage.Format
 
+    val executionContext = ExecutionContext.global
+
     val passageAuth: PassageAuth = mock[PassageAuth]
     val passageIndexService: PassageIndexService = mock[PassageIndexService]
     val orgCollectionService: OrgCollectionService = mock[OrgCollectionService]
@@ -61,7 +63,7 @@ class PassageApiTest extends Specification with Mockito {
       "passage does not exist" should {
 
         trait PassageMissingScope extends AuthorizedApiPassageScope {
-          passageAuth.loadForRead(passageId.toString, None)(identity) returns Failure(cantFindPassageWithId(passageId))
+          passageAuth.loadForRead(passageId.toString, None)(identity, executionContext) returns Future.successful(Failure(cantFindPassageWithId(passageId)))
         }
 
         "return 404" in new PassageMissingScope {
@@ -83,7 +85,7 @@ class PassageApiTest extends Specification with Mockito {
             mockFile
           }
 
-          passageAuth.loadForRead(passageId.toString, None)(identity) returns Success(passage)
+          passageAuth.loadForRead(passageId.toString, None)(identity, executionContext) returns Future.successful(Success(passage))
           val result = passageApi.get(passageId, None)(FakeRequest())
         }
 

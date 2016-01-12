@@ -28,7 +28,7 @@ class PassageApi(
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
   def get(passageId: VersionedId[ObjectId], itemId: Option[String]) = futureWithIdentity { (identity, request) =>
-    Future.successful(passageAuth.loadForRead(passageId.toString, itemId.map(VersionedId(_)).flatten)(identity) match {
+    passageAuth.loadForRead(passageId.toString, itemId.map(VersionedId(_)).flatten)(identity, ec).map(_ match {
       case Success(passage) => PassageResponseWriter.write(passage)
       case Failure(error) => Status(error.statusCode)(error.message)
     })
@@ -105,6 +105,10 @@ class PassageApi(
         Future.successful(Status(error.statusCode)(error.message))
       }
     }
+  }
+
+  def delete(passageId: VersionedId[ObjectId]) = futureWithIdentity { (identity, request) =>
+    Future.successful(Ok(""))
   }
 
   private def getCollectionId(identity: OrgAndOpts, request: Request[AnyContent]): Validation[PlatformServiceError, String] = {

@@ -21,6 +21,7 @@ import scalaz.{Failure, Success}
 class PassageAuthWiredTest extends Specification with Mockito {
 
   trait PassageAuthScope extends Scope {
+    val executionContext = ExecutionContext.global
     val passageService = mock[PassageService]
     val access = mock[PassageAccess]
     val passageAuthWired = new PassageAuthWired(passageService, access)
@@ -44,7 +45,8 @@ class PassageAuthWiredTest extends Specification with Mockito {
       }
 
       "return invalidObjectId error" in new InvalidIdPassageAuthScope {
-        passageAuthWired.loadForRead(invalidId)(identity) must be equalTo(Failure(invalidObjectId(invalidId, "")))
+        Await.result(passageAuthWired.loadForRead(invalidId)(identity, executionContext), Duration.Inf) must be equalTo(
+          Failure(invalidObjectId(invalidId, "")))
       }
 
     }
@@ -56,7 +58,7 @@ class PassageAuthWiredTest extends Specification with Mockito {
       }
 
       "returns cantFindPassageWithId error" in new PassageDoesntExistScope {
-        passageAuthWired.loadForRead(passageId.toString)(identity) must be equalTo
+        Await.result(passageAuthWired.loadForRead(passageId.toString)(identity, executionContext), Duration.Inf) must be equalTo
           (Failure(cantFindPassageWithId(passageId)))
       }
 
@@ -70,11 +72,11 @@ class PassageAuthWiredTest extends Specification with Mockito {
 
       "access not granted" should {
         trait PassagePresentAccessNotGrantedScope extends PassageExistsScope {
-          access.grant(identity, Permission.Read, (passage, None)) returns Success(false)
+          access.grant(identity, Permission.Read, (passage, None)) returns Future.successful(Success(false))
         }
 
         "return inaccessiblePassage error" in new PassagePresentAccessNotGrantedScope {
-          passageAuthWired.loadForRead(passageId.toString)(identity) must be equalTo
+          Await.result(passageAuthWired.loadForRead(passageId.toString)(identity, executionContext), Duration.Inf) must be equalTo
             (Failure(inaccessiblePassage(passageId, orgId, Permission.Read)))
         }
       }
@@ -82,11 +84,11 @@ class PassageAuthWiredTest extends Specification with Mockito {
       "access granted" should {
 
         trait PassagePresentAccessGrantedScope extends PassageExistsScope {
-          access.grant(identity, Permission.Read, (passage, None)) returns Success(true)
+          access.grant(identity, Permission.Read, (passage, None)) returns Future.successful(Success(true))
         }
 
         "return passage" in new PassagePresentAccessGrantedScope {
-          passageAuthWired.loadForRead(passageId.toString)(identity) must be equalTo Success(passage)
+          Await.result(passageAuthWired.loadForRead(passageId.toString)(identity, executionContext), Duration.Inf) must be equalTo Success(passage)
         }
 
       }
@@ -100,7 +102,7 @@ class PassageAuthWiredTest extends Specification with Mockito {
     "cannot write with provided identity" should {
 
       trait CannotWriteScope extends PassageAuthScope {
-        access.grant(identity, Permission.Write, (passage, None)) returns Success(false)
+        access.grant(identity, Permission.Write, (passage, None)) returns Future.successful(Success(false))
       }
 
       "return couldNotWritePassage error" in new CannotWriteScope {
@@ -113,7 +115,7 @@ class PassageAuthWiredTest extends Specification with Mockito {
     "can write with provided identity" should {
 
       trait CanWriteScope extends PassageAuthScope {
-        access.grant(identity, Permission.Write, (passage, None)) returns Success(true)
+        access.grant(identity, Permission.Write, (passage, None)) returns Future.successful(Success(true))
       }
 
       "passageService#insert fails" should {
@@ -155,7 +157,7 @@ class PassageAuthWiredTest extends Specification with Mockito {
     "cannot write with provided identity" should {
 
       trait CannotWriteScope extends PassageAuthScope {
-        access.grant(identity, Permission.Write, (passage, None)) returns Success(false)
+        access.grant(identity, Permission.Write, (passage, None)) returns Future.successful(Success(false))
       }
 
       "return couldNotWritePassage error" in new CannotWriteScope {
@@ -168,7 +170,7 @@ class PassageAuthWiredTest extends Specification with Mockito {
     "can write with provided identity" should {
 
       trait CanWriteScope extends PassageAuthScope {
-        access.grant(identity, Permission.Write, (passage, None)) returns Success(true)
+        access.grant(identity, Permission.Write, (passage, None)) returns Future.successful(Success(true))
       }
 
       "passageService#save fails" should {

@@ -165,4 +165,6 @@ private[v2] object Errors {
 
   case class couldNotWritePassage(id: VersionedId[ObjectId]) extends V2Error(s"Could not write to passage $id", s"The application was unable to write to the passage $id", s"The passage $id could not be written to", UNAUTHORIZED)
 
+  case class couldNotDeletePassage(id: VersionedId[ObjectId]) extends V2Error(s"Could not delete passage $id", s"The application was unable to delete the passage $id", s"The passage $id could not be deleted", UNAUTHORIZED)
+
 }

@@ -10,8 +10,9 @@ import scalaz.Validation
 
 trait PassageService {
 
-  def get(id: VersionedId[ObjectId]): Future[Validation[PlatformServiceError, Option[Passage]]]
+  def get(passageId: VersionedId[ObjectId]): Future[Validation[PlatformServiceError, Option[Passage]]]
   def insert(passage: Passage): Future[Validation[PlatformServiceError, Passage]]
   def save(passage: Passage): Future[Validation[PlatformServiceError, Passage]]
+  def delete(passageId: VersionedId[ObjectId]): Future[Validation[PlatformServiceError, Passage]]
 
 }

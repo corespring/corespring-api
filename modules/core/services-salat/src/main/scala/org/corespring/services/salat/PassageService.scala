@@ -61,4 +61,6 @@ class PassageService(
     }
   })
 
+  override def delete(passageId: VersionedId[ObjectId]) = ???
+
 }
