@@ -26,11 +26,11 @@ angular.module('tagger.directives')
     function link($scope, $elem, $attr){
 
         var actionsMap = {
-            edit: $scope.edit,
-            clone: $scope.clone,
-            publish: $scope.publish,
-            'delete': $scope['delete']
-        }
+          edit: $scope.edit,
+          clone: $scope.clone,
+          publish: $scope.publish,
+          'delete': $scope['delete']
+        };
 
         $scope.actionClicked = function(label){
             actionsMap[label]($scope.item);

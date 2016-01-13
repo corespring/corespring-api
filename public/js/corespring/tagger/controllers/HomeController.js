@@ -148,12 +148,15 @@
         function error(err) {
           alert('cloneItem:', JSON.stringify(err));
         });
-      };
+      }
 
       ItemService.get({id: item.id}, function(itemData){
         var collections = CollectionManager.writableCollections();
         Modals.clone(itemData, collections, function(cancelled, open, targetCollection){
-          callService(targetCollection.id, open);
+
+          if(!cancelled){
+            callService(targetCollection.id, open);
+          }
         });
       });
     }
@@ -184,24 +187,6 @@
           $location.url('/edit/draft/' + item.id + '?devEditor=true');
         }
       };
-
-//      this.cloneItem = function(item) {
-//        //The item passed in is not coming from the v1 ItemService
-//        //and therefore doesn't have the clone method. ItemService.get
-//        //does that for us.
-//        ItemService.get({
-//          id: item.id
-//        }, function(itemData) {
-//          itemData.clone(
-//            function success(newItem) {
-//              $location.url('/edit/draft/' + newItem.id + '?devEditor=true');
-//            },
-//            function error(err) {
-//              alert('cloneItem:', JSON.stringify(err));
-//            }
-//          );
-//        });
-//      };
 
       this.publish = function(item) {
         publish(item, function() {
@@ -260,18 +245,6 @@
         publish(item);
       };
 
-//      this.cloneItem = function(item) {
-//        V2ItemService.clone({
-//            id: item.id
-//          },
-//          function success(newItem) {
-//            goToEditDraft(newItem.id);
-//          },
-//          function error(err) {
-//            alert('cloneItem:', JSON.stringify(err));
-//          }
-//        );
-//      };
     }
 
     function deleteItem(item) {
