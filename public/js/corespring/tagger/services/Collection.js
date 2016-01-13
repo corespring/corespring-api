@@ -44,34 +44,3 @@ angular.module('tagger.services')
     }
   ]);
 
-//angular.module('tagger.services')
-//  .factory('ShareCollection', [
-//    '$resource', 'ServiceLookup', function($resource, ServiceLookup){
-//
-//      return function(){
-//
-//      }
-//
-////      return $resource(
-////        ServiceLookup.getUrlFor('shareCollection'),
-////        {},
-////        {
-////          "update": { method : 'PUT'}
-////        }
-////      );
-//    }
-//  ]);
-
-//angular.module('tagger.services')
-//  .factory('GetOrgsWithSharedCollection', [
-//    '$resource', 'ServiceLookup', function($resource, ServiceLookup){
-//        return function(){
-//             this.get = function(collectionId, onSuccess, onError){
-//               var url = ServiceLookup.getUrlFor('getOrgsWithSharedCollection'),
-//               $http.get(url).then(function(response){
-//                 onSuccess(response.data);
-//               }, onError);
-//             }
-//        }
-//    }
-//  ]);

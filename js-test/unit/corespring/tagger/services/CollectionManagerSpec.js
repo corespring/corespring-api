@@ -57,6 +57,15 @@ describe('ItemService', function () {
     }
   }));
 
+
+  describe('shareCollection', function(){
+    pending('..');
+  });
+
+  describe('getOrgsWithSharedCollection', function(){
+    pending('..');
+  });
+
   describe("inits", function () {
     it("is inited correctly", function () {
       expect(manager).not.toBeNull();
@@ -86,7 +95,7 @@ describe('ItemService', function () {
       $httpBackend.flush();
 
       var simpleObject = function(c){
-        return { id: c.id, name : c.name}
+        return { id: c.id, name : c.name};
       };
 
       var orgCollections = _.map(manager.sortedCollections[0].collections, simpleObject);
