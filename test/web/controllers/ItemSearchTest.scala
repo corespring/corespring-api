@@ -91,6 +91,18 @@ class ItemSearchTest extends Specification with Mockito with MockFactory {
         ItemInfo(hit(collectionId), Some(Permission.Write)).json)
     }
 
+    "return 2 results from the two collections with Write and Clone" in new scope {
+      lazy val collectionId = ObjectId.get
+      lazy val collectionIdTwo = ObjectId.get
+      override lazy val hits = Seq(hit(collectionId), hit(collectionIdTwo))
+      override lazy val permissions = Seq(collectionId -> Some(Permission.Write), collectionIdTwo -> Some(Permission.Clone))
+      val result = controller.search(None)(FakeRequest())
+      val json = contentAsJson(result)
+      (json \ "hits").as[Seq[JsValue]] must_== Seq(
+        ItemInfo(hit(collectionId), Some(Permission.Write)).json,
+        ItemInfo(hit(collectionIdTwo), Some(Permission.Clone)).json)
+    }
+
     "return 2 results from the same collection with Write" in new scope {
       lazy val collectionId = ObjectId.get
       override lazy val hits = Seq(hit(collectionId), hit(collectionId))
