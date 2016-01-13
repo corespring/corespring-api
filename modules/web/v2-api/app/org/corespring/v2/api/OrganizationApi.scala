@@ -7,7 +7,7 @@ import org.corespring.services.{ OrgCollectionService }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -21,11 +21,13 @@ class OrganizationApi(
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
   /**
-    * [{ name: x, id: x, permission: x} ]
-    * @param collectionId
-    * @return
-    */
+   * [{ name: x, id: x, permission: x} ]
+   * @param collectionId
+   * @return
+   */
+  //TODO: Move to service api?
   def getOrgsWithSharedCollection(collectionId: ObjectId) = futureWithIdentity { (identity, request) =>
+
     Future {
       val result = orgCollectionService.ownsCollection(identity.org, collectionId).map { _ =>
         orgCollectionService.getOrgsWithAccessTo(collectionId).filterNot(_.id == identity.org.id)
@@ -33,7 +35,7 @@ class OrganizationApi(
 
       def toNameAndPermission(o: Organization): Option[JsValue] = {
         o.contentcolls.find(_.collectionId == collectionId).map { r =>
-          val permission : String = Permission.fromLong(r.pval).map(_.name).getOrElse("none")
+          val permission: String = Permission.fromLong(r.pval).map(_.name).getOrElse("none")
           Json.obj(
             "name" -> o.name,
             "id" -> o.id.toString,
