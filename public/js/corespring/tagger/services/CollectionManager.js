@@ -16,7 +16,8 @@
  * TODO: We do alot of data formatting on the client side here - should that be server side instead?
  */
 angular.module('tagger.services')
-  .factory('CollectionManager', [ 'Collection', 'UserInfo', 'Logger', 'CollectionEnabledStatus', 'ShareCollection', function (Collection, UserInfo, Logger, CollectionEnabledStatus, ShareCollection) {
+  .factory('CollectionManager', [ '$http', 'Collection', 'UserInfo', 'Logger', 'CollectionEnabledStatus',
+  function ($http, Collection, UserInfo, Logger, CollectionEnabledStatus) {
     "use strict";
 
     var rawData = {};
@@ -209,8 +210,22 @@ angular.module('tagger.services')
       init: function (onComplete) {
         initialize(onComplete);
       },
-      shareCollection: function(collectionId, orgId, onSuccess, onError) {
-        ShareCollection.update({id: collectionId, orgId : orgId }, {}, onSuccess, onError);
+
+      getOrgsWithSharedCollection: function(collectionId, onSuccess, onError){
+        var url = '/api/v2/organizations/with-shared-collection/:collectionId'.replace(':collectionId', collectionId);
+        $http.get(url).then(function(response){
+          onSuccess(response.data);
+        }, onError);
+      },
+
+      shareCollection: function(collectionId, permission, orgId, onSuccess, onError) {
+        var url = '/api/v2/collections/:collectionId/share-with-org/:orgId'
+          .replace(':collectionId',collectionId)
+          .replace(':orgId', orgId);
+
+        $http.put(url, {permission: permission}).then(function(response){
+            onSuccess(response.data);
+        }, onError);
       },
       rawCollections: null,
       writableCollections: function(){
