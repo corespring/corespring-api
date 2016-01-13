@@ -96,13 +96,6 @@ function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
         $scope.setAlertClassAndMessage('error', "error getting shared orgs: ");
       }
       );
-//    GetOrgsWithSharedCollection.get({collId: collection.id}, function onSuccess(orgs){
-//        $scope.orgsForSharedCollection = orgs;
-//      },
-//      function onError(error){
-//        $scope.setAlertClassAndMessage('error', "error getting shared orgs: ");
-//      });
-
   }
 
   $scope.openCollectionSharing = function(collection){
