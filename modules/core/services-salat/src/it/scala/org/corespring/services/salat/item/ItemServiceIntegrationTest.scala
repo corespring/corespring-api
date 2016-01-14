@@ -6,7 +6,6 @@ import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
 import org.corespring.models.item._
 import org.corespring.models.item.resource.{ Resource, StoredFile }
-import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemCount
 import org.corespring.services.salat.ServicesSalatIntegrationTest
@@ -89,7 +88,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     //TODO Do we want it to throw?
     "throw error when item cannot be found" in new addFileToPlayerDefinition {
       val file = StoredFile("name.png", "image/png", false)
-      service.addFileToPlayerDefinition(randomItemId, file) must throwA[SalatVersioningDaoException]
+      service.addFileToPlayerDefinition(randomItemId, file) must throwA[Throwable]
     }
   }
 
@@ -393,7 +392,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       loadItem(itemOne.id).map(_.collectionId) must_== Some(archiveCollectionId)
     }
     "throw an exception when item does not exist" in new scope {
-      service.moveItemToArchive(randomItemId) must throwA[SalatVersioningDaoException]
+      service.moveItemToArchive(randomItemId) must throwA[Throwable]
     }
     "return the archive collection id" in new scope {
       service.moveItemToArchive(itemOne.id) must_== Some(archiveCollectionId)
@@ -406,7 +405,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       loadItem(itemOne.id).map(_.published) must_== Some(true)
     }
     "throw an exception when item does not exist" in new scope {
-      service.publish(randomItemId) must throwA[SalatVersioningDaoException]
+      service.publish(randomItemId) must throwA[Throwable]
     }
     "return true, if update is successful" in new scope {
       service.publish(itemOne.id) must_== true
@@ -439,6 +438,31 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
   }
 
+  "removeFileFromPlayerDefinition" should {
+    trait removeFileFromPlayerDefinition extends scope
+
+    "remove file from playerDefinition.files" in new removeFileFromPlayerDefinition {
+      val file = StoredFile("name.png", "image/png", false)
+      service.addFileToPlayerDefinition(itemOne.id, file)
+      loadItem(itemOne.id).map(_.playerDefinition.get.files) must_== Some(Seq(file))
+      service.removeFileFromPlayerDefinition(itemOne.id, file)
+      loadItem(itemOne.id).map(_.playerDefinition.get.files) must_== Some(Seq())
+    }
+
+    "return true when call was successful" in new removeFileFromPlayerDefinition {
+      val file = StoredFile("name.png", "image/png", false)
+      service.removeFileFromPlayerDefinition(itemOne.id, file) match {
+        case Success(res) => res must_== true
+        case Failure(e) => failure(s"Unexpected error $e")
+      }
+    }
+    //TODO Do we want it to throw?
+    "throw error when item cannot be found" in new removeFileFromPlayerDefinition {
+      val file = StoredFile("name.png", "image/png", false)
+      service.removeFileFromPlayerDefinition(randomItemId, file) must throwA[Throwable]
+    }
+  }
+
   "saveNewUnpublishedVersion" should {
     "create new unpublished item when item is in current" in new scope {
       val res = service.saveNewUnpublishedVersion(itemOne.id)
@@ -449,7 +473,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "throw exception when item has old version" in new scope {
       val oldId = itemOne.id
       service.save(itemOne, createNewVersion = true).toOption.get
-      service.saveNewUnpublishedVersion(oldId) must throwA[SalatVersioningDaoException]
+      service.saveNewUnpublishedVersion(oldId) must throwA[Throwable]
     }
 
     "return None if the item cannot be found in current or archive" in new scope {
