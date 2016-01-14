@@ -9,6 +9,12 @@ object CLI extends App {
 
   object Conf extends ScallopConf(args.toList) {
 
+    val additionalSeedDirs: ScallopOption[String] = opt[String](
+      "additionalSeedDirs",
+      descr = "additional dirs to seed",
+      required = false,
+      default = Some(""))
+
     val mongoUri: ScallopOption[String] = opt[String](
       "mongoUri",
       descr = "the mongo uri to use for seeding + indexing",
@@ -35,12 +41,16 @@ object CLI extends App {
     if (env == null) None else Some(env)
   }
 
-  def seedDevData() = {
+  def seedData() = {
 
     println(s"seed db - you can only seed the local api db.")
 
     if (Conf.mongoUri().contains("localhost")) {
-      val content = List("static", "demo", "debug", "sample", "common", "dev", "exemplar-content").map(s => s"conf/seed-data/$s")
+      val content = {
+        val baseList = List("static", "demo", "debug", "sample", "common", "dev", "exemplar-content")
+        val extras: List[String] = Conf.additionalSeedDirs().split(",").toList
+        (baseList ++ extras).map(s => s"conf/seed-data/$s")
+      }
 
       println(s"seed: ${content}")
       import com.ee.seeder.log.ConsoleLogger.Level
@@ -61,7 +71,7 @@ object CLI extends App {
   try {
     val argsList = args.toList
     println(s"CsApi Docker Util - Args ${argsList.mkString(" ")}")
-    seedDevData()
+    seedData()
     indexElasticSearch()
     System.exit(0)
   } catch {
