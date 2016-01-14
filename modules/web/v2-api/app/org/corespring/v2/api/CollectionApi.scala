@@ -102,11 +102,18 @@ class CollectionApi(
   def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = futureWithIdentity { (identity, request) =>
     Future {
 
-      logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId")
+      val permission = (for {
+        json <- request.body.asJson
+        _ <- Some(logger.debug(s"[shareCollection] raw json: $json"))
+        permissionString <- (json \ "permission").asOpt[String]
+        permission <- Permission.fromString(permissionString)
+      } yield permission).getOrElse(Permission.Read)
+
+      logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId, permission=$permission")
 
       val v: Validation[V2Error, ObjectId] = for {
         _ <- orgCollectionService.ownsCollection(identity.org, collectionId).v2Error
-        o <- orgCollectionService.grantAccessToCollection(destinationOrgId, collectionId, Permission.Read).v2Error
+        o <- orgCollectionService.grantAccessToCollection(destinationOrgId, collectionId, permission).v2Error
       } yield collectionId
 
       v.map(r => Json.obj("updated" -> collectionId.toString)).toSimpleResult()
@@ -253,6 +260,7 @@ class CollectionApi(
     sort: Option[String] = None) = futureWithIdentity(BAD_REQUEST) { (identity, _) =>
 
     logger.info(s"[list] params: q=$q, f=$f, c=$c, sk=$sk, l=$l, sort=$sort")
+    logger.info(s"[list] orgId: ${identity.org.id}")
 
     implicit val writes = CollectionInfoWrites
 

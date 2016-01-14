@@ -1,6 +1,6 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.models.{ Standard, Subject }
+import org.corespring.models.{Standard, Subject}
 import org.corespring.services._
 import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.mock.Mockito
@@ -161,5 +161,24 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
         StandardQuery("a", Some("S"), Some("SU"), Some("C"), Some("SC")))
 
     }
+
+    "uniqueClustersFromStandards" should {
+      "remove duplicate domains" in new scope {
+        val standards = Seq(
+          Standard(subject=Some("ELA"), category=Some("category-1"), subCategory=Some("subCategory-1")),
+          Standard(subject=Some("ELA"), category=Some("category-2"), subCategory=Some("subCategory-1")),
+          Standard(subject=Some("Math"), category=Some("category-3"), subCategory=Some("subCategory-2"))
+        )
+        hooks.uniqueClustersFromStandards(standards) === Json.arr(Json.obj(
+          "subject" -> "ELA",
+          "domain" -> "subCategory-1"
+        ),
+          Json.obj(
+            "subject" -> "Math",
+            "domain" -> "category-3"
+          ))
+      }
+    }
+
   }
 }

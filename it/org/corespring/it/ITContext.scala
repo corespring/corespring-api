@@ -56,10 +56,18 @@ object ITContext {
     out
   }
 
-  private lazy val s3 = new AmazonS3Client(new AWSCredentials {
-    override def getAWSAccessKeyId: String = conf.getString("AMAZON_ACCESS_KEY").get
-    override def getAWSSecretKey: String = conf.getString("AMAZON_ACCESS_SECRET").get
-  })
+  private lazy val s3 = {
+    val key = conf.getString("AMAZON_ACCESS_KEY").get
+    val secret = conf.getString("AMAZON_ACCESS_SECRET").get
+
+    logger.info(s"key: $key, secret: $secret")
+    println(s"key: $key, secret: $secret")
+
+    new AmazonS3Client(new AWSCredentials {
+      override def getAWSAccessKeyId: String = key
+      override def getAWSSecretKey: String = secret
+    })
+  }
 
   private def cleanBucketIfExists(bucket: String) = {
 

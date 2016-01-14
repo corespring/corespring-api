@@ -1,5 +1,6 @@
 package org.corespring.legacy
 
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.assessment.{ AssessmentTemplateService, AssessmentService }
@@ -16,6 +17,7 @@ import org.corespring.conversion.qti.transformers.ItemTransformer
  */
 object ServiceLookup {
 
+  var demoOrgId : ObjectId = null
   var fieldValueService: FieldValueService = null
 
   var itemTransformer: ItemTransformer = null

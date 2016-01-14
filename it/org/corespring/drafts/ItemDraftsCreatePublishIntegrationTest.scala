@@ -24,9 +24,9 @@ import play.api.mvc.Request
 class ItemDraftsCreatePublishIntegrationTest extends IntegrationSpecification {
 
   val itemDraftHelper = new ItemDraftHelper {
-    override implicit def context: Context = bootstrap.Main.context
+    override implicit def context: Context = main.context
 
-    override def itemService: ItemService = bootstrap.Main.itemService
+    override def itemService: ItemService = main.itemService
   }
 
   trait scope extends Scope with userAndItem with SessionRequestBuilder with SecureSocialHelper {
@@ -41,7 +41,7 @@ class ItemDraftsCreatePublishIntegrationTest extends IntegrationSpecification {
     }
 
     def initFieldValues() = {
-      bootstrap.Main.fieldValueService.insert(FieldValue())
+      main.fieldValueService.insert(FieldValue())
     }
 
     def createDraft() = {

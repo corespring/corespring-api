@@ -1,5 +1,6 @@
 package org.corespring.v2.api
 
+import global.Global
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.ItemHelper
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
@@ -9,7 +10,7 @@ class ItemSessionApiUpdateV2JsonIntegrationTest extends IntegrationSpecification
 
   class orgWithTokenAndTwoItems extends orgWithAccessTokenAndItem {
 
-    lazy val itemService = bootstrap.Main.itemService
+    lazy val itemService = main.itemService
     val secondItemId = {
       println(s"find: $itemId")
       itemService.findOneById(itemId).map { item =>

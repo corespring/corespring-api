@@ -22,6 +22,9 @@ angular.module('tagger.services')
     },
     commitFailedDueToConflict: {
       show: false
+    },
+    launchCodePreview: {
+      show: false
     }
   };
 
@@ -50,6 +53,11 @@ angular.module('tagger.services')
     this.commitFailedDueToConflict = function(done){
     	showModal('commitFailedDueToConflict', done);
     };
+
+    this.launchCodePreview = function(done){
+      showModal('launchCodePreview', done);
+    };
+
 
     function showModal(name, done){
       $rootScope.modals[name].show = true;

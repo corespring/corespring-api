@@ -2,7 +2,6 @@ package developer.controllers
 
 import org.corespring.legacy.ServiceLookup
 import org.bson.types.ObjectId
-import org.corespring.common.config.AppConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.registration.RegistrationToken
 import org.corespring.models.{ UserOrg, User }
@@ -44,7 +43,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             user.email.getOrElse(""),
             None,
             None,
-            UserOrg(AppConfig.demoOrgId, Permission.Read.value),
+            UserOrg(ServiceLookup.demoOrgId, Permission.Read.value),
             user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password,
             user.identityId.providerId,
             new ObjectId())
@@ -78,7 +77,10 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   }
 
   def deleteExpiredTokens(): Unit = {
-    ServiceLookup.registrationTokenService.deleteExpiredTokens()
+
+    if(ServiceLookup.registrationTokenService != null){
+      ServiceLookup.registrationTokenService.deleteExpiredTokens()
+    }
   }
 }
 

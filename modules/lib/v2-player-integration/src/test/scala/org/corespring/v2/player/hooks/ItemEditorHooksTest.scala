@@ -136,6 +136,7 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
   }
 
   "deleteFile" should {
+
     "call s3.delete" in new scope {
       await(hooks.deleteFile(vid.toString, "path"))
       there was one(playS3).delete("bucket", S3Paths.itemFile(vid, "path"))
@@ -152,6 +153,22 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       val result = await(hooks.deleteFile(vid.toString, "path"))
       result === Some(BAD_REQUEST, "s3 error")
     }
+
+    "call itemService.removeFileFromPlayerDefinition" in new scope {
+      val mockItem = Item(collectionId = ObjectId.get.toString)
+      val mockKey = "some/mock-key.png"
+
+      playS3.delete(any[String], any[String]) returns {
+        val r = mock[DeleteResponse]
+        r.success returns true
+        r
+      }
+
+      await(hooks.deleteFile(mockItem.id.toString, mockKey))
+      val file = StoredFile(mockKey, BaseFile.getContentType(mockKey), false, grizzled.file.util.basename(mockKey))
+      there was one(itemService).removeFileFromPlayerDefinition(mockItem.id, file)
+    }
+
   }
 
   "upload" should {

@@ -2,20 +2,19 @@ package org.corespring.it.assets
 
 import java.io.File
 
+import global.Global.main
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.transfer.{ Upload, TransferManager }
 import org.apache.commons.io.IOUtils
-import org.corespring.common.aws.AwsUtil
-import org.corespring.common.config.AppConfig
 import play.api.Logger
 
 object ImageUtils {
 
   lazy val logger = Logger(ImageUtils.getClass)
-  lazy val client = new AmazonS3Client(credentials)
-  lazy val bucket = AppConfig.assetsBucket
-  lazy val credentials: AWSCredentials = AwsUtil.credentials()
+  lazy val client = main.s3
+  lazy val bucket = main.bucket.bucket
+  lazy val credentials: AWSCredentials = main.awsCredentials
   lazy val tm: TransferManager = new TransferManager(credentials)
 
   def resourcePathToFile(p: String): File = {

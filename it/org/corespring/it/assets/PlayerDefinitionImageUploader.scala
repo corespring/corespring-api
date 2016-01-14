@@ -1,5 +1,6 @@
 package org.corespring.it.assets
 
+import global.Global.main
 import org.bson.types.ObjectId
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -7,9 +8,9 @@ import play.api.Logger
 
 object PlayerDefinitionImageUploader {
 
-  lazy val itemService = bootstrap.Main.itemService
+  lazy val itemService = main.itemService
   lazy val logger = Logger(PlayerDefinitionImageUploader.getClass)
-  implicit val ctx = bootstrap.Main.context
+  implicit val ctx = main.context
   def uploadImageAndAddToPlayerDefinition(
     itemId: VersionedId[ObjectId],
     imagePath: String) = {

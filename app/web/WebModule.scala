@@ -1,16 +1,29 @@
 package web
 
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.web.common.controllers.deployment.AssetsLoader
+import org.corespring.web.common.views.helpers.BuildInfo
+import play.api.Mode.Mode
+import web.controllers.{ Partials, PublicSite }
+import org.corespring.v2.api.services.PlayerTokenService
+import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
+import org.corespring.v2.auth.models.OrgAndOpts
 import web.controllers.{ Main, ShowResource }
 import web.models.{ ContainerVersion, WebExecutionContext }
+
+case class PublicSiteConfig(url: String)
+case class DefaultOrgs(v2Player: Seq[ObjectId], root: ObjectId)
 
 trait WebModule {
 
   def itemService: ItemService
+  def playerTokenService: PlayerTokenService
   def s3Service: S3Service
   def fieldValueService: FieldValueService
   def jsonFormatting: JsonFormatting
@@ -20,8 +33,16 @@ trait WebModule {
   def widgetType: WidgetType
   def containerVersion: ContainerVersion
   def webExecutionContext: WebExecutionContext
+  def mode: Mode
+  def defaultOrgs: DefaultOrgs
+  def bucket: Bucket
+  def publicSiteConfig: PublicSiteConfig
+  def userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts]
+  def buildInfo : BuildInfo
+  def assetsLoader : AssetsLoader
 
-  lazy val showResource = new ShowResource(itemService, s3Service)
+  lazy val showResource = new ShowResource(itemService, s3Service, bucket)
+  lazy val partials = new Partials(mode, defaultOrgs)
   lazy val webMain = new Main(
     fieldValueService,
     jsonFormatting,
@@ -30,7 +51,13 @@ trait WebModule {
     itemType,
     widgetType,
     containerVersion,
-    webExecutionContext)
+    webExecutionContext,
+    playerTokenService,
+    userSessionOrgIdentity,
+    buildInfo,
+    assetsLoader)
 
-  lazy val webControllers = Seq(showResource, webMain)
+  lazy val publicSite = new PublicSite(publicSiteConfig.url, mode)
+
+  lazy val webControllers = Seq(showResource, webMain, publicSite, partials)
 }

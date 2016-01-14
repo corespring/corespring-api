@@ -1,6 +1,6 @@
 package org.corespring.it.helpers
 
-import bootstrap.Main
+import global.Global.main
 import org.bson.types.ObjectId
 import org.corespring.models.ContentCollection
 import org.corespring.services.salat.bootstrap.CollectionNames
@@ -11,8 +11,8 @@ object CollectionHelper {
 
   import faker._
 
-  lazy val service = Main.contentCollectionService
-  lazy val mongoCollection = Main.db(CollectionNames.contentCollection)
+  lazy val service = main.contentCollectionService
+  lazy val mongoCollection = main.db(CollectionNames.contentCollection)
 
   def create(organizationId: ObjectId): ObjectId = create(organizationId, Company.name)
 

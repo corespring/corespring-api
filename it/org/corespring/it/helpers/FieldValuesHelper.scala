@@ -1,12 +1,12 @@
 package org.corespring.it.helpers
 
-import bootstrap.Main
+import global.Global.main
 import org.bson.types.ObjectId
 import org.corespring.models.item.{ FieldValue, ListKeyValue, StringKeyValue }
 
 object FieldValuesHelper {
 
-  val fieldValueService = Main.fieldValueService
+  val fieldValueService = main.fieldValueService
   val dummy = StringKeyValue("dummy", "dummy")
   val dummyList = ListKeyValue("dummy", Seq.empty)
   val fieldValue = FieldValue(

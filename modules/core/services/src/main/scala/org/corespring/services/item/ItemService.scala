@@ -25,6 +25,15 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def clone(item: Item): Option[Item]
 
+  /**
+    * Note: it would be better to just have clone, but that method is used in the [[BaseContentService]],
+    * so hopefully we can remove that and the conflate the methods
+    * @param item
+    * @param targetCollectionId - clone the item to this collection if specified else use the same collection as the item
+    * @return
+    */
+  def cloneToCollection(item: Item, targetCollectionId: ObjectId): Option[Item]
+
   def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId]
 
   def contributorsForOrg(orgId: ObjectId): Seq[String]
@@ -52,6 +61,8 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   /** Completely remove the item from the system. */
   def purge(id: VersionedId[ObjectId]): Validation[PlatformServiceError, VersionedId[ObjectId]]
+
+  def removeFileFromPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean]
 
   def save(item: Item, createNewVersion: Boolean = false): Validation[PlatformServiceError, VersionedId[ObjectId]]
 
