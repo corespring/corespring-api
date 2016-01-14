@@ -211,17 +211,27 @@ angular.module('tagger.services')
         initialize(onComplete);
       },
 
+      urls: {
+        shareCollection: function(collectionId, orgId){
+          return '/api/v2/collections/:collectionId/share-with-org/:orgId'
+            .replace(':collectionId',collectionId)
+            .replace(':orgId', orgId);
+        },
+        getOrgsWithSharedCollection: function(collectionId){
+          return '/api/v2/organizations/with-shared-collection/:collectionId'
+            .replace(':collectionId', collectionId);
+        }
+      },
+
       getOrgsWithSharedCollection: function(collectionId, onSuccess, onError){
-        var url = '/api/v2/organizations/with-shared-collection/:collectionId'.replace(':collectionId', collectionId);
+        var url = this.urls.getOrgsWithSharedCollection(collectionId);
         $http.get(url).then(function(response){
           onSuccess(response.data);
         }, onError);
       },
 
       shareCollection: function(collectionId, permission, orgId, onSuccess, onError) {
-        var url = '/api/v2/collections/:collectionId/share-with-org/:orgId'
-          .replace(':collectionId',collectionId)
-          .replace(':orgId', orgId);
+        var url = this.urls.shareCollection(collectionId, orgId);
 
         $http.put(url, {permission: permission}).then(function(response){
             onSuccess(response.data);
