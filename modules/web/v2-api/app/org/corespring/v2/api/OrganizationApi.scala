@@ -25,9 +25,7 @@ class OrganizationApi(
    * @param collectionId
    * @return
    */
-  //TODO: Move to service api?
   def getOrgsWithSharedCollection(collectionId: ObjectId) = futureWithIdentity { (identity, request) =>
-
     Future {
       val result = orgCollectionService.ownsCollection(identity.org, collectionId).map { _ =>
         orgCollectionService.getOrgsWithAccessTo(collectionId).filterNot(_.id == identity.org.id)
