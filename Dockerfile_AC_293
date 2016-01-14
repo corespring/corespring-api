@@ -25,7 +25,7 @@ RUN mkdir /data
 
 ### fakes3
 ADD docker/extras/fakes3-0.2.3.gem /data/extras/fakes3-0.2.3.gem
-RUN gem install /data/extras/fakes3-0.2.3.gem
+RUN gem install --local /data/extras/fakes3-0.2.3.gem
 RUN mkdir /opt/fake-s3-root
 ENV ENV_AMAZON_ENDPOINT="http://localhost:4567"
 
