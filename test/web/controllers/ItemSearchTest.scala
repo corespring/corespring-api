@@ -74,7 +74,10 @@ class ItemSearchTest extends Specification with Mockito with MockFactory {
   }
 
   "search" should {
-    "return an empty result set" in new scope {
+    "return an empty result set if there are no collections in the query" in new scope {
+      lazy val collectionId = ObjectId.get
+      override lazy val hits = Seq.empty
+      override lazy val permissions = Seq(collectionId -> Some(Permission.Write))
       val result = controller.search(None)(FakeRequest())
       status(result) must_== OK
       val json = contentAsJson(result)

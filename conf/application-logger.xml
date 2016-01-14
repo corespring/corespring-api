@@ -12,6 +12,8 @@
     <logger name="filters" level="TRACE"/>
     <logger name="ch.qos.logback" level="WARN"/>
     <logger name="org.corespring.assets.EncodedKeyS3Client" level="TRACE"/>
+    <logger name="org.corespring.v2.api.ItemApi" level="TRACE"/>
+    <logger name="org.corespring.itemSearch.ElasticSearchItemIndexService" level="TRACE"/>
     <logger name="org.corespring.assets.DoubleKeyCheckS3Service" level="DEBUG"/>
     <logger name="org.corespring.services.salat.ServicesContext" level="OFF"/>
     <root level="INFO">

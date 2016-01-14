@@ -20,6 +20,11 @@ class OrganizationTest extends Specification {
       org(ref(false)).accessibleCollections must_== Seq.empty
     }
 
+    "not return disabled refs" in {
+      val refOne = ref(false)
+      org(refOne).accessibleCollections must_== Seq.empty
+    }
+
     "return 1 read ref" in {
       val refOne = ref(true)
       org(refOne).accessibleCollections must_== Seq(refOne)

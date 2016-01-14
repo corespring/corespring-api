@@ -110,6 +110,7 @@ class ItemApi(
   private def searchWithQueryAndCollections(query: Option[String], collectionIds: ObjectId*)(mkJson: ItemIndexSearchResult => JsValue): Future[SimpleResult] = {
     (for {
       sq <- fv(QueryStringParser.scopedSearchQuery(query, collectionIds))
+      _ <- fv(Success(logger.debug(s"function=searchWithQueryAndCollection, sq=$sq")))
       results <- fv(itemIndexService.search(sq))
     } yield results).future.map { v =>
       v.fold(e => BadRequest(e.getMessage), results => Ok(mkJson(results)))
