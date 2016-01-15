@@ -24,9 +24,9 @@ RUN apt-get update && \
 
 RUN mkdir /data
 RUN mkdir /data/extras
+ADD docker/extras/ /data/extras
 
 ### fakes3
-ADD docker/extras/ /data/extras
 RUN chmod +x /data/extras/fakes3-0.2.3.gem
 RUN gem install builder
 RUN gem install --backtrace -V --local /data/extras/fakes3-0.2.3.gem
