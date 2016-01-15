@@ -67,7 +67,7 @@ angular.module('tagger.directives')
         '  <button class="btn btn-sm {{buttonClass}}" ng-click="buttonClicked()">',
         '   <i class="fa fa-{{icon}}"></i>&nbsp;{{label}}',
         '  </button>',
-        '</li>',
+        '</li>'
         ].join('');
 
         return {
@@ -78,7 +78,7 @@ angular.module('tagger.directives')
 
                 $scope.buttonClicked = function(){
                   controller.actionClicked($attrs.label);
-                }
+                };
             },
             require: '^itemActionButton',
             scope: {
@@ -89,5 +89,5 @@ angular.module('tagger.directives')
                 enabled: '=',
                 action: '&'
             }
-        }
+        };
     }]);
