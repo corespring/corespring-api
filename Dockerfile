@@ -21,8 +21,15 @@ RUN mkdir -p /var/lib/mongodb
 RUN apt-get update && \
   apt-get install -y ruby ruby-dev ruby-bundler 
 
+
+RUN mkdir /data
+RUN mkdir /data/extras
+
 ### fakes3
-RUN gem install fakes3
+ADD docker/extras/ /data/extras
+RUN chmod +x /data/extras/fakes3-0.2.3.gem
+RUN gem install builder
+RUN gem install --backtrace -V --local /data/extras/fakes3-0.2.3.gem
 RUN mkdir /opt/fake-s3-root
 ENV ENV_AMAZON_ENDPOINT="http://localhost:4567"
 
@@ -48,8 +55,7 @@ ENV CONTAINER_COMPONENTS_PATH="/opt/components"
 
 ENV DEPLOY_ASSET_LOADER_JS=false
 
-RUN mkdir /data
-ADD docker/scripts/main /data/main 
+ADD docker/scripts/main /data/main
 RUN chmod +x /data/main
 
 EXPOSE 9000
