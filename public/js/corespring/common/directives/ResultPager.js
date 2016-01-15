@@ -66,12 +66,14 @@ corespringDirectivesModule.directive("resultPager", function () {
         $scope.hasIndex = false;
         if (!totalNoOfItems || totalNoOfItems == 0) {
           $scope.pagerText = null;
-        } else if (index == -1) {
-          $scope.pagerText = totalNoOfItems;
         } else {
-          $scope.pagerText = (index+1) + " / " + totalNoOfItems;
-          $scope.hasIndex = true;
+          $scope.pagerText = totalNoOfItems;
         }
+
+        //else {
+        //  $scope.pagerText = (index+1) + " / " + totalNoOfItems;
+        //  $scope.hasIndex = true;
+        //}
         $scope.prevDisabled = index < 1;
         $scope.nextDisabled = index >= totalNoOfItems - 1;
       };
