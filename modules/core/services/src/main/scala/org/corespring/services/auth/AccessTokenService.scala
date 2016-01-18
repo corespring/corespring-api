@@ -3,7 +3,7 @@ package org.corespring.services.auth
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.Organization
-import org.corespring.models.auth.AccessToken
+import org.corespring.models.auth.{ApiClient, AccessToken}
 
 import scalaz.Validation
 
@@ -35,9 +35,8 @@ trait AccessTokenService {
    *         Note: taken from legacy OAuthProvider
    */
   def createToken(clientId: String, clientSecret: String): Validation[PlatformServiceError, AccessToken]
-  def getOrCreateToken(org: Organization): AccessToken
 
-  def getOrCreateToken(orgId: ObjectId): AccessToken
+  def getOrCreateToken(apiClient: ApiClient): AccessToken
 
   def orgForToken(token: String): Validation[PlatformServiceError, Organization]
 }

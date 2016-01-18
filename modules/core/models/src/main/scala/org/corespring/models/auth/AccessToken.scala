@@ -9,6 +9,7 @@ import org.joda.time.DateTime
 case class AccessToken(organization: ObjectId,
   scope: Option[String],
   tokenId: String,
+  apiClientId: ObjectId,
   creationDate: DateTime = DateTime.now(),
   expirationDate: DateTime = DateTime.now().plusHours(24),
   neverExpire: Boolean = false) {
