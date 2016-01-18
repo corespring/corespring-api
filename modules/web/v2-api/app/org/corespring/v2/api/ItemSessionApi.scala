@@ -1,21 +1,20 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.encryption.apiClient.{ EncryptionSuccess, EncryptionResult, ApiClientEncryptionService }
+import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionResult, EncryptionSuccess }
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.services.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.OrganizationService
 import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ generalError, sessionDoesNotContainResponses }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{ RequestHeader, Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, RequestHeader }
 
 import scala.concurrent._
 import scalaz.Scalaz._
@@ -31,7 +30,11 @@ class ItemSessionApi(
   apiClientService: ApiClientService,
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
   apiContext: ItemSessionApiExecutionContext,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)]) extends V2Api {
+
+  override def getOrgAndOptionsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = r => {
+    identifyFn(r).map(_._1)
+  }
 
   override implicit def ec: ExecutionContext = apiContext.context
 
@@ -173,9 +176,10 @@ class ItemSessionApi(
 
     Future {
       val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
+        tuple <- identifyFn(request)
+        identity <- Success(tuple._1)
+        apiClient <- Success(tuple._2)
         sessionId <- sessionAuth.cloneIntoPreview(sessionId)(identity)
-        apiClient <- randomApiClient(identity.org.id).toSuccess(invalidToken(request))
         options <- encryptionService.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
         session <- sessionAuth.loadWithIdentity(sessionId.toString)(identity)
           .map { case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
@@ -184,8 +188,6 @@ class ItemSessionApi(
       validationToResult[JsValue](Created(_))(out)
     }
   }
-
-  protected def randomApiClient(orgId: ObjectId): Option[ApiClient] = apiClientService.findOneByOrgId(orgId)
 
   private def withOrg(jsValue: JsValue) = jsValue match {
     case jsObject: JsObject => (jsObject \ "identity" \ "orgId").asOpt[String]

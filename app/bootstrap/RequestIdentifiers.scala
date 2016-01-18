@@ -1,9 +1,10 @@
 package bootstrap
 
 import org.corespring.encryption.apiClient.ApiClientEncryptionService
+import org.corespring.models.auth.{ AccessToken, ApiClient }
 import org.corespring.models.{ User, Organization }
 import org.corespring.services.{ UserService, OrganizationService }
-import org.corespring.services.auth.{ ApiClientService, AccessTokenService }
+import org.corespring.services.auth.{ UpdateAccessTokenService, ApiClientService, AccessTokenService }
 import org.corespring.v2.auth.identifiers.OrgRequestIdentity
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.corespring.v2.auth.identifiers.RequestIdentity
@@ -11,14 +12,17 @@ import org.corespring.v2.auth.identifiers.TokenOrgIdentity
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.errors.Errors.{ generalError, noToken, invalidToken }
+import org.corespring.v2.errors.V2Error
+import org.corespring.web.token.TokenReader
 import org.corespring.web.user.SecureSocial
 import play.api.mvc._
-import play.api.{ Play, Mode => PlayMode }
+import play.api.{ Mode => PlayMode, Logger, Play }
 
-import scalaz.Success
+import scalaz.{ Validation, Success }
 
 /**
- * Identifiers that convert a <RequestHeader> into <OrgAndOpts>.
+ * Identifiers that convert a [[RequestHeader]] into [[OrgAndOpts]].
  * @param secureSocialService
  * @param orgService
  * @param tokenService
@@ -30,6 +34,41 @@ class RequestIdentifiers(
   tokenService: AccessTokenService,
   apiClientService: ApiClientService,
   apiClientEncryptionService: ApiClientEncryptionService) {
+
+  private val logger = Logger(classOf[RequestIdentifiers])
+
+  /** A token only based auth */
+  def accessTokenToOrgAndApiClient: (RequestHeader) => Validation[V2Error, (OrgAndOpts, ApiClient)] = r => {
+    import scalaz.Scalaz._
+
+    def getApiClient(token: AccessToken): Validation[String, ApiClient] = {
+      val maybeClient: Option[ApiClient] = token.apiClientId.flatMap {
+        c => apiClientService.findByClientId(c.toString)
+      }
+
+      maybeClient.map(Success(_)).getOrElse {
+        logger.warn(s"Access token has no apiClient associated with it: $token, randomly getting one from apiClientService.")
+        val result = apiClientService.getOrCreateForOrg(token.organization)
+
+        result.foreach { ac =>
+          val updatedToken = token.copy(apiClientId = Some(ac.clientId))
+          //As this is a temporary fix - just cast to the hidden trait
+          tokenService.asInstanceOf[UpdateAccessTokenService].update(updatedToken)
+        }
+        result
+      }
+    }
+
+    for {
+      t <- Validation.fromEither(new TokenReader {}.getToken(r, invalidToken(r), noToken(r)))
+      token <- tokenService.findByTokenId(t).toSuccess(generalError("Can't find token"))
+      apiClient <- getApiClient(token).leftMap(generalError(_))
+      org <- orgService.findOneById(token.organization).toSuccess(generalError("Can't find org with id: $orgId"))
+    } yield {
+      val orgAndOpts = OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, Some(apiClient.clientId.toString), None)
+      orgAndOpts -> apiClient
+    }
+  }
 
   lazy val userSession = new UserSessionOrgIdentity[OrgAndOpts] {
     override def secureSocial: SecureSocial = RequestIdentifiers.this.secureSocialService

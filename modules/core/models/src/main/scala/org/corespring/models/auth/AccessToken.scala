@@ -6,7 +6,10 @@ import org.joda.time.DateTime
 /**
  * //TODO: creationDate, expirationDate and neverExpire could be reduced to 2 properties: creationDate, Option(duration) - if None => neverExpire
  */
-case class AccessToken(organization: ObjectId,
+case class AccessToken(
+  //TODO: AC-258 - rm Option once all unexpired access tokens have the apiClientId.
+  apiClientId: Option[ObjectId] = None,
+  organization: ObjectId,
   scope: Option[String],
   tokenId: String,
   creationDate: DateTime = DateTime.now(),

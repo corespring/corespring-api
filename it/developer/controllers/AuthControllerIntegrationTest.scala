@@ -1,14 +1,11 @@
 package developer.controllers
 
+import developer.controllers.routes.{ AuthController => Route }
 import org.bson.types.ObjectId
-import org.corespring.errors.GeneralError
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ OrganizationHelper, ApiClientHelper }
-import org.corespring.web.api.v1.errors.ApiError
+import org.corespring.it.helpers.{ ApiClientHelper, OrganizationHelper }
 import org.specs2.mutable.After
 import org.specs2.specification.Scope
-import developer.controllers.routes.{ AuthController => Route }
-import play.api.libs.json.Json
 import play.api.test.FakeRequest
 
 class AuthControllerIntegrationTest extends IntegrationSpecification {
@@ -52,8 +49,8 @@ class AuthControllerIntegrationTest extends IntegrationSpecification {
 
     s"return json with the new token in it" in new okAccessToken {
       val json = contentAsJson(result)
-      val token = main.tokenService.find(orgId, None).get
-      json must_== Json.obj(OAuthConstants.AccessToken -> token.tokenId)
+      val tokenId = (json \ OAuthConstants.AccessToken).as[String]
+      main.tokenService.findByTokenId(tokenId) must not beNone
     }
 
     s"return $FORBIDDEN for bad client id " in new badClientId {

@@ -1,7 +1,6 @@
 package org.corespring.v2.auth.encryption
 
-import org.bson.types.ObjectId
-import org.corespring.encryption.apiClient.{ EncryptionResult, ApiClientEncryptionService }
+import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionResult }
 import org.corespring.models.auth.ApiClient
 import play.api.Logger
 import spray.caching.Cache
@@ -42,6 +41,5 @@ class CachingApiClientEncryptionService(underlying: ApiClientEncryptionService, 
    */
   override def encrypt(apiClientId: String, s: String): Option[EncryptionResult] = underlying.encrypt(apiClientId, s)
   override def encrypt(apiClient: ApiClient, s: String): Option[EncryptionResult] = underlying.encrypt(apiClient, s)
-  override def encryptByOrg(orgId: ObjectId, s: String): Option[EncryptionResult] = underlying.encryptByOrg(orgId, s)
 }
 

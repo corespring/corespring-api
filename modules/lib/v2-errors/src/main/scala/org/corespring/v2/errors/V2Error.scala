@@ -29,7 +29,7 @@ case class Field(name: String, fieldType: String)
 
 sealed abstract class identificationFailed(override val title: String, override val description: String, rh: RequestHeader, msg: String = "Failed to identify an organization for request") extends V2Error(title, description, s"${rh.path} - $msg", UNAUTHORIZED)
 
-private[v2] object Errors {
+object Errors {
 
   case class invalidObjectId(id: String, context: String) extends V2Error("Invalid Object Id", "The provided object id was not valid.", s"Invalid object id: $id, context: $context")
 

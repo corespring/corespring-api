@@ -5,6 +5,7 @@ import org.corespring.models.auth.{ AccessToken, ApiClient, Permission }
 import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.web.api.v1.errors.ApiError
+import scalaz.Scalaz._
 
 import scalaz.{ Failure, Success, Validation }
 
@@ -21,10 +22,7 @@ class OAuthProvider(
    * @return returns an ApiClient or ApiError if the ApiClient could not be created.
    */
   def createApiClient(orgId: ObjectId): Validation[ApiError, ApiClient] = {
-    apiClientService.findOneByOrgId(orgId) match {
-      case Some(apiClient) => Success(apiClient)
-      case None => apiClientService.getOrCreateForOrg(orgId).leftMap(s => ApiError(500, s))
-    }
+    apiClientService.getOrCreateForOrg(orgId).leftMap(s => ApiError(500, s))
   }
 
   /**
@@ -37,7 +35,10 @@ class OAuthProvider(
    * @return The AccessToken or ApiError if something went wrong
    */
   def getAccessToken(grantType: String, clientId: String, clientSecret: String, scope: Option[String] = None): Validation[ApiError, AccessToken] = {
-    accessTokenService.createToken(clientId, clientSecret).leftMap(e => ApiError(500, e.message))
+    for {
+      c <- apiClientService.findByClientIdAndSecret(clientId, clientSecret).toSuccess(ApiError(500, s"Can't find apiClient with id: $clientId"))
+      t <- accessTokenService.createToken(c).leftMap(e => ApiError(500, e.message))
+    } yield t
   }
 
   /**
