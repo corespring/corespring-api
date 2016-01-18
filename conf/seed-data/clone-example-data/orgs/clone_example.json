@@ -3,6 +3,13 @@
   "contentcolls": [
     {
       "collectionId":{
+        "$oid":"500000000000000000000295"
+      },
+      "pval": 3,
+      "enabled": true
+    },
+    {
+      "collectionId":{
         "$oid":"500000000000000000000293"
       },
       "pval": 5,

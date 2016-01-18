@@ -1,7 +1,7 @@
 angular.module('tagger.services')
   .service('Modals',
-    ['$rootScope',
-    function($rootScope){
+    ['$rootScope', 'ResourceUtils',
+    function($rootScope, ResourceUtils){
 
 
   $rootScope.modals = {
@@ -46,6 +46,13 @@ angular.module('tagger.services')
       var cloneObj = $rootScope.modals.clone;
       cloneObj.show = true;
       cloneObj.item = item;
+
+      var itemWritableCollection = _.find(collections, function(c){
+        return c.id === item.collectionId && c.permission === 'write';
+      });
+
+      cloneObj.agreed = itemWritableCollection !== undefined;
+      cloneObj.item.licenseTypeUrl = ResourceUtils.getLicenseTypeUrl(cloneObj.item.licenseType);
       cloneObj.collections = collections;
 
       var defaultCollection = _.find(collections, function(c){
@@ -53,8 +60,6 @@ angular.module('tagger.services')
       });
 
       cloneObj.collection = defaultCollection;
-
-      cloneObj.agreed = false;
 
       cloneObj.done = function(cancelled, open){
         $rootScope.modals.clone.show = false;

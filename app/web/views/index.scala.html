@@ -147,28 +147,24 @@ assetsLoader: org.corespring.web.common.controllers.deployment.AssetsLoader)
 
 <div ui-modal
      ng-model="modals.clone.show"
-     style="padding: 20px">
-    <h2>Clone Item</h2>
+     class="clone-modal">
+    <h2 class="modal-title">{{ modals.clone.agreed && 'Save to Collection' || 'Copyright Notice' }}</h2>
     <br/>
-
+    
     <div ng-show="modals.clone.agreed == false">
-        <h5>Copyright Warning</h5>
-        <p>
-          <table>
-            <tr>
-              <td>This item is licensed as: {{modals.clone.item.licenseType}}</td>
-              <td><img ng-src="modals.clone.item.licenseTypeUrl"/></td>
-            </tr>
-          </table>
-        </p>
-        <p>Do you agree to the the terms of use?</p>
-        <br/>
-        <button class="btn" ng-click="modals.clone.show = false">No</button>
-        <button class="btn btn-success" ng-click="modals.clone.agreed = true">Yes, I Agree</button>
+      Before you clone this item, please review and acknowledge the copyright terms below.
+      <h4 class="item-title">{{modals.clone.item.title}}</h4>
+      <p class="issued">This item is issued under the:</p>
+      <img ng-src="{{modals.clone.item.licenseTypeUrl}}"/>
+      <!-- <p>TODO: license blurb here..</p> -->
+      <p class="agreement-text">Do you agree to the the terms of use?</p>
+      <button class="btn btn-primary" ng-click="modals.clone.agreed = true">Yes, I Agree</button>
+      <button class="btn" ng-click="modals.clone.show = false">Cancel</button>
     </div>
 
     <div ng-show="modals.clone.agreed">
-        <h5>Choose a collection to save the item to:</h5>
+        <h4 class="item-title" style="padding-top: 0;">{{modals.clone.item.title}}</h4>
+        <p class="choose">Choose a collection to save the item to:</p>
         <div>
           <select item
             ng-options="c.name for c in modals.clone.collections"
@@ -176,9 +172,9 @@ assetsLoader: org.corespring.web.common.controllers.deployment.AssetsLoader)
           </select>
         </div>
         <br/>
+        <button class="btn btn-primary" ng-click="modals.clone.done(false, true)">Save and open</button>
+        <button class="btn btn-success" ng-click="modals.clone.done(false, false)">Save for later</button>
         <button class="btn" ng-click="modals.clone.show = false">Cancel</button>
-        <button class="btn btn-primary" ng-click="modals.clone.done(false, false)">Save for later</button>
-        <button class="btn btn-success" ng-click="modals.clone.done(false, true)">Save and open</button>
     </div>
 </div>
 
