@@ -88,12 +88,6 @@
     }
 
     function init() {
-      if ($rootScope.itemData) {
-        var id = $rootScope.itemData.id;
-        $timeout(function() {
-          highlightItem(id);
-        }, 200);
-      }
       $rootScope.itemData = undefined;
       $scope.userName = UserInfo.userName;
       $scope.org = UserInfo.org;
