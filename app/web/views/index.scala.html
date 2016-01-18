@@ -153,7 +153,14 @@ assetsLoader: org.corespring.web.common.controllers.deployment.AssetsLoader)
 
     <div ng-show="modals.clone.agreed == false">
         <h5>Copyright Warning</h5>
-        <p>This item is licensed as: {{modals.clone.item.licenseType}}</p>
+        <p>
+          <table>
+            <tr>
+              <td>This item is licensed as: {{modals.clone.item.licenseType}}</td>
+              <td><img ng-src="modals.clone.item.licenseTypeUrl"/></td>
+            </tr>
+          </table>
+        </p>
         <p>Do you agree to the the terms of use?</p>
         <br/>
         <button class="btn" ng-click="modals.clone.show = false">No</button>
