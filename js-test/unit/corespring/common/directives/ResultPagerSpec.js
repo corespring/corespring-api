@@ -7,7 +7,7 @@ describe('corespring-directives', function () {
     'list-model="items"',
     'current-item="currentItem"',
     'item-count="count"',
-    'load-more="loadMore"></span>'].join("\n");
+    'load-more="loadMore"></span>'].join('\n');
 
 
   beforeEach(module('corespring-directives'));
@@ -51,11 +51,11 @@ describe('corespring-directives', function () {
 
       addItems(1);
 
-      expect(rootScope.pagerText).toBe("1 / 1");
+      expect(rootScope.pagerText).toBe(1);
 
       addItems(3);
 
-      expect(rootScope.pagerText).toBe("1 / 3");
+      expect(rootScope.pagerText).toBe(3);
 
       rootScope.$apply(function () {
         rootScope.currentItem = null;
@@ -67,7 +67,7 @@ describe('corespring-directives', function () {
         rootScope.currentItem = {id: 2};
       });
 
-      expect(rootScope.pagerText).toBe("3 / 3");
+      expect(rootScope.pagerText).toBe(3);
 
     });
 
@@ -151,7 +151,7 @@ describe('corespring-directives', function () {
       var loadMoreIndex = -1;
       rootScope.loadMore = function (index, callback) {
         addItems(6);
-        console.log("rootScope.items: " + rootScope.items);
+        console.log('rootScope.items: ' + rootScope.items);
         loadMoreIndex = index;
         callback();
       };

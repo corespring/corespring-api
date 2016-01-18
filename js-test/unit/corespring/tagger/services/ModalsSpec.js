@@ -3,7 +3,17 @@ describe('Modals', function () {
 
   var service, rootScope;
 
+  var ResourceUtils = function(){
+    this.getLicenseTypeUrl = jasmine.createSpy('getLicenseTypeUrl');
+  }
+
   beforeEach(module('tagger.services'));
+
+  beforeEach(function () {
+    module(function ($provide) {
+      $provide.value('ResourceUtils', new ResourceUtils());
+    });
+  });
 
   beforeEach(inject(function ($rootScope, Modals) {
     rootScope = $rootScope;
