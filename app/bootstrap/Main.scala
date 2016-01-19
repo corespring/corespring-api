@@ -47,7 +47,7 @@ import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api._
 import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
 import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
-import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
+import org.corespring.v2.auth.identifiers.{ PlayerTokenConfig, UserSessionOrgIdentity }
 import org.corespring.v2.auth.models.{ PlayerAccessSettings, AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.Errors.{ generalError, invalidToken, noToken }
 import org.corespring.v2.errors.V2Error
@@ -268,7 +268,14 @@ class Main(
   //Used for wiring RequestIdentifiers
   private lazy val secureSocial: SecureSocial = new SecureSocial {}
 
-  override lazy val userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts] = requestIdentifiers.userSession
+  override lazy val userSessionOrgIdentity: UserSessionOrgIdentity = requestIdentifiers.userSession
+
+  private lazy val playerTokenConfig: PlayerTokenConfig = {
+    PlayerTokenConfig(mode == Mode.Dev || mode == Mode.Test)
+  }
+
+  /** AC-258 - until we've removed all the old accessTokens that are missing the apiClientId we need this */
+  lazy val updateAccessTokenService: UpdateAccessTokenService = tokenService.asInstanceOf[UpdateAccessTokenService]
 
   private lazy val requestIdentifiers: RequestIdentifiers = wire[RequestIdentifiers]
 

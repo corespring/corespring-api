@@ -18,5 +18,9 @@ case class AccessToken(
   def isExpired: Boolean = {
     !neverExpire && DateTime.now().isAfter(expirationDate)
   }
+
+  override def toString = {
+    s"AccessToken(tokenId: $tokenId, apiClientId: $apiClientId, org: $organization, isExpired: $isExpired, expiration: $expirationDate)"
+  }
 }
 

@@ -26,7 +26,10 @@ class AccessTokenService(
   with interface.auth.UpdateAccessTokenService
   with HasDao[AccessToken, ObjectId] {
 
-  override def update(token: AccessToken): Unit = dao.save(token)
+  override def update(token: AccessToken): Unit = {
+    logger.trace(s"function=update, token=$token")
+    dao.update(MongoDBObject("tokenId" -> token.tokenId), token, false, false, WriteConcern.Safe)
+  }
 
   private val logger = Logger[AccessTokenService]()
 
@@ -40,6 +43,11 @@ class AccessTokenService(
   protected def index = Seq(
     MongoDBObject("tokenId" -> 1),
     MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)).foreach(dao.collection.ensureIndex(_))
+
+  /**
+   * TODO: See AC-298 - will fail currently on prod/staging cos of duplicate tokenIds.
+   * dao.collection.ensureIndex(MongoDBObject("tokenId" -> 1), MongoDBObject("unique" -> true))
+   */
 
   override def removeToken(tokenId: String): Validation[PlatformServiceError, Unit] = {
     logger.info(s"function=removeToken tokenId=$tokenId")

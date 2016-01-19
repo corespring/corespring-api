@@ -38,7 +38,7 @@ class Main(
   containerVersionInfo: ContainerVersion,
   webExecutionContext: WebExecutionContext,
   playerTokenService: PlayerTokenService,
-  userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts],
+  userSessionOrgIdentity: UserSessionOrgIdentity,
   buildInfo: BuildInfo,
   assetsLoader: AssetsLoader,
   apiClientService: ApiClientService) extends Controller with securesocial.core.SecureSocial {

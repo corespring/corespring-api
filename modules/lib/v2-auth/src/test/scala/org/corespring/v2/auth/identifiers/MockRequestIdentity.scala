@@ -14,21 +14,21 @@ import scalaz.{ Success, Failure, Validation }
 class MockRequestIdentity(
   val defaultCollection: Option[ObjectId] = None,
   val org: Validation[V2Error, (Organization, Option[User])] = Failure(generalError("?")),
-  val apiClientId: Option[String] = None) extends OrgRequestIdentity[String] with Mockito {
+  val apiClientId: Option[String] = None) extends RequestIdentity[String] with Mockito {
 
   override val name = "mock-identifier"
 
-  override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]) = Success("Worked")
-
-  /** get the apiClient if available */
-  override def headerToApiClientId(rh: RequestHeader): Option[String] = apiClientId
-
-  override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, (Organization, Option[User])] = org
-
-  override def orgService: OrganizationService = {
-    val o = mock[OrganizationService]
-    o.findOneById(any[ObjectId]) returns org.toOption.map(_._1)
-    o
-  }
-
+  //  override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]) = Success("Worked")
+  //
+  //  /** get the apiClient if available */
+  //  override def headerToApiClientId(rh: RequestHeader): Option[String] = apiClientId
+  //
+  //  override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, (Organization, Option[User])] = org
+  //
+  //  override def orgService: OrganizationService = {
+  //    val o = mock[OrganizationService]
+  //    o.findOneById(any[ObjectId]) returns org.toOption.map(_._1)
+  //    o
+  //  }
+  override def apply(rh: RequestHeader): Validation[V2Error, String] = ???
 }

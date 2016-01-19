@@ -36,7 +36,7 @@ class OAuthProvider(
    */
   def getAccessToken(grantType: String, clientId: String, clientSecret: String, scope: Option[String] = None): Validation[ApiError, AccessToken] = {
     for {
-      c <- apiClientService.findByClientIdAndSecret(clientId, clientSecret).toSuccess(ApiError(500, s"Can't find apiClient with id: $clientId"))
+      c <- apiClientService.findByClientIdAndSecret(clientId, clientSecret).toSuccess(ApiError(500, s"[OAuthProvider] Can't find apiClient with id: $clientId"))
       t <- accessTokenService.createToken(c).leftMap(e => ApiError(500, e.message))
     } yield t
   }

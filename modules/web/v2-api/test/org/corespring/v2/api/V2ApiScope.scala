@@ -1,6 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.models.auth.ApiClient
 import org.corespring.models.{ Subject, Standard }
 import org.corespring.models.item.FieldValue
 import org.corespring.models.json.JsonFormatting
@@ -36,4 +37,17 @@ private[api] trait V2ApiScope {
   def orgAndOpts: Validation[V2Error, OrgAndOpts]
 
   protected def getOrgAndOptionsFn = (request: RequestHeader) => orgAndOpts
+}
+
+object V2ApiScope {
+  type OrgAndClient = Validation[V2Error, (OrgAndOpts, ApiClient)]
+}
+
+private[api] trait V2ApiWithApiClientScope {
+
+  implicit val v2ApiContext = V2ApiExecutionContext(ExecutionContext.global)
+
+  def orgAndOptsAndApiClient: Validation[V2Error, (OrgAndOpts, ApiClient)]
+
+  protected def getOrgAndOptionsAndApiClientFn = (request: RequestHeader) => orgAndOptsAndApiClient
 }

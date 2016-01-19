@@ -11,7 +11,7 @@ trait ApiClientEncryptionService {
   def encrypt(apiClient: ApiClient, s: String): Option[EncryptionResult]
 
   def decrypt(apiClientId: String, s: String): Option[String]
-  def decrypt(apiCilent: ApiClient, s: String): Option[String]
+  def decrypt(apiClient: ApiClient, s: String): Option[String]
 }
 
 class MainApiClientEncryptionService(

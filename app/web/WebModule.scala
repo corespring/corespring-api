@@ -5,16 +5,15 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.json.JsonFormatting
+import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.v2.api.services.PlayerTokenService
+import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Mode.Mode
-import web.controllers.{ Partials, PublicSite }
-import org.corespring.v2.api.services.PlayerTokenService
-import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
-import org.corespring.v2.auth.models.OrgAndOpts
-import web.controllers.{ Main, ShowResource }
+import web.controllers.{ Main, Partials, PublicSite, ShowResource }
 import web.models.{ ContainerVersion, WebExecutionContext }
 
 case class PublicSiteConfig(url: String)
@@ -37,9 +36,10 @@ trait WebModule {
   def defaultOrgs: DefaultOrgs
   def bucket: Bucket
   def publicSiteConfig: PublicSiteConfig
-  def userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts]
-  def buildInfo : BuildInfo
-  def assetsLoader : AssetsLoader
+  def userSessionOrgIdentity: UserSessionOrgIdentity
+  def buildInfo: BuildInfo
+  def assetsLoader: AssetsLoader
+  def apiClientService: ApiClientService
 
   lazy val showResource = new ShowResource(itemService, s3Service, bucket)
   lazy val partials = new Partials(mode, defaultOrgs)
@@ -55,7 +55,8 @@ trait WebModule {
     playerTokenService,
     userSessionOrgIdentity,
     buildInfo,
-    assetsLoader)
+    assetsLoader,
+    apiClientService)
 
   lazy val publicSite = new PublicSite(publicSiteConfig.url, mode)
 

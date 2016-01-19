@@ -25,9 +25,12 @@ import scalaz.{ Failure, Success, Validation }
 
 class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
+  lazy val mockedOrgAndOpts = mockOrgAndOpts()
+  private lazy val client: ApiClient = ApiClient(mockedOrgAndOpts.org.id, ObjectId.get, "secret")
+
   class apiScope(
     val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
-    val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+    val orgAndClient: V2ApiScope.OrgAndClient = Success((mockedOrgAndOpts, client)),
     val maybeSessionId: Option[ObjectId] = None,
     val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
     val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
@@ -63,13 +66,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       m
     }
 
-    val mockApiClientService = {
-      val m = mock[ApiClientService]
-      m.findOneByOrgId(any[ObjectId]) returns apiClient
-      m
-    }
-
-    def getOrgAndOpts(rh: RequestHeader) = orgAndOpts
+    def getOrgAndOpts(rh: RequestHeader) = orgAndClient
 
     def sessionCreatedForItem(id: VersionedId[ObjectId]): Unit = {}
 
@@ -80,7 +77,6 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       mockScoreService,
       mockOrgService,
       mockEncryptionService,
-      mockApiClientService,
       sessionCreatedForItem,
       apiContext,
       getOrgAndOpts)
@@ -104,7 +100,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       val request = FakeRequest("", "")
 
       "return 401" in new apiScope(clonedSession = Success(new ObjectId()),
-        orgAndOpts = Failure(noOrgIdAndOptions(request))) {
+        orgAndClient = Failure(noOrgIdAndOptions(request))) {
         val result = api.cloneSession(sessionId)(request)
         status(result) must be equalTo (UNAUTHORIZED)
       }

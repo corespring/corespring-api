@@ -1,26 +1,26 @@
 package org.corespring.v2.auth.identifiers
 
-import org.corespring.v2.errors.Errors.{compoundError, generalError}
+import org.corespring.v2.errors.Errors.{ compoundError, generalError }
 import org.corespring.v2.errors.V2Error
-import org.specs2.execute.{AsResult, Result}
+import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mock.Mockito
-import org.specs2.mutable.{Around, Specification}
+import org.specs2.mutable.{ Around, Specification }
 import play.api.http.Status._
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class WithRequestIdentitySequenceTest extends Specification with Mockito {
 
   private trait scope extends Around {
 
-    def success(name: String): OrgRequestIdentity[String] = makeMock(name, Success(name))
+    def success(name: String): RequestIdentity[String] = makeMock(name, Success(name))
 
     def failure(name: String) = makeMock(name, Failure(generalError(name)))
 
-    def makeMock(name: String, v: Validation[V2Error, String]): OrgRequestIdentity[String] = {
-      val m = mock[OrgRequestIdentity[String]]
+    def makeMock(name: String, v: Validation[V2Error, String]): RequestIdentity[String] = {
+      val m = mock[RequestIdentity[String]]
       m.name returns name
       m.apply(any[RequestHeader]) answers { _ =>
         v
@@ -30,10 +30,10 @@ class WithRequestIdentitySequenceTest extends Specification with Mockito {
 
     val fr = FakeRequest("", "")
 
-    def identifiers: Seq[OrgRequestIdentity[String]] = Seq.empty
+    def identifiers: Seq[RequestIdentity[String]] = Seq.empty
 
     val identify = new WithRequestIdentitySequence[String] {
-      override def identifiers: Seq[OrgRequestIdentity[String]] = scope.this.identifiers
+      override def identifiers: Seq[RequestIdentity[String]] = scope.this.identifiers
     }
 
     override def around[T](t: => T)(implicit evidence$1: AsResult[T]): Result = {

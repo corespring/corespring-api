@@ -27,7 +27,6 @@ class ItemSessionApi(
   scoreService: ScoreService,
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
-  apiClientService: ApiClientService,
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
   apiContext: ItemSessionApiExecutionContext,
   val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)]) extends V2Api {
