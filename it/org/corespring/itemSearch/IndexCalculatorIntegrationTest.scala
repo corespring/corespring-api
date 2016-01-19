@@ -1,6 +1,5 @@
 package org.corespring.itemSearch
 
-import global.Global
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import org.corespring.elasticsearch.ContentIndexer
@@ -29,7 +28,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     lazy val orgId = OrganizationHelper.create("test-org")
     lazy val collectionId = CollectionHelper.create(orgId)
     lazy val query = ItemIndexQuery(widgets = Seq("corespring-calculator"))
-    lazy val searchResult = Await.result(main.itemIndexService.search(query), 1.second)
+    lazy val searchResult = Await.result(main.itemIndexService.unboundedSearch(query), 1.second)
 
     override def after = {
       logger.debug(" ----------- >> after.. cleaning up..")
@@ -98,6 +97,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
        */
       Thread.sleep(5000)
       //Now search
+
       searchResult.map(_.total) must_== Success(1)
       searchResult.map(_.hits(0).title) must_== Success(Some("this is a test item."))
     }
