@@ -104,6 +104,15 @@ class ItemService(
 
   override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = addFileToPlayerDefinition(item.id, file)
 
+  override def removeFileFromPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
+    val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+    val update = MongoDBObject("$pull" -> MongoDBObject("playerDefinition.files" -> dbo))
+    val result = dao.update(itemId, update, false)
+
+    logger.trace(s"function=removeFileFromPlayerDefinition, itemId=$itemId, docsChanged=${result}")
+    Validation.fromEither(result).map(id => true)
+  }
+
   import org.corespring.services.salat.ValidationUtils._
 
   // three things occur here:

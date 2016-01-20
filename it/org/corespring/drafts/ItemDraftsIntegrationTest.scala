@@ -237,6 +237,20 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification {
       }
     }
 
+    "removeFileToChangeSet" should {
+      "remove the file from the ItemDraft.change" in new orgAndUserAndItem {
+        val draftId = draftIdFromItemIdAndUser(itemId, orgAndUser)
+        val draft = drafts.loadOrCreate(orgAndUser)(draftId)
+        val file = StoredFile("test.png", "image/png", false)
+        drafts.addFileToChangeSet(draft.toOption.get, file)
+        drafts.removeFileFromChangeSet(draftId, file)
+        draftService.load(draftId).map { dbDraft =>
+          dbDraft.change.data.playerDefinition.map(_.files.find(_.name == "test.png").headOption).flatten must_== None
+        }.getOrElse(failure("should have loaded the draft"))
+      }
+    }
+
+
     "listForOrg" should {
 
       "list drafts" in new orgAndUserAndItem {

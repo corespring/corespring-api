@@ -1,4 +1,10 @@
 function up() {
+
+  var removeFeedbackBlock = function(item, id) {
+    var regExp = new RegExp('<corespring-feedback-block id="' + id + '"[\\s\\S]*?(\/>|corespring-feedback-block>)', 'gim');
+    item.playerDefinition.xhtml = item.playerDefinition.xhtml.replace(regExp, '');
+  };
+
   db.content.find({"playerDefinition": {$exists: true}}).forEach(function(item) {
     var components = item && item.playerDefinition && item.playerDefinition.components ? item.playerDefinition.components : {};
     for (var prop in components) {
@@ -63,6 +69,7 @@ function up() {
                 components[prop].feedback.correctFeedbackType = 'custom';
                 components[prop].feedback.correctFeedback = components[comp].feedback.outcome.responsesCorrect.text.replace(/(<([^>]+)>)/ig, '').trim();
                 delete components[comp];
+                removeFeedbackBlock(item, comp);
               }
             }
             if (normalizedPropName.indexOf('responsesincorrect') >= 0) {
@@ -73,12 +80,14 @@ function up() {
                 components[prop].feedback.incorrectFeedbackType = 'custom';
                 components[prop].feedback.incorrectFeedback = components[comp].feedback.outcome.responsesIncorrect.text.replace(/(<([^>]+)>)/ig, '').trim();
                 delete components[comp];
+                removeFeedbackBlock(item, comp);
               }
             }
             if (normalizedPropName.indexOf('exceedmax') >= 0
                 || normalizedPropName.indexOf('belowmin') >= 0
                 || normalizedPropName.indexOf('numbercorrect') >= 0) {
               delete components[comp];
+              removeFeedbackBlock(item, comp);
             }
           }
         }

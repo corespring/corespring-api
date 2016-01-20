@@ -1,0 +1,52 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "500000000000000000000293"
+    },
+    "version" : 0
+  },
+  "collectionId" : "500000000000000000000293",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New England Common Assessment Program",
+    "contributor" : "New England Common Assessment Program",
+    "copyright" : {
+      "owner" : "New England Common Assessment Program",
+      "year" : "2010"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
+  },
+  "contentType" : "item",
+  "playerDefinition" : {
+    "files" : [],
+    "xhtml" : "<div>Cloneable item</div>",
+    "components" : {},
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse": "Other",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "7.RP.A.3"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "gradeLevel" : [
+      "07"
+    ],
+    "title" : "Cloneable Item",
+    "itemType" : "Multiple Choice"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : false,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}

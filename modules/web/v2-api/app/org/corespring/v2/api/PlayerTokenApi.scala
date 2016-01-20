@@ -1,13 +1,14 @@
 package org.corespring.v2.api
 
 import org.corespring.models.Organization
+import org.corespring.models.auth.ApiClient
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ encryptionFailed, noJson }
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.{ RequestHeader, Action }
+import play.api.mvc.{ Controller, RequestHeader, Action }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
@@ -16,9 +17,12 @@ import scalaz.Validation
 class PlayerTokenApi(
   tokenService: PlayerTokenService,
   v2ApiContext: V2ApiExecutionContext,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)])
+  extends Controller
+  with ValidationToResultLike {
 
-  override implicit def ec: ExecutionContext = v2ApiContext.context
+  implicit def ec: ExecutionContext = v2ApiContext.context
+
   private lazy val logger = Logger(classOf[PlayerTokenApi])
 
   def encryptionFailedError(org: Organization) = encryptionFailed(s"orgId: ${org.id} orgName: ${org.name} - Unknown error trying to encrypt")
@@ -38,9 +42,9 @@ class PlayerTokenApi(
 
     Future {
       val out: Validation[V2Error, CreateTokenResult] = for {
-        identity <- getOrgAndOptions(request)
+        client <- identifyFn(request).map(_._2)
         json <- request.body.asJson.toSuccess(noJson)
-        result <- tokenService.createToken(identity.org.id, json)
+        result <- tokenService.createToken(client, json)
       } yield result
 
       validationToResult[CreateTokenResult] {

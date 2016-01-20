@@ -10,6 +10,7 @@ import org.corespring.drafts.item.{ ItemDrafts, S3Paths }
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{BaseFile, StoredFile}
 import org.corespring.models.{ User, UserOrg }
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
@@ -92,19 +93,29 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
   }
 
   "deleteFile" should {
-    "call s3.delete" in new scope {
 
+    trait deleteFileScope extends scope {
       playS3.delete(any[String], any[String]) returns {
         mock[DeleteResponse].success.returns(true)
       }
 
       itemDrafts.owns(any[OrgAndUser])(any[DraftId]) returns true
 
+      val filename = "file.jpeg"
+
       val ou = orgAndUser(orgAndOpts.toOption.get)
       val draftId = hooks.mkDraftId(ou, s"$itemId:0").toOption.get
-      val f = hooks.deleteFile(s"$itemId:0", "file")(FakeRequest("", ""))
+      val f = hooks.deleteFile(s"$itemId:0", filename)(FakeRequest("", ""))
       val r = await(f)
-      there was one(playS3).delete("bucket", S3Paths.draftFile(draftId, "file"))
+    }
+
+    "call s3.delete" in new deleteFileScope {
+      there was one(playS3).delete("bucket", S3Paths.draftFile(draftId, filename))
+    }
+
+    "call itemDrafts.removeFileFromChangeSet" in new deleteFileScope {
+      val storedFile = StoredFile(filename, BaseFile.getContentType(filename), false, filename)
+      there was one(itemDrafts).removeFileFromChangeSet(draftId, storedFile)
     }
   }
 }

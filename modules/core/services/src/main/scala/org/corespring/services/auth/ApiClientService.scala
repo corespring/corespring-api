@@ -7,7 +7,6 @@ import scalaz.Validation
 
 trait ApiClientService {
 
-  def generateTokenId(): String
   def getOrCreateForOrg(orgId: ObjectId): Validation[String, ApiClient]
 
   def findByClientId(id: String): Option[ApiClient]
@@ -20,5 +19,5 @@ trait ApiClientService {
    */
   def findByClientIdAndSecret(id: String, secret: String): Option[ApiClient]
 
-  def findOneByOrgId(orgId: ObjectId): Option[ApiClient]
+  def findByOrgId(orgId: ObjectId): Stream[ApiClient]
 }

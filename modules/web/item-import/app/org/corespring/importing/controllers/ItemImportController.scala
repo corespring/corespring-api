@@ -15,7 +15,7 @@ import scalaz._
 
 class ItemImportController(
   converter: ItemFileConverter,
-  userSession: UserSessionOrgIdentity[OrgAndOpts],
+  userSession: UserSessionOrgIdentity,
   orgCollectionService: OrgCollectionService) extends Controller {
 
   def uploadForm() = Action {

@@ -11,23 +11,10 @@ import play.api.mvc._
 import scala.concurrent.{ Future, ExecutionContext }
 import scalaz.{ Failure, Success, Validation }
 
-trait V2Api extends Controller with LoadOrgAndOptions {
+trait ValidationToResultLike {
 
-  implicit def ec: ExecutionContext
-
-  def getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
-
-  final override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptionsFn(request)
-
-  protected implicit class MkV2Error[A](v: Validation[PlatformServiceError, A]) {
-
-    require(v != null)
-
-    def v2Error: Validation[V2Error, A] = {
-      v.leftMap { e => generalError(e.message) }
-    }
-  }
-
+  import play.api.mvc.Results.Status
+  import play.api.http.Status.OK
   /**
    * Convert a Validation to a SimpleResult.
    * @param fn the function to convert A to a SimpleResult
@@ -50,6 +37,24 @@ trait V2Api extends Controller with LoadOrgAndOptions {
         case Success(json) => Status(statusCode)(json)
         case Failure(e) => Status(e.statusCode)(e.json)
       }
+    }
+  }
+
+}
+trait V2Api extends Controller with LoadOrgAndOptions with ValidationToResultLike {
+
+  implicit def ec: ExecutionContext
+
+  def getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
+
+  final override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptionsFn(request)
+
+  protected implicit class MkV2Error[A](v: Validation[PlatformServiceError, A]) {
+
+    require(v != null)
+
+    def v2Error: Validation[V2Error, A] = {
+      v.leftMap { e => generalError(e.message) }
     }
   }
 

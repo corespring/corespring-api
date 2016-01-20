@@ -24,7 +24,9 @@ describe('ItemService', function () {
   var prepareBackend = function ($backend) {
 
     var urls = [
-      {method: 'GET', url: "/api/v1/collections", response: collections}
+      {method: 'GET', url: "/api/v1/collections", response: collections},
+      {method: 'PUT', url: '/api/v2/collections/collectionId/share-with-org/orgId', response: {id: 'some-id'}},
+      {method: 'GET', url: '/api/v2/organizations/with-shared-collection/collectionId', response: []}
     ];
 
     for (var i = 0; i < urls.length; i++) {
@@ -49,13 +51,43 @@ describe('ItemService', function () {
     $httpBackend = _$httpBackend_;
     prepareBackend($httpBackend);
     scope = $rootScope.$new();
-
-    try {
-      manager = CollectionManager;
-    } catch (e) {
-      throw("Error with the service: " + e);
-    }
+    manager = CollectionManager;
   }));
+
+
+  describe('shareCollection', function(){
+
+    var onSuccess, onError;
+
+    beforeEach(function(){
+      onSuccess = jasmine.createSpy('onSuccess');
+      onError = jasmine.createSpy('onError');
+    });
+
+    it('calls $http.put', function(){
+       manager.shareCollection('collectionId', 'write', 'orgId', onSuccess, onError);
+       var url = manager.urls.shareCollection('collectionId', 'orgId');
+       $httpBackend.flush();
+       expect(onSuccess).toHaveBeenCalledWith({id: 'some-id'});
+    });
+  });
+
+  describe('getOrgsWithSharedCollection', function(){
+
+    var onSuccess, onError;
+
+    beforeEach(function(){
+      onSuccess = jasmine.createSpy('onSuccess');
+      onError = jasmine.createSpy('onError');
+    });
+
+    it('calls $http.get', function(){
+       manager.getOrgsWithSharedCollection('collectionId', onSuccess, onError);
+       var url = manager.urls.getOrgsWithSharedCollection('collectionId');
+       $httpBackend.flush();
+       expect(onSuccess).toHaveBeenCalledWith([]);
+    });
+  });
 
   describe("inits", function () {
     it("is inited correctly", function () {
@@ -86,7 +118,7 @@ describe('ItemService', function () {
       $httpBackend.flush();
 
       var simpleObject = function(c){
-        return { id: c.id, name : c.name}
+        return { id: c.id, name : c.name};
       };
 
       var orgCollections = _.map(manager.sortedCollections[0].collections, simpleObject);

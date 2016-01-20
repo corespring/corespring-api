@@ -35,7 +35,11 @@ object Build extends sbt.Build {
     .dependsOn(apiUtils)
 
   lazy val assets = builders.lib("assets")
-    .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
+    .settings(libraryDependencies ++= Seq(
+      specs2 % "test",
+      mockito,
+      playS3,
+      httpClient))
     .dependsOn(apiUtils)
 
   lazy val coreModels = builders.lib("models", "core", publish = true).settings(
@@ -116,8 +120,8 @@ object Build extends sbt.Build {
 
   lazy val itemDrafts = builders.lib("item-drafts")
     .settings(
-      libraryDependencies ++= Seq(containerClientWeb, specs2 % "test", salatVersioningDao, macWireMacro))
-    .dependsOn(coreSalatConfig % "compile->test", coreModels, coreServices, drafts, testLib)
+      libraryDependencies ++= Seq(specs2 % "test", salatVersioningDao, macWireMacro))
+    .dependsOn(assets, coreSalatConfig % "compile->test", coreModels, coreServices, drafts, testLib)
     .aggregate(coreModels, drafts)
 
   lazy val qtiToV2 = builders.lib("qti-to-v2")
@@ -146,9 +150,13 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sprayCaching, grizzledLog))
     .dependsOn(coreModels, coreServices, coreWeb, coreJson, testLib, v2Errors, qtiToV2, itemDrafts, v2SessionDb, encryption)
 
-  lazy val apiTracking = builders.lib("api-tracking")
+  lazy val v2Actions = builders.lib("v2-actions")
     .settings(
       libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
+
+  lazy val apiTracking = builders.lib("api-tracking")
+    .settings(
+      libraryDependencies ++= Seq(containerClientWeb, playFramework)).dependsOn(v2Auth)
     .dependsOn(coreServices, v2Errors, testLib % "test->compile")
 
   lazy val itemImport = builders.web("item-import")
@@ -179,7 +187,8 @@ object Build extends sbt.Build {
       itemSearch,
       coreJson,
       qtiToV2,
-      draftsApi)
+      draftsApi,
+      futureValidation)
 
   lazy val v1Api = builders.web("v1-api")
     .settings(
@@ -245,7 +254,7 @@ object Build extends sbt.Build {
     .configs(IntegrationTest)
     .settings(IntegrationTestSettings.settings: _*)
     .settings(CustomRelease.settings: _*)
-    .settings(ComponentsBuilder.settings : _*)
+    .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
     .dependsOn(
       apiUtils,
@@ -259,9 +268,11 @@ object Build extends sbt.Build {
       commonViews,
       testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
+      v2Actions,
       v1Api,
       v2Api,
       v2SessionDb,
+      v2Auth % "test->test;compile->compile",
       apiTracking,
       qtiToV2,
       itemImport,

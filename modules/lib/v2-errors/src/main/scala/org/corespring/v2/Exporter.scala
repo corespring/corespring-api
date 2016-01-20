@@ -22,7 +22,7 @@ object Exporter extends App {
     permissionNotGranted("msg"),
     compoundError("msg", Seq(), 401),
     invalidQueryStringParameter("badName", "expectedName"),
-    noApiClientAndPlayerTokenInQueryString(FakeRequest()),
+    noPlayerTokenInQueryString(FakeRequest()),
     noToken(fakeGet),
     noUserSession(fakeGet),
     invalidToken(fakeGet),

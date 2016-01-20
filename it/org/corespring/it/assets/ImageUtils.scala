@@ -12,7 +12,7 @@ import play.api.Logger
 object ImageUtils {
 
   lazy val logger = Logger(ImageUtils.getClass)
-  lazy val client = new AmazonS3Client(credentials)
+  lazy val client = main.s3
   lazy val bucket = main.bucket.bucket
   lazy val credentials: AWSCredentials = main.awsCredentials
   lazy val tm: TransferManager = new TransferManager(credentials)

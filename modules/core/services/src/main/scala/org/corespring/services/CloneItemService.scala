@@ -12,14 +12,15 @@ trait CloneItemService {
 
   /**
    * Clone an item to another collection
-   * - check that the org that owns the target collectionId has 'clone' permission rights on the collection that owns the item.
+   * - check that the orgId has 'clone' permission on the item's collection.
+   * - check that the orgId has 'write' permission on the destinationCollectionId.
    *
    * @param itemId
-   * @param collectionId
+   * @param destinationCollectionId
    * @return
    */
   def cloneItem(
-                 itemId: VersionedId[ObjectId],
-                 orgId: ObjectId,
-                 collectionId: Option[ObjectId] = None): FutureValidation[PlatformServiceError, VersionedId[ObjectId]]
+    itemId: VersionedId[ObjectId],
+    orgId: ObjectId,
+    destinationCollectionId: Option[ObjectId] = None): FutureValidation[PlatformServiceError, VersionedId[ObjectId]]
 }

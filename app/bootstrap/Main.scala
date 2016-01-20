@@ -6,17 +6,17 @@ import bootstrap.Actors.UpdateItem
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.s3.transfer.TransferManager
-import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client, S3ClientOptions }
+import com.amazonaws.services.s3.{ AmazonS3, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import developer.{ DeveloperConfig, DeveloperModule }
 import filters.{ BlockingFutureQueuer, CacheFilter, FutureQueuer }
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
-import org.corespring.amazon.s3.S3Service
+import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
-import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
+import org.corespring.assets.{ EncodedKeyS3Client, ItemAssetKeys }
 import org.corespring.common.config.{ ItemAssetResolverConfig, ContainerConfig }
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
@@ -33,6 +33,7 @@ import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
+import org.corespring.models.auth.{ AccessToken, ApiClient }
 import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
@@ -40,13 +41,15 @@ import org.corespring.platform.core.LegacyModule
 import org.corespring.platform.core.services.item.SupportingMaterialsAssets
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.auth.UpdateAccessTokenService
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api._
 import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
 import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
-import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
-import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.identifiers.{ PlayerTokenConfig, UserSessionOrgIdentity }
+import org.corespring.v2.auth.models.{ PlayerAccessSettings, AuthMode, OrgAndOpts }
+import org.corespring.v2.errors.Errors.{ generalError, invalidToken, noToken }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player._
 import org.corespring.v2.player.cdn._
@@ -55,6 +58,7 @@ import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService,
 import org.corespring.v2.sessiondb._
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
+import org.corespring.web.token.TokenReader
 import org.corespring.web.user.SecureSocial
 import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
@@ -67,7 +71,7 @@ import web.{ DefaultOrgs, PublicSiteConfig, WebModule }
 import web.models.{ ContainerVersion, WebExecutionContext }
 
 import scala.concurrent.ExecutionContext
-import scalaz.Validation
+import scalaz.{ Success, Validation }
 
 object Main {
   def apply(app: play.api.Application): Main = {
@@ -264,11 +268,20 @@ class Main(
   //Used for wiring RequestIdentifiers
   private lazy val secureSocial: SecureSocial = new SecureSocial {}
 
-  override lazy val userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts] = requestIdentifiers.userSession
+  override lazy val userSessionOrgIdentity: UserSessionOrgIdentity = requestIdentifiers.userSession
+
+  private lazy val playerTokenConfig: PlayerTokenConfig = {
+    PlayerTokenConfig(mode == Mode.Dev || mode == Mode.Test)
+  }
+
+  /** AC-258 - until we've removed all the old accessTokens that are missing the apiClientId we need this */
+  lazy val updateAccessTokenService: UpdateAccessTokenService = tokenService.asInstanceOf[UpdateAccessTokenService]
 
   private lazy val requestIdentifiers: RequestIdentifiers = wire[RequestIdentifiers]
 
   override lazy val getOrgAndOptsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = requestIdentifiers.allIdentifiers.apply
+
+  override def getOrgOptsAndApiClientFn: (RequestHeader) => Validation[V2Error, (OrgAndOpts, ApiClient)] = requestIdentifiers.accessTokenToOrgAndApiClient
 
   override lazy val itemApiExecutionContext: ItemApiExecutionContext = ItemApiExecutionContext(ExecutionContext.global)
 
@@ -290,7 +303,8 @@ class Main(
 
   override lazy val s3: AmazonS3 = {
 
-    val client = new AmazonS3Client(awsCredentials)
+    logger.info("val=s3 - creating new CorespringS3Client")
+    val client = new EncodedKeyS3Client(awsCredentials)
 
     appConfig.s3Config.endpoint.foreach { e =>
       val options = new S3ClientOptions()
@@ -349,7 +363,7 @@ class Main(
     ServiceLookup.subjectService = subjectService
   }
 
-  override def s3Service: S3Service = wire[CorespringS3ServiceExtended]
+  override def s3Service: S3Service = wire[ConcreteS3Service]
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.componentsPath
@@ -422,4 +436,5 @@ class Main(
   override lazy val assetsLoader: AssetsLoader = new AssetsLoader(playMode, configuration, s3, buildInfo)
 
   initServiceLookup()
+
 }

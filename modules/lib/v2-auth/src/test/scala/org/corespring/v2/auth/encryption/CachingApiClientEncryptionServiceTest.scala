@@ -21,7 +21,6 @@ class CachingApiClientEncryptionServiceTest extends Specification with Mockito {
     apiClientEncryptionService.decrypt(apiClient.clientId.toString, encryptedData).returns(Some(data))
     apiClientEncryptionService.encrypt(apiClient.clientId.toString, data).returns(Some(encryptionSuccess))
     apiClientEncryptionService.encrypt(apiClient, data).returns(Some(encryptionSuccess))
-    apiClientEncryptionService.encryptByOrg(orgId, data).returns(Some(encryptionSuccess))
     val cachedEncryptionService = new CachingApiClientEncryptionService(apiClientEncryptionService, Duration.Inf)
   }
 
@@ -45,16 +44,6 @@ class CachingApiClientEncryptionServiceTest extends Specification with Mockito {
         there was one(apiClientEncryptionService).encrypt(apiClient, data)
       }
 
-    }
-
-  }
-
-  "encryptByOrg" should {
-
-    "delegate to underlying encrypter" in new CachedEncryptionService {
-      val result = cachedEncryptionService.encryptByOrg(orgId, data)
-      result must be equalTo (Some(encryptionSuccess))
-      there was one(apiClientEncryptionService).encryptByOrg(orgId, data)
     }
 
   }

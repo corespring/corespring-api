@@ -8,15 +8,33 @@ angular.module('tagger.directives')
       replace: true,
       link: link,
       template: template(),
+      controller: ['$scope', function($scope) {
+        this.actionClicked = function(label) {
+          $scope.actionClicked(label);
+        };
+      }],
       scope: {
+        permission: '=',
         item: '=',
         publish: '&',
-        cloneItem: '&',
-        deleteItem: '&'
+        clone: '&',
+        'delete': '&',
+        edit: '&'
       }
     };
 
-    function link(scope, elem, attr){
+    function link($scope, $elem, $attr){
+
+        var actionsMap = {
+          edit: $scope.edit,
+          clone: $scope.clone,
+          publish: $scope.publish,
+          'delete': $scope['delete']
+        };
+
+        $scope.actionClicked = function(label){
+            actionsMap[label]($scope.item);
+        };
     }
 
     function template() {
@@ -32,24 +50,44 @@ angular.module('tagger.directives')
         '  </a>',
         '  <div class="dropdown" aria-labelledby="menu-item-{{item.id}}">',
         '    <ul class="dropdown-menu dropdown-menu-actions">',
-        '      <li>',
-        '        <button class="btn btn-sm" ng-click="cloneItem(item)">',
-        '          <i class="fa fa-copy"></i>&nbsp;clone',
-        '        </button>',
-        '      </li>',
-        '      <li ng-show="!item.published">',
-        '        <button class="btn btn-sm btn-info" ng-click="publish(item)">',
-        '          <i class="fa fa-bolt"></i>&nbsp;publish',
-        '        </button>',
-        '      </li>',
-        '      <li>',
-        '        <button class="btn btn-danger btn-sm" ng-click="deleteItem(item)">',
-        '          <i class="fa fa-trash-o"></i>&nbsp;delete',
-        '        </button>',
-        '      </li>',
+        '      <li item-action-li icon="pencil" label="edit" enabled="permission.write"/>',
+        '      <li item-action-li icon="copy" label="clone" enabled="permission.clone"/>',
+        '      <li item-action-li icon="bolt" label="publish" enabled="permission.write && !item.published"/>',
+        '      <li item-action-li button-class="btn-danger" icon="trash-o" label="delete" enabled="permission.write"/>',
         '    </ul>',
         '  </div>',
         '</div>'
       ].join('');
     }
-  }]);
+  }])
+    .directive('itemActionLi', [function(){
+
+        var template = [
+        '<li ng-show="enabled">',
+        '  <button class="btn btn-sm {{buttonClass}}" ng-click="buttonClicked()">',
+        '   <i class="fa fa-{{icon}}"></i>&nbsp;{{label}}',
+        '  </button>',
+        '</li>'
+        ].join('');
+
+        return {
+            restrict: 'A',
+            replace: true,
+            template: template,
+            link: function($scope, $elem, $attrs, controller){
+
+                $scope.buttonClicked = function(){
+                  controller.actionClicked($attrs.label);
+                };
+            },
+            require: '^itemActionButton',
+            scope: {
+                buttonClass: '@',
+                icon: '@',
+                label: '@',
+                item: '=',
+                enabled: '=',
+                action: '&'
+            }
+        };
+    }]);
