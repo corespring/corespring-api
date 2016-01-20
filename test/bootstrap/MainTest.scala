@@ -2,7 +2,7 @@ package bootstrap
 
 import java.io.InputStream
 
-import com.mongodb.casbah.{ MongoURI, MongoConnection, MongoDB }
+import com.mongodb.casbah.{ MongoConnection, MongoURI }
 import filters.CacheFilter
 import org.bson.types.ObjectId
 import org.specs2.mock.Mockito

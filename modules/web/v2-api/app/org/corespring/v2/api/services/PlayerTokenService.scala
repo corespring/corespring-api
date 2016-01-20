@@ -1,15 +1,15 @@
 package org.corespring.v2.api.services
 
-import org.bson.types.ObjectId
-import org.corespring.encryption.apiClient.{ EncryptionFailure, EncryptionSuccess, EncryptionResult, ApiClientEncryptionService }
+import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionFailure, EncryptionResult, EncryptionSuccess }
+import org.corespring.models.auth.ApiClient
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.{ encryptionFailed, missingRequiredField }
-import org.corespring.v2.errors.{ V2Error, Field }
+import org.corespring.v2.errors.{ Field, V2Error }
 import play.api.Logger
-import play.api.libs.json.{ Json, JsError, JsSuccess, JsValue }
+import play.api.libs.json.{ JsError, JsSuccess, JsValue, Json }
 
-import scalaz.{ Validation, Failure, Success }
 import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
 case class CreateTokenResult(apiClient: String, token: String, settings: JsValue)
 
@@ -17,10 +17,10 @@ class PlayerTokenService(service: ApiClientEncryptionService) {
 
   private lazy val logger = Logger(classOf[PlayerTokenService])
 
-  def createToken(orgId: ObjectId, json: JsValue): Validation[V2Error, CreateTokenResult] = for {
+  def createToken(apiClient: ApiClient, json: JsValue): Validation[V2Error, CreateTokenResult] = for {
     accessSettings <- toAccessSettings(json)
-    encryptionResult <- service.encryptByOrg(orgId, Json.stringify(Json.toJson(accessSettings)))
-      .toSuccess(encryptionFailed(s"orgId: $orgId - Unknown error trying to encrypt"))
+    encryptionResult <- service.encrypt(apiClient, Json.stringify(Json.toJson(accessSettings)))
+      .toSuccess(encryptionFailed(s"orgId: ${apiClient.orgId} - Unknown error trying to encrypt"))
     clientIdAndToken <- encryptionToValidation(encryptionResult)
   } yield {
     CreateTokenResult(clientIdAndToken._1, clientIdAndToken._2, Json.toJson(accessSettings))

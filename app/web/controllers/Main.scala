@@ -8,6 +8,7 @@ import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ User }
+import org.corespring.services.auth.ApiClientService
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.services.item.FieldValueService
 import org.corespring.v2.api.services.PlayerTokenService
@@ -16,7 +17,7 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Logger
-import play.api.libs.json.{JsString, JsValue, Json, JsObject}
+import play.api.libs.json.{ JsString, JsValue, Json, JsObject }
 import play.api.mvc._
 import play.api.libs.json.Json._
 import securesocial.core.{ SecuredRequest }
@@ -37,9 +38,10 @@ class Main(
   containerVersionInfo: ContainerVersion,
   webExecutionContext: WebExecutionContext,
   playerTokenService: PlayerTokenService,
-  userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts],
-  buildInfo:BuildInfo,
-  assetsLoader:AssetsLoader) extends Controller with securesocial.core.SecureSocial {
+  userSessionOrgIdentity: UserSessionOrgIdentity,
+  buildInfo: BuildInfo,
+  assetsLoader: AssetsLoader,
+  apiClientService: ApiClientService) extends Controller with securesocial.core.SecureSocial {
 
   implicit val context = webExecutionContext.context
 
@@ -68,17 +70,17 @@ class Main(
     }
   }
 
-  def sampleLaunchCode(id:String) = Action.async {
+  def sampleLaunchCode(id: String) = Action.async {
     request =>
       Future {
 
         val token = for {
           maybeUser <- userSessionOrgIdentity(request).map(_.user)
           user <- maybeUser.toSuccess("could not find user")
-          token <- playerTokenService.createToken(user.org.orgId, Json.obj(
+          apiClient <- apiClientService.getOrCreateForOrg(user.org.orgId)
+          token <- playerTokenService.createToken(apiClient, Json.obj(
             "expires" -> (new Date().getTime + 60 * 60 * 1000),
-            "itemId" -> id
-          ))
+            "itemId" -> id))
         } yield token
 
         token match {
@@ -86,7 +88,7 @@ class Main(
             val html = web.views.html.sampleLaunchCode(id, ctr.token, ctr.apiClient, BaseUrl(request))
             Ok(html)
           case Failure(f) =>
-            BadRequest("Couldn't generate player token"+f)
+            BadRequest("Couldn't generate player token" + f)
         }
       }
   }
