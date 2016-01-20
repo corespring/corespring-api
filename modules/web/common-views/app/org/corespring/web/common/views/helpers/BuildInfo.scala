@@ -7,8 +7,9 @@ import com.typesafe.config.{ Config, ConfigFactory }
 import org.corespring.models.item.{ ComponentType, FieldValue }
 import play.api.libs.json._
 
-case class BuildInfo(commitHashShort: String, pushDate: String, branch: String) {
+case class BuildInfo(commitHashShort: String, pushDate: String, branch: String, version: String) {
   lazy val json = Json.obj(
+    "version" -> version,
     "commitHash" -> commitHashShort,
     "branch" -> branch,
     "date" -> pushDate)
@@ -29,6 +30,7 @@ object BuildInfo {
     }
 
     BuildInfo(
+      version = properties.getProperty("version", "?"),
       commitHashShort = properties.getProperty("commit.hash", "?"),
       pushDate = properties.getProperty("date", "?"),
       branch = properties.getProperty("branch", "?"))
