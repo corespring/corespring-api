@@ -21,6 +21,7 @@ describe('item-action-buttons', function(){
   function mkDirective(s){
     var out = compile(
       ['<item-action-button',
+      '  permission="permission"',
       '  item="item"',
       '  publish="publish"',
       '  clone-item="cloneItem"',
@@ -72,7 +73,7 @@ describe('item-action-buttons', function(){
     var scope, directive;
 
     function findPublishButton(){
-      return $(directive).find('li [ng-click="publish(item)"]').parent();
+      return $(directive).find('li[label="publish"]');
     }
 
     beforeEach(function(){
@@ -81,6 +82,7 @@ describe('item-action-buttons', function(){
 
     it('it shows publish button when item is not published', function(){
       scope.item.published = false;
+      scope.permission = {write: true};
       directive = mkDirective(scope);
       expect(findPublishButton().css('display')).toEqual('');
     });

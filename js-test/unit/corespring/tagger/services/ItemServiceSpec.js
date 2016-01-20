@@ -1,6 +1,6 @@
-'use strict';
 
 describe('ItemService', function () {
+  'use strict';
 
   // Mock dependencies
   var MockItemService = function () {
@@ -9,7 +9,7 @@ describe('ItemService', function () {
   MockItemService.createWorkflowObject = jasmine.createSpy("Create Workflow Object");
 
   var MockSearchService = function () {
-  }
+  };
 
   beforeEach(function () {
     module(function ($provide) {

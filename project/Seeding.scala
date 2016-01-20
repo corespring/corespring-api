@@ -10,6 +10,7 @@ object Seeding {
   lazy val settings: Seq[Setting[_]] = newSettings ++ Seq(
     seederLogLevel := "INFO",
     testUri := "mongodb://localhost/api",
+    seedCustomTask,
     seedDevTask,
     seedProdTask,
     seedDebugDataTask,
@@ -66,6 +67,30 @@ object Seeding {
 
   val seedStaticData = TaskKey[Unit]("seed-static-data")
   val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(true)
+
+  val seedCustom = inputKey[Unit]("seed-custom")
+
+  val seedCustomTask = seedCustom := {
+
+    val st = streams.value
+    val args = sbt.complete.Parsers.spaceDelimited("<arg>").parsed
+
+    args match {
+      case Seq(path) => {
+
+        if (file(path).isDirectory) {
+          safeSeed(true)(path, "custom", MongoDbSeederPlugin.seederLogLevel.value, streams.value)
+
+          st.log.info("auto-indexing")
+          Indexing.index.value
+
+        } else {
+          sys.error(s"path: $path doesnt exist")
+        }
+      }
+      case _ => sys.error("You must specify a path to seed")
+    }
+  }
 
   val seedDev = TaskKey[Unit]("seed-dev")
   val seedDevTask = seedDev := {

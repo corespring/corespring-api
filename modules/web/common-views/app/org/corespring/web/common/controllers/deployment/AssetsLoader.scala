@@ -3,18 +3,25 @@ package org.corespring.web.common.controllers.deployment
 import com.amazonaws.services.s3.AmazonS3
 import com.ee.assets.Loader
 import com.ee.assets.deployment.Deployer
+import com.google.javascript.jscomp.CompilerOptions
 import org.apache.commons.lang3.StringUtils
 import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Mode.Mode
-import play.api.{Configuration, Mode, Logger}
+import play.api.{ Configuration, Mode, Logger }
 
-class AssetsLoader(mode:Mode, config:Configuration, s3Client : AmazonS3, buildInfo:BuildInfo) {
+class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildInfo: BuildInfo) {
 
   private[this] val logger = Logger(classOf[AssetsLoader])
 
   private def isProd: Boolean = mode == Mode.Prod
 
   val bucketNameLengthMax = 63
+
+  lazy val closureOptions = {
+    val o = new CompilerOptions()
+    o.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT5)
+    o
+  }
 
   lazy val loader: Loader = if (isProd) {
 
@@ -43,11 +50,10 @@ class AssetsLoader(mode:Mode, config:Configuration, s3Client : AmazonS3, buildIn
     }
 
     lazy val s3Deployer: Deployer = new S3Deployer(Some(s3Client), bucketName, releaseRoot)
-    new Loader(Some(s3Deployer), mode, config)
+    new Loader(Some(s3Deployer), mode, config, Some(closureOptions))
   } else {
-    new Loader(None, mode, config)
+    new Loader(None, mode, config, Some(closureOptions))
   }
-
 
   def tagger = loader.scripts("tagger")("js/corespring/tagger")
 
@@ -68,7 +74,6 @@ class AssetsLoader(mode:Mode, config:Configuration, s3Client : AmazonS3, buildIn
     "js/corespring/qti/directives/feedbackInline.js",
     "js/corespring/qti/prototype.extensions/Array.js",
     "js/corespring/qti/prototype.extensions/Function.js")
-
 
   def init() = if (isProd) {
     logger.debug("running S3 deployments...")

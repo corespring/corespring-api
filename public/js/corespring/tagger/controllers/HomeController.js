@@ -15,7 +15,8 @@
     'Logger',
     'Modals',
     'UserInfo',
-    'V2ItemService'
+    'V2ItemService',
+    'CollectionManager'
   ];
 
   function HomeController(
@@ -30,7 +31,8 @@
     Logger,
     Modals,
     UserInfo,
-    V2ItemService
+    V2ItemService,
+    CollectionManager
   ) {
 
     //Mixin ItemFormattingUtils
@@ -88,12 +90,6 @@
     }
 
     function init() {
-      if ($rootScope.itemData) {
-        var id = $rootScope.itemData.id;
-        $timeout(function() {
-          highlightItem(id);
-        }, 200);
-      }
       $rootScope.itemData = undefined;
       $scope.userName = UserInfo.userName;
       $scope.org = UserInfo.org;
@@ -130,7 +126,33 @@
     }
 
     function cloneItem(item) {
-      route('cloneItem', item);
+
+      function callService(collectionId, open){
+        V2ItemService.clone({
+          id: item.id,
+          collectionId: collectionId
+        },
+        function success(newItem) {
+          if(open){
+            var query = isV1(item) ? '?devEditor=true' : '';
+            $location.url('/edit/draft/' + newItem.id + query);
+          }
+          $scope.delayedSearch();
+        },
+        function error(err) {
+          alert('cloneItem:', JSON.stringify(err));
+        });
+      }
+
+      ItemService.get({id: item.id}, function(itemData){
+        var collections = CollectionManager.writableCollections();
+        Modals.clone(itemData, collections, function(cancelled, open, targetCollection){
+
+          if(!cancelled){
+            callService(targetCollection.id, open);
+          }
+        });
+      });
     }
 
     function isV1(item) {
@@ -158,24 +180,6 @@
         } else {
           $location.url('/edit/draft/' + item.id + '?devEditor=true');
         }
-      };
-
-      this.cloneItem = function(item) {
-        //The item passed in is not coming from the v1 ItemService
-        //and therefore doesn't have the clone method. ItemService.get
-        //does that for us.
-        ItemService.get({
-          id: item.id
-        }, function(itemData) {
-          itemData.clone(
-            function success(newItem) {
-              $location.url('/edit/draft/' + newItem.id + '?devEditor=true');
-            },
-            function error(err) {
-              alert('cloneItem:', JSON.stringify(err));
-            }
-          );
-        });
       };
 
       this.publish = function(item) {
@@ -235,18 +239,6 @@
         publish(item);
       };
 
-      this.cloneItem = function(item) {
-        V2ItemService.clone({
-            id: item.id
-          },
-          function success(newItem) {
-            goToEditDraft(newItem.id);
-          },
-          function error(err) {
-            alert('cloneItem:', JSON.stringify(err));
-          }
-        );
-      };
     }
 
     function deleteItem(item) {
