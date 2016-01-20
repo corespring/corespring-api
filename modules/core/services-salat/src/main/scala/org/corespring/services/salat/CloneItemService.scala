@@ -29,7 +29,10 @@ class CloneItemService(
 
   private def err(s: String) = PlatformServiceError(s)
 
-  override def cloneItem(itemId: VersionedId[ObjectId], orgId: ObjectId, targetCollectionId: Option[ObjectId] = None): FutureValidation[PlatformServiceError, VersionedId[ObjectId]] = {
+  override def cloneItem(
+    itemId: VersionedId[ObjectId],
+    orgId: ObjectId,
+    destinationCollectionId: Option[ObjectId] = None): FutureValidation[PlatformServiceError, VersionedId[ObjectId]] = {
 
     def hasPermission(requestedPermission: Permission,
       e: (ObjectId, Option[Permission], ObjectId) => OrgNotAuthorized)(id: ObjectId, granted: Option[Permission]): Validation[OrgNotAuthorized, Boolean] = {
@@ -46,20 +49,22 @@ class CloneItemService(
     val canWrite = hasPermission(Write, CantWriteToCollection _) _
     val canClone = hasPermission(Clone, CantCloneFromCollection _) _
 
+    def getDestinationCollectionId(itemCollectionId: ObjectId) = fv(Success(destinationCollectionId.getOrElse(itemCollectionId)))
+
     for {
       item <- fv(itemService.findOneById(itemId).toSuccess(ItemNotFound(itemId)))
       itemCollectionId <- fv(if (ObjectId.isValid(item.collectionId)) Success(new ObjectId(item.collectionId)) else Failure(err(s"Item: $itemId has an invalid collection id: ${item.collectionId}")))
-      targetId <- fv(Success(targetCollectionId.getOrElse(itemCollectionId)))
+      destinationId <- getDestinationCollectionId(itemCollectionId)
       //Note: retrieve multiple permissions in one call - should be lighter on the backend
-      perms <- FutureValidation(orgCollectionService.getPermissions(orgId, itemCollectionId, targetId).map(r => Success(r)))
-      targetPermission <- fv(perms.find(_._1 == targetId).toSuccess(err(s"Can't find permission for $targetId")))
-      itemCollectionPermission <- fv(perms.find(_._1 == itemCollectionId).toSuccess(err(s"Can't find permission for $itemCollectionId")))
-      _ <- fv(canWrite.tupled(targetPermission))
+      allPermissions <- FutureValidation(orgCollectionService.getPermissions(orgId, itemCollectionId, destinationId).map(r => Success(r)))
+      destinationPermission <- fv(allPermissions.find(_._1 == destinationId).toSuccess(err(s"Can't find permission for $destinationId")))
+      itemCollectionPermission <- fv(allPermissions.find(_._1 == itemCollectionId).toSuccess(err(s"Can't find permission for $itemCollectionId")))
+      _ <- fv(canWrite.tupled(destinationPermission))
       _ <- fv(canClone.tupled(itemCollectionPermission))
-      clonedItem <- fv(itemService.cloneToCollection(item, targetId).toSuccess(CloneFailed(itemId)))
+      clonedItem <- fv(itemService.cloneToCollection(item, destinationId).toSuccess(CloneFailed(itemId)))
     } yield {
-      if (itemCollectionId == targetId) {
-        logger.info(s"the item collectionId (${itemCollectionId}) is the same as the collectionId ($targetCollectionId) - so the cloned Item will be in the same collection")
+      if (itemCollectionId == destinationId) {
+        logger.info(s"the item collectionId (${itemCollectionId}) is the same as the collectionId ($destinationCollectionId) - so the cloned Item will be in the same collection")
       }
       clonedItem.id
     }

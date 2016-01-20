@@ -82,7 +82,7 @@ angular.module('tagger.services')
         this.clone = function( params, onSuccess, onError) {
             var url = "/api/v2/items/:id/clone".replace(":id", params.id);
 
-            $http.post(url, {})
+            $http.post(url, {collectionId: params.collectionId})
                 .success(onSuccess)
                 .error(onError);
        };

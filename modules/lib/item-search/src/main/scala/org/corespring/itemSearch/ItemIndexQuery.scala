@@ -20,7 +20,16 @@ case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
   workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
   sort: Seq[Sort] = ItemIndexQuery.Defaults.sort,
   metadata: Map[String, String] = ItemIndexQuery.Defaults.metadata,
-  requiredPlayerWidth: Option[Int] = ItemIndexQuery.Defaults.requiredPlayerWidth)
+  requiredPlayerWidth: Option[Int] = ItemIndexQuery.Defaults.requiredPlayerWidth) {
+
+  def scopeToCollections(collectionIds: String*): ItemIndexQuery = {
+    val scopedCollections = collections.filter(c => collectionIds.exists(_ == c)) match {
+      case Nil => collectionIds
+      case c: Seq[String] => c
+    }
+    this.copy(collections = scopedCollections)
+  }
+}
 
 case class Sort(field: String, direction: Option[String])
 
@@ -142,8 +151,7 @@ object ItemIndexQuery {
         standards = (json \ standards).asOpt[Seq[String]].getOrElse(Defaults.standards),
         text = (json \ text).asOpt[String],
         widgets = (json \ widgets).asOpt[Seq[String]].getOrElse(Defaults.widgets),
-        workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows)
-      ))
+        workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows)))
   }
 
   /**

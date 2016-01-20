@@ -1,0 +1,11 @@
+{
+  "_id" : {
+    "$oid": "500000000000000000000299"
+  },
+  "name" : "Default",
+  "description" : "Default",
+  "isPublic" : false,
+  "ownerOrgId" : {
+    "$oid": "000000000000000000002931"
+  }
+}
