@@ -109,7 +109,7 @@ object Errors {
 
   case class cantFindAssessmentTemplateWithId(assessmentTemplateId: ObjectId) extends cantFindById("Can't Find Assessment Template with ID", "The assessment template with the id provided by the request could not be found.", "assessmentTemplate", assessmentTemplateId.toString)
 
-  abstract class cantFindById(title: String, description: String, name: String, id: String) extends V2Error(title, description, s"Can't find $name with id: $id", NOT_FOUND)
+  abstract class cantFindById(title: String, description: String, name: String, id: String) extends V2Error(title, description, s"Can't find $name with id $id", NOT_FOUND)
 
   case class invalidPval(pval: Long, collectionId: String, orgId: ObjectId) extends V2Error("Invalid Permission Value", "The permission value for the request was not valid for the collection and organization.", s"Unknown pval: $pval for collection $collectionId in org: $orgId")
 

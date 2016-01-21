@@ -84,7 +84,7 @@ class MainTest extends Specification with Mockito with PlaySpecification {
 
     lazy val webExecutionContext = WebExecutionContext(ExecutionContext.global)
 
-    val buildInfo = BuildInfo("hash", "date", "branch")
+    val buildInfo = BuildInfo("hash", "date", "branch", "version")
 
     val assetsLoader = mock[AssetsLoader]
     val main = new Main(
