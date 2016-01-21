@@ -1,4 +1,4 @@
-![corespring](public/images/logo.png)
+![corespring](public/images/logo2015.png)
 
 This project contains the api rest layer and web ui for administering corespring items.
 
