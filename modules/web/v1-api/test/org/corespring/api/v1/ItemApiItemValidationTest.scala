@@ -63,18 +63,20 @@ class ItemApiItemValidationTest
       }
 
       "insert storageKeys from db item into data.supportingMaterials" in new scope {
+
+        val initialResource = Resource(name = "sm-1", files = Seq(virtualFile, storedFileWithoutStorageKey))
+        val expectedResource = initialResource.copy(files = Seq(virtualFile, storedFile))
+
         val item = Item(
           collectionId = collectionId.toString,
           id = itemId,
-          supportingMaterials = Seq(Resource(name = "sm-1", files = Seq(virtualFile, storedFileWithoutStorageKey))))
+          supportingMaterials = Seq(initialResource))
 
-        val expected = Item(
-          collectionId = collectionId.toString,
-          id = itemId,
-          supportingMaterials = Seq(Resource(name = "sm-1", files = Seq(virtualFile, storedFile))))
+        val expected = item.copy(supportingMaterials = Seq(expectedResource))
 
         sut.validateItem(dbItem, item) must_== Success(expected)
       }
+
     }
 
   }
