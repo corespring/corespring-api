@@ -53,6 +53,7 @@ class ItemDraftsTest
       m.load(any[OrgAndUser])(any[DraftId]) returns Success(itemDraft)
       m.loadOrCreate(any[OrgAndUser])(any[DraftId], any[Boolean]) returns Success(itemDraft)
       m.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]) returns Success(itemCommit)
+      m.remove(any[OrgAndUser])(any[DraftId]) returns Success(draftId)
       m
     }
 
@@ -154,7 +155,7 @@ class ItemDraftsTest
     "fail if commit fails" in new scope {
       val result = itemDrafts.commit(draftId.toIdString)(req)
       drafts.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]) returns e("commit")
-      contentAsJson(result) must_== generalDraftApiError(SaveCommitFailed.msg).json
+      (contentAsJson(result) \ "error").as[String] must_== "commit"
     }
 
     //      Success(mockItemDraft),
@@ -174,11 +175,13 @@ class ItemDraftsTest
     //      }
 
     "fail if no user is found" in new scope {
+      override lazy val userResult = None
       val result = itemDrafts.get(draftId.toIdString)(req)
       contentAsJson(result) must_== AuthenticationFailed.json
     }
 
     "fail if draft loading fails" in new scope {
+      drafts.loadOrCreate(any[OrgAndUser])(any[DraftId], any[Boolean]) returns e("load")
       contentAsJson(itemDrafts.get(draftId.toIdString)(req)) must_== generalDraftApiError("load").json
     }
 
@@ -202,11 +205,14 @@ class ItemDraftsTest
     //      }
 
     "fail if no user is found" in new scope {
+      override lazy val userResult = None
       contentAsJson(itemDrafts.delete(draftId.toIdString, None)(req)) must_== AuthenticationFailed.json
     }
 
     "fail if delete fails" in new scope {
-      contentAsJson(itemDrafts.delete(draftId.toIdString, None)(req)) must_== generalDraftApiError(DeleteDraftFailed(draftId).msg).json
+      drafts.remove(any[OrgAndUser])(any[DraftId]) returns e("delete")
+      val result = itemDrafts.delete(draftId.toIdString, None)(req)
+      (contentAsJson(result) \ "error").as[String] must_== "delete"
     }
 
     s"return $OK" in new scope {
