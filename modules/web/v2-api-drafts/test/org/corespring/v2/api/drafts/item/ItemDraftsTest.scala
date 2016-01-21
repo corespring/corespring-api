@@ -17,7 +17,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scalaz.Scalaz._
-import scalaz.Success
+import scalaz.{ Failure, Success }
 
 class ItemDraftsTest
   extends Specification
@@ -37,11 +37,14 @@ class ItemDraftsTest
 
     lazy val itemDraftJson = new ItemDraftJson(jsonFormatting)
 
-    lazy val draftId = DraftId(ObjectId.get, "", ObjectId.get)
+    lazy val itemId = ObjectId.get
+    lazy val draftId = DraftId(itemId, "name", ObjectId.get)
     lazy val orgAndUser: OrgAndUser = OrgAndUser(SimpleOrg(ObjectId.get, "org"), None)
     lazy val itemDraft = {
       ItemDraft(draftId, Item(collectionId = ObjectId.get.toString), orgAndUser)
     }
+
+    lazy val itemCommit = ItemCommit(draftId, orgAndUser, VersionedId(itemId, Some(1)), DateTime.now)
 
     lazy val drafts = {
       val m = mock[org.corespring.drafts.item.ItemDrafts]
@@ -49,6 +52,7 @@ class ItemDraftsTest
       m.create(any[DraftId], any[OrgAndUser], any[Option[DateTime]]) returns Success(itemDraft)
       m.load(any[OrgAndUser])(any[DraftId]) returns Success(itemDraft)
       m.loadOrCreate(any[OrgAndUser])(any[DraftId], any[Boolean]) returns Success(itemDraft)
+      m.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]) returns Success(itemCommit)
       m
     }
 
@@ -107,7 +111,7 @@ class ItemDraftsTest
     "returns draft creation failed error" in new scope {
       val result = itemDrafts.create(itemId.toString)(req)
       val err = draftCreationFailed(itemId.toString)
-      drafts.create(any[DraftId], any[Org])
+      drafts.create(any[DraftId], any[OrgAndUser], any[Option[DateTime]]) returns Failure(TestError("create-failed"))
       status(result) must_== err.statusCode
     }
 
@@ -120,6 +124,8 @@ class ItemDraftsTest
       status(result) must_== OK
     }
   }
+
+  def e(msg: String) = Failure(TestError(msg))
 
   "commit" should {
 
@@ -135,16 +141,19 @@ class ItemDraftsTest
 
     "fail if no user is found" in new scope {
       val result = itemDrafts.commit(draftId.toIdString)(req)
+      override lazy val userResult = None
       contentAsJson(result) must_== AuthenticationFailed.json
     }
 
     "fail if draft is not loaded" in new scope {
       val result = itemDrafts.commit(draftId.toIdString)(req)
-      contentAsJson(result) must_== generalDraftApiError("load").json //cantLoadDraft(draftId.toIdString).json
+      drafts.load(any[OrgAndUser])(any[DraftId]) returns e("load")
+      (contentAsJson(result) \ "error").as[String] must_== "load"
     }
 
     "fail if commit fails" in new scope {
       val result = itemDrafts.commit(draftId.toIdString)(req)
+      drafts.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]) returns e("commit")
       contentAsJson(result) must_== generalDraftApiError(SaveCommitFailed.msg).json
     }
 
