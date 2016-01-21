@@ -14,6 +14,10 @@ import scalaz._
 
 class ItemApiSearchTest extends ItemApiSpec {
 
+  private def waitFor[A](f: Future[A]): A = {
+    Await.result(f, 2.seconds)
+  }
+
   case class searchApiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
     searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends ItemApiScope {
     import ExecutionContext.Implicits.global
@@ -61,6 +65,7 @@ class ItemApiSearchTest extends ItemApiSpec {
           orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq(allowableCollections.head.toString, restrictedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
+          waitFor(result)
           there was one(itemIndexService).search(ItemIndexQuery(collections = Seq(allowableCollections.head.toString)))
         }
 
