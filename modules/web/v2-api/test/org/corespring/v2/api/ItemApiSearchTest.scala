@@ -33,7 +33,7 @@ class ItemApiSearchTest extends ItemApiSpec {
 
     "call itemIndexService#search" in new searchApiScope {
       val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
-      Await.result(result, 1.second)
+      waitFor(result)
       there was one(itemIndexService).search(any[ItemIndexQuery])
     }
 
@@ -43,6 +43,7 @@ class ItemApiSearchTest extends ItemApiSpec {
         new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq()).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
+          waitFor(result)
           there was one(itemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
         }
     }
@@ -53,6 +54,7 @@ class ItemApiSearchTest extends ItemApiSpec {
         new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq(restrictedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
+          waitFor(result)
           there was one(itemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
         }
 
