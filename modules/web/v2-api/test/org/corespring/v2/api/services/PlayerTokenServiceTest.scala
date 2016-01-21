@@ -15,19 +15,21 @@ import scalaz.{ Failure, Success }
 
 class PlayerTokenServiceTest extends Specification with Mockito {
 
-  class serviceScope(encryptionResult: EncryptionResult = EncryptionSuccess("clientId", "data")) extends Scope {
+  private class scope(encryptionResult: EncryptionResult = EncryptionSuccess("clientId", "data")) extends Scope {
+
+    val apiClient = ApiClient(ObjectId.get, ObjectId.get, "secret")
 
     val encryptionService: ApiClientEncryptionService = {
       val m = mock[ApiClientEncryptionService]
-      m.encryptByOrg(any[ObjectId], anyString) returns Some(encryptionResult)
+      m.encrypt(any[ApiClient], anyString) returns Some(encryptionResult)
       m
     }
 
     val service = new PlayerTokenService(encryptionService)
   }
 
-  class serviceScopeWithJsonBack(jsonIn: JsValue) extends serviceScope {
-    lazy val result = service.createToken(ObjectId.get, jsonIn)
+  private class serviceScopeWithJsonBack(jsonIn: JsValue) extends scope {
+    lazy val result = service.createToken(apiClient, jsonIn)
     lazy val jsonBack = result match {
       case Success(CreateTokenResult(_, _, jsonBack)) => jsonBack
       case _ => Json.obj("error" -> "should't get this json")
@@ -36,19 +38,19 @@ class PlayerTokenServiceTest extends Specification with Mockito {
 
   "PlayerTokenService" should {
 
-    "fail if encryption fails" in new serviceScope(
+    "fail if encryption fails" in new scope(
       EncryptionFailure("?", new RuntimeException("?"))) {
-      val result = service.createToken(ObjectId.get, Json.obj("expires" -> 0))
+      val result = service.createToken(apiClient, Json.obj("expires" -> 0))
       result must_== Failure(encryptionFailed("?"))
     }
 
-    "fail if expires is missing" in new serviceScope() {
-      val result = service.createToken(ObjectId.get, Json.obj())
+    "fail if expires is missing" in new scope() {
+      val result = service.createToken(apiClient, Json.obj())
       result must_== Failure(missingRequiredField(Field("expires", "number")))
     }
 
-    "create token" in new serviceScope() {
-      val result = service.createToken(ObjectId.get, Json.obj("expires" -> 0))
+    "create token" in new scope() {
+      val result = service.createToken(apiClient, Json.obj("expires" -> 0))
       val accessSettings = PlayerAccessSettings.ANYTHING.copy(mode = Some(PlayerAccessSettings.STAR))
       result must_== Success(CreateTokenResult("clientId", "data", Json.toJson(accessSettings)))
     }

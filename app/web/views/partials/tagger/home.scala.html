@@ -1,11 +1,16 @@
 
 <!-- Collections Modal -->
-<div ui-modal class="create-collection-pane" ng-model="uiState.showCollectionsPane" style="padding: 20px" ng-controller="CreateCollection" ng-click="paneClicked()">
+<div ui-modal class="create-collection-pane"
+     ng-model="uiState.showCollectionsPane"
+     ng-controller="CreateCollection"
+     ng-click="paneClicked()">
     <div class="modal-header create-collections">
-          <span class="close close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false">×</span>
-        <div class="header">
-            <button type="button" class="btn btn-default" ng-click="viewState = 'org'" ng-disabled="viewState == 'org'">{{orgName}} Collections</button>
-            <button type="button" class="btn btn-default" ng-click="viewState = 'shared'" ng-disabled="viewState == 'shared'">Shared Collections</button>
+        <span class="close close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false">×</span>
+        <h4 class="manage-title header">Manage collections for {{orgName}}</h4>
+        <br/>
+        <div>
+            <button type="button" class="btn btn-default" ng-click="viewState = 'org'" ng-disabled="viewState == 'org'">Your collections</button>
+            <button type="button" class="btn btn-default" ng-click="viewState = 'shared'" ng-disabled="viewState == 'shared'">Collections shared with you</button>
         </div>
     </div>
     <div ng-show="viewState == 'org'">
@@ -60,8 +65,9 @@
             <table class="table header">
                 <thead>
                 <th class="collection-label">Collection</th>
-                <th># of items</th>
-                <th></th>
+                <th class="no-of-items"># of items</th>
+                <th class="permission">Permission</th>
+                <th class="actions"></th>
                 </thead>
             </table>
         </div>
@@ -71,8 +77,9 @@
                 <tbody>
                 <tr ng-repeat="collection in sharedCollections | filter:{isPublic:false}">
                     <td class="collection-label">{{collection.name}}</td>
-                    <td>{{collection.itemCount}}</td>
-                    <td>
+                    <td class="no-of-items">{{collection.itemCount}}</td>
+                    <td class="permission">{{collection.permission}}</td>
+                    <td class="actions">
                         <span ng-show="collection.enabled"><a ng-click="disableCollection(collection)">disable</a></span>
                         <span ng-show="!collection.enabled"><a ng-click="enableCollection(collection)">enable</a></span>
                     </td>
@@ -90,9 +97,7 @@
             <!-- org collections -->
             <table class="table header">
                 <thead>
-                <th class="collection-label">Collection: {{activeCollection.name}}, Shared with Organizations....</th>
-                <th></th>
-                <th></th>
+                <th class="collection-label">Collection '{{activeCollection.name}}' is shared with:</th>
                 </thead>
             </table>
         </div>
@@ -103,18 +108,30 @@
                 <tr ng-repeat="org in orgsForSharedCollection">
                     <td class="collection-label">{{org.name}}</td>
                     <td></td>
-                    <td>
-                        <span></span>
-                    </td>
+                    <td class="permission">{{org.permission}}</td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
         <div class="footer">
-            Organization ID: <input type="text" id="sharedOrgIdInput" ui-keypress="{13:'shareCollection(sharedOrgId, activeCollection)'}" placeholder="enter org id..." ng-model="sharedOrgId">
-            <button class="btn btn-primary" ng-click="shareCollection(sharedOrgId, activeCollection)">share</button>
-            <button class="btn btn-default" ng-click="viewState = 'org'">cancel</button>
+            Organization ID:
+            <input type="text"
+                    id="sharedOrgIdInput"
+                    ui-keypress="{13:'shareCollection(sharedOrgId, activeCollection)'}"
+                    placeholder="enter org id..."
+                    ng-model="sharedOrgId">
+
+            <select ng-select="" prompt="Permission..." ng-model="sharedPermission">
+                <option value="read">read</option>
+                <option value="clone">clone</option>
+                <option value="write">write</option>
+            </select>
+
+            <button class="btn btn-primary"
+                    ng-click="shareCollection(sharedOrgId, sharedPermission, activeCollection)">share</button>
+            <button class="btn btn-default"
+                    ng-click="viewState = 'org'">cancel</button>
         </div>
         <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
     </div>
@@ -259,7 +276,6 @@
             </td>
             <td>
               <i class="label label-info fa fa-bolt" style="width: 10px"></i> = published<br/>
-              <i class="label label-info fa fa-history" style="width: 10px"></i> = authored in v1
             </td>
         </tr>
         </tbody>
@@ -276,8 +292,7 @@
         <table class="item-list table content-sort table-striped" style="margin: 0 auto; margin-top:20px; width:95%;">
             <thead>
             <tr>
-                <th width="10"></th>
-                <th width="150"></th>
+                <th width="70">Actions</th>
                 <th sort-column-header field="title" width="200">Title</th>
                 <th class="description-column" sort-column-header field="description" width="300">Description</th>
                 <th width="100" sort-column-header field="primarySubject">Subject</th>
@@ -285,49 +300,54 @@
                 <th width="100" sort-column-header field="itemType">Item Type</th>
                 <th width="150">Standard(s)</th>
                 <th width="80" sort-column-header field="contributor">Source</th>
-                <th width="70">Actions</th>
+                <th width="70" sort-column-header field="apiVersion">Format</th>
             </tr>
             </thead>
             <tbody>
             <tr id="row-{{item.id}}" ng-repeat="item in items" style="cursor: pointer;">
-                <td>
-                  <i ng-show="isV1(item)" class="label label-info fa fa-history"></i>
-                </td>
-                <td class="buttons-align-right">
-                  <button ng-click="edit(item)" ng-show="!item.readOnly" class="btn btn-default btn-edit btn-sm"><i class="fa fa-pencil"></i> edit</button>
-                  <a class="btn btn-default btn-preview btn-sm" ng-click="launchCatalogView()"><i class="fa fa-eye"></i> Preview</a>
-                </td>
-                <td>
-                    <span ng-show="item.published" class="label label-info">
-                      <i class="fa fa-bolt" title="Published"></i>&nbsp;
-                    </span>
-                    <a ng-click="launchCatalogView()" ui-jq="tooltip"
-                       ui-options="{title: buildTitleTooltip(item.title)}">{{buildTitleEllipsis(item.title)}}</a>
-                </td>
-                <td class="description-column">
-                    <a ng-click="launchCatalogView()" ui-jq="tooltip"
-                       ui-options="{title: buildDescriptionTooltip(item.description)}">{{buildDescriptionEllipsis(item.description)}}</a>
-               </td>
-                <td>{{item.subject}}</td>
-                <td>{{createGradeLevelString(item.gradeLevels)}} </td>
-                <td>{{showItemType(item)}}</td>
-                <td>
-                    <a ui-jq="tooltip"
-                       ui-options="{placement: 'right', title: buildStandardTooltip(item.standards)}"
-                       class="standards-list"
-                       >
-                       <span>{{buildStandardLabel(item.standards)}}</span>
-                     </a>
-                </td>
-                <td>{{getAuthorAbbreviation(item.contributor)}}</td>
+
                 <td>
                   <item-action-button
                     item="item"
+                    permission="item.permission"
                     edit="edit(item)"
                     publish="publish(item)"
-                    clone-item="cloneItem(item)"
-                    delete-item="deleteItem(item)"></item-action-button>
+                    clone="cloneItem(item)"
+                    delete="deleteItem(item)"></item-action-button>
                 </td>
+
+                <td>
+                  <span ng-show="item.published" class="label label-info">
+                    <i class="fa fa-bolt" title="Published"></i>&nbsp;
+                  </span>
+                  <a ng-click="launchCatalogView()" ui-jq="tooltip"
+                     ui-options="{title: buildTitleTooltip(item.title)}">{{buildTitleEllipsis(item.title)}}</a>
+                </td>
+
+
+                <td class="description-column">
+                  <a ng-click="launchCatalogView()" ui-jq="tooltip"
+                     ui-options="{title: buildDescriptionTooltip(item.description)}">{{buildDescriptionEllipsis(item.description)}}</a>
+               </td>
+
+                <td>{{item.subject}}</td>
+
+                <td>{{createGradeLevelString(item.gradeLevels)}} </td>
+
+                <td>{{showItemType(item)}}</td>
+
+                <td>
+                  <a ui-jq="tooltip"
+                     ui-options="{placement: 'right', title: buildStandardTooltip(item.standards)}"
+                     class="standards-list">
+                     <span>{{buildStandardLabel(item.standards)}}</span>
+                   </a>
+                </td>
+
+                <td>{{getAuthorAbbreviation(item.contributor)}}</td>
+
+                <td><item-format format="item.apiVersion"/></td>
+
             </tr>
             </tbody>
         </table>

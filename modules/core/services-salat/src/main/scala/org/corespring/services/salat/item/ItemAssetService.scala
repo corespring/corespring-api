@@ -76,8 +76,7 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
         logger.warn(s"This file has a bad key. id=${to.id}, resource=${resource.name}, file=${file.name}")
       }
 
-      logger.debug("[ItemFiles] clone file: " + from + " --> " + to)
-      println("[ItemFiles] clone file: " + fromKey + " --> " + toKey)
+      logger.debug("[ItemFiles] clone file: " + fromKey + " --> " + fromKey)
       copyAsset(fromKey, toKey)
       toKey
     })

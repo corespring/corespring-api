@@ -20,7 +20,7 @@ trait ItemImportModule {
 
   def transferManager: TransferManager
 
-  def userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts]
+  def userSessionOrgIdentity: UserSessionOrgIdentity
 
   def itemService: ItemService
 

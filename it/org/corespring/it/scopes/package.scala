@@ -15,7 +15,7 @@ import org.corespring.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.services.salat.bootstrap.CollectionNames
-import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
+import org.corespring.v2.auth.identifiers.PlayerTokenIdentity.Keys
 import org.specs2.specification.BeforeAfter
 import play.api.http.{ ContentTypeOf, Writeable }
 import play.api.libs.Files
@@ -361,8 +361,6 @@ package object scopes {
   }
 
   trait IdAndPlayerTokenRequestBuilder extends RequestBuilder { self: clientIdAndPlayerToken =>
-
-    import PlayerTokenInQueryStringIdentity.Keys
 
     def skipDecryption: Boolean
 

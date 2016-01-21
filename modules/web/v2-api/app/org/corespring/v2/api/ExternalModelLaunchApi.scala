@@ -1,6 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.Item
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.models.{ IdentityJson, OrgAndOpts, PlayerAccessSettings }
@@ -22,7 +23,11 @@ class ExternalModelLaunchApi(
   sessionServices: SessionServices,
   config: ExternalModelLaunchConfig,
   v2ApiContext: V2ApiExecutionContext,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)]) extends V2Api {
+
+  override def getOrgAndOptionsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = r => {
+    identifyFn(r).map(_._1)
+  }
 
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
@@ -49,13 +54,15 @@ class ExternalModelLaunchApi(
         "item" -> item)
 
       val out: Validation[V2Error, LaunchInfo] = for {
-        orgAndOpts <- getOrgAndOptions(request)
+        tuple <- identifyFn(request)
+        orgAndOpts <- Success(tuple._1)
         externalJson <- request.body.asJson.toSuccess(noJson)
         model <- (externalJson \ "model").asOpt[JsObject].toSuccess(missingRequiredField(Field("model", "object")))
         sessionId <- sessionServices.main.create(inlineItem(orgAndOpts, model)).toSuccess(generalError("Error creating session"))
         accessSettings <- (externalJson \ "accessSettings").asOpt[JsObject].toSuccess(missingRequiredField(Field("accessSettings", "object")))
         settingsWithDefaults <- addDefaults(accessSettings, sessionId)
-        tokenResult <- tokenService.createToken(orgAndOpts.org.id, settingsWithDefaults)
+        apiClient <- Success(tuple._2)
+        tokenResult <- tokenService.createToken(apiClient, settingsWithDefaults)
       } yield {
         val url = s"${config.playerJsUrl}?apiClient=${tokenResult.apiClient}&playerToken=${tokenResult.token}"
         LaunchInfo(sessionId.toString, tokenResult.token, tokenResult.apiClient, url, tokenResult.settings)

@@ -5,6 +5,7 @@ import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
 import org.corespring.models.item.FieldValue
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
+import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.v2.api.services.PlayerTokenService
@@ -48,7 +49,7 @@ class MainTest extends Specification with Mockito with PlaySpecification {
     }
 
     lazy val userSessionOrgIdentity = {
-      val m = mock[UserSessionOrgIdentity[OrgAndOpts]]
+      val m = mock[UserSessionOrgIdentity]
       m
     }
 
@@ -73,11 +74,17 @@ class MainTest extends Specification with Mockito with PlaySpecification {
       m.all returns Json.arr()
       m
     }
+
+    lazy val apiClientService = {
+      val m = mock[ApiClientService]
+      m
+    }
+
     lazy val containerVersion = ContainerVersion(Json.obj())
 
     lazy val webExecutionContext = WebExecutionContext(ExecutionContext.global)
 
-    val buildInfo = BuildInfo("hash", "date", "branch")
+    val buildInfo = BuildInfo("hash", "date", "branch", "version")
 
     val assetsLoader = mock[AssetsLoader]
     val main = new Main(
@@ -92,7 +99,8 @@ class MainTest extends Specification with Mockito with PlaySpecification {
       playerTokenService,
       userSessionOrgIdentity,
       buildInfo,
-      assetsLoader)
+      assetsLoader,
+      apiClientService)
   }
 
   "defaultValues" should {

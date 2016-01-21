@@ -57,7 +57,7 @@ angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$ht
     }
 
     function makeRequest(query){
-      return loading($http.get('/api/v2/items?query=' + encodeURIComponent(JSON.stringify(query))));
+      return loading($http.get('/web/item-search?query=' + encodeURIComponent(JSON.stringify(query))));
     }
 
     function Results() {

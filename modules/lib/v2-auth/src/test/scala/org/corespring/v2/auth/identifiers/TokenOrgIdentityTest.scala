@@ -2,22 +2,22 @@ package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
 import org.corespring.errors.{ GeneralError, PlatformServiceError }
-import org.corespring.models.{ Organization, User }
+import org.corespring.models.Organization
+import org.corespring.models.auth.{ ApiClient, AccessToken }
 import org.corespring.services.OrganizationService
-import org.corespring.services.auth.AccessTokenService
+import org.corespring.services.auth.{ AccessTokenService, ApiClientService, UpdateAccessTokenService }
 import org.corespring.v2.errors.Errors.{ noToken, _ }
-import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.mvc.{ AnyContentAsEmpty, RequestHeader }
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 
 import scalaz.{ Failure, Success, Validation }
 
 class TokenOrgIdentityTest extends Specification with Mockito {
 
-  def mockOrg = {
+  val mockOrg = {
     val m = mock[Organization]
     m.id returns ObjectId.get
     m
@@ -25,14 +25,22 @@ class TokenOrgIdentityTest extends Specification with Mockito {
 
   def testError = GeneralError("testError", None)
 
-  "TokenBasedRequestTransformer" should {
+  "apply" should {
 
-    class scope[A](val org: Validation[PlatformServiceError, Organization] = Failure(testError),
-      val defaultCollection: Option[ObjectId] = None) extends Scope {
+    class scope[A](val apiClientId: Option[ObjectId] = Some(ObjectId.get),
+      val org: Validation[PlatformServiceError, Organization] = Failure(testError))
+      extends Scope {
+
+      lazy val accessToken = AccessToken(apiClientId, mockOrg.id, None, "tokenId")
 
       lazy val tokenService: AccessTokenService = {
         val m = mock[AccessTokenService]
-        m.orgForToken(any[String]) returns org
+        m.findByTokenId(any[String]) returns Some(accessToken)
+        m
+      }
+
+      lazy val updateAccessTokenService: UpdateAccessTokenService = {
+        val m = mock[UpdateAccessTokenService]
         m
       }
 
@@ -42,26 +50,39 @@ class TokenOrgIdentityTest extends Specification with Mockito {
         m
       }
 
-      class MockIdentity extends TokenOrgIdentity[String](tokenService, orgService) {
-        /** convert the header, org and defaultCollection into the expected output type B */
-        override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, String] = Success("Worked")
+      lazy val apiClient = ApiClient(mockOrg.id, ObjectId.get, "secret")
+
+      lazy val apiClientService = {
+        val m = mock[ApiClientService]
+        m.getOrCreateForOrg(any[ObjectId]) returns Success(apiClient)
+        m
       }
-      val transformer = new MockIdentity()
+
+      val identifier = new TokenOrgIdentity(
+        tokenService,
+        updateAccessTokenService,
+        orgService,
+        apiClientService)
     }
 
     "not work" in new scope[AnyContentAsEmpty.type] {
-      transformer.apply(FakeRequest()) must_== Failure(noToken(FakeRequest()))
+      identifier.apply(FakeRequest()) must_== Failure(noToken(FakeRequest()))
     }
 
     "not work with token" in new scope[AnyContentAsEmpty.type] {
       val rh = FakeRequest("", "?access_token=blah")
-      transformer.apply(rh) must_== Failure(noOrgForToken(rh))
+      identifier.apply(rh) must_== Failure(cantFindOrgWithId(mockOrg.id))
     }
 
     "work with token + defaultCollection" in new scope[AnyContentAsEmpty.type](
-      Success(mockOrg),
-      Some(ObjectId.get)) {
-      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Success("Worked")
+      org = Success(mockOrg)) {
+      identifier.apply(FakeRequest("", "?access_token=blah")).map(_.org) must_== Success(mockOrg)
+    }
+
+    "call UpdateAccessTokenService.update if token.apiClient is empty" in new scope[AnyContentAsEmpty.type](
+      org = Success(mockOrg), apiClientId = None) {
+      identifier.apply(FakeRequest("", "?access_token=blah"))
+      there was one(updateAccessTokenService).update(any[AccessToken])
     }
   }
 

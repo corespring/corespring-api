@@ -9,9 +9,14 @@ import org.corespring.v2.errors.V2Error
 import play.api.libs.json._
 
 import scala.concurrent._
+import scala.concurrent.duration._
 import scalaz._
 
 class ItemApiSearchTest extends ItemApiSpec {
+
+  private def waitFor[A](f: Future[A]): A = {
+    Await.result(f, 2.seconds)
+  }
 
   case class searchApiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
     searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends ItemApiScope {
@@ -24,10 +29,11 @@ class ItemApiSearchTest extends ItemApiSpec {
 
     implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
     val allowableCollections = (1 to 5).map(i => new ObjectId())
-    val unallowedCollection = new ObjectId()
+    val restrictedCollection = new ObjectId()
 
     "call itemIndexService#search" in new searchApiScope {
       val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
+      Await.result(result, 1.second)
       there was one(itemIndexService).search(any[ItemIndexQuery])
     }
 
@@ -45,7 +51,7 @@ class ItemApiSearchTest extends ItemApiSpec {
 
       "call itemIndexService#search with allowed collections" in
         new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
-          val query = Json.obj("collections" -> Seq(unallowedCollection.toString)).toString
+          val query = Json.obj("collections" -> Seq(restrictedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
           there was one(itemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
         }
@@ -57,8 +63,9 @@ class ItemApiSearchTest extends ItemApiSpec {
       "call itemIndexService#search with only allowed collections" in
         new searchApiScope(
           orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
-          val query = Json.obj("collections" -> Seq(allowableCollections.head.toString, unallowedCollection.toString)).toString
+          val query = Json.obj("collections" -> Seq(allowableCollections.head.toString, restrictedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
+          waitFor(result)
           there was one(itemIndexService).search(ItemIndexQuery(collections = Seq(allowableCollections.head.toString)))
         }
 
@@ -96,7 +103,7 @@ class ItemApiSearchTest extends ItemApiSpec {
       val query = """{"offset":  4, "count" : 2, "text" : "hi"}"""
       val result = api.searchByCollectionId(collectionId, Some(query))(FakeJsonRequest(Json.obj()))
       status(result) must_== OK
-      there was one(itemIndexService).search(ItemIndexQuery(offset = 4, count = 2, text = Some("hi")))
+      there was one(itemIndexService).search(ItemIndexQuery(offset = 4, count = 2, text = Some("hi"), collections = Seq(collectionId.toString)))
     }
 
     def hit(title: String) = ItemIndexHit("id",

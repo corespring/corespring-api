@@ -6,7 +6,7 @@ A project that builds an executable jar. The jar runs 2 commands that are part o
 
 The commands: 
 
-* seed the local db (aka `seed-dev`)
+* seed the local db (aka `seed-dev`) - you can also pass in `--additionalSeedDirs`
 * index elastic-search (aka `index`)
 
 ## Why?
@@ -16,6 +16,10 @@ Because the docker image will only be built once, we want the image build to be 
 ### Build
 
     sbt assembly
+
+### Run Example
+
+    java -jar run.jar --additionalSeedDirs clone-example-data
 
 ### See
 
