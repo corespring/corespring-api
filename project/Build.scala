@@ -189,6 +189,7 @@ object Build extends sbt.Build {
       qtiToV2,
       draftsApi,
       futureValidation)
+    .aggregate(draftsApi)
 
   lazy val v1Api = builders.web("v1-api")
     .settings(
