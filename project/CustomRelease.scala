@@ -7,7 +7,7 @@ import sbtrelease.Version
 import sbtrelease.ReleaseStateTransformations._
 import org.corespring.sbtrelease.ReleaseSteps._
 import org.corespring.sbtrelease.ReleaseExtrasPlugin._
-import org.corespring.sbtrelease.{Git, PrefixAndVersion, BranchNameConverter, FolderStyleConverter}
+import org.corespring.sbtrelease.{ Git, PrefixAndVersion, BranchNameConverter }
 
 object HyphenNameConverter extends BranchNameConverter {
   val pattern = """^([^-]+)-([^-]+)$""".r
@@ -24,7 +24,7 @@ object HyphenNameConverter extends BranchNameConverter {
 
 object CustomRelease {
 
-  def unsupportedBranch(b:String) = ReleaseStep(action = st => {
+  def unsupportedBranch(b: String) = ReleaseStep(action = st => {
     sys.error(s"Unsupported branch for releasing: $b, must be 'rc' for releases or 'hotfix' for hotfixes")
   })
 
@@ -37,13 +37,14 @@ object CustomRelease {
     newState
   })
 
-  def shared(branchName: String, custom:Seq[ReleaseStep]) = Seq(
+  def shared(branchName: String, custom: Seq[ReleaseStep]) = Seq(
+    prepareReleaseVersion,
+    ensureTagDoesntExist("origin", None),
     checkBranchName(branchName),
     checkSnapshotDependencies,
     runClean,
     runTest,
     runIntegrationTest,
-    prepareReleaseVersion,
     setReleaseVersion,
     commitReleaseVersion) ++
     custom ++
