@@ -39,7 +39,7 @@ object CustomRelease {
 
   def shared(branchName: String, custom: Seq[ReleaseStep]) = Seq(
     prepareReleaseVersion,
-    ensureTagDoesntExist("origin"))
+    ensureTagDoesntExist("origin", None))
   //    checkBranchName(branchName),
   //    checkSnapshotDependencies,
   //    runClean,
