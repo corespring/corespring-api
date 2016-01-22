@@ -66,15 +66,7 @@ class ItemDraftsTest
 
   def TestError(msg: String = "item-drafts-test error") = GeneralError(msg)
 
-  val user = OrgAndUser(
-    SimpleOrg(ObjectId.get, "test-org"),
-    Some(SimpleUser(ObjectId.get, "ed", "provider", "ed eustace", ObjectId.get)))
-
   val req = FakeRequest("", "")
-
-  val itemId = VersionedId(ObjectId.get, Some(0))
-  val draftId = DraftId(itemId.id, user.user.map(_.userName).getOrElse("test_user"), user.org.id)
-  //    val mockItemDraft = ItemDraft(draftId, Item(id = VersionedId(ObjectId.get, Some(1))), user)
 
   "list" should {
 
@@ -96,13 +88,6 @@ class ItemDraftsTest
   }
 
   "create" should {
-    //      class scp(user: Option[OrgAndUser] = None,
-    //        createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")),
-    //        loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load"))) extends Scope with TestController {
-    //        override def identifyUser(rh: RequestHeader) = user
-    //        mockDrafts.create(any[DraftId], any[OrgAndUser], any[Option[DateTime]]) returns createResult
-    //        mockDrafts.load(any[OrgAndUser])(any[DraftId]) returns loadResult
-    //      }
 
     "return error if id is bad" in new scope {
       val result = itemDrafts.create("?")(req)
@@ -110,16 +95,12 @@ class ItemDraftsTest
     }
 
     "returns draft creation failed error" in new scope {
-      val result = itemDrafts.create(itemId.toString)(req)
       val err = draftCreationFailed(itemId.toString)
       drafts.create(any[DraftId], any[OrgAndUser], any[Option[DateTime]]) returns Failure(TestError("create-failed"))
+      val result = itemDrafts.create(itemId.toString)(req)
       status(result) must_== err.statusCode
     }
 
-    //      Success(
-    //        ItemDraft(
-    //          DraftId(itemId.id, "?", orgId = ObjectId.get),
-    //          Item(id = itemId), user))) {
     "returns ok" in new scope {
       val result = itemDrafts.create(itemId.toString)(req)
       status(result) must_== OK
@@ -130,36 +111,24 @@ class ItemDraftsTest
 
   "commit" should {
 
-    //      class scp(user: Option[OrgAndUser] = None,
-    //        loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load")),
-    //        commitResult: Validation[DraftError, ItemCommit] = Failure(SaveCommitFailed))
-    //        extends Scope
-    //        with TestController {
-    //        override def identifyUser(rh: RequestHeader) = user
-    //        mockDrafts.load(any[OrgAndUser])(any[DraftId]) returns loadResult
-    //        mockDrafts.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]).returns(commitResult)
-    //      }
-
     "fail if no user is found" in new scope {
-      val result = itemDrafts.commit(draftId.toIdString)(req)
       override lazy val userResult = None
+      val result = itemDrafts.commit(draftId.toIdString)(req)
       contentAsJson(result) must_== AuthenticationFailed.json
     }
 
     "fail if draft is not loaded" in new scope {
-      val result = itemDrafts.commit(draftId.toIdString)(req)
       drafts.load(any[OrgAndUser])(any[DraftId]) returns e("load")
+      val result = itemDrafts.commit(draftId.toIdString)(req)
       (contentAsJson(result) \ "error").as[String] must_== "load"
     }
 
     "fail if commit fails" in new scope {
-      val result = itemDrafts.commit(draftId.toIdString)(req)
       drafts.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]) returns e("commit")
+      val result = itemDrafts.commit(draftId.toIdString)(req)
       (contentAsJson(result) \ "error").as[String] must_== "commit"
     }
 
-    //      Success(mockItemDraft),
-    //      Success(ItemCommit(draftId, user, itemId, DateTime.now))) {
     "work if commit is returned" in new scope {
       val result = itemDrafts.commit(draftId.toIdString)(req)
       status(result) must_== OK
@@ -167,12 +136,6 @@ class ItemDraftsTest
   }
 
   "get" should {
-    //      class scp(user: Option[OrgAndUser] = None, loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load")))
-    //        extends Scope
-    //        with TestController {
-    //        override def identifyUser(rh: RequestHeader) = user
-    //        mockDrafts.loadOrCreate(any[OrgAndUser])(any[DraftId], any[Boolean]).returns(loadResult)
-    //      }
 
     "fail if no user is found" in new scope {
       override lazy val userResult = None
@@ -195,14 +158,6 @@ class ItemDraftsTest
   }
 
   "delete" should {
-
-    //      class scp(user: Option[OrgAndUser] = None,
-    //        deleteResult: Validation[DraftError, DraftId] = Failure(DeleteDraftFailed(draftId)))
-    //        extends Scope
-    //        with TestController {
-    //        override def identifyUser(rh: RequestHeader) = user
-    //        //itemDrafts.remove(any[OrgAndUser])(any[DraftId]).returns(deleteResult)
-    //      }
 
     "fail if no user is found" in new scope {
       override lazy val userResult = None
