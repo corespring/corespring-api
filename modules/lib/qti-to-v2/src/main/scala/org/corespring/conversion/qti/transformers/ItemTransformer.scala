@@ -70,8 +70,8 @@ class ItemTransformer(val itemService: BaseFindAndSaveService[Item, VersionedId[
   }
 
   def updateV2Json(item: Item): Item = {
-    item.createdByApiVersion match {
-      case 1 => {
+    (item.createdByApiVersion, item.playerDefinition.isEmpty) match {
+      case (1, true) => {
         logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
         transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
           .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
