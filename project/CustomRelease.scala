@@ -7,7 +7,7 @@ import sbtrelease.Version
 import sbtrelease.ReleaseStateTransformations._
 import org.corespring.sbtrelease.ReleaseSteps._
 import org.corespring.sbtrelease.ReleaseExtrasPlugin._
-import org.corespring.sbtrelease.{ Git, PrefixAndVersion, BranchNameConverter, FolderStyleConverter }
+import org.corespring.sbtrelease.{ Git, PrefixAndVersion, BranchNameConverter }
 
 object HyphenNameConverter extends BranchNameConverter {
   val pattern = """^([^-]+)-([^-]+)$""".r
@@ -39,25 +39,24 @@ object CustomRelease {
 
   def shared(branchName: String, custom: Seq[ReleaseStep]) = Seq(
     prepareReleaseVersion,
-    ensureTagDoesntExist("origin", None))
-  //    checkBranchName(branchName),
-  //    checkSnapshotDependencies,
-  //    runClean,
-  //    runTest,
-  //    runIntegrationTest,
-  //    setReleaseVersion,
-  //    commitReleaseVersion) ++
-  //    custom ++
-  //    Seq(
-  //      pushBranchChanges,
-  //      pushTags,
-  //      publishArtifacts,
-  //      buildTgz)
+    ensureTagDoesntExist("origin", None),
+    checkBranchName(branchName),
+    checkSnapshotDependencies,
+    runClean,
+    runTest,
+    runIntegrationTest,
+    setReleaseVersion,
+    commitReleaseVersion) ++
+    custom ++
+    Seq(
+      pushBranchChanges,
+      pushTags,
+      publishArtifacts,
+      buildTgz)
 
   lazy val settings = Seq(
     branchNameConverter := HyphenNameConverter,
     releaseVersionBump := Bump.Minor,
-    validReleaseParents ++= Seq("rc", "feature/custom-release-check-tag-exists-at-start"),
     releaseProcess <<= baseDirectory.apply { bd =>
 
       lazy val regularRelease = shared("rc", Seq(
@@ -68,7 +67,6 @@ object CustomRelease {
 
       Git(bd).currentBranch match {
         case "rc" => regularRelease
-        case "feature/custom-release-check-tag-exists-at-start" => regularRelease
         case "hf" => hotfixRelease
         case branch => Seq(unsupportedBranch(branch))
       }
