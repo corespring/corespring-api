@@ -2,12 +2,11 @@ package org.corespring.api.v1
 
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.ItemHelper
-import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessTokenAndItem, userAndItem }
+import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessTokenAndItem }
 import org.corespring.models.item.Item.QtiResource
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.item.resource.VirtualFile
 import org.corespring.models.json.item.resource.BaseFileFormat
-import org.specs2.specification.Scope
 import play.api.libs.json.Json
 
 class ResourceApiIntegrationTest extends IntegrationSpecification {
