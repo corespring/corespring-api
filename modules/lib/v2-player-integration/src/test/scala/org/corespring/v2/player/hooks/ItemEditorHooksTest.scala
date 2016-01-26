@@ -26,6 +26,8 @@ import play.api.test.FakeRequest
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
 
+import scala.concurrent.duration._
+
 class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
   val mockOrgAndOptsForSpecs = mockOrgAndOpts(AuthMode.AccessToken)
@@ -90,22 +92,22 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
   "load" should {
     "load the item" in new scope {
-      hooks.load("itemId").map(_.isRight) must equalTo(true).await
+      hooks.load("itemId").map(_.isRight) must equalTo(true).await(timeout=10.seconds)
     }
 
     "load calls transform" in new scope(transformResult = Json.obj("transformed" -> true)) {
-      hooks.load("itemId").map(_.right.get) must equalTo(transformResult).await
+      hooks.load("itemId").map(_.right.get) must equalTo(transformResult).await(timeout=10.seconds)
     }
 
     "return the itemAuth.loadForWrite error" in new scope() {
       val err = TestError("itemAuth.loadForWrite")
       itemAuth.loadForWrite(any[String])(any[OrgAndOpts]) returns Failure(err)
-      hooks.load("itemId").map(_.left.get) must equalTo((err.statusCode, err.message)).await
+      hooks.load("itemId").map(_.left.get) must equalTo((err.statusCode, err.message)).await(timeout=10.seconds)
     }
 
     "return the org error" in new scope(orgAndOpts = Failure(TestError("org and opts"))) {
       val err = TestError("org and opts")
-      hooks.load("itemId").map(_.left.get) must equalTo((err.statusCode, err.message)).await
+      hooks.load("itemId").map(_.left.get) must equalTo((err.statusCode, err.message)).await(timeout=10.seconds)
     }
   }
 
