@@ -2,7 +2,7 @@ package org.corespring.api.v1
 
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.ItemHelper
-import org.corespring.it.scopes.{TokenRequestBuilder, orgWithAccessTokenAndItem, userAndItem}
+import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessTokenAndItem, userAndItem }
 import org.corespring.models.item.Item.QtiResource
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.item.resource.VirtualFile
@@ -12,17 +12,16 @@ import play.api.libs.json.Json
 
 class ResourceApiIntegrationTest extends IntegrationSpecification {
 
-
-  trait scope extends orgWithAccessTokenAndItem with TokenRequestBuilder{
+  trait scope extends orgWithAccessTokenAndItem with TokenRequestBuilder {
 
     lazy val Routes = org.corespring.api.v1.routes.ResourceApi
   }
 
-  def mkQti(content:String) = <assessmentItem><itemBody>{content}</itemBody></assessmentItem>
+  def mkQti(content: String) = <assessmentItem><itemBody>{ content }</itemBody></assessmentItem>
 
   "updateDataFile" should {
 
-    "AC-291 - update and transform even though the item has an existing `playerDefinition` property" in new scope {
+    "not update and transform if the item has an existing `playerDefinition` property" in new scope {
       val item = ItemHelper.get(itemId).get
       val update = item.copy(playerDefinition = Some(PlayerDefinition.apply("original")))
       ItemHelper.update(update)
@@ -37,7 +36,7 @@ class ResourceApiIntegrationTest extends IntegrationSpecification {
       val result = route(request)(writeableOf_AnyContentAsJson).get
       status(result) must_== OK
       val updatedItem = ItemHelper.get(itemId).get
-      updatedItem.playerDefinition.map(_.xhtml) must_== Some("<div class=\"item-body qti\">new-content</div>")
+      updatedItem.playerDefinition.map(_.xhtml) must_== Some("original")
     }
   }
 }
