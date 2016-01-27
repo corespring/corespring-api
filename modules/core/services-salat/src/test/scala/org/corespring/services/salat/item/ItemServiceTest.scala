@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.item.Item
-import org.corespring.models.item.resource.CloneFileResult
+import org.corespring.models.item.resource.{ CloneError, CloningFailed, CloneFileResult }
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrgCollectionService
@@ -40,11 +40,11 @@ class ItemServiceTest extends Specification with Mockito {
         val m = mock[ItemAssetService]
         m.cloneStoredFiles(any[Item], any[Item]).answers { (args, _) =>
           {
-            val out: Validation[Seq[CloneFileResult], Item] = if (succeed) {
+            val out: Validation[CloneError, Item] = if (succeed) {
               val arr = args.asInstanceOf[Array[Any]]
               Success(arr(1).asInstanceOf[Item])
             } else {
-              Failure(Seq.empty[CloneFileResult])
+              Failure(CloningFailed(Seq.empty[CloneFileResult]))
             }
             out
           }
