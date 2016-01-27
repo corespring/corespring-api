@@ -2,6 +2,7 @@ package org.corespring.models.item.resource
 
 import java.io.InputStream
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 
 abstract class BaseFile(
   val name: String,
@@ -87,21 +88,32 @@ object StoredFile {
 
 case class StoredFileDataStream(name: String, stream: InputStream, contentLength: Long, contentType: String, metadata: Map[String, String])
 
-case class CloneResourceResult(files: Seq[CloneFileResult])
+case class CloneResourceResult(results: Seq[CloneFileResult])
+
+trait CloneError {
+  def message: String
+}
+
+case class MissingVersionFromId(vid: VersionedId[ObjectId]) extends CloneError {
+  override def message = s"This id is missing a version: $vid"
+}
+
+case class CloningFailed(failures: Seq[CloneFileResult]) extends CloneError {
+  override def message: String = s"Cloning failed for files: ${failures.map(_.file.name)}"
+}
 
 trait CloneFileResult {
   def file: StoredFile
   def successful: Boolean
 }
 
+trait CloneFileFailure extends CloneFileResult {
+  final override def successful: Boolean = false
+}
+
 case class CloneFileSuccess(val file: StoredFile, s3Key: String) extends CloneFileResult {
   override def successful: Boolean = true
 }
 
-case class CloneFileFailure(val file: StoredFile, err: Throwable) extends CloneFileResult {
-  override def successful: Boolean = false
-}
-
-case class NotFoundCloneFileFailure(val file: StoredFile, val err: Throwable) extends CloneFileResult {
-  override def successful: Boolean = false
-}
+case class NotFoundCloneFileFailure(val file: StoredFile, val err: Throwable) extends CloneFileFailure
+case class ErrorThrownCloneFileFailure(val file: StoredFile, val err: Throwable) extends CloneFileFailure

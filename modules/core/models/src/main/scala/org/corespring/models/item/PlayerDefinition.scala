@@ -1,7 +1,7 @@
 package org.corespring.models.item
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.corespring.models.item.resource.BaseFile
+import org.corespring.models.item.resource.{ StoredFile, BaseFile }
 import play.api.libs.json.{ Json, JsValue }
 
 /**
@@ -28,6 +28,8 @@ class PlayerDefinition(
       other.summaryFeedback,
       other.customScoring)
   }
+
+  def storedFiles: Seq[StoredFile] = files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])
 
   override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}, $summaryFeedback)"""
 
