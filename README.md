@@ -85,7 +85,7 @@ see: [corespring-container-regression-tests](https://github.com/corespring/cores
 Usage:
 
 ```bash
-    $ play clean clean test #or it:test
+    $ play clean coverage test #or it:test
     $ play scoverageReport 
 ```
 
