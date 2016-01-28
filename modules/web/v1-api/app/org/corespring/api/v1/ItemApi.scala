@@ -112,14 +112,14 @@ class ItemApi(
     request =>
       for {
         item <- service.findOneById(id).toSuccess("Can't find item")
-        cloned <- service.clone(item).toSuccess("Error cloning")
+        cloned <- service.clone(item)
       } yield cloned
   }
 
   /**
    * Note: we remove the version - so that the dao automatically returns the latest version
    */
-  private def saveItem(item: Item, createNewVersion: Boolean): Validation[String,Item] = {
+  private def saveItem(item: Item, createNewVersion: Boolean): Validation[String, Item] = {
     for {
       newItem <- service.save(item, createNewVersion).leftMap(_.message)
       dbItem <- service.findOneById(item.id.copy(version = None)).toSuccess("Error loading item")
