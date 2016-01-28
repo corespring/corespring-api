@@ -23,16 +23,16 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean]
 
-  def clone(item: Item): Option[Item]
+  def clone(item: Item): Validation[String, Item]
 
   /**
-    * Note: it would be better to just have clone, but that method is used in the [[BaseContentService]],
-    * so hopefully we can remove that and the conflate the methods
-    * @param item
-    * @param targetCollectionId - clone the item to this collection if specified else use the same collection as the item
-    * @return
-    */
-  def cloneToCollection(item: Item, targetCollectionId: ObjectId): Option[Item]
+   * Note: it would be better to just have clone, but that method is used in the [[BaseContentService]],
+   * so hopefully we can remove that and the conflate the methods
+   * @param item
+   * @param targetCollectionId - clone the item to this collection if specified else use the same collection as the item
+   * @return
+   */
+  def cloneToCollection(item: Item, targetCollectionId: ObjectId): Validation[String, Item]
 
   def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId]
 

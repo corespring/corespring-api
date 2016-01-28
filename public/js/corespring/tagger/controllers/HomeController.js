@@ -140,7 +140,7 @@
           $scope.delayedSearch();
         },
         function error(err) {
-          alert('cloneItem:', JSON.stringify(err));
+          alert('cloning failed: ' + JSON.stringify(err));
         });
       }
 

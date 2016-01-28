@@ -2,17 +2,17 @@ package org.corespring.services.salat
 
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.errors.collection.OrgNotAuthorized
-import org.corespring.errors.item.{ CloneFailed, ItemNotFound }
-import org.corespring.errors.{ GeneralError, PlatformServiceError }
+import org.corespring.errors.item.ItemNotFound
 import org.corespring.futureValidation.FutureValidation
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import org.corespring.{ services => interface }
-import scala.concurrent.Future
-import scalaz.{ Failure, Success, Validation }
+
 import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
 class CloneItemService(
   contentCollectionService: interface.ContentCollectionService,
@@ -43,7 +43,6 @@ class CloneItemService(
     }
 
     import Permission._
-
     import org.corespring.errors.collection.{ CantCloneFromCollection, CantWriteToCollection }
 
     val canWrite = hasPermission(Write, CantWriteToCollection _) _
@@ -61,7 +60,7 @@ class CloneItemService(
       itemCollectionPermission <- fv(allPermissions.find(_._1 == itemCollectionId).toSuccess(err(s"Can't find permission for $itemCollectionId")))
       _ <- fv(canWrite.tupled(destinationPermission))
       _ <- fv(canClone.tupled(itemCollectionPermission))
-      clonedItem <- fv(itemService.cloneToCollection(item, destinationId).toSuccess(CloneFailed(itemId)))
+      clonedItem <- fv(itemService.cloneToCollection(item, destinationId).leftMap(e => err(s"Clone failed: $e")))
     } yield {
       if (itemCollectionId == destinationId) {
         logger.info(s"the item collectionId (${itemCollectionId}) is the same as the collectionId ($destinationCollectionId) - so the cloned Item will be in the same collection")
