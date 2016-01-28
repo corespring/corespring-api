@@ -39,14 +39,14 @@ class ApiClientService(orgService: interface.OrganizationService,
     dao.findOne(MongoDBObject(Keys.clientId -> new ObjectId(id)))
   }
 
-  def findOneByOrgId(orgId: ObjectId): Option[ApiClient] = dao.findOne(MongoDBObject(Keys.orgId -> orgId))
+  def findByOrgId(orgId: ObjectId): Stream[ApiClient] = dao.find(MongoDBObject(Keys.orgId -> orgId)).toStream
 
   /**
    * Generates a random token
    *
    * @return a token
    */
-  def generateTokenId(): String = {
+  private def generateTokenId(): String = {
     ObjectId.get.toString
   }
 
@@ -57,7 +57,7 @@ class ApiClientService(orgService: interface.OrganizationService,
    * @return returns an ApiClient or ApiError if the ApiClient could not be created.
    */
   override def getOrCreateForOrg(orgId: ObjectId): Validation[String, ApiClient] = {
-    findOneByOrgId(orgId) match {
+    findByOrgId(orgId).headOption match {
       case Some(apiClient) => Success(apiClient)
       case None => {
         // check we got an existing org id

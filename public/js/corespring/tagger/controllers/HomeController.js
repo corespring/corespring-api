@@ -15,7 +15,8 @@
     'Logger',
     'Modals',
     'UserInfo',
-    'V2ItemService'
+    'V2ItemService',
+    'CollectionManager'
   ];
 
   function HomeController(
@@ -30,7 +31,8 @@
     Logger,
     Modals,
     UserInfo,
-    V2ItemService
+    V2ItemService,
+    CollectionManager
   ) {
 
     //Mixin ItemFormattingUtils
@@ -53,6 +55,7 @@
     $scope.launchCatalogView = launchCatalogView;
     $scope.onItemLoad = onItemLoad;
     $scope.publish = publish;
+    $scope.isV1 = isV1;
 
     // Delay in milliseconds for search after item update
     var searchDelay = 1000;
@@ -61,19 +64,41 @@
       $timeout($scope.search, searchDelay);
     };
 
+    $rootScope.$on('editItem', function(ev, itemId) {
+      var item = _.find($scope.items, function(i) {
+        return i.id === itemId;
+      });
+      edit(item);
+    });
+
     $rootScope.$broadcast('onListViewOpened');
 
     init();
 
     //---------------------------------------------------
 
+    function highlightItem(id) {
+      var item = $(document.getElementById('row-'+id));
+      var prevPrev = $(document.getElementById('row-'+id)).prev().prev();
+      if (prevPrev.length > 0) {
+        prevPrev[0].scrollIntoView(true);
+      }
+      item.addClass('highlighted');
+      setTimeout(function() {
+        item.removeClass('highlighted');
+      }, 200);
+    }
+
     function init() {
+      $rootScope.itemData = undefined;
       $scope.userName = UserInfo.userName;
       $scope.org = UserInfo.org;
     }
 
     function edit(item) {
       route('edit', item);
+      $rootScope.$broadcast('editItemOpened', item);
+      $rootScope.itemData = item;
     }
 
     function publish(item, callback) {
@@ -101,11 +126,41 @@
     }
 
     function cloneItem(item) {
-      route('cloneItem', item);
+
+      function callService(collectionId, open){
+        V2ItemService.clone({
+          id: item.id,
+          collectionId: collectionId
+        },
+        function success(newItem) {
+          if(open){
+            var query = isV1(item) ? '?devEditor=true' : '';
+            $location.url('/edit/draft/' + newItem.id + query);
+          }
+          $scope.delayedSearch();
+        },
+        function error(err) {
+          alert('cloning failed: ' + JSON.stringify(err));
+        });
+      }
+
+      ItemService.get({id: item.id}, function(itemData){
+        var collections = CollectionManager.writableCollections();
+        Modals.clone(itemData, collections, function(cancelled, open, targetCollection){
+
+          if(!cancelled){
+            callService(targetCollection.id, open);
+          }
+        });
+      });
+    }
+
+    function isV1(item) {
+      return item.apiVersion === 1 || (item.format && item.format.apiVersion === 1);
     }
 
     function route(action, item) {
-      if (item.apiVersion === 1 || (item.format && item.format.apiVersion === 1)) {
+      if (isV1(item)) {
         $scope.v1[action](item);
       } else {
         $scope.v2[action](item);
@@ -115,25 +170,16 @@
     function V1() {
 
       this.edit = function(item) {
-        $location.url('/edit/' + item.id);
-      };
-
-      this.cloneItem = function(item) {
-        //The item passed in is not coming from the v1 ItemService
-        //and therefore doesn't have the clone method. ItemService.get
-        //does that for us.
-        ItemService.get({
-          id: item.id
-        }, function(itemData) {
-          itemData.clone(
-            function success(newItem) {
-              $location.url('/edit/' + newItem.id);
-            },
-            function error(err) {
-              alert('cloneItem:', JSON.stringify(err));
+        if (item.published) {
+          Modals.edit(function(cancelled) {
+            if (cancelled) {
+              return;
             }
-          );
-        });
+            $location.url('/edit/draft/' + item.id + '?devEditor=true');
+          });
+        } else {
+          $location.url('/edit/draft/' + item.id + '?devEditor=true');
+        }
       };
 
       this.publish = function(item) {
@@ -193,18 +239,6 @@
         publish(item);
       };
 
-      this.cloneItem = function(item) {
-        V2ItemService.clone({
-            id: item.id
-          },
-          function success(newItem) {
-            goToEditDraft(newItem.id);
-          },
-          function error(err) {
-            alert('cloneItem:', JSON.stringify(err));
-          }
-        );
-      };
     }
 
     function deleteItem(item) {

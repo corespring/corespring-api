@@ -9,26 +9,19 @@ import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.specs2.specification.BeforeAfter
 import play.api.libs.json.{ JsNumber, JsString, Json }
-import play.api.mvc.{ AnyContentAsJson, AnyContent, Call, RequestHeader }
+import play.api.mvc.{ AnyContent, AnyContentAsJson, Call }
 
 class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2SessionHelper {
   val Routes = org.corespring.v2.api.routes.ItemSessionApi
 
-  lazy val itemService = bootstrap.Main.itemService
+  lazy val itemService = main.itemService
 
   "ItemSessionApi" should {
-
-    def mkCompoundError(rh: RequestHeader) = compoundError("Failed to identify an Organization from the request",
-      Seq(
-        noApiClientAndPlayerTokenInQueryString(rh),
-        noToken(rh),
-        noUserSession(rh)),
-      UNAUTHORIZED)
 
     "when loading a session" should {
 
       s"return $UNAUTHORIZED for unknown user" in new unknownUser_getSession {
-        val e = mkCompoundError(req)
+        val e = noToken(req)
         contentAsJson(result) === e.json
         status(result) === e.statusCode
       }
@@ -38,9 +31,8 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
         contentAsJson(result) === Json.obj("id" -> sessionId.toString(), "itemId" -> itemId.toString())
       }
 
-      s"return $OK for client id and player token" in new clientIdAndPlayerToken_getSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), true) {
-        status(result) === OK
-        contentAsJson(result) === Json.obj("id" -> sessionId.toString(), "itemId" -> itemId.toString())
+      s"return $UNAUTHORIZED for client id and player token" in new clientIdAndPlayerToken_getSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), true) {
+        status(result) === UNAUTHORIZED
       }
 
     }
@@ -48,7 +40,7 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
     "when creating a session" should {
 
       s"return $BAD_REQUEST for unknown user" in new unknownUser_createSession {
-        val e = mkCompoundError(req)
+        val e = noToken(req)
         status(result) === e.statusCode
         contentAsJson(result) === e.json
       }
@@ -59,22 +51,19 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
         status(result) === OK
       }
 
-      s"return $OK for client id and player token" in new clientIdAndPlayerToken_createSession(
+      s"return $UNAUTHORIZED for client id and player token" in new clientIdAndPlayerToken_createSession(
         Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
-        val e = noOrgIdAndOptions(req)
-        (contentAsJson(result) \ "id").asOpt[String].isDefined === true
-        status(result) === OK
+        status(result) === UNAUTHORIZED
       }
 
-      s"adds identity data to the session" in new clientIdAndPlayerToken_createSession(
-        Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
+      s"adds identity data to the session" in new token_createSession {
         val e = noOrgIdAndOptions(req)
         (contentAsJson(result) \ "id").asOpt[String].isDefined === true
-        val sessionId = ((contentAsJson(result) \ "id")).as[String]
-        val dbo = v2SessionHelper.findSession(sessionId).get
+        val newSessionId = ((contentAsJson(result) \ "id")).as[String]
+        val dbo = v2SessionHelper.findSession(newSessionId).get
         val identity = (dbo \ "identity")
         (identity \ "orgId") === JsString(orgId.toString)
-        (identity \ "authMode") === JsNumber(AuthMode.ClientIdAndPlayerToken.id)
+        (identity \ "authMode") === JsNumber(AuthMode.AccessToken.id)
         (identity \ "apiClient") === JsString(apiClient.clientId.toString)
       }
     }
@@ -200,12 +189,12 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
 
     "return apiClient" in new cloneSession {
       (contentAsJson(result) \ "apiClient").as[String] must be equalTo (
-        bootstrap.Main.apiClientService.findOneByOrgId(orgId).map(_.clientId).getOrElse(throw new Exception("Boop")).toString)
+        main.apiClientService.findByOrgId(orgId).headOption.map(_.clientId).getOrElse(throw new Exception("Boop")).toString)
     }
 
     "return encrypted options, decryptable by provided apiClient" in new cloneSession {
       val apiClientId = (contentAsJson(result) \ "apiClient").as[String]
-      val encrypter = bootstrap.Main.apiClientEncryptionService
+      val encrypter = main.apiClientEncryptionService
       encrypter.decrypt(apiClientId, (contentAsJson(result) \ "options").as[String]) must be equalTo (
         Some(ItemSessionApi.clonedSessionOptions.toString))
     }

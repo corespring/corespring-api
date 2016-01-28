@@ -1,39 +1,45 @@
 package org.corespring.web.common.controllers.deployment
 
+import com.amazonaws.services.s3.AmazonS3
 import com.ee.assets.Loader
 import com.ee.assets.deployment.Deployer
+import com.google.javascript.jscomp.CompilerOptions
 import org.apache.commons.lang3.StringUtils
-import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.web.common.views.helpers.BuildInfo
-import play.api.{Mode, Logger, Play}
+import play.api.Mode.Mode
+import play.api.{ Configuration, Mode, Logger }
 
-object AssetsLoader {
+class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildInfo: BuildInfo) {
 
-  import play.api.Play.current
+  private[this] val logger = Logger(classOf[AssetsLoader])
 
-  private[this] val logger = Logger(this.getClass())
-
-  private val configuration = Play.current.configuration
-  private def isProd: Boolean = play.api.Play.current.mode == Mode.Prod
+  private def isProd: Boolean = mode == Mode.Prod
 
   val bucketNameLengthMax = 63
 
-  lazy val loader: Loader = if(isProd) {
+  lazy val closureOptions = {
+    val o = new CompilerOptions()
+    o.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT5)
+    o
+  }
 
-    lazy val branch: String = if (BuildInfo.branch.isEmpty || BuildInfo.branch == "?") "no-branch" else BuildInfo.branch
+  lazy val loader: Loader = if (isProd) {
 
-    lazy val releaseRoot: String = if (BuildInfo.commitHashShort.isEmpty || BuildInfo.commitHashShort == "?") {
+    lazy val branch: String = if (buildInfo.branch.isEmpty || buildInfo.branch == "?") "no-branch" else buildInfo.branch
+
+    val commitHash = buildInfo.commitHashShort
+
+    lazy val releaseRoot: String = if (commitHash.isEmpty || commitHash == "?") {
       val format = new java.text.SimpleDateFormat("yyyy-MM-dd--HH-mm")
       "dev-" + format.format(new java.util.Date())
     } else {
-      BuildInfo.commitHashShort
+      commitHash
     }
-
 
     val bucketName: String = {
       val publicAssets = "corespring-public-assets"
       if (isProd) {
-        val envName = configuration.getString("ENV_NAME").getOrElse("")
+        val envName = config.getString("ENV_NAME").getOrElse("")
         val bucketCompliantBranchName = branch.replaceAll("feature", "").replaceAll("hotfix", "").replaceAll("/", "-")
         val raw = Seq(publicAssets, envName, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase
         val trimmed = raw.take(bucketNameLengthMax)
@@ -43,18 +49,10 @@ object AssetsLoader {
       }
     }
 
-    lazy val s3Deployer: Deployer = new S3Deployer(Some(CorespringS3ServiceExtended.getClient), bucketName, releaseRoot)
-    new Loader(Some(s3Deployer), Play.mode, configuration)
+    lazy val s3Deployer: Deployer = new S3Deployer(Some(s3Client), bucketName, releaseRoot)
+    new Loader(Some(s3Deployer), mode, config, Some(closureOptions))
   } else {
-    new Loader(None, Play.mode, configuration)
-  }
-
-
-  def init(implicit app: play.api.Application) = if (isProd) {
-    logger.debug("running S3 deployments...")
-    tagger
-    corespringCommon
-    playerCommon
+    new Loader(None, mode, config, Some(closureOptions))
   }
 
   def tagger = loader.scripts("tagger")("js/corespring/tagger")
@@ -76,5 +74,14 @@ object AssetsLoader {
     "js/corespring/qti/directives/feedbackInline.js",
     "js/corespring/qti/prototype.extensions/Array.js",
     "js/corespring/qti/prototype.extensions/Function.js")
+
+  def init() = if (isProd) {
+    logger.debug("running S3 deployments...")
+    tagger
+    corespringCommon
+    playerCommon
+  }
+
+  init()
 }
 

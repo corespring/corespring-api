@@ -1,6 +1,8 @@
 package org.corespring.v2.player.hooks
 
+import org.apache.commons.httpclient.util.URIUtil
 import org.apache.commons.io.IOUtils
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ ItemEditorHooks => ContainerItemEditorHooks, UploadResult }
@@ -21,6 +23,7 @@ import play.api.libs.json.JsValue
 import play.api.mvc._
 
 import scala.concurrent.Future
+import scalaz.Scalaz._
 import scalaz.Validation
 
 class ItemEditorHooks(
@@ -57,13 +60,27 @@ class ItemEditorHooks(
     } yield transformer.transformToV2Json(item)
   }
 
+  private def getVid(id: String): Validation[V2Error, VersionedId[ObjectId]] = {
+
+    def ensureVersionIsPresent(v: VersionedId[ObjectId]): VersionedId[ObjectId] = {
+      if (v.version.isEmpty) {
+        logger.warn(s"[getVid] Id is missing version: $v")
+      }
+      v.copy(version = v.version.orElse(Some(itemService.currentVersion(v))))
+    }
+
+    VersionedId(id)
+      .map(ensureVersionIsPresent)
+      .toSuccess(cantParseItemId(id))
+  }
+
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
     logger.trace(s"function=loadFile id=$id path=$path")
     val result = for {
       _ <- Success(logger.trace(s"function=loadFile id=$id"))
       identity <- getOrgAndOptions(request)
       _ <- Success(logger.trace(s"function=loadFile identity=$identity"))
-      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+      vid <- getVid(id)
     } yield playS3.download(bucket, S3Paths.itemFile(vid, path))
 
     result match {
@@ -75,22 +92,42 @@ class ItemEditorHooks(
   override def deleteFile(id: String, path: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
     logger.trace(s"function=deleteFile id=$id path=$path")
 
-    val v: Validation[V2Error, DeleteResponse] = for {
+    def canWriteItem(id:String, identity: OrgAndOpts) = {
+      itemAuth.canWrite(id)(identity) match {
+        case Success(false) => Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
+        case x => x
+      }
+    }
+
+    def deleteFromS3(vid:VersionedId[ObjectId], path: String) = {
+      val deleteResponse = playS3.delete(bucket, S3Paths.itemFile(vid, path))
+      if(deleteResponse.success){
+        Success(true)
+      } else {
+        Failure(generalError(deleteResponse.msg))
+      }
+    }
+
+    def removeFromData(vid: VersionedId[ObjectId], key: String) = {
+      val filename = grizzled.file.util.basename(key)
+      val storedFile = StoredFile(path, BaseFile.getContentType(filename), false, filename)
+      itemService.removeFileFromPlayerDefinition(vid, storedFile) match {
+        case Success(true) => Success(true)
+        case _ => Failure(generalError(s"Error removing file $path from item $vid"))
+      }
+    }
+
+    val v: Validation[V2Error, Boolean] = for {
       identity <- getOrgAndOptions(header)
-      owns <- itemAuth.canWrite(id)(identity)
-      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
-      _ <- if (owns) Success(true) else Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
-    } yield playS3.delete(bucket, S3Paths.itemFile(vid, path))
+      canWrite <- canWriteItem(id, identity)
+      vid <- getVid(id)
+      deleted <- deleteFromS3(vid,path)
+      removed <- removeFromData(vid,path)
+    } yield removed
 
     v match {
       case Failure(e) => Some(e.statusCode, e.message)
-      case Success(r) => {
-        if (r.success) {
-          None
-        } else {
-          Some(BAD_REQUEST, r.msg)
-        }
-      }
+      case Success(r) => None
     }
   }
 
@@ -109,7 +146,16 @@ class ItemEditorHooks(
       itemService.addFileToPlayerDefinition(item, newFile)
     }
 
-    playS3.s3ObjectAndData[Item](bucket, i => S3Paths.itemFile(i.id, path))(loadItemPredicate).map { f =>
+    playS3.s3ObjectAndData[Item](bucket, i => {
+
+      if (i.id.version.isEmpty) {
+        logger.warn(s"[upload] The id is missing a version: ${i.id}")
+      }
+      val vid: VersionedId[ObjectId] = i.id.copy(version = i.id.version.orElse(Some(itemService.currentVersion(i.id))))
+      val p = S3Paths.itemFile(vid, path)
+      URIUtil.encodePath(p)
+
+    })(loadItemPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, item) = tuple
         val key = s3Object.getKey

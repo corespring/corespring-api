@@ -1,9 +1,8 @@
 package org.corespring.v2.player
 
-import org.corespring.container.client.controllers.launcher.player.PlayerLauncher
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.scopes.{ IdAndPlayerTokenRequestBuilder, clientIdAndPlayerToken, RequestBuilder, HasItemId }
-import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
+import org.corespring.it.scopes.{ HasItemId, IdAndPlayerTokenRequestBuilder, RequestBuilder, clientIdAndPlayerToken }
+import org.corespring.v2.auth.identifiers.PlayerTokenIdentity.Keys
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import play.api.libs.json.Json
@@ -31,9 +30,10 @@ class LoadPlayerJsIntegrationTest extends IntegrationSpecification {
 
     """load player js returns a warning when you load using 'options'""" in
       new queryStringWithOptions_loadJs(anythingJson) {
+
         status(playerJsResult) === OK
         val js = contentAsString(playerJsResult)
-        val warning = deprecatedQueryStringParameter(PlayerTokenInQueryStringIdentity.Keys.options, PlayerTokenInQueryStringIdentity.Keys.playerToken)
+        val warning = deprecatedQueryStringParameter(Keys.options, Keys.playerToken)
         js.contains(warning.code) === true
         js.contains(warning.message) === true
       }
@@ -45,6 +45,7 @@ class LoadPlayerJsIntegrationTest extends IntegrationSpecification {
     protected def global: GlobalSettings = Play.current.global
 
     lazy val playerJsResult: Future[SimpleResult] = {
+      import org.corespring.container.client.controllers.launcher.player.PlayerLauncher
       val launcher = global.getControllerInstance(classOf[PlayerLauncher])
       val request = makeRequest(Call("", ""))
       launcher.playerJs()(request)
@@ -52,8 +53,6 @@ class LoadPlayerJsIntegrationTest extends IntegrationSpecification {
   }
 
   trait IdAndOptionsRequestBuilder extends RequestBuilder { self: clientIdAndPlayerToken =>
-
-    import PlayerTokenInQueryStringIdentity.Keys
 
     def skipDecryption: Boolean
 

@@ -1,4 +1,4 @@
-![corespring](public/images/logo.png)
+![corespring](public/images/logo2015.png)
 
 This project contains the api rest layer and web ui for administering corespring items.
 
@@ -10,7 +10,7 @@ This project contains the api rest layer and web ui for administering corespring
 
 Before you do *anything* please run the following to install the git pre-commit hook:
 
-    ln -s hooks/pre-commit .git/hooks/pre-commit
+    ln -s $(pwd)/hooks/pre-commit .git/hooks/pre-commit
     
 For more information, please see our git commit hooks [documentation](hooks/README.md).
 
@@ -171,6 +171,11 @@ Check application.conf for dynamo configuration properties.
 [aws console](https://corespring.signin.aws.amazon.com/console)
 Ask evan for a user account or use an account from passpack 
 
+### Releasing
+
+The release flow is very similar to that in [corespring-container](https://github.com/corespring/corespring-container/blob/develop/README.md#creating-a-release).
+
+The main difference being that this app runs `stage` as well as `publish`.
 
 ### Dev Tools
 
@@ -184,6 +189,81 @@ If it's not set the assets will be retrieved locally. Note that this domain need
 ## Cloudfront 
 
 We are using cloudfront for the CDN. see: https://console.aws.amazon.com/cloudfront/home
+
+### Using cloudfront for item assets in the player 
+
+#### Deployment steps: 
+see [Amazon Docs] (http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html)
+
+**Note 1:** The Cloudfront console is slow. Changing any of the settings in there easily can take 5 minutes before it is applied. Better to do this in quiet hours on prod.  
+**Note 2:** The settings for restricted access are tied to the cloudfront distribution. If you set the distribution to require signed urls, all items in there will need to be signed.  
+  
+
+1. Create CloudFront Key Pairs    
+see [Amazon howto] (http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html#private-content-creating-cloudfront-key-pairs)
+
+2. Create CloudFront distribution for the s3-assets folder of the deployment target 
+
+3. Restrict bucket access   
+In the Cloudfront Origin tab for your distribution choose restrict bucket access = yes with a new or existing identity. Choose "Yes, Update Bucket Policy" to automatically update the bucket policy. If you don't do that, you will see "Forbidden" answers to your requests 
+
+4. Restrict viewer access    
+In the Cloudfront Behaviour tab for your distribution choose restrict viewer access = yes. Choose "self" as the trused signer 
+
+5. Heroku settings  
+(IAR is short for Item Asset Resolver)  
+ENV_IAR_ENABLED - set it to true or false to enable the resolver. When it is disabled, the code will behave like it doesn't exist - default is false  
+ENV_IAR_SIGN_URLS - set it to true or false to activate/deactivate signing of urls - default is false  
+ENV_IAR_CDN_DOMAIN - set it to the the cloudfront domain with two leading slashes - no default    
+ENV_IAR_KEY_PAIR_ID - set it to the name of the key pair that you created in step 1 - no default    
+ENV_IAR_PRIVATE_KEY - set it to the content of the private key file - no default   
+ENV_IAR_URL_VALID_IN_HOURS - set it to the number of hours a url should remain valid - default is 24    
+ENV_IAR_ADD_VERSION_AS_QUERY_PARAM - set it to true to add the app version to the url - default is true
+ENV_IAR_HTTP_PROTOCOL_FOR_SIGNED_URLS - the signed url will get this protocol - default is https: 
+
+**Note:** Setting the Private Key via the heroku webapp doesn't seem to work. In a shell you can use 
+
+    heroku config:add ENV_IAR_PRIVATE_KEY="[paste the key here]" --app [the app name]
+    
+**Note 2:** In corespring-api/bin/shell.scripts/add-item-asset-resolver-vars you can find a script to setup all vars at once. Remember not to commit any secrets.
+      
+#### Testing
+* Create a new item, add an image to it and save it. 
+* Take note of the itemId
+* Open the item in [your server]/items/[your itemId]/sample-launch-code
+ 
+#### Troubleshooting 
+Let's say you have everything set-up to sign urls   
+If the image is not shown or you are forbidden to access it
+* Set ENV_IAR_SIGN_URLS to false  
+* Set restrict viewer access = no in the behaviour tab of your distribution  
+* When the distribution is finished with deployment, you can test again     
+
+If you still cannot access the image, your distribution might not have the right to access the s3 bucket.      
+* Open the origin tab and edit your distribution.   
+* Select the correct Origin Access Identity in the "Your Identities" drop down.  
+* Select "Yes, Update Bucket Policy" for Grant Read Permissions on Bucket  
+* When the distribution is finished with deployment, you can test again  
+
+Still cannot access?     
+* Open the origin tab and have a look at the column named Origin Access Identity, eg. origin-access-identity/cloudfront/E3V4529M09EC7F  
+* Go to the s3 bucket and open the properties/permissions/edit bucket policy   
+* Verify that the origin access identity in there has the same id
+* Verify that the protocol of the url matches the protocol that the url has been signed with (https: by default)
+  
+Works now with signUrl=false
+* Go back to deployment step 4 "Restrict viewer access"
+* Set ENV_IAR_SIGN_URLS to true          
+* When the distribution is finished with deployment, you can test again
+  
+
+#### Deactivation 
+If you cannot get it to work or you want to disable the resolver for other reasons:
+2. Set enabled to false ENV_IAR_ENABLED = false
+
+#### Don't sign 
+If you want to use the CDN for item assets but don't want to restrict access, set signUrls to false, ENV_IAR_SIGN_URLS = false. Make sure that the in the Cloudfront Behaviour tab "restrict viewer access = no" is choosen. 
+
 
 ## New Relic
 
@@ -251,3 +331,4 @@ If your updates are slow due to snapshot updates, you may set the following in y
 ```
 
 This will disable snapshots updating themselves.
+

@@ -1,5 +1,6 @@
 package org.corespring.v2.player.hooks
 
+import org.apache.commons.httpclient.util.URIUtil
 import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
@@ -7,7 +8,7 @@ import org.corespring.container.client.hooks.{ DraftEditorHooks => ContainerDraf
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.{ MakeDraftId, S3Paths, ItemDrafts }
-import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser, SimpleOrg, SimpleUser }
+import org.corespring.drafts.item.models._
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.v2.auth.LoadOrgAndOptions
@@ -54,9 +55,7 @@ class DraftEditorHooks(
   } yield d
 
   override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
-
     logger.trace(s"function=load id=$id")
-
     for {
       d <- loadDraft(id)
       item <- Success(d.change.data)
@@ -64,7 +63,7 @@ class DraftEditorHooks(
   }
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-    logger.trace(s"function=loadFile id=$id path=$path")
+    logger.trace(s"function=loadFile id=$id path=$path, bucket=${awsConfig.bucket}")
     val result = for {
       _ <- Success(logger.trace(s"function=loadDraft id=$id"))
       identity <- getOrgAndUser(request)
@@ -80,27 +79,40 @@ class DraftEditorHooks(
   override def deleteFile(id: String, path: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
     logger.trace(s"function=deleteFile id=$id path=$path")
 
-    val v: Validation[V2Error, DeleteResponse] = for {
+    def deleteFromS3(draftId:DraftId, path: String) = {
+      val deleteResponse = playS3.delete(awsConfig.bucket, S3Paths.draftFile(draftId, path))
+      if(deleteResponse.success){
+        Success(true)
+      } else {
+        Failure(generalError(deleteResponse.msg))
+      }
+    }
+
+    def removeFromData(draftId: DraftId, path: String) = {
+      val filename = grizzled.file.util.basename(path)
+      val file = StoredFile(path, BaseFile.getContentType(filename), false, filename)
+      if(backend.removeFileFromChangeSet(draftId, file)){
+        Success(true)
+      } else {
+        Failure(generalError(s"Error removing file $path from draft $draftId"))
+      }
+    }
+
+    val v: Validation[V2Error, Boolean] = for {
       identity <- getOrgAndUser(header)
       draftId <- mkDraftId(identity, id).leftMap { e => generalError(e.msg) }
-      owns <- Success(backend.owns(identity)(draftId))
-      _ <- if (owns) Success(true) else Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
-    } yield playS3.delete(awsConfig.bucket, S3Paths.draftFile(draftId, path))
+      owns <- if(backend.owns(identity)(draftId)) Success(true) else Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
+      deletedFromS3 <- deleteFromS3(draftId,path)
+      removedFromData <- removeFromData(draftId,path)
+    } yield removedFromData
 
     v match {
       case Failure(e) => Some(e.statusCode, e.message)
-      case Success(r) => {
-        if (r.success) {
-          None
-        } else {
-          Some(BAD_REQUEST, r.msg)
-        }
-      }
+      case _ => None
     }
   }
 
   override def upload(id: String, path: String)(predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Future[UploadResult]] = {
-
     logger.trace(s"function=upload id=$id path=$path")
 
     def loadDraftPredicate(rh: RequestHeader): Either[SimpleResult, ItemDraft] = {
@@ -114,7 +126,10 @@ class DraftEditorHooks(
       backend.addFileToChangeSet(draft, newFile)
     }
 
-    playS3.s3ObjectAndData[ItemDraft](awsConfig.bucket, d => S3Paths.draftFile(d.id, path))(loadDraftPredicate).map { f =>
+    playS3.s3ObjectAndData[ItemDraft](awsConfig.bucket, d => {
+      val p = S3Paths.draftFile(d.id, path)
+      URIUtil.encodePath(p)
+    })(loadDraftPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, draft) = tuple
         val key = s3Object.getKey

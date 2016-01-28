@@ -2,15 +2,15 @@ package org.corespring.drafts.item
 
 import com.amazonaws.services.s3.AmazonS3
 import org.bson.types.ObjectId
-import org.corespring.assets.{ItemAssetKeys, AssetKeys}
-import org.corespring.container.client.AssetUtils
+import org.corespring.assets.AssetUtils
+import org.corespring.assets.{ ItemAssetKeys, AssetKeys }
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.models.appConfig.Bucket
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Logger
 
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 trait ItemDraftAssets {
   def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: DraftId): Validation[DraftError, DraftId]

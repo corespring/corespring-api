@@ -73,7 +73,10 @@ class CollectionApi(
     case _ => Success(true)
   }
 
-  def createCollection = futureWithIdentity { (identity, request) =>
+  def createCollection: Action[AnyContent] = createCollection(CREATED)
+
+  //TODO: once v1 collection api is gone we can remove the successfulStatusCode
+  def createCollection(successStatusCode: Int): Action[AnyContent] = futureWithIdentity(BAD_REQUEST) { (identity, request) =>
     Future {
 
       logger.debug(s"function=createCollection, ${request.body}")
@@ -85,7 +88,7 @@ class CollectionApi(
         _ <- if (name.isEmpty) generalError("Name is empty").asFailure else Success(true)
         createResult <- contentCollectionService.create(name, identity.org).v2Error
       } yield createResult
-      v.map(c => Json.toJson(c)).toSimpleResult(CREATED)
+      v.map(c => Json.toJson(c)).toSimpleResult(successStatusCode)
     }
   }
 
@@ -99,11 +102,18 @@ class CollectionApi(
   def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = futureWithIdentity { (identity, request) =>
     Future {
 
-      logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId")
+      val permission = (for {
+        json <- request.body.asJson
+        _ <- Some(logger.debug(s"[shareCollection] raw json: $json"))
+        permissionString <- (json \ "permission").asOpt[String]
+        permission <- Permission.fromString(permissionString)
+      } yield permission).getOrElse(Permission.Read)
+
+      logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId, permission=$permission")
 
       val v: Validation[V2Error, ObjectId] = for {
         _ <- orgCollectionService.ownsCollection(identity.org, collectionId).v2Error
-        o <- orgCollectionService.grantAccessToCollection(destinationOrgId, collectionId, Permission.Read).v2Error
+        o <- orgCollectionService.grantAccessToCollection(destinationOrgId, collectionId, permission).v2Error
       } yield collectionId
 
       v.map(r => Json.obj("updated" -> collectionId.toString)).toSimpleResult()
@@ -137,7 +147,7 @@ class CollectionApi(
           _ <- contentCollectionService.delete(collectionId).v2Error
         } yield true
 
-        v.map(ok => Json.obj()).toSimpleResult()
+        v.map(ok => Json.obj("id" -> collectionId.toString)).toSimpleResult()
       }
   }
 
@@ -237,26 +247,27 @@ class CollectionApi(
     list(q, f, c, sk, l, sort)
   }
 
-  /** Note: ignoring q,f,c,sk,sort and l for this 1st iteration */
+  /**
+   * Note: ignoring q,f,c,sort for this 1st iteration
+   * Also setting status code to [[BAD_REQUEST]] to fix an api regression.
+   */
   def list(
     q: Option[String] = None,
     f: Option[String] = None,
     c: Option[Boolean] = None,
     sk: Int = 0,
     l: Int = 50,
-    sort: Option[String] = None) = Action.async { request =>
+    sort: Option[String] = None) = futureWithIdentity(BAD_REQUEST) { (identity, _) =>
 
     logger.info(s"[list] params: q=$q, f=$f, c=$c, sk=$sk, l=$l, sort=$sort")
+    logger.info(s"[list] orgId: ${identity.org.id}")
 
-    Future {
+    implicit val writes = CollectionInfoWrites
 
-      implicit val writes = CollectionInfoWrites
-
-      getOrgAndOptionsFn(request).map { identity =>
-        val infoList = orgCollectionService
-          .listAllCollectionsAvailableForOrg(identity.org.id)
-        Ok(Json.toJson(infoList.toSeq))
-      }.getOrElse(Unauthorized)
-    }
+    orgCollectionService
+      .listAllCollectionsAvailableForOrg(identity.org.id, sk, l).map { infoList =>
+        Ok(Json.toJson(infoList))
+      }
   }
+
 }

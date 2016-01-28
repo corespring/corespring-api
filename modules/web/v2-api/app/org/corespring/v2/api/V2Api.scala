@@ -11,7 +11,37 @@ import play.api.mvc._
 import scala.concurrent.{ Future, ExecutionContext }
 import scalaz.{ Failure, Success, Validation }
 
-trait V2Api extends Controller with LoadOrgAndOptions {
+trait ValidationToResultLike {
+
+  import play.api.mvc.Results.Status
+  import play.api.http.Status.OK
+  /**
+   * Convert a Validation to a SimpleResult.
+   * @param fn the function to convert A to a SimpleResult
+   * @tparam A
+   * @return
+   */
+  protected def validationToResult[A](fn: A => SimpleResult)(v: Validation[V2Error, A]) = {
+    def errResult(e: V2Error): SimpleResult = Status(e.statusCode)(e.json)
+    v.fold[SimpleResult](errResult, fn)
+  }
+
+  protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
+    def toResult: SimpleResult = Status(error.statusCode)(error.json)
+    def toResult(statusCode: Int): SimpleResult = Status(statusCode)(error.json)
+  }
+
+  protected implicit class ValidationToSimpleResult(v: Validation[V2Error, JsValue]) {
+    def toSimpleResult(statusCode: Int = OK): SimpleResult = {
+      v match {
+        case Success(json) => Status(statusCode)(json)
+        case Failure(e) => Status(e.statusCode)(e.json)
+      }
+    }
+  }
+
+}
+trait V2Api extends Controller with LoadOrgAndOptions with ValidationToResultLike {
 
   implicit def ec: ExecutionContext
 
@@ -28,30 +58,6 @@ trait V2Api extends Controller with LoadOrgAndOptions {
     }
   }
 
-  /**
-   * Convert a Validation to a SimpleResult.
-   * @param fn the function to convert A to a SimpleResult
-   * @tparam A
-   * @return
-   */
-  protected def validationToResult[A](fn: A => SimpleResult)(v: Validation[V2Error, A]) = {
-    def errResult(e: V2Error): SimpleResult = Status(e.statusCode)(e.json)
-    v.fold[SimpleResult](errResult, fn)
-  }
-
-  protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
-    def toResult: SimpleResult = Status(error.statusCode)(Json.prettyPrint(error.json))
-  }
-
-  protected implicit class ValidationToSimpleResult(v: Validation[V2Error, JsValue]) {
-    def toSimpleResult(statusCode: Int = OK): SimpleResult = {
-      v match {
-        case Success(json) => Status(statusCode)(json)
-        case Failure(e) => Status(e.statusCode)(e.json)
-      }
-    }
-  }
-
   protected def withIdentity(block: (OrgAndOpts, Request[AnyContent]) => SimpleResult) =
     Action.async { implicit request =>
       Future {
@@ -59,6 +65,18 @@ trait V2Api extends Controller with LoadOrgAndOptions {
           case Success(identity) => block(identity, request)
           case Failure(e) => e.toResult
         }
+      }
+    }
+
+  /**
+   * This is to support api status codes from pre-refactor
+   */
+  @deprecated("This is used to support overriding of status codes, but we should rely on the error's code", "core-refactor")
+  protected def futureWithIdentity(statusCode: Int)(block: (OrgAndOpts, Request[AnyContent]) => Future[SimpleResult]) =
+    Action.async { implicit request =>
+      getOrgAndOptions(request) match {
+        case Success(identity) => block(identity, request)
+        case Failure(e) => Future { e.toResult(statusCode) }
       }
     }
 

@@ -34,11 +34,11 @@ class MetadataApi(
     val sets = metadataSetService.list(identity.org.id)
     val metadata = metadataService.get(itemId, sets.map(_.metadataKey))
     val setAndData = sets.map(s => (s, metadata.find(_.key == s.metadataKey)))
-    Ok(Json.prettyPrint(Json.toJson(setAndData.map(t => SetJson(t._1, t._2)))))
+    Ok(Json.toJson(setAndData.map(t => SetJson(t._1, t._2))))
   }
 
   def get = withIdentity { (identity, _) =>
-    Ok(Json.prettyPrint(metadataSetService.list(identity.org.id).as[JsValue]))
+    Ok(metadataSetService.list(identity.org.id).as[JsValue])
   }
 
   def create() = withIdentity { (identity, request) =>
@@ -70,12 +70,12 @@ class MetadataApi(
   })
 
   def getById(metadataSetId: ObjectId) = withMetadataSet(metadataSetId, { (metadataSet, _, _) =>
-    Ok(Json.prettyPrint(metadataSet))
+    Ok(Json.toJson(metadataSet))
   })
 
   def delete(metadataSetId: ObjectId) = withMetadataSet(metadataSetId, { (metadataSet, identity, _) =>
     metadataSetService.delete(identity.org.id, metadataSetId) match {
-      case None => Ok(Json.prettyPrint(metadataSet))
+      case None => Ok(Json.toJson(metadataSet))
       case _ => cantFindMetadataSetWithId(metadataSetId).toResult
     }
   })

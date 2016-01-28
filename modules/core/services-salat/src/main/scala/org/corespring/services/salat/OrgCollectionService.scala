@@ -10,7 +10,11 @@ import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
 import org.corespring.services.salat.OrgCollectionService.OrgKeys
+import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
+import org.omg.CORBA.TIMEOUT
 
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
@@ -29,29 +33,39 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
   itemService: org.corespring.services.item.ItemService,
   orgDao: SalatDAO[Organization, ObjectId],
   collectionDao: SalatDAO[ContentCollection, ObjectId],
+  salatServicesExecutionContext: SalatServicesExecutionContext,
   implicit val context: Context) extends org.corespring.services.OrgCollectionService {
+
+  private val TIMEOUT = 5.seconds
+
+  implicit val ec: ExecutionContext = salatServicesExecutionContext.ctx
 
   private val logger = Logger(classOf[OrgCollectionService])
 
-  override def listAllCollectionsAvailableForOrg(orgId: ObjectId): Stream[CollectionInfo] = {
+  override def listAllCollectionsAvailableForOrg(orgId: ObjectId, skip: Int, limit: Int): Future[Stream[CollectionInfo]] = {
+
+    def listCollectionsByOrg(refs: Seq[ContentCollRef]): Stream[ContentCollection] = {
+      val collectionIds = refs.map(_.collectionId)
+      val query = ("_id" $in collectionIds)
+      logger.trace(s"function=listCollectionsByOrg, orgId=$orgId, query=$query, skip=$skip, limit=$limit")
+      collectionDao.find(query).skip(skip).limit(limit).toStream
+    }
 
     logger.trace(s"function=listAllCollectionsAvailableForOrg, orgId=$orgId")
     val refs = getContentCollRefs(orgId, Permission.Read)
-    listCollectionsByOrg(orgId)
+    val collections = listCollectionsByOrg(refs)
       .filterNot(_.id == collectionService.archiveCollectionId)
-      .flatMap { c =>
-        val permission = refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval))
 
-        permission.map(p =>
-          CollectionInfo(c, itemService.countItemsInCollection(c.id), orgId, p))
+    logger.trace(s"function=listAllCollectionsAvailableForOrg, orgId=$orgId - call count")
+    itemService.countItemsInCollections(collections.map(_.id): _*).map { counts =>
+      collections.flatMap { c =>
+        for {
+          p <- refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval))
+          count <- counts.find(_.collectionId == c.id).map(_.count)
+        } yield CollectionInfo(c, count, orgId, p)
       }
-  }
+    }
 
-  private def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection] = {
-    val refs = getContentCollRefs(orgId, Permission.Read).map(_.collectionId)
-    val query = ("_id" $in refs)
-    logger.trace(s"function=listCollectionsByOrg, orgId=$orgId, query=$query")
-    collectionDao.find(query).toStream
   }
 
   override def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean] = {
@@ -127,9 +141,12 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
       updatedOrg
     }
 
-    orgDao.findOneById(orgId)
-      .map(updateOrAddNewReference)
-      .toSuccess(PlatformServiceError(s"Can't find org with id: $orgId"))
+    for {
+      _ <- collectionDao.findOneById(collId).toSuccess(PlatformServiceError(s"Can't find a collection with the id: $collId"))
+      o <- orgDao.findOneById(orgId)
+        .map(updateOrAddNewReference)
+        .toSuccess(PlatformServiceError(s"Can't find org with id: $orgId"))
+    } yield o
   }
 
   override def removeAccessToCollection(orgId: Imports.ObjectId, collId: Imports.ObjectId): Validation[PlatformServiceError, Organization] = {
@@ -168,27 +185,67 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     collectionDao.findOne(query)
   }
 
-  override def getPermission(orgId: ObjectId, collId: ObjectId): Option[Permission] = {
-    logger.debug(s"fuction=getPermission, orgId=$orgId, collId=$collId")
 
-    val stream = orgService.orgsWithPath(orgId, true)
+  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
+    logger.debug(s"function=isAuthorized, orgId=$orgId, collId=$collId, p=$p")
+    val batchResult = Await.result(isAuthorizedBatch(orgId, (collId -> p)), TIMEOUT)
+    logger.trace(s"function=isAuthorized, batchResult=$batchResult")
+    val maybeAuthorized = batchResult.find{ {case (id, _) => id == collId}}
+    logger.trace(s"function=isAuthorized, maybeAuthorized=$maybeAuthorized")
+    maybeAuthorized.map(_._2).getOrElse(false)
+  }
 
-    lazy val publicPermission = collectionDao.findOneById(collId).flatMap { c =>
-      if (c.isPublic) Some(Permission.Read) else None
-    }
+  override def isAuthorizedBatch(orgId: ObjectId, idsAndPermissions: (ObjectId, Permission)*): Future[Seq[(ObjectId,Boolean)]] = {
+    logger.trace(s"function=isAuthorizedBatch, idsAndPermissions=$idsAndPermissions")
 
-    val allRefs = stream.map(_.contentcolls).flatten.distinct
+    val rawIds = idsAndPermissions.map(_._1)
+    require(rawIds.distinct.length == rawIds.length, "There are duplicate ids passed in - can't return a non-ambiguous result")
 
-    logger.trace(s"function=getPermission, allRefs=$allRefs")
+    val f = getPermissions(orgId, idsAndPermissions.map(_._1) : _*)
 
-    if (allRefs.isEmpty) {
-      publicPermission
-    } else {
-      allRefs.find(_.collectionId == collId).map { r =>
-        Permission.fromLong(r.pval)
-      }.getOrElse(publicPermission)
+    f.map{ grantedPermissions =>
+      grantedPermissions.map{ case (id, granted) =>
+        idsAndPermissions.find( {case (i, _) => i == id}) match {
+          case None => id -> false
+          case Some((_, p)) =>
+            val authorized = granted.map( g => g.has(p)).getOrElse(false)
+            id ->  authorized
+        }
+      }
     }
   }
+
+  override def getPermission(orgId: ObjectId, collId: ObjectId): Option[Permission] = {
+    val perms = Await.result(getPermissions(orgId, collId), TIMEOUT)
+    perms.find({ case (id, p) => id == collId }).flatMap(_._2)
+  }
+
+
+  override def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Future[Stream[(ObjectId,Option[Permission])]] = Future{
+    logger.debug(s"function=getPermissions, orgId=$orgId, collectionIds=$collectionIds")
+
+    val distinctIds = collectionIds.distinct
+
+    lazy val stream = orgService.orgsWithPath(orgId, true)
+    lazy val allRefs = stream.map(_.contentcolls).flatten.distinct
+    logger.trace(s"function=getPermissions, allRefs=$allRefs")
+
+    val query = "_id" $in distinctIds
+
+
+    def permissionFromRef(c:ContentCollection) : (ObjectId, Option[Permission]) = {
+      val fallbackPermission = if(c.isPublic) Some(Permission.Read) else None
+      val p = allRefs.find(_.collectionId == c.id).flatMap{ r => Permission.fromLong(r.pval)}.orElse(fallbackPermission)
+      c.id -> p
+    }
+
+    val foundIdPermissions = collectionDao.find(query).toStream.map(permissionFromRef)
+    val notFoundIds = distinctIds.filterNot( id => foundIdPermissions.exists(_._1 == id))
+    val out  = foundIdPermissions ++ notFoundIds.map(_ -> None)
+    logger.trace(s"function=getPermissions, out=$out")
+    out
+  }
+
 
   private def getCollRef(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
     import scalaz.Scalaz._
@@ -213,13 +270,6 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
   override def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization] = {
     val query = MongoDBObject("contentcolls.collectionId" -> MongoDBObject("$in" -> List(collectionId)))
     orgDao.find(query).toStream
-  }
-
-  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
-    getPermission(orgId, collId).map { permissionForOrg =>
-      logger.trace(s"function=isAuthorized, permissionForOrg=$permissionForOrg, p=$p")
-      permissionForOrg.has(p)
-    }.getOrElse(false)
   }
 
 }

@@ -3,6 +3,7 @@ package org.corespring.services.salat
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError }
+import grizzled.slf4j.Logger
 import org.corespring.errors.{ CollectionInsertError, PlatformServiceError }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
@@ -10,6 +11,7 @@ import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.services.ContentCollectionUpdate
 import org.corespring.{ services => interface }
 
+import scala.concurrent.Await
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
@@ -20,6 +22,8 @@ class ContentCollectionService(
   shareItemWithCollectionService: => interface.ShareItemWithCollectionsService,
   val itemService: interface.item.ItemService,
   archiveConfig: ArchiveConfig) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
+
+  val logger = Logger(classOf[ContentCollectionService])
 
   object Keys {
     val isPublic = "isPublic"
@@ -50,10 +54,12 @@ class ContentCollectionService(
 
   override def delete(collId: ObjectId): Validation[PlatformServiceError, Unit] = {
     //todo: roll backs after detecting error in organization update
-
-    val isEmptyCollection = itemService.countItemsInCollection(collId) match {
-      case 0 => Success()
-      case n => Failure(PlatformServiceError(s"Can't delete this collection it has $n item(s) in it."))
+    import scala.concurrent.duration._
+    val count = Await.result(itemService.countItemsInCollections(collId), 5.seconds).headOption.map(_.count)
+    val isEmptyCollection = count match {
+      case Some(0) => Success()
+      case Some(c) if c > 0 => Failure(PlatformServiceError(s"Can't delete this collection it has $c item(s) in it."))
+      case None => Success()
     }
 
     lazy val delete = for {
@@ -87,7 +93,9 @@ class ContentCollectionService(
       if (result.getN == 1) {
         dao.findOneById(id).toSuccess(PlatformServiceError(s"Can't find collection with id: $id"))
       } else {
-        Failure(PlatformServiceError(s"No update occurred for query: $id"))
+        logger.debug(s"function=update, result.getLastError=${result.getLastError}")
+        logger.debug(s"function=update, result.getN=${result.getN}")
+        Failure(PlatformServiceError(s"Nothing changed on collection with id: $id"))
       }
     } catch {
       case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update collection", e))

@@ -36,7 +36,8 @@ abstract class ContentApi[ContentType <: CsContent[_]](
 
   val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails, published, "data", "playerDefinition")
 
-  val jsonSummaryFields: Seq[String] = Seq("id",
+  val jsonSummaryFields: Seq[String] = Seq(
+    "id",
     collectionId,
     TaskInfo.Keys.gradeLevel,
     TaskInfo.Keys.itemType,
@@ -61,7 +62,8 @@ abstract class ContentApi[ContentType <: CsContent[_]](
    * An API action to list JSON representations of Content, using pagination parameters for skipping, offset, and
    * sorting.
    */
-  def list(query: Option[String],
+  def list(
+    query: Option[String],
     fields: Option[String],
     count: String,
     skip: Int,
@@ -147,7 +149,8 @@ abstract class ContentApi[ContentType <: CsContent[_]](
     case _ => Left(CorespringInternalError("invalid value for collectionId"))
   }
 
-  protected def contentList[A](q: Option[String],
+  protected def contentList[A](
+    q: Option[String],
     f: Option[String],
     sk: Int,
     l: Int,
@@ -163,7 +166,8 @@ abstract class ContentApi[ContentType <: CsContent[_]](
           query ++ entry
         }
 
-      val queryResult: Either[SearchCancelled, DBObject] = q.map(query => ItemSearch.toSearchObj(query,
+      val queryResult: Either[SearchCancelled, DBObject] = q.map(query => ItemSearch.toSearchObj(
+        query,
         Some(initSearch),
         Map(collectionId -> parseCollectionIds(request.ctx.orgId)))) match {
         case Some(result) => result

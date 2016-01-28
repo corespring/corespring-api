@@ -8,7 +8,7 @@ import play.libs.Akka
 
 object Actors {
 
-  lazy val itemTransformerActor = Akka.system.actorOf(Props.create(classOf[ItemTransformerActor], Main.itemTransformer))
+  def itemTransformerActor(transformer: ItemTransformer) = Akka.system.actorOf(Props.create(classOf[ItemTransformerActor], transformer))
 
   case class UpdateItem(itemId: VersionedId[ObjectId])
 

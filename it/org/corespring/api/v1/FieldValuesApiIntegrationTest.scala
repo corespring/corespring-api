@@ -1,5 +1,6 @@
 package org.corespring.api.v1
 
+import global.Global
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessToken }
@@ -37,7 +38,7 @@ class FieldValuesApiIntegrationTest extends IntegrationSpecification {
     override def call: Call = org.corespring.api.v1.routes.FieldValuesApi.standard(queryString)
 
     override def insert(d: Standard): Option[ObjectId] = {
-      bootstrap.Main.standardService.insert(d)
+      main.standardService.insert(d)
     }
   }
 
@@ -45,7 +46,7 @@ class FieldValuesApiIntegrationTest extends IntegrationSpecification {
     override def call: Call = org.corespring.api.v1.routes.FieldValuesApi.subject(queryString)
 
     override def insert(d: Subject): Option[ObjectId] = {
-      bootstrap.Main.subjectService.insert(d)
+      main.subjectService.insert(d)
     }
   }
 

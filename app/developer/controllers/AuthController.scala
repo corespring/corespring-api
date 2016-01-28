@@ -16,7 +16,8 @@ import securesocial.core.SecureSocial
 
 import scalaz.{ Failure, Success }
 
-class AuthController(userService: UserService,
+class AuthController(
+  userService: UserService,
   oAuthProvider: OAuthProvider)
   extends Controller
   with SecureSocial

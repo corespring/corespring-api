@@ -10,7 +10,6 @@ import org.corespring.elasticsearch._
 import org.corespring.models.item.ComponentType
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json._
-import play.api.libs.ws.WS
 
 import scala.concurrent._
 import scalaz._
@@ -31,6 +30,8 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
   executionContext: ElasticSearchExecutionContext)
   extends ItemIndexService with AuthenticatedUrl with ItemIndexDeleteService {
 
+  override val webService = play.api.libs.ws.WS
+
   implicit def ec: ExecutionContext = executionContext.context
 
   private val logger = Logger(classOf[ElasticSearchItemIndexService])
@@ -39,13 +40,17 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
   private val contentIndex = ElasticSearchClient(config.url).index("content")
 
-  def search(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
+  override def unboundedSearch(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
+
       implicit val QueryWrites = ItemIndexQuery.ElasticSearchWrites
       implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
+      val queryJson = Json.toJson(query)
+      logger.trace(s"function=search, query=$queryJson")
+
       authed("/content/_search")(url, ec)
-        .post(Json.toJson(query))
+        .post(queryJson)
         .map(result => Json.fromJson[ItemIndexSearchResult](Json.parse(result.body)) match {
           case JsSuccess(searchResult, _) => Success(searchResult)
           case _ => Failure(new Error("Could not read results"))
@@ -53,6 +58,11 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
     } catch {
       case e: Exception => future { Failure(new Error(e.getMessage)) }
     }
+  }
+
+  def search(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = query.collections match {
+    case Nil => Future(Success(ItemIndexSearchResult(total = 0, hits = Seq.empty)))
+    case _ => unboundedSearch(query)
   }
 
   def distinct(field: String, collectionIds: Seq[String]): Future[Validation[Error, Seq[String]]] = {
@@ -129,8 +139,9 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
           case Some(record) => {
             val recordJson = Json.parse(record.toString)
             val denormalized = contentDenormalizer.denormalize(recordJson)
-            logger.trace(s"function=reindex, id=$id, recordJson=$recordJson, denormalized=$denormalized")
-            contentIndex.add(id.id.toString, denormalized.toString)
+            val res = contentIndex.add(id.id.toString, denormalized.toString)
+            logger.trace(s"function=reindex, id=$id, recordJson=$recordJson, denormalized=$denormalized, res=$res")
+            res
           }
           case _ => future { Failure(new Error(s"Item with id=$id not found")) }
         }
@@ -152,6 +163,8 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
 trait AuthenticatedUrl {
 
+  def webService: play.api.libs.ws.WS.type
+
   private def baseUrl(url: URL) =
     s"${url.getProtocol}://${url.getHost}${if (url.getPort == -1) "" else s":${url.getPort}"}"
 
@@ -165,7 +178,7 @@ trait AuthenticatedUrl {
    * Provides a WSRequest with authentication headers from a route and a URL-base.
    */
   def authed(route: String)(implicit url: URL, ec: ExecutionContext) = {
-    val holder = WS.url(s"${baseUrl(url)}$route")
+    val holder = webService.url(s"${baseUrl(url)}$route")
     authHeader.map(header => holder.withHeaders(header)).getOrElse(holder)
   }
 

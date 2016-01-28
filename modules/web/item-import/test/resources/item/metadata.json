@@ -1,0 +1,62 @@
+{
+  "contributorDetails": {
+    "additionalCopyrights": [
+      {
+        "owner": "Ben"
+      }
+    ],
+    "author" : "State of New Jersey Department of Education",
+    "contributor" : "State of New Jersey Department of Education",
+    "copyright": {
+      "owner": "State of New Jersey Department of Education",
+      "year": "2012"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType": "CC BY",
+    "sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/ela/10u1.shtml"
+  },
+  "lexile": "24",
+  "otherAlignments": {
+    "bloomsTaxonomy" : "Analyzing",
+		"keySkills" : [
+			"Define",
+			"Discuss",
+			"Distinguish",
+			"Choose",
+			"Analyze",
+			"Examine"
+		],
+		"relatedCurriculum" : "New Jersey Model Curriculum",
+		"depthOfKnowledge" : "3"
+  },
+  "pValue": "0",
+  "priorUse" : "Summative",
+  "priorGradeLevel": [
+    "PK",
+    "UG",
+    "04"
+  ],
+  "reviewsPassed": [
+    "Bias"
+  ],
+  "standards": [
+    "RL.2.6"
+  ],
+  "supportingMaterials": [
+    {
+      "name": "Rubric",
+      "files": [
+        {
+          "name": "files/rubric.pdf"
+        }
+      ]
+    }
+  ],
+  "taskInfo": {
+		"gradeLevel" : [
+			"03"
+		],
+    "title" : "Read the passage <i>What's the Scoop on Soil?</i>. Which aspects of soil does the passage not explain? What can you tell about soil by squeezing it?",
+    "description" : "Item about Soil"
+  }
+}

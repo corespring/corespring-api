@@ -7,7 +7,7 @@ import org.corespring.services.{ ShareItemWithCollectionsService, OrgCollectionS
 import org.corespring.services.item.ItemAggregationService
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
-import org.specs2.specification.Scope
+import org.specs2.specification.{ Fragments, Scope }
 import play.api.libs.json.{ Json }
 import play.api.mvc.{ AnyContent, Request }
 import play.api.test.FakeRequest
@@ -165,12 +165,29 @@ class CollectionApiTest extends V2ApiSpec {
     }
 
     "call contentCollectionService.shareCollectionWithOrg" in new shareCollection {
-      there was one(orgCollectionService).grantAccessToCollection(any[ObjectId], any[ObjectId], any[Permission])
+      there was one(orgCollectionService).grantAccessToCollection(orgId, collectionId, Permission.Read)
     }
 
     "return the id of the updated collection" in new shareCollection {
       contentAsJson(result) === Json.obj("updated" -> collectionId.toString)
     }
+
+    "with permission in request body" should {
+
+      def assertWithPermission(p: Permission): Fragments = {
+        s"{permission: ${p.name}} calls orgCollectionService.grantAccessToCollection(_,_,${p.name})" in new scope {
+          val withPerm = FakeRequest("", "").withJsonBody(Json.obj("permission" -> p.name))
+          val result = api.shareCollection(collectionId, orgId)(withPerm)
+          await(result)
+          there was one(orgCollectionService).grantAccessToCollection(orgId, collectionId, p)
+        }
+      }
+
+      assertWithPermission(Permission.Clone)
+      assertWithPermission(Permission.Read)
+      assertWithPermission(Permission.Write)
+    }
+
   }
 
   "setEnabledStatus" should {
@@ -207,7 +224,7 @@ class CollectionApiTest extends V2ApiSpec {
     }
 
     "returns an empty json response" in new deleteCollection {
-      contentAsJson(result) === Json.obj()
+      contentAsJson(result) === Json.obj("id" -> collectionId.toString)
     }
 
   }

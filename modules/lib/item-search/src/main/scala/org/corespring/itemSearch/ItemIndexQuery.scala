@@ -15,11 +15,21 @@ case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
   widgets: Seq[String] = ItemIndexQuery.Defaults.widgets,
   gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
   published: Option[Boolean] = ItemIndexQuery.Defaults.published,
+  standardClusters: Seq[String] = ItemIndexQuery.Defaults.standardClusters,
   standards: Seq[String] = ItemIndexQuery.Defaults.standards,
   workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
   sort: Seq[Sort] = ItemIndexQuery.Defaults.sort,
   metadata: Map[String, String] = ItemIndexQuery.Defaults.metadata,
-  requiredPlayerWidth: Option[Int] = ItemIndexQuery.Defaults.requiredPlayerWidth)
+  requiredPlayerWidth: Option[Int] = ItemIndexQuery.Defaults.requiredPlayerWidth) {
+
+  def scopeToCollections(collectionIds: String*): ItemIndexQuery = {
+    val scopedCollections = collections.filter(c => collectionIds.exists(_ == c)) match {
+      case Nil => collectionIds
+      case c: Seq[String] => c
+    }
+    this.copy(collections = scopedCollections)
+  }
+}
 
 case class Sort(field: String, direction: Option[String])
 
@@ -33,6 +43,7 @@ object Sort {
     "itemType" -> "taskInfo.itemTypes",
     "widget" -> "taskInfo.widgets",
     "standard" -> "standards.dotNotation",
+    "standardClusters" -> "taskInfo.standardClusters",
     "contributor" -> "contributorDetails.contributor")
 
   object ElasticSearchWrites extends Writes[Sort] {
@@ -61,37 +72,54 @@ object ItemIndexQuery {
    * Default query values
    */
   object Defaults {
-    val offset = 0
     val count = 50
-    val requiredPlayerWidth = None
-    val text = None
-    val contributors = Seq.empty[String]
+    val offset = 0
     val collections = Seq.empty[String]
-    val itemTypes = Seq.empty[String]
-    val widgets = Seq.empty[String]
+    val contributors = Seq.empty[String]
     val gradeLevels = Seq.empty[String]
-    val published = None
-    val standards = Seq.empty[String]
-    val workflows = Seq.empty[String]
-    val sort = Seq.empty[Sort]
+    val itemTypes = Seq.empty[String]
     val metadata = Map.empty[String, String]
+    val published = None
+    val requiredPlayerWidth = None
+    val sort = Seq.empty[Sort]
+    val standardClusters = Seq.empty[String]
+    val standards = Seq.empty[String]
+    val text = None
+    val widgets = Seq.empty[String]
+    val workflows = Seq.empty[String]
   }
 
   object Fields {
-    val offset = "offset"
-    val count = "count"
-    val text = "text"
-    val contributors = "contributors"
     val collections = "collections"
-    val itemTypes = "itemTypes"
-    val widgets = "widgets"
+    val contributors = "contributors"
+    val count = "count"
     val gradeLevels = "gradeLevels"
+    val itemTypes = "itemTypes"
+    val offset = "offset"
     val published = "published"
-    val standards = "standards"
-    val workflows = "workflows"
     val requiredPlayerWidth = "requiredPlayerWidth"
     val sort = "sort"
-    val all = Set(offset, count, text, contributors, collections, itemTypes, widgets, gradeLevels, published, standards, workflows, sort)
+    val standardClusters = "standardClusters"
+    val standards = "standards"
+    val text = "text"
+    val widgets = "widgets"
+    val workflows = "workflows"
+
+    val all = Set(
+      collections,
+      contributors,
+      count,
+      gradeLevels,
+      itemTypes,
+      offset,
+      published,
+      requiredPlayerWidth,
+      sort,
+      standardClusters,
+      standards,
+      text,
+      widgets,
+      workflows)
   }
 
   /**
@@ -103,26 +131,27 @@ object ItemIndexQuery {
 
     override def reads(json: JsValue): JsResult[ItemIndexQuery] = JsSuccess(
       ItemIndexQuery(
-        offset = (json \ offset).asOpt[Int].getOrElse(Defaults.offset),
-        count = (json \ count).asOpt[Int].getOrElse(Defaults.count),
-        text = (json \ text).asOpt[String],
-        contributors = (json \ contributors).asOpt[Seq[String]].getOrElse(Defaults.contributors),
         collections = (json \ collections).asOpt[Seq[String]].getOrElse(Defaults.collections),
-        itemTypes = (json \ itemTypes).asOpt[Seq[String]].getOrElse(Defaults.itemTypes),
-        widgets = (json \ widgets).asOpt[Seq[String]].getOrElse(Defaults.widgets),
+        contributors = (json \ contributors).asOpt[Seq[String]].getOrElse(Defaults.contributors),
+        count = (json \ count).asOpt[Int].getOrElse(Defaults.count),
         gradeLevels = (json \ gradeLevels).asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
-        published = (json \ published).asOpt[Boolean],
-        standards = (json \ standards).asOpt[Seq[String]].getOrElse(Defaults.standards),
-        workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows),
-        requiredPlayerWidth = (json \ requiredPlayerWidth).asOpt[Int],
-        sort = (json \ sort).asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
-          .getOrElse(throw new Exception(s"Could not parse sort object ${(json \ "sort")}"))))
-          .getOrElse(Defaults.sort),
+        itemTypes = (json \ itemTypes).asOpt[Seq[String]].getOrElse(Defaults.itemTypes),
         metadata = (json match {
           case jsObject: JsObject =>
             (jsObject.keys diff all).map(key => (jsObject \ key).asOpt[String].map(value => key -> value)).flatten.toMap
           case _ => Map.empty[String, String]
-        })))
+        }),
+        offset = (json \ offset).asOpt[Int].getOrElse(Defaults.offset),
+        published = (json \ published).asOpt[Boolean],
+        requiredPlayerWidth = (json \ requiredPlayerWidth).asOpt[Int],
+        sort = (json \ sort).asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
+          .getOrElse(throw new Exception(s"Could not parse sort object ${(json \ "sort")}"))))
+          .getOrElse(Defaults.sort),
+        standardClusters = (json \ standardClusters).asOpt[Seq[String]].getOrElse(Defaults.standardClusters),
+        standards = (json \ standards).asOpt[Seq[String]].getOrElse(Defaults.standards),
+        text = (json \ text).asOpt[String],
+        widgets = (json \ widgets).asOpt[Seq[String]].getOrElse(Defaults.widgets),
+        workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows)))
   }
 
   /**
@@ -179,7 +208,7 @@ object ItemIndexQuery {
       case Some(text) => Some(Json.obj("should" -> Json.arr(
         Json.obj("multi_match" -> Json.obj(
           "query" -> text,
-          "fields" -> Seq("taskInfo.description", "taskInfo.title", "content"),
+          "fields" -> Seq("taskInfo.description", "taskInfo.title", "content", "taskInfo.standardClusters"),
           "type" -> "phrase")),
         Json.obj("ids" -> Json.obj(
           "values" -> Json.arr(text))))))
@@ -208,6 +237,7 @@ object ItemIndexQuery {
               terms("taskInfo.itemTypes", itemTypes),
               terms("taskInfo.widgets", widgets),
               terms("taskInfo.gradeLevel", gradeLevels),
+              terms("taskInfo.standardClusters", standardClusters),
               terms("standards.dotNotation", standards),
               term("published", published),
               terms("workflow", workflows, Some("and")),

@@ -1,7 +1,7 @@
 package org.corespring.services.salat.bootstrap
 
 import com.amazonaws.services.s3.AmazonS3
-import com.mongodb.casbah._
+import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAO
@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 import org.corespring.models._
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.models.assessment.{ Assessment, AssessmentTemplate }
-import org.corespring.models.auth.{ AccessToken, ApiClient, Permission }
+import org.corespring.models.auth.{ AccessToken, ApiClient }
 import org.corespring.models.item.{ FieldValue, Item }
 import org.corespring.models.metadata.MetadataSet
 import org.corespring.models.registration.RegistrationToken
@@ -20,7 +20,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat._
 import org.corespring.services.salat.assessment.{ AssessmentService, AssessmentTemplateService }
 import org.corespring.services.salat.auth.{ AccessTokenService, ApiClientService }
-import org.corespring.services.salat.item.{ ItemAggregationService, FieldValueService, ItemAssetService, ItemService }
+import org.corespring.services.salat.item.{ FieldValueService, ItemAggregationService, ItemAssetService, ItemService }
 import org.corespring.services.salat.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.services.salat.registration.RegistrationTokenService
 import org.corespring.{ services => interface }
@@ -88,6 +88,15 @@ trait SalatServices extends interface.bootstrap.Services {
       logger.debug(s"function=init - call initArchive")
       initArchive()
     }
+
+    initIndexes()
+  }
+
+  private def initIndexes() = {
+    logger.debug(s"initing indexes")
+    //Item
+    db(CollectionNames.item).ensureIndex("collectionId")
+    db(CollectionNames.item).ensureIndex(MongoDBObject("_id._id" -> 1, "_id.version" -> 1))
   }
 
   /**
@@ -171,10 +180,24 @@ trait SalatServices extends interface.bootstrap.Services {
   override lazy val contentCollectionService = new ContentCollectionService(contentCollectionDao, context, orgCollectionService, shareItemWithCollectionsService, itemService, archiveConfig)
   override lazy val fieldValueService: interface.item.FieldValueService = wire[FieldValueService]
   override lazy val itemAggregationService: interface.item.ItemAggregationService = new ItemAggregationService(db(CollectionNames.item), salatServicesExecutionContext)
-  override lazy val itemService: interface.item.ItemService = new ItemService(itemDao, itemAssetService, orgCollectionService, context, archiveConfig)
+  override lazy val itemService: interface.item.ItemService = new ItemService(
+    itemDao,
+    db(CollectionNames.item),
+    itemAssetService,
+    orgCollectionService,
+    context,
+    archiveConfig,
+    salatServicesExecutionContext)
   override lazy val metadataService: interface.metadata.MetadataService = wire[MetadataService]
   override lazy val metadataSetService: interface.metadata.MetadataSetService = new MetadataSetService(metadataSetDao, context, orgService)
-  override lazy val orgCollectionService: interface.OrgCollectionService = new OrgCollectionService(orgService, contentCollectionService, itemService, orgDao, contentCollectionDao, context)
+  override lazy val orgCollectionService: interface.OrgCollectionService = new OrgCollectionService(
+    orgService,
+    contentCollectionService,
+    itemService,
+    orgDao,
+    contentCollectionDao,
+    salatServicesExecutionContext,
+    context)
   override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, orgCollectionService, contentCollectionService, metadataSetService, itemService)
   override lazy val registrationTokenService: interface.RegistrationTokenService = wire[RegistrationTokenService]
   override lazy val shareItemWithCollectionsService: interface.ShareItemWithCollectionsService = new ShareItemWithCollectionsService(itemDao, itemService, orgCollectionService)
@@ -182,5 +205,5 @@ trait SalatServices extends interface.bootstrap.Services {
   override lazy val subjectService: interface.SubjectService = wire[SubjectService]
   override lazy val tokenService: interface.auth.AccessTokenService = wire[AccessTokenService]
   override lazy val userService: interface.UserService = wire[UserService]
-
+  override lazy val cloneItemService: interface.CloneItemService = wire[CloneItemService]
 }

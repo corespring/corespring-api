@@ -12,8 +12,20 @@ abstract class PlatformServiceError(val message: String, val throwable: Option[T
 
 case class GeneralError(msg: String, t: Option[Throwable]) extends PlatformServiceError(msg, t)
 
-case class CollectionAuthorizationError(val orgId: ObjectId, val p: Permission, val collectionIds: ObjectId*)
-  extends PlatformServiceError(s"Org $orgId cannot access collection(s) $collectionIds with permission $p.")
+object collection {
+  case class OrgNotAuthorized(val action: String, val org: ObjectId, val requestedPermission: Permission, val grantedPermission: Option[Permission], val collectionId: ObjectId)
+    extends PlatformServiceError(
+      s"""[$action] - Org $org not authorized for collection $collectionId with permission ${requestedPermission.name}.${grantedPermission.map(p => s" Need ${p.name}.").getOrElse("")}""")
+
+  def CantWriteToCollection(org: ObjectId, granted: Option[Permission], collectionId: ObjectId) = {
+    OrgNotAuthorized("write to collection", org, Permission.Write, granted, collectionId)
+  }
+
+  def CantCloneFromCollection(org: ObjectId, granted: Option[Permission], collectionId: ObjectId) = {
+    OrgNotAuthorized("clone from collection", org, Permission.Clone, granted, collectionId)
+  }
+
+}
 
 case class CollectionInsertError(val collection: ContentCollection, t: Option[Throwable])
   extends PlatformServiceError(s"Error inserting collection ${collection}.", t)
@@ -21,8 +33,17 @@ case class CollectionInsertError(val collection: ContentCollection, t: Option[Th
 case class ItemAuthorizationError(val org: ObjectId, val p: Permission, val items: VersionedId[ObjectId]*)
   extends PlatformServiceError(s"Org $org cannot access item(s) $items with permission $p.")
 
-case class ItemNotFoundError(val org: ObjectId, val p: Permission, val item: VersionedId[ObjectId]*)
-  extends PlatformServiceError(s"Org $org cannot find item(s) ${item} with permission $p.")
+object item {
+  case class OrgNotAuthorized(val org: ObjectId, val requestedPermission: Permission, val itemId: VersionedId[ObjectId])
+    extends PlatformServiceError(
+      s"Org $org not authorized to access item: $itemId with permission $requestedPermission.")
+
+  case class ItemNotFound(val id: VersionedId[ObjectId])
+    extends PlatformServiceError(s"Can't find item with id: $id")
+
+  case class CloneFailed(val id: VersionedId[ObjectId])
+    extends PlatformServiceError(s"Clone failed for item: $id")
+}
 
 case class ItemUpdateError(val org: ObjectId, val p: Permission, val item: VersionedId[ObjectId]*)
   extends PlatformServiceError(s"Org $org cannot update item(s) ${item} with permission $p.")

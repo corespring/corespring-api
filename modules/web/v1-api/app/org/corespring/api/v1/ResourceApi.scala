@@ -2,17 +2,17 @@ package org.corespring.api.v1
 
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.common.config.AppConfig
 import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest, BaseApi }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{ OrgCollectionService, ContentCollectionService }
+import org.corespring.services.{ OrgCollectionService }
 import org.corespring.services.item.ItemService
-import org.corespring.v2.sessiondb.{ SessionServices, SessionService }
+import org.corespring.v2.sessiondb.{ SessionServices }
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.Logger
 import play.api.libs.json.Json._
@@ -21,6 +21,7 @@ import play.api.mvc._
 
 class ResourceApi(
   s3service: S3Service,
+  bucket: Bucket,
   itemTransformer: ItemTransformer,
   itemService: ItemService,
   orgCollectionService: OrgCollectionService,
@@ -95,7 +96,8 @@ class ResourceApi(
     VersionedId(itemId)
   }
 
-  def HasItem(itemId: String,
+  def HasItem(
+    itemId: String,
     additionalChecks: Seq[(ApiRequest[AnyContent], Item) => Option[Result]] = Seq(),
     action: ItemRequest[AnyContent] => Result): Action[AnyContent] = HasItem(itemId, additionalChecks, parse.anyContent)(action)
 
@@ -106,7 +108,7 @@ class ResourceApi(
         val updated = resource.copy(files = resource.files.filterNot(_.name == filename))
         val updatedItem = putResourceInItem(updated)
         f match {
-          case StoredFile(_, _, _, key) => s3service.delete(AppConfig.assetsBucket, key)
+          case StoredFile(_, _, _, key) => s3service.delete(bucket.bucket, key)
           case _ => //do nothing
         }
         itemService.save(updatedItem)
@@ -120,8 +122,9 @@ class ResourceApi(
     def apply(request: ApiRequest[_], item: Item): Option[Result] = {
       if (orgCollectionService.isAuthorized(request.ctx.orgId, new ObjectId(item.collectionId), Permission.Write)) {
         if (sessionServices.main.sessionCount(item.id) > 0 && item.published && !force) {
-          Some(Forbidden(toJson(JsObject(Seq("message" ->
-            JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
+          Some(Forbidden(toJson(JsObject(Seq(
+            "message" ->
+              JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
             "flags" -> JsArray(Seq(JsString("alert_increment"))))))))
         } else {
           None
@@ -236,7 +239,7 @@ class ResourceApi(
   }
 
   /**
-   * Copy the file and okoptionally override the isMain attribute
+   * Copy the file and optionally override the isMain attribute
    * @param file
    * @param enforceIsMain
    * @return
@@ -255,9 +258,13 @@ class ResourceApi(
     }
   }
 
-  private def updateKey(update: BaseFile, file: BaseFile): BaseFile = {
-    if (file.name == update.name && file.isInstanceOf[StoredFile]) {
-      update.asInstanceOf[StoredFile].copy(storageKey = file.asInstanceOf[StoredFile].storageKey)
+  private def applyUpdate(update: BaseFile, file: BaseFile): BaseFile = {
+    if (file.name == update.name) {
+      (update, file) match {
+        case (up:StoredFile, old:StoredFile) => up.copy(storageKey = old.storageKey)
+        case (up:VirtualFile, old:VirtualFile) => up
+        case _ => file
+      }
     } else {
       file
     }
@@ -274,9 +281,13 @@ class ResourceApi(
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {
                 val processedUpdate = ensureDataFileIsMainIsCorrect(update)
-                val updatedData = item.data.map(d => d.copy(files = d.files.map(updateKey(update, _))))
+
+                val updatedData = item.data.map(d => d.copy(files = d.files.map(applyUpdate(processedUpdate, _))))
                 val i = item.copy(data = updatedData)
+
+                //item is implicitely saved in here
                 itemTransformer.updateV2Json(i)
+
                 Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)
@@ -310,7 +321,7 @@ class ResourceApi(
                   case Some(f) => {
 
                     val updateAndUnset: BaseFile => BaseFile = {
-                      val f: BaseFile => BaseFile = updateKey(update, _)
+                      val f: BaseFile => BaseFile = applyUpdate(update, _)
                       f.andThen(unsetIsMain _)
                     }
 
@@ -320,7 +331,7 @@ class ResourceApi(
                       (nameMatches, update.isMain) match {
                         case (true, true) => updateAndUnset(f)
                         case (false, true) => unsetIsMain(f)
-                        case (true, false) => updateKey(update, f)
+                        case (true, false) => applyUpdate(update, f)
                         case (false, false) => f
                       }
                     }
@@ -378,7 +389,7 @@ class ResourceApi(
     HasItem(
       itemId,
       Seq(editCheck(), isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_, _)),
-      s3service.upload(AppConfig.assetsBucket, key(itemId, DATA_PATH, filename)))(
+      s3service.upload(bucket.bucket, key(itemId, DATA_PATH, filename)))(
         {
           request =>
 
@@ -408,11 +419,13 @@ class ResourceApi(
    * @return
    */
   def uploadFile(itemId: String, materialName: String, filename: String) =
-    HasItem(itemId,
-      Seq(editCheck(),
+    HasItem(
+      itemId,
+      Seq(
+        editCheck(),
         canFindResource(materialName)(_, _),
         isFilenameTaken(filename, materialName)(_, _)),
-      s3service.upload(AppConfig.assetsBucket, storageKey(itemId, materialName, filename)))(
+      s3service.upload(bucket.bucket, storageKey(itemId, materialName, filename)))(
         {
           request =>
             val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -443,7 +456,7 @@ class ResourceApi(
 
   def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
     val s3Key = storageKey(itemId, name, filename)
-    HasItem(itemId, Seq(editCheck()), s3service.upload(AppConfig.assetsBucket, s3Key))(
+    HasItem(itemId, Seq(editCheck()), s3service.upload(bucket.bucket, s3Key))(
       {
         request =>
           val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -482,7 +495,8 @@ class ResourceApi(
     }
   })
 
-  def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
+  def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(
+    itemId,
     Seq(editCheck(), canFindResource(resourceName)(_, _)),
     {
       request: ItemRequest[AnyContent] =>

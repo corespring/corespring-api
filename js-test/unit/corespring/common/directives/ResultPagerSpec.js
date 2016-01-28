@@ -7,7 +7,7 @@ describe('corespring-directives', function () {
     'list-model="items"',
     'current-item="currentItem"',
     'item-count="count"',
-    'load-more="loadMore"></span>'].join("\n");
+    'load-more="loadMore"></span>'].join('\n');
 
 
   beforeEach(module('corespring-directives'));
@@ -61,7 +61,7 @@ describe('corespring-directives', function () {
         rootScope.currentItem = null;
       });
 
-      expect(rootScope.pagerText).toBe(null);
+      expect(rootScope.pagerText).toBe(3);
 
       rootScope.$apply(function () {
         rootScope.currentItem = {id: 2};
@@ -69,6 +69,27 @@ describe('corespring-directives', function () {
 
       expect(rootScope.pagerText).toBe(3);
 
+    });
+
+    it('should update prevDisabled / nextDisabled', function () {
+      addItems(3);
+      rootScope.$apply(function () {
+        rootScope.currentItem = {id: 0};
+      });
+      expect(rootScope.prevDisabled).toBe(true);
+      expect(rootScope.nextDisabled).toBe(false);
+
+      rootScope.$apply(function () {
+        rootScope.currentItem = {id: 1};
+      });
+      expect(rootScope.prevDisabled).toBe(false);
+      expect(rootScope.nextDisabled).toBe(false);
+
+      rootScope.$apply(function () {
+        rootScope.currentItem = {id: 2};
+      });
+      expect(rootScope.prevDisabled).toBe(false);
+      expect(rootScope.nextDisabled).toBe(true);
     });
 
     it('should add previous to scope', function () {
@@ -130,7 +151,7 @@ describe('corespring-directives', function () {
       var loadMoreIndex = -1;
       rootScope.loadMore = function (index, callback) {
         addItems(6);
-        console.log("rootScope.items: " + rootScope.items);
+        console.log('rootScope.items: ' + rootScope.items);
         loadMoreIndex = index;
         callback();
       };

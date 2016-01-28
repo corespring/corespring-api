@@ -1,0 +1,11 @@
+{
+  "_id" : {
+    "$oid": "500000000000000000000293"
+  },
+  "name" : "Cloneable Collection",
+  "description" : "A collection that is cloneable for Clone example org",
+  "isPublic" : false,
+  "ownerOrgId" : {
+    "$oid": "000000000000000000002931"
+  }
+}

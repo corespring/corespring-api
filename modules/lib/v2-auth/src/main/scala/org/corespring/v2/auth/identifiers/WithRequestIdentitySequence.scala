@@ -1,12 +1,12 @@
 package org.corespring.v2.auth.identifiers
 
-import org.corespring.v2.errors.Errors.{compoundError, generalError}
+import org.corespring.v2.errors.Errors.{ compoundError, generalError }
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
 import play.api.http.Status._
 import play.api.mvc.RequestHeader
 
-import scalaz.{Failure, Validation}
+import scalaz.{ Failure, Validation }
 
 object WithRequestIdentitySequence {
   val errorMessage = "Failed to identify an Organization from the request"
@@ -19,7 +19,7 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] {
 
   lazy val logger = Logger(classOf[WithRequestIdentitySequence[B]])
 
-  def identifiers: Seq[OrgRequestIdentity[B]]
+  def identifiers: Seq[RequestIdentity[B]]
 
   override def apply(rh: RequestHeader): Validation[V2Error, B] = {
 

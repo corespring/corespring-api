@@ -62,14 +62,16 @@ class ItemDrafts(
   def removeByItemId(user: OrgAndUser)(itemId: ObjectId): Validation[DraftError, ObjectId] = {
     logger.debug(s"function=removeByItemId, itemId=$itemId")
     for {
-      _ <- if (userCanDeleteDrafts(itemId, user))
+      _ <- if (userCanDeleteDrafts(itemId, user)) {
         Success(true)
-      else
+      } else {
         Failure(UserCantDeleteMultipleDrafts(user, itemId))
-      _ <- if (draftService.removeByItemId(itemId))
+      }
+      _ <- if (draftService.removeByItemId(itemId)) {
         Success(true)
-      else
+      } else {
         Failure(GeneralError(s"error removing by item id: $itemId"))
+      }
       _ <- assets.deleteDraftsByItemId(itemId)
     } yield itemId
   }
@@ -77,7 +79,11 @@ class ItemDrafts(
   def remove(user: OrgAndUser)(id: DraftId) = {
     logger.debug(s"function=remove, id=$id")
     for {
-      _ <- if (owns(user)(id)) Success(true) else Failure(UserCantRemove(user, id))
+      _ <- if (owns(user)(id)) {
+        Success(true)
+      } else {
+        Failure(UserCantRemove(user, id))
+      }
       _ <- draftService.remove(id) match {
         case true => Success()
         case false => Failure(DeleteDraftFailed(id))
@@ -103,7 +109,7 @@ class ItemDrafts(
 
   def cloneDraft(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
     d <- load(user)(draftId)
-    cloned <- Success(d.change.data.cloneItem)
+    cloned <- Success(d.change.data.cloneItem())
     vid <- itemService.save(cloned).disjunction.validation.leftMap { s => SaveDraftFailed(s.message) }
     _ <- assets.copyDraftToItem(draftId, vid)
     newDraft <- create(draftId, user)
@@ -124,7 +130,12 @@ class ItemDrafts(
     }
 
     for {
-      canCreate <- if (userCanCreateDraft(draftId.itemId, user)) Success(true) else Failure(UserCantCreate(user, draftId.itemId))
+      canCreate <-
+        if (userCanCreateDraft(draftId.itemId, user)) {
+          Success(true)
+        } else {
+          Failure(UserCantCreate(user, draftId.itemId))
+        }
       unpublishedItem <- itemService.getOrCreateUnpublishedVersion(
         new VersionedId[ObjectId](draftId.itemId, None)).toSuccess(GetUnpublishedItemError(draftId.itemId))
       draft <- mkDraft(draftId, unpublishedItem, user)
@@ -261,6 +272,16 @@ class ItemDrafts(
     val result = draftService.collection.update(query, update, false, false)
     logger.trace(s"function=addFileToChangeSet, draftId=${draft.id}, docsChanged=${result.getN}")
     require(result.getN == 1, s"Exactly 1 document with id: ${draft.id} must have been updated")
+    result.getN == 1
+  }
+
+  def removeFileFromChangeSet(draftId: DraftId, f: StoredFile): Boolean = {
+    val query = idToDbo(draftId)
+    val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
+    val update = MongoDBObject("$pull" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
+    val result = draftService.collection.update(query, update, false, false)
+    logger.trace(s"function=removeFileFromChangeSet, draftId=${draftId}, docsChanged=${result.getN}")
+    require(result.getN == 1, s"Exactly 1 document with id: ${draftId} must have been updated")
     result.getN == 1
   }
 }

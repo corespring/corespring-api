@@ -82,7 +82,7 @@ angular.module('tagger.services')
         this.clone = function( params, onSuccess, onError) {
             var url = "/api/v2/items/:id/clone".replace(":id", params.id);
 
-            $http.post(url, {})
+            $http.post(url, {collectionId: params.collectionId})
                 .success(onSuccess)
                 .error(onError);
        };
@@ -204,6 +204,13 @@ angular.module('tagger.services')
     ItemService.prototype.saveNewVersion = function(onSuccess, onError){
       var url = "/api/v2/items/:id/save-new-version".replace(":id", this.id);
       $http.put(url, {})
+        .success(onSuccess)
+        .error(onError);
+    };
+
+    ItemService.prototype.countSessionsForItem = function(onSuccess, onError, id){
+      var url = "/api/v2/items/:id/countSessions".replace(":id", this.id);
+      $http.get(url, {})
         .success(onSuccess)
         .error(onError);
     };

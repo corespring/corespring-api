@@ -2,17 +2,20 @@ package org.corespring.v2.player
 
 import org.corespring.amazon.s3.S3Service
 import org.corespring.common.config.ContainerConfig
-import org.corespring.container.client.VersionInfo
+import org.corespring.container.client.controllers.resources.SessionExecutionContext
+import org.corespring.container.client.{ ComponentSetExecutionContext, VersionInfo }
 import org.corespring.container.client.integration.DefaultIntegration
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
-import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
 import org.corespring.drafts.item.ItemDrafts
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services._
 import org.corespring.services.item.ItemService
+import org.corespring.services.metadata.MetadataService
+import org.corespring.services.metadata.MetadataSetService
 import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
@@ -42,7 +45,11 @@ trait V2PlayerModule extends DefaultIntegration {
 
   def playMode: Mode
 
+  def playerJsonToItem: PlayerJsonToItem
+
   def itemService: ItemService
+  def metadataService: MetadataService
+  def metadataSetService: MetadataSetService
   def orgService: OrganizationService
   def orgCollectionService: OrgCollectionService
   def subjectService: SubjectService
@@ -66,6 +73,10 @@ trait V2PlayerModule extends DefaultIntegration {
   def sessionServices: SessionServices
 
   def v2PlayerExecutionContext: V2PlayerExecutionContext
+
+  def componentSetExecutionContext: ComponentSetExecutionContext
+
+  def sessionExecutionContext: SessionExecutionContext
 
   def containerConfig: ContainerConfig
 
@@ -108,6 +119,8 @@ trait V2PlayerModule extends DefaultIntegration {
   override lazy val sessionHooks: client.hooks.SessionHooks = wire[SessionHooks]
 
   override lazy val dataQueryHooks: client.hooks.DataQueryHooks = wire[DataQueryHooks]
+
+  override lazy val itemMetadataHooks: client.hooks.ItemMetadataHooks = wire[ItemMetadataHooks]
 
   override lazy val componentSets: client.controllers.ComponentSets = wire[CompressedComponentSets]
 

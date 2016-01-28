@@ -15,19 +15,30 @@ trait ItemServiceClient {
   def itemService: ItemService
 }
 
+case class ItemCount(collectionId: ObjectId, count: Long)
+
 trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean]
 
   def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean]
 
-  def clone(item: Item): Option[Item]
+  def clone(item: Item): Validation[String, Item]
+
+  /**
+   * Note: it would be better to just have clone, but that method is used in the [[BaseContentService]],
+   * so hopefully we can remove that and the conflate the methods
+   * @param item
+   * @param targetCollectionId - clone the item to this collection if specified else use the same collection as the item
+   * @return
+   */
+  def cloneToCollection(item: Item, targetCollectionId: ObjectId): Validation[String, Item]
 
   def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId]
 
   def contributorsForOrg(orgId: ObjectId): Seq[String]
 
-  def countItemsInCollection(collectionId: ObjectId): Long
+  def countItemsInCollections(collectionId: ObjectId*): Future[Seq[ItemCount]]
 
   def currentVersion(id: VersionedId[ObjectId]): Long
 
@@ -51,11 +62,11 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
   /** Completely remove the item from the system. */
   def purge(id: VersionedId[ObjectId]): Validation[PlatformServiceError, VersionedId[ObjectId]]
 
+  def removeFileFromPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean]
+
   def save(item: Item, createNewVersion: Boolean = false): Validation[PlatformServiceError, VersionedId[ObjectId]]
 
   def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]]
 
-  @deprecated("once we add a new ItemUpdateService for updating parts of the item remove this", "core-refactor")
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean
 }
 
