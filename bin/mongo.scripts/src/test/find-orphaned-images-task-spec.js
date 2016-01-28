@@ -41,13 +41,13 @@ describe("FindOrphanedImagesTask", function () {
 
     describe("encoded strings", function(){
       it("should return true if str is encoded", function () {
-        expect(sut.findString([html], encodeURIComponent(str))).toBe(true);
+        expect(sut.findString(["<img src=\"1 2 3.JPG\">"], encodeURI("1 2 3.JPG"))).toBe(true);
       });
       it("should return true if html is encoded", function () {
-        expect(sut.findString([encodeURIComponent(html)], str)).toBe(true);
+        expect(sut.findString(["<img src=\"" + encodeURI("1 2 3.JPG") + "\">"], "1 2 3.JPG")).toBe(true);
       });
       it("should return true if both are encoded", function () {
-        expect(sut.findString([encodeURIComponent(html)], encodeURIComponent(str))).toBe(true);
+        expect(sut.findString(["<img src=\"" + encodeURI("1 2 3.JPG") + "\">"], encodeURI("1 2 3.JPG"))).toBe(true);
       });
     })
 

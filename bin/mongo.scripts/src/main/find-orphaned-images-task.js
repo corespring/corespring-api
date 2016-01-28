@@ -10,21 +10,28 @@ function FindOrphanedImagesTask() {
   //--------------------------
 
   function findString(o, s) {
-    if (o === null || o === undefined) {
-      return false;
-    }
-    var tpo = typeof o;
-    if (tpo === 'string') {
-      return o.length && (o.indexOf(s) >= 0);
-    }
-    if (tpo === 'object') {
-      for (var prop in o) {
-        if (findString(o[prop], s)) {
-          return true;
+    var es = encodeURI(s);
+    var ds = decodeURI(s);
+
+    function rekursiveFindString(o) {
+      if (o === null || o === undefined) {
+        return false;
+      }
+      var tpo = typeof o;
+      if (tpo === 'string') {
+        return o.length && (o.indexOf(s) >= 0 || o.indexOf(es) >= 0 || o.indexOf(ds) >= 0);
+      }
+      if (tpo === 'object') {
+        for (var prop in o) {
+          if (rekursiveFindString(o[prop])) {
+            return true;
+          }
         }
       }
+      return false;
     }
-    return false;
+
+    return rekursiveFindString(o);
   }
 
   function isImage(file) {
@@ -34,7 +41,7 @@ function FindOrphanedImagesTask() {
   function isReferenced(playerDefinition, file) {
     for (var s in playerDefinition) {
       if (s !== 'files') {
-        if (findString(playerDefinition[s], file.name)) {
+        if (findString(playerDefinition[s], file.name, encodeURI(file.name), decodeURI(file.name))) {
           return true;
         }
       }
@@ -48,6 +55,7 @@ function FindOrphanedImagesTask() {
     for (var i = 0; i < pd.files.length; i++) {
       var file = pd.files[i];
       if (isImage(file) && !isReferenced(pd, file)) {
+
         orphaned.push(file);
       }
     }
@@ -67,3 +75,5 @@ function FindOrphanedImagesTask() {
   }
 }
 
+//var task = new FindOrphanedImagesTask();
+//task.run(db);
