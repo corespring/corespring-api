@@ -80,14 +80,13 @@ see: [corespring-container-regression-tests](https://github.com/corespring/cores
 
 ### Test code coverage
 
-scoverage is included in the build. This can be useful to give you an idea of what our coverage is like.
+[sbt-scoverage](http://github.com/scoverage/sbt-scoverage) is part of the build. This can be useful to give you an idea of what our coverage is like.
 
 Usage:
 
 ```bash
-    > clean
-    > coverage
-    > test #or it:test
+    $ play clean clean test #or it:test
+    $ play scoverageReport 
 ```
 
 Reports will be generated in the modules' target directories.
