@@ -41,7 +41,7 @@ function FindOrphanedImagesTask() {
   function isReferenced(playerDefinition, file) {
     for (var s in playerDefinition) {
       if (s !== 'files') {
-        if (findString(playerDefinition[s], file.name, encodeURI(file.name), decodeURI(file.name))) {
+        if (findString(playerDefinition[s], file.name)) {
           return true;
         }
       }
