@@ -13,8 +13,6 @@ PUT     /collections/:id/share-with-org/:orgId                           @org.co
 
 GET     /collections/:ids/fieldValues/:field  @org.corespring.api.v1.CollectionApi.fieldValuesByFrequency(ids: String, field: String)
 
-GET     /collections/:collId/items       @org.corespring.api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-
 # Items
 GET     /items                            @org.corespring.api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 PUT     /items/:id                        @org.corespring.api.v1.ItemApi.update(id: VersionedId[ObjectId])
