@@ -3,6 +3,7 @@ package org.corespring.v2.errors
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.joda.time.DateTime
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
@@ -153,4 +154,7 @@ object Errors {
   case class cantFindSession(id: String) extends V2Error("Can't Find Session", "The session with the id provided by the request could not be found.", s"Can't find session with id: $id", NOT_FOUND)
 
   case class sessionDoesNotContainResponses(sessionId: String) extends V2Error("Session Does Not Contain Responses", "The session specified by the request does not contain any responses.", s"session: $sessionId does not contain any responses")
+
+  case class cannotLoadSessionCount(orgId: ObjectId, month: DateTime) extends V2Error("Could not load session count", "There was a problem loading the session count.", s"There was a problem loading the session count for $orgId at month $month", INTERNAL_SERVER_ERROR)
+
 }

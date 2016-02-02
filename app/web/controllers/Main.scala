@@ -3,6 +3,7 @@ package web.controllers
 import java.util.Date
 
 import com.softwaremill.macwire.MacwireMacros._
+import org.bson.types.ObjectId
 import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
@@ -16,6 +17,8 @@ import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import play.api.Logger
 import play.api.libs.json.{ JsString, JsValue, Json, JsObject }
 import play.api.mvc._
@@ -91,6 +94,24 @@ class Main(
             BadRequest("Couldn't generate player token" + f)
         }
       }
+  }
+
+  def sessions(orgId: String, month: Option[String]) = SecuredAction {
+    implicit request: SecuredRequest[AnyContent] => {
+      userSessionOrgIdentity(request) match {
+        case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => {
+          val m: DateTime = month.map(dateString => {
+            val Array(year, month) = dateString.split("-")
+            new DateTime().withYear(year.toInt).withMonthOfYear(month.toInt)
+          }).getOrElse(new DateTime())
+          val monthString = DateTimeFormat.forPattern("MMMM, yyyy").print(m)
+          val apiKey = DateTimeFormat.forPattern("MM-yyyy").print(m)
+          val organization = orgService.findOneById(new ObjectId(orgId)).map(_.name).getOrElse("--")
+          Ok(web.views.html.sessions(monthString = monthString, apiKey = apiKey, organization = organization, orgId = orgId))
+        }
+        case _ => Unauthorized("Please contact a CoreSpring representative for access to monthly session data.")
+      }
+    }
   }
 
   def index = SecuredAction {

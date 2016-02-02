@@ -6,9 +6,11 @@ import com.amazonaws.services.dynamodbv2.model._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.sessiondb.SessionService
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import play.api.libs.json.{ Json, JsValue }
 
 import scala.collection.JavaConversions._
+import scalaz.Validation
 
 /**
  * Writes/Reads session to db as (sessionId,itemId,json)
@@ -67,5 +69,7 @@ class DynamoSessionService(table: Table, client: AmazonDynamoDBClient) extends S
     }
     item
   }
+
+  override def orgCount(orgId: ObjectId, mount: DateTime): Option[Map[DateTime, Long]] = ???
 
 }

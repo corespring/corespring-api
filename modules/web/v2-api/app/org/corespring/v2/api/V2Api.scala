@@ -22,7 +22,7 @@ trait ValidationToResultLike {
    * @return
    */
   protected def validationToResult[A](fn: A => SimpleResult)(v: Validation[V2Error, A]) = {
-    def errResult(e: V2Error): SimpleResult = Status(e.statusCode)(e.json)
+    def errResult(e: V2Error): SimpleResult = Status(e.statusCode)(Json.prettyPrint(e.json))
     v.fold[SimpleResult](errResult, fn)
   }
 

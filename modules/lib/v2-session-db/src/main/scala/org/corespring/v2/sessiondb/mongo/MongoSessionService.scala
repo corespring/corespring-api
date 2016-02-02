@@ -6,7 +6,10 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.sessiondb.SessionService
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
+import org.joda.time.DateTime
 import play.api.libs.json.JsValue
+
+import scalaz.Validation
 
 class MongoSessionService(collection: MongoCollection) extends SessionService {
 
@@ -20,4 +23,6 @@ class MongoSessionService(collection: MongoCollection) extends SessionService {
     val query = MongoDBObject("itemId" -> itemId.toString)
     impl.collection.count(query)
   }
+
+  override def orgCount(orgId: ObjectId, mount: DateTime): Option[Map[DateTime, Long]] = ???
 }
