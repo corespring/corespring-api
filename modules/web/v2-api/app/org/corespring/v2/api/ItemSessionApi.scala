@@ -6,14 +6,15 @@ import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
-import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import play.api.Logger
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
+import play.api.libs.json._
 import play.api.mvc.{ Action, AnyContent, RequestHeader }
 
 import scala.concurrent._
@@ -162,6 +163,22 @@ class ItemSessionApi(
         session <- sessionAuth.complete(sessionId)(identity)
       } yield session
       validationToResult[JsValue](Ok(_))(out)
+    }
+  }
+
+  def orgCount(orgId: ObjectId, month: String) = Action.async { implicit request =>
+    implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
+    val monthDate = DateTimeFormat.forPattern("MM-yyyy").parseDateTime(month)
+    Future {
+      val out: Validation[V2Error, Map[DateTime, Long]] = for {
+        identity <- getOrgAndOptions(request)
+        counts <- sessionAuth.orgCount(orgId, monthDate)(identity)
+      } yield counts
+      validationToResult[JsValue](Ok(_))(
+        out.map{ m => JsArray(m.toSeq.sortBy(_._1).map{ case (d, v) => Json.obj(
+          "date" -> DateTimeFormat.forPattern("MM/dd").print(d),
+          "count" -> v
+        )})})
     }
   }
 
