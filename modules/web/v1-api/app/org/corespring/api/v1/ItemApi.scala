@@ -23,6 +23,7 @@ import play.api.libs.json.Json._
 import play.api.libs.json.{ JsNumber, JsObject, JsString, _ }
 import play.api.mvc.{ Action, AnyContent, Result }
 
+import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, _ }
 
@@ -42,6 +43,7 @@ class ItemApi(
   itemTransformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
   itemApiItemValidation: ItemApiItemValidation,
+  v1ExecutionContext: V1ApiExecutionContext,
   val oAuthProvider: OAuthProvider,
   override implicit val context: Context)
   extends ContentApi[Item](
@@ -65,17 +67,20 @@ class ItemApi(
       } else Forbidden(toJson(ApiError.UnauthorizedOrganization))
   }
 
-  def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
+  def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = AsyncApiAction {
     implicit request =>
-      if (orgCollectionService.isAuthorized(request.ctx.orgId, collId, Permission.Read)) {
-        val jsBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
-        contentList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
-          case Left(apiError) =>
-            BadRequest(toJson(apiError))
-          case Right(json) => Ok(json)
-        }
-      } else {
-        Unauthorized(toJson(ApiError.UnauthorizedOrganization))
+      implicit val ec = v1ExecutionContext.context
+      Future {
+        (if (orgCollectionService.isAuthorized(request.ctx.orgId, collId, Permission.Read)) {
+          val jsBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
+          contentList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
+            case Left(apiError) =>
+              BadRequest(toJson(apiError))
+            case Right(json) => Ok(json)
+          }
+        } else {
+          Unauthorized(toJson(ApiError.UnauthorizedOrganization))
+        })
       }
   }
 
