@@ -71,7 +71,7 @@ class ItemApi(
     implicit request =>
       implicit val ec = v1ExecutionContext.context
       Future {
-        (if (orgCollectionService.isAuthorized(request.ctx.orgId, collId, Permission.Read)) {
+        if (orgCollectionService.isAuthorized(request.ctx.orgId, collId, Permission.Read)) {
           val jsBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
           contentList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
             case Left(apiError) =>
@@ -80,7 +80,7 @@ class ItemApi(
           }
         } else {
           Unauthorized(toJson(ApiError.UnauthorizedOrganization))
-        })
+        }
       }
   }
 
