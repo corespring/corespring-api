@@ -11,21 +11,28 @@ import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{ AnyContentAsJson, RequestHeader }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.concurrent.ExecutionContext
+import scala.util.Random
 import scalaz.{ Failure, Success, Validation }
 
 class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
   lazy val mockedOrgAndOpts = mockOrgAndOpts()
   private lazy val client: ApiClient = ApiClient(mockedOrgAndOpts.org.id, ObjectId.get, "secret")
+
+  val rootOrgId = new ObjectId()
+  val rootApiClient = ApiClient(rootOrgId, ObjectId.get, "secret")
+  val rootOrgAndClient = Success((mockOrgAndOpts().copy(org = mockOrg().copy(id = rootOrgId)) , rootApiClient))
 
   class apiScope(
     val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
@@ -34,7 +41,8 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
     val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
     val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
     val clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
-    val apiClient: Option[ApiClient] = None) extends Scope {
+    val apiClient: Option[ApiClient] = None,
+    val sessionCounts: Validation[V2Error, Map[DateTime, Long]] = Success(Map.empty[DateTime, Long])) extends Scope {
 
     val mockSessionAuth = {
       val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
@@ -43,6 +51,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       m.loadForWrite(anyString)(any[OrgAndOpts]) returns sessionAndItem
       m.loadWithIdentity(anyString)(any[OrgAndOpts]) returns sessionAndItem
       m.cloneIntoPreview(anyString)(any[OrgAndOpts]) returns clonedSession
+      m.orgCount(any[ObjectId], any[DateTime])(any[OrgAndOpts]) returns sessionCounts
       import scalaz.Scalaz._
       m.create(any[JsValue])(any[OrgAndOpts]) returns maybeSessionId.toSuccess(errorSaving("no session id returned from mock"))
       m
@@ -71,14 +80,21 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
     val apiContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
 
+    val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts] = { request: RequestHeader =>
+      getOrgAndClient(request).map(_._1)
+    }
+
+
     val api = new ItemSessionApi(
       mockSessionAuth,
       mockScoreService,
       mockOrgService,
       mockEncryptionService,
       sessionCreatedForItem,
+      rootOrgId,
       apiContext,
-      getOrgAndClient)
+      getOrgAndClient,
+      getOrgAndOptionsFn)
   }
 
   "cloneSession" should {
@@ -198,5 +214,49 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
         result must beCodeAndJson(OK, Json.obj("score" -> 100))
       }
     }
+  }
+
+  "orgCount" should {
+
+    val orgId = new ObjectId()
+    val month = "01-2016"
+
+    "return UNAUTHORIZED" in new apiScope() {
+      val result = api.orgCount(orgId, month)(FakeRequest())
+      status(result) must be equalTo(UNAUTHORIZED)
+    }
+
+    "request is authorized by non-admin" should {
+
+      "return UNAUTHORIZED" in new apiScope(apiClient = Some(client)) {
+        val result = api.orgCount(orgId, month)(FakeRequest())
+        status(result) must be equalTo(UNAUTHORIZED)
+      }
+
+    }
+
+    "request is authorized by admin" should {
+      implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
+
+      val results = {
+        val r = scala.util.Random
+        1.to(31).map(day => new DateTime().withMonthOfYear(1).withDayOfMonth(day) -> r.nextInt(100).toLong).toMap
+      }
+
+      "return OK" in new apiScope(apiClient = Some(rootApiClient), orgAndClient = rootOrgAndClient) {
+        val result = api.orgCount(orgId, month)(FakeRequest())
+        status(result) must be equalTo(OK)
+      }
+
+      "return JSON formatted results from SessionAuth.orgCount" in new apiScope(apiClient = Some(rootApiClient),
+          orgAndClient = rootOrgAndClient, sessionCounts = Success(results)) {
+        val result = api.orgCount(orgId, month)(FakeRequest())
+        val format = DateTimeFormat.forPattern("MM/dd")
+        contentAsJson(result) must be equalTo(
+          JsArray(results.toSeq.sortBy(_._1).map{ case(date, count) => Json.obj("date" -> format.print(date), "count" -> count) }))
+      }
+
+    }
+
   }
 }
