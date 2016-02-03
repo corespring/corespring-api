@@ -96,7 +96,7 @@ class Main(
       }
   }
 
-  def sessions(orgId: String, month: Option[String]) = SecuredAction { request =>
+  def sessions(orgId: String, month: Option[String]) = AdminAction { request =>
     userSessionOrgIdentity(request) match {
       case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => {
         val m: DateTime = month.map(dateString => {
