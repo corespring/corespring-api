@@ -18,6 +18,10 @@ trait AssetKeys[ID] {
   def supportingMaterialFile(id: ID, material: String, filename: String): String = {
     s"${supportingMaterialFolder(id, material)}/$filename"
   }
+
+  def supportingMaterialFallbackFile(id: ID, material: String, filename: String): String = {
+    s"${folder(id)}/$material/$filename"
+  }
 }
 
 object ItemAssetKeys extends AssetKeys[VersionedId[ObjectId]] {
