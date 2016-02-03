@@ -1,7 +1,7 @@
 (function() {
   var version;
 
-  version = 'X.X.X';
+  version = '0.0.12';
 
   angular.module('cs.services', []);
 
@@ -15,8 +15,7 @@
    ace-model="myText"
    ace-resize-trigger="some"
    ace-theme="sometheme"
-   ace-mode="mode"
-   editable="true"></div>
+   ace-mode="mode"></div>
   dependencies:
   ace.js + whatever theme and mode you wish to use
   @param ace-model - a ng model that contains the text to display in the editor. When the code is changed in
@@ -73,7 +72,6 @@
             }
             return null;
           };
-
           if (attrs["aceResizeEvents"] != null) {
             attachResizeEvents(attrs["aceResizeEvents"]);
           }
@@ -82,37 +80,6 @@
           }
           scope.editor = ace.edit(element[0]);
           scope.editor.getSession().setUseWrapMode(true);
-
-          scope.disable = function() {
-            var cover;
-            if ($('.cover', element).length === 0) {
-              cover = $('<div class="cover"/>').css({
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                'z-index': 1000,
-                width: '100%',
-                height: '100%',
-                background: 'rgba(150,150,150,0.8)'
-              });
-              element.append(cover);
-              scope.editor.setReadOnly(true);
-            }
-          };
-
-          scope.enable = function() {
-            var cover = $('.cover', element).remove();
-            scope.editor.setReadOnly(false);
-          };
-
-          scope.$on('setEditable', function() {
-            scope.enable();
-          });
-
-          scope.$on('setUneditable', function() {
-            scope.disable();
-          });
-
           theme = attrs["aceTheme"] || "eclipse";
           scope.editor.setTheme("ace/theme/" + theme);
           scope.$watch(attrs["aceMode"], function(newValue, oldValue) {
@@ -163,6 +130,49 @@
         }
       };
       return definition;
+    }
+  ]);
+
+  angular.module('cs.directives').directive('buttonBar', [
+    '$log', function($log) {
+      var link, out;
+      link = function($scope, $element, $attr) {
+        $scope.selected = function(b) {
+          var dataValue;
+          dataValue = $scope.getValue(b);
+          return $scope.ngModel && $scope.ngModel.indexOf(dataValue) !== -1;
+        };
+        $scope.toggle = function(b) {
+          var dataValue, index;
+          $scope.ngModel = $scope.ngModel || [];
+          dataValue = $scope.getValue(b);
+          index = $scope.ngModel.indexOf(dataValue);
+          if (index === -1) {
+            return $scope.ngModel.push(dataValue);
+          } else {
+            return $scope.ngModel.splice(index, 1);
+          }
+        };
+        return $scope.getValue = function(b) {
+          if ($scope.key != null) {
+            return b[$scope.key];
+          } else {
+            return b;
+          }
+        };
+      };
+      out = {
+        restrict: 'E',
+        link: link,
+        replace: true,
+        scope: {
+          buttonProvider: '=',
+          ngModel: '=',
+          key: '@'
+        },
+        template: "<div class=\"btn-group btn-group-justified\">\n  <div class=\"btn-group\"\n      ng-repeat=\"b in buttonProvider\" \n      >\n    <button \n      type=\"button\" \n      ng-click=\"toggle(b)\"\n      onmouseout=\"this.blur()\"\n      ng-class=\"{ active: selected(b)}\"\n      class=\"btn btn-default\">{{getValue(b)}}</button>\n    </div>\n</div>"
+      };
+      return out;
     }
   ]);
 
@@ -232,18 +242,22 @@
   ]);
 
   angular.module('cs.directives').directive('contentEditable', function() {
-    var ENTER_KEY, definition;
+    var ENTER_KEY, TAB_KEY, definition;
     ENTER_KEY = 13;
+    TAB_KEY = 9;
     definition = {
       restrict: 'A',
       require: 'ngModel',
       scope: {
         ngModel: '=',
         contentId: '@',
+        eventType: '@',
+        removeFocusAfterEdit: '@',
         validateChange: '&'
       },
       link: function($scope, $element, $attrs) {
-        var processChange;
+        var allowUpdate, eventType, processChange, removeFocusAfterEdit;
+        console.log("removeFocusAfterEdit: " + $scope.removeFocusAfterEdit);
         $element.attr('contenteditable', '');
         $scope.$watch('ngModel', function(newValue) {
           $element.html($scope.ngModel);
@@ -266,12 +280,28 @@
             return $scope.onValidationResult(true);
           }
         };
-        $element.bind('keydown', function(event) {
+        allowUpdate = function(key) {
+          if ($scope.eventType === "ALL") {
+            return true;
+          } else if ($scope.eventType === "TAB" && key === TAB_KEY) {
+            return true;
+          } else if (key === ENTER_KEY) {
+            return true;
+          }
+        };
+        removeFocusAfterEdit = function() {
+          return $scope.removeFocusAfterEdit !== "false";
+        };
+        eventType = $scope.eventType === "ALL" ? "keyup" : "keydown";
+        $element.bind(eventType, function(event) {
           var change;
-          if (event.which === ENTER_KEY) {
+          if (allowUpdate(event.which)) {
+            console.log("update allowed....");
             change = $element.html();
             processChange(change);
-            $element.blur();
+            if (removeFocusAfterEdit()) {
+              $element.blur();
+            }
           }
           return null;
         });
@@ -308,6 +338,7 @@
         };
         dragFn = function(className, fn) {
           return function(evt) {
+            console.log("drag enter leave");
             $element.attr('class', originalClasses.join(" "));
             if (className != null) {
               $element.addClass(className);
@@ -324,8 +355,10 @@
         dragOver = dragFn("over");
         dropBody = function(evt) {
           var files;
+          console.log('drop evt:', JSON.parse(JSON.stringify(evt.dataTransfer)));
           files = evt.dataTransfer.files;
           if (files.length === 1 && acceptedType(files[0])) {
+            console.log(files);
             if (callback != null) {
               callback(files[0]);
             }
@@ -386,7 +419,6 @@
       this.url = url;
       this.name = name;
       this.options = options;
-      formBody = this.binaryData;
       now = new Date().getTime();
       this.request = new XMLHttpRequest();
       this.request.upload.index = 0;
@@ -395,14 +427,27 @@
       this.request.upload.currentStart = now;
       this.request.upload.currentProgress = 0;
       this.request.upload.startData = 0;
+      if (this.options.onUploadProgress != null) {
+        this.request.upload.addEventListener("progress", this.options.onUploadProgress, false);
+      }
+      if (this.options.onUploadFailed != null) {
+        this.request.upload.addEventListener("error", this.options.onUploadFailed, false);
+      }
+      if (this.options.onUploadCanceled != null) {
+        this.request.upload.addEventListener("abort", this.options.onUploadCanceled, false);
+      }
       this.request.open("POST", this.url, true);
       this.request.setRequestHeader("Accept", "application/json");
-      if (this.options.onLoadStart != null) {
-        this.options.onLoadStart();
-      }
+      this.request.setRequestHeader("Content-Type", "application/octet-stream");
       this.request.onload = function() {
-        if (_this.options.onUploadComplete != null) {
-          return _this.options.onUploadComplete(_this.request.responseText, _this.request.status);
+        if ([200, 201, 202, 203, 204].indexOf(_this.request.status) === -1) {
+          if (_this.options.onUploadFailed != null) {
+            return _this.options.onUploadFailed(_this.request);
+          }
+        } else {
+          if (_this.options.onUploadComplete != null) {
+            return _this.options.onUploadComplete(_this.request.responseText, _this.request.status);
+          }
         }
       };
     }
@@ -413,6 +458,9 @@
     };
 
     XHRWrapper.prototype.beginUpload = function() {
+      if (this.options.onLoadStart != null) {
+        this.options.onLoadStart();
+      }
       this.request.sendAsBinary(this.formBody);
       return null;
     };
@@ -680,8 +728,14 @@
               return $rootScope.$broadcast("uploadStarted");
             },
             onUploadComplete: function(responseText, status) {
-              if (scope[attrs["fuUploadCompleted"]] != null) {
-                scope[attrs["fuUploadCompleted"]](responseText, status);
+              var fnExpr;
+              fnExpr = attrs["fuUploadCompleted"];
+              if (fnExpr) {
+                if (fnExpr.indexOf('(') >= 0) {
+                  scope.$eval(fnExpr);
+                } else if (scope[fnExpr] != null) {
+                  scope[fnExpr](responseText, status);
+                }
               }
               return $rootScope.$broadcast("uploadCompleted", responseText, status);
             }
@@ -700,204 +754,6 @@
       }
     };
     return definition;
-  });
-
-  angular.module('cs.services').factory('Canvas', function() {
-    var Canvas;
-    Canvas = (function() {
-      function Canvas(board) {
-        this.board = board;
-        this.points = [];
-      }
-
-      Canvas.prototype.getMouseCoords = function(e, scale) {
-        var coords;
-        coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, [e.offsetX, e.offsetY], this.board);
-        coords = {
-          x: coords.usrCoords[1],
-          y: coords.usrCoords[2]
-        };
-        if (scale != null) {
-          return this.interpolateCoords(coords, scale);
-        } else {
-          return coords;
-        }
-      };
-
-      Canvas.prototype.pointCollision = function(coords) {
-        var el, _i, _len, _ref;
-        _ref = this.board.objects;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          el = _ref[_i];
-          if (JXG.isPoint(this.board.objects[el]) && this.board.objects[el].hasPoint(coords.x, coords.y)) {
-            return el;
-          } else {
-            return null;
-          }
-        }
-      };
-
-      Canvas.prototype.addPoint = function(coords) {
-        var point;
-        point = this.board.create('point', [coords.x, coords.y]);
-        this.points.push(point);
-        return point;
-      };
-
-      Canvas.prototype.popPoint = function() {
-        return this.board.removeObject(this.points.pop);
-      };
-
-      Canvas.prototype.removePoint = function(pointId) {
-        var p, _i, _len, _ref, _results;
-        this.board.removeObject(pointId);
-        _ref = this.points;
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          p = _ref[_i];
-          if (p.id !== pointId) {
-            _results.push(this.points = p);
-          }
-        }
-        return _results;
-      };
-
-      Canvas.prototype.on = function(event, handler) {
-        return this.board.on(event, handler);
-      };
-
-      Canvas.prototype.makeLine = function() {
-        if (this.points.length === 2) {
-          return this.board.create('line', [this.points[0], this.points[1]], {
-            strokeColor: '#00ff00',
-            strokeWidth: 2,
-            fixed: true
-          });
-        }
-      };
-
-      Canvas.prototype.prettifyPoints = function() {
-        var newPoints, p, _i, _len, _ref;
-        newPoints = {};
-        _ref = this.points;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          p = _ref[_i];
-          newPoints[p.name] = {
-            x: p.coords.usrCoords[1],
-            y: p.coords.usrCoords[2]
-          };
-        }
-        return newPoints;
-      };
-
-      Canvas.prototype.interpolateCoords = function(coords, scale) {
-        var interpolate;
-        interpolate = function(num) {
-          return Math.round(num / scale) * scale;
-        };
-        return {
-          x: interpolate(coords.x),
-          y: interpolate(coords.y)
-        };
-      };
-
-      return Canvas;
-
-    })();
-    return Canvas;
-  });
-
-  angular.module('cs.directives').directive('jsxGraph', function(Canvas) {
-    return {
-      template: "<div id='box' class='jxgbox' style='width:200px; height:200px;'></div>",
-      restrict: 'A',
-      scope: {
-        boardParams: '=',
-        points: '=',
-        setPoints: '=',
-        maxPoints: '@',
-        scale: '@'
-      },
-      link: function(scope, elem, attr) {
-        var addPoint, canvas, domain, onPointMove, range;
-        domain = scope.boardParams.domain;
-        range = scope.boardParams.range;
-        if (domain && range) {
-          canvas = new Canvas(JXG.JSXGraph.initBoard('box', {
-            boundingbox: [0 - domain, range, domain, 0 - range],
-            grid: true,
-            axis: true,
-            showNavigation: false,
-            showCopyright: false
-          }));
-          onPointMove = function(point, coords) {
-            var newCoords;
-            newCoords = coords != null ? canvas.interpolateCoords({
-              x: coords.x,
-              y: coords.y
-            }, scope.scale) : canvas.interpolateCoords({
-              x: point.X(),
-              y: point.Y()
-            }, scope.scale);
-            point.moveTo([newCoords.x, newCoords.y]);
-            scope.points[point.name] = newCoords;
-          };
-          addPoint = function(coords) {
-            var line, point;
-            point = canvas.addPoint(coords);
-            point.on("up", function() {
-              onPointMove(point);
-            });
-            onPointMove(point);
-            if (canvas.points.length === 2) {
-              line = canvas.makeLine();
-            }
-            return point;
-          };
-          canvas.on('up', function(e) {
-            var coords;
-            coords = canvas.getMouseCoords(e, scope.scale);
-            if (canvas.points.length < scope.maxPoints) {
-              addPoint(coords);
-            }
-          });
-          scope.$watch('points', function(newValue, oldValue) {
-            var canvasPoint, canvasPointRef, coords, coordx, coordy, ptName, pts, _i, _len, _ref, _ref1;
-            if (newValue !== oldValue) {
-              _ref = scope.points;
-              for (ptName in _ref) {
-                pts = _ref[ptName];
-                coordx = parseFloat(pts.x);
-                coordy = parseFloat(pts.y);
-                if (!isNaN(coordx) && !isNaN(coordy)) {
-                  coords = {
-                    x: coordx,
-                    y: coordy
-                  };
-                  canvasPointRef = null;
-                  _ref1 = canvas.points;
-                  for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-                    canvasPoint = _ref1[_i];
-                    if (ptName === canvasPoint.name) {
-                      canvasPointRef = canvasPoint;
-                    }
-                  }
-                  if (canvasPointRef != null) {
-                    if (canvasPointRef.X() !== coords.x || canvasPointRef.Y() !== coords.y) {
-                      onPointMove(canvasPointRef, coords);
-                    }
-                  } else if (canvas.points.length < scope.maxPoints) {
-                    addPoint(coords);
-                  }
-                }
-              }
-            }
-          }, true);
-        } else {
-          console.error("domain and/or range unspecified");
-        }
-      }
-    };
   });
 
   /*
@@ -967,7 +823,7 @@
   angular.module('cs.directives').directive('multiSelect', [
     '$timeout', 'Utils', function($timeout, Utils) {
       var compile, defaultRepeater, definition, link, template;
-      defaultRepeater = "<ul>\n  <li ng-repeat=\"o in options\" >\n    <input type=\"checkbox\" ng-model=\"selectedArr[o.${uidKey}]\" ng-click=\"toggleItem(o)\"></input>\n    {{multiGetTitle(o)}}\n  </li>\n<li><a ng-click=\"clear()\">clear</a></li></ul>";
+      defaultRepeater = "<ul>\n  <li ng-repeat=\"o in options\" >\n    <label>\n    <input type=\"checkbox\" ng-model=\"selectedArr[o.${uidKey}]\" ng-click=\"toggleItem(o)\"></input>\n    {{multiGetTitle(o)}}\n    </label>\n  </li>\n</ul>";
       template = "<span class=\"multi-select\">\n ${summaryHtml}\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   ${repeater}\n  </div>\n</span>";
       /*
       Linking function
@@ -1011,16 +867,10 @@
           }
           return null;
         };
+        /*
+        Need to use $eval to support nested values
+        */
 
-
-
-        scope.clear = function() {
-            Utils.applyValue(scope, modelProp, []);
-            updateSelection();
-            if (changeCallback != null) {
-                scope[changeCallback]();
-            }
-        };
         scope.toggleItem = function(i) {
           var arr, getIndexById, index, optionIndex, sortFn;
           getIndexById = function(arr, item) {
@@ -1262,3 +1112,84 @@
   });
 
 }).call(this);
+;angular.module('cs.directives')
+  .directive('collapsablePanel', [
+    function() {
+      'use strict';
+
+      return {
+        transclude: true,
+        restrict: 'E',
+        template: '<div class="panel" ></div>',
+        controller: function($scope, $element, $attrs) {
+          var collapseVar;
+
+          this.toggle = function() {
+            $scope[collapseVar] = !$scope[collapseVar];
+          }
+
+          function isCollapsed(el) {
+            return !el.hasClass('in');
+          }
+
+          if ($attrs.collapsed) {
+            collapseVar = $attrs.collapsed;
+
+            $scope.$watch(collapseVar,function(newVal) {
+              var content = $element.find('.collapse');
+              if (isCollapsed(content) != newVal) {
+                content.collapse(newVal ? 'hide':'show');
+              }
+            });
+          }
+        },
+        link: function(scope,$element,attrs,ctrl,$transclude){
+          $transclude(scope, function(clone){
+            $element.find('.panel').append(clone);
+          })
+        }
+      };
+    }
+  ])
+  .directive('panelHeading',[function(){
+    return {
+      replace: true,
+      require: "^collapsablePanel",
+      transclude: true,
+      restrict: 'E',
+      scope: {},
+      template: [
+        ' <div class="panel-heading">',
+        '    <a href ng-click="onClick()" >',
+        '    </a>',
+        '</div>'].join('\n'),
+      link: function($scope, $element, $attrs, collapsablePanel, $transclude) {
+        $scope.onClick = function(){
+          collapsablePanel.toggle();
+        }
+
+        $transclude($scope.$parent, function(clone) {
+          $element.find('a').append(clone);
+        });
+      }
+    };
+  }])
+  .directive('panelContent',[function(){
+    return {
+      require: "^collapsablePanel",
+      replace: true,
+      transclude: true,
+      restrict: 'E',
+      scope: {},
+      template: [
+        '<div id="collapse-{{$id}}" class="panel-collapse collapse in">',
+        '  <div class="panel-body">',
+        '  </div>',
+        '</div>'].join('\n'),
+      link: function(scope,$element,attrs,ctrl,$transclude) {
+        $transclude(scope.$parent, function(clone) {
+          $element.find('.panel-body').append(clone);
+        });
+      }
+    };
+  }]);
