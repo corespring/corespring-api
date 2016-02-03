@@ -17,7 +17,6 @@ object Tgz {
   lazy val settings = Seq(
     topLevelDirectory := None,
     mappings in Universal += file(".env") -> ".env",
-    //Use NewProcfile to allow the old build to still function - point to main Procfile once we no longer use cs-builder + `play stage`.
     mappings in Universal += file("Procfile") -> "Procfile",
     mappings in Universal ++= componentsMapping)
 }
