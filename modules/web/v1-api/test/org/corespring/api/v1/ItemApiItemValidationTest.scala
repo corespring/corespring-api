@@ -76,6 +76,7 @@ class ItemApiItemValidationTest
 
         sut.validateItem(dbItem, item) must_== Success(expected)
       }
+
     }
 
   }

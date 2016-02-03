@@ -12,7 +12,8 @@ import play.api.libs.json.{ JsObject, JsString, Json, _ }
 import play.api.mvc._
 import securesocial.core.SecureSocial
 
-import scalaz.{ Failure, Success }
+import scala.concurrent.Future
+import scalaz.{Validation, Failure, Success}
 
 /**
  * A class that adds an AuthorizationContext to the Request object
@@ -102,6 +103,44 @@ trait BaseApi
     }
   }
 
+  def AsyncApiAction[A](p: BodyParser[A])(f: ApiRequest[A] => Future[SimpleResult]) = {
+    Action.async(p) {
+      request =>
+
+        val IgnoreSession = "CoreSpring-IgnoreSession"
+
+        logger.trace(s"[AsyncApiAction] request route: ${request.method}, ${request.uri}")
+        logger.trace(s"[AsyncApiAction] ignore session: ${request.headers.get(IgnoreSession)}")
+
+        def resultFromToken: Future[SimpleResult] = {
+
+          def onError(apiError: ApiError) = Future.successful(BadRequest(Json.toJson(apiError)))
+
+          def onToken(token: String): Future[SimpleResult] = oAuthProvider.getAuthorizationContext(token).fold(
+            error => {
+              logger.debug("Error getting authorization context")
+              Future.successful(Forbidden(Json.toJson(error)).as(JSON))
+            },
+            ctx => {
+              val result = f(ApiRequest(ctx, request, token))
+              logger.trace("returning result")
+              result
+            })
+          tokenFromRequest(request).fold(onError, onToken)
+        }
+
+        def userResult: Option[Future[SimpleResult]] = for {
+          currentUser <- SecureSocial.currentUser(request)
+          if (request.headers.get(IgnoreSession).isEmpty)
+        } yield {
+          logger.trace(s"currentUser: $currentUser")
+          invokeAsUserAsync(currentUser.identityId.userId, currentUser.identityId.providerId, request)(f)
+        }
+
+        userResult.getOrElse(resultFromToken)
+    }
+  }
+
   private def ApiActionPermissions[A](p: BodyParser[A])(access: Permission)(f: ApiRequest[A] => Result) = {
     Action(p) {
       request =>
@@ -141,7 +180,7 @@ trait BaseApi
    * @tparam A
    * @return
    */
-  def invokeAsUser[A](username: String, provider: String, request: Request[A])(f: ApiRequest[A] => Result) = {
+  def invokeAsUser[A](username: String, provider: String, request: Request[A])(f: ApiRequest[A] => Result): Result = {
     def orgId: Option[ObjectId] = ServiceLookup.userService.getUser(username, provider).map(_.org.orgId)
 
     val maybeOrg: Option[Organization] = orgId.map(ServiceLookup.orgService.findOneById).getOrElse(None)
@@ -157,6 +196,23 @@ trait BaseApi
     }.getOrElse(Forbidden(Json.toJson(ApiError.MissingCredentials)).as(JSON))
   }
 
+  def invokeAsUserAsync[A](username: String, provider: String, request: Request[A])(f: ApiRequest[A] => Future[SimpleResult]): Future[SimpleResult] = {
+    def orgId: Option[ObjectId] = ServiceLookup.userService.getUser(username, provider).map(_.org.orgId)
+
+    val maybeOrg: Option[Organization] = orgId.map(ServiceLookup.orgService.findOneById).getOrElse(None)
+    val result: Option[Future[SimpleResult]] = maybeOrg.map { org =>
+
+      ServiceLookup.userService.getPermissions(username, org.id) match {
+        case Failure(e) => Future.successful(BadRequest(e.message))
+        case Success(p) => {
+          val ctx = new AuthorizationContext(Option(username), org, p.getOrElse(Permission.Read), true)
+          f(ApiRequest(ctx, request, ""))
+        }
+      }
+    }
+    result.getOrElse(Future.successful(Forbidden(Json.toJson(ApiError.MissingCredentials)).as(JSON)))
+  }
+
   /**
    * A helper method to create an action for API calls
    *
@@ -166,6 +222,11 @@ trait BaseApi
   def ApiAction(f: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
     ApiAction(parse.anyContent)(f)
   }
+
+  def AsyncApiAction(f: ApiRequest[AnyContent] => Future[SimpleResult]): Action[AnyContent] = {
+    AsyncApiAction(parse.anyContent)(f)
+  }
+
   def SSLApiAction(f: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
     SSLApiAction(parse.anyContent)(f)
   }

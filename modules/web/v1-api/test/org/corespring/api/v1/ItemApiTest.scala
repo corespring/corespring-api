@@ -24,6 +24,7 @@ import play.api.test.{ FakeApplication, FakeRequest, PlaySpecification }
 
 import org.mockito.Matchers._
 
+import scala.concurrent.ExecutionContext
 import scalaz.Success
 
 class ItemApiTest
@@ -92,6 +93,8 @@ class ItemApiTest
       override def findSubjectById: (ObjectId) => Option[Subject] = _ => None
     }
 
+    val mockExecutionContext = V1ApiExecutionContext(ExecutionContext.global)
+
     val mockItemValidation = spy(new ItemApiItemValidation)
 
     val api: ItemApi = new ItemApi(
@@ -106,6 +109,7 @@ class ItemApiTest
       mockItemTransformer,
       mockJsonFormatting,
       mockItemValidation,
+      mockExecutionContext,
       mockOAuthProvider,
       mockContext)
 
