@@ -17,7 +17,7 @@ trait BaseFindAndSaveService[ContentType <: Content[ID], ID] {
 
 trait BaseContentService[ContentType <: Content[ID], ID] extends BaseFindAndSaveService[ContentType, ID] {
 
-  def clone(content: ContentType): Option[ContentType]
+  def clone(content: ContentType): Validation[String, ContentType]
 
   def insert(i: ContentType): Option[ID]
 

@@ -1,10 +1,17 @@
 package org.corespring.v2.api
 
+import java.io.File
+
 import org.bson.types.ObjectId
-import org.corespring.it.IntegrationSpecification
+import org.corespring.assets.ItemAssetKeys
+import org.corespring.drafts.item.S3Paths
+import org.corespring.it.assets.ImageUtils
+import org.corespring.it.{ MultipartFormDataWriteable, IntegrationSpecification }
 import org.corespring.it.helpers.{ OrganizationHelper, CollectionHelper, SecureSocialHelper, ItemHelper }
 import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
+import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.player.supportingMaterials.{ withUploadFile, MultipartForms }
 import play.api.libs.json.Json
 import play.api.test.PlaySpecification
 
@@ -26,9 +33,10 @@ class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpec
 
         lazy val clonedItemId = VersionedId((contentAsJson(result) \ "id").as[String]).get
 
-        override def after = {
+        override def after: Unit = {
           super.after
           ItemHelper.delete(clonedItemId)
+
         }
       }
 
@@ -54,6 +62,31 @@ class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpec
         override val json = Json.obj("collectionId" -> otherCollectionId.toString)
         val item = ItemHelper.get(itemId).get
         ItemHelper.get(clonedItemId).get.collectionId must_== otherCollectionId.toString
+      }
+
+      "clone an item with binary supporting materials" in new clone with withUploadFile {
+        override def filePath: String = s"/test-images/puppy.small.jpg"
+
+        override def after = {
+          super.after
+          ImageUtils.delete(ItemAssetKeys.folder(clonedItemId))
+        }
+
+        val item = ItemHelper.get(itemId).get
+        val uploadCall = org.corespring.container.client.controllers.resources.routes.Item.createSupportingMaterialFromFile(itemId.toString)
+        val formData = Map("name" -> "binary-material", "materialType" -> "Rubric")
+        val form = mkFormWithFile(formData)
+        val req = makeFormRequest(uploadCall, form)
+        val uploadResult = route(req)(MultipartFormDataWriteable.writeableOf_multipartFormData).get
+        status(uploadResult) must_== CREATED
+        logger.debug(s"clone result: ${contentAsJson(result)}")
+        status(result) must_== OK
+        val keys = ImageUtils.list(ItemAssetKeys.folder(clonedItemId))
+        keys must_== Seq(
+          ItemAssetKeys.supportingMaterialFile(clonedItemId, "binary-material", "puppy.small.jpg"))
+
+        val material = ItemHelper.get(clonedItemId).get.supportingMaterials.find(_.name == "binary-material").get
+        material.files.find(_.name == "puppy.small.jpg") must_== Some(StoredFile(name = "puppy.small.jpg", contentType = "image/jpeg", isMain = true, storageKey = ""))
       }
 
       "return an error if an invalid collection id is passed in" in new clone {

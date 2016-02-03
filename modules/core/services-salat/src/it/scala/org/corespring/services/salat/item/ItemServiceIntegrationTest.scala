@@ -100,12 +100,12 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
 
     "return the cloned item" in new clone {
-      clonedItem.isDefined must_== true
-      clonedItem.get.id must_!= item.id
+      clonedItem.toOption.isDefined must_== true
+      clonedItem.map(_.id) must_!= Success(item.id)
     }
 
     "create a new item in the db" in new clone {
-      loadItem(clonedItem.get.id).isDefined must_== true
+      loadItem(clonedItem.toOption.get.id).isDefined must_== true
     }
     //TODO How much of file cloning do we want to test?
     "clone stored files" in pending
@@ -120,7 +120,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
 
     "cloned item has the new collection id" in new cloneToCollection {
-      clonedItem.get.collectionId must_== otherOrgCollection.id.toString
+      clonedItem.toOption.get.collectionId must_== otherOrgCollection.id.toString
     }
   }
 

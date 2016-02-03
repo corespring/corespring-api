@@ -23,6 +23,9 @@ case class Resource(id: Option[ObjectId] = None,
     case sf: StoredFile => Some(sf)
     case _ => None
   }
+
+  def storedFiles: Seq[StoredFile] = files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])
+  def virtualFiles: Seq[VirtualFile] = files.filter(_.isInstanceOf[VirtualFile]).map(_.asInstanceOf[VirtualFile])
 }
 
 object Resource {
