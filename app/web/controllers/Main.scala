@@ -23,7 +23,7 @@ import play.api.Logger
 import play.api.libs.json.{ JsString, JsValue, Json, JsObject }
 import play.api.mvc._
 import play.api.libs.json.Json._
-import securesocial.core.{ SecuredRequest }
+import securesocial.core.SecuredRequest
 import web.models.{ WebExecutionContext, ContainerVersion }
 import scalaz.Scalaz._
 
@@ -96,20 +96,27 @@ class Main(
       }
   }
 
-  def sessions(orgId: String, month: Option[String]) = SecuredAction {
+  def sessions(orgId: String, month: Option[String]) = SecuredAction { request =>
+    userSessionOrgIdentity(request) match {
+      case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => {
+        val m: DateTime = month.map(dateString => {
+          val Array(year, month) = dateString.split("-")
+          new DateTime().withYear(year.toInt).withMonthOfYear(month.toInt)
+        }).getOrElse(new DateTime())
+        val monthString = DateTimeFormat.forPattern("MMMM, yyyy").print(m)
+        val apiKey = DateTimeFormat.forPattern("MM-yyyy").print(m)
+        val organization = orgService.findOneById(new ObjectId(orgId)).map(_.name).getOrElse("--")
+        Ok(web.views.html.sessions(monthString = monthString, apiKey = apiKey, organization = organization, orgId = orgId))
+      }
+      case _ => Unauthorized("Please contact a CoreSpring representative for access to monthly session data.")
+    }
+  }
+
+  private def AdminAction(block: SecuredRequest[AnyContent] => SimpleResult) = SecuredAction {
     implicit request: SecuredRequest[AnyContent] => {
       userSessionOrgIdentity(request) match {
-        case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => {
-          val m: DateTime = month.map(dateString => {
-            val Array(year, month) = dateString.split("-")
-            new DateTime().withYear(year.toInt).withMonthOfYear(month.toInt)
-          }).getOrElse(new DateTime())
-          val monthString = DateTimeFormat.forPattern("MMMM, yyyy").print(m)
-          val apiKey = DateTimeFormat.forPattern("MM-yyyy").print(m)
-          val organization = orgService.findOneById(new ObjectId(orgId)).map(_.name).getOrElse("--")
-          Ok(web.views.html.sessions(monthString = monthString, apiKey = apiKey, organization = organization, orgId = orgId))
-        }
-        case _ => Unauthorized("Please contact a CoreSpring representative for access to monthly session data.")
+        case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => block(request)
+        case _ => Unauthorized("Please contact a CoreSpring representative for access.")
       }
     }
   }
