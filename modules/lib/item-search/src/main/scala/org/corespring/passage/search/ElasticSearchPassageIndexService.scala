@@ -16,6 +16,8 @@ class ElasticSearchPassageIndexService(config: ElasticSearchConfig,
 
   implicit val url = config.url
 
+  override val webService = play.api.libs.ws.WS
+
   override def search(query: PassageIndexQuery): Future[Validation[Error, PassageIndexSearchResult]] = try {
 
     implicit val QueryWrites = PassageIndexQuery.ElasticSearchWrites

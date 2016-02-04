@@ -1,7 +1,8 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.errors.{CollectionAuthorizationError, PlatformServiceError}
+import org.corespring.errors.PlatformServiceError
+import org.corespring.errors.collection.{OrgNotAuthorized, CantWriteToCollection}
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Passage
 import org.corespring.models.item.resource.VirtualFile
@@ -74,7 +75,7 @@ class PassageApi(
       }
       case Failure(error) => {
         Future.successful(error match {
-          case CollectionAuthorizationError(_, _, _*) => Status(UNAUTHORIZED)(error.message)
+          case OrgNotAuthorized(_, _, _, _, _) => Status(UNAUTHORIZED)(error.message)
           case _ => Status(INTERNAL_SERVER_ERROR)(error.message)
         })
       }
@@ -123,7 +124,7 @@ class PassageApi(
           orgCollectionService.isAuthorized(identity.org.id, new ObjectId(collectionId), Permission.Write) match {
             case true => Success(collectionId)
             case _ =>
-              Failure(CollectionAuthorizationError(identity.org.id, Permission.Write, new ObjectId(collectionId)))
+              Failure(CantWriteToCollection(identity.org.id, None, new ObjectId(collectionId)))
           }
         case _ => orgCollectionService.getDefaultCollection(identity.org.id).map(_.id.toString)
       }
