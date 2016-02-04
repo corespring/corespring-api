@@ -190,7 +190,8 @@ object Build extends sbt.Build {
       coreJson,
       qtiToV2,
       draftsApi,
-      futureValidation)
+      futureValidation,
+      v2Actions)
     .aggregate(draftsApi)
 
   lazy val v1Api = builders.web("v1-api")

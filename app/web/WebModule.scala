@@ -1,25 +1,22 @@
 package web
 
-import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.itemSearch.ItemIndexService
-import org.corespring.models.appConfig.Bucket
+import org.corespring.models.appConfig.{ DefaultOrgs, Bucket }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.{ FieldValueService, ItemService }
-import org.corespring.services.{ OrganizationService, UserService, OrgCollectionService }
-import org.corespring.web.common.controllers.deployment.AssetsLoader
-import org.corespring.web.common.views.helpers.BuildInfo
+import org.corespring.services.{ OrgCollectionService, OrganizationService, UserService }
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
-import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.web.common.controllers.deployment.AssetsLoader
+import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Mode.Mode
 import web.controllers._
 import web.models.{ ContainerVersion, WebExecutionContext }
 
 case class PublicSiteConfig(url: String)
-case class DefaultOrgs(v2Player: Seq[ObjectId], root: ObjectId)
 
 trait WebModule {
 
@@ -55,6 +52,7 @@ trait WebModule {
   lazy val showResource = new ShowResource(itemService, s3Service, bucket)
   lazy val partials = new Partials(mode, defaultOrgs)
   lazy val webMain = new Main(
+    defaultOrgs,
     fieldValueService,
     jsonFormatting,
     userService,

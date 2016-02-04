@@ -17,7 +17,7 @@ import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ EncodedKeyS3Client, ItemAssetKeys }
-import org.corespring.common.config.{ ItemAssetResolverConfig, ContainerConfig }
+import org.corespring.common.config.{ ContainerConfig, ItemAssetResolverConfig }
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ ComponentSetExecutionContext, ItemAssetResolver }
@@ -32,8 +32,8 @@ import org.corespring.importing.validation.ItemSchema
 import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
-import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
-import org.corespring.models.auth.{ AccessToken, ApiClient }
+import org.corespring.models.appConfig.{ DefaultOrgs, AccessTokenConfig, ArchiveConfig, Bucket }
+import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
@@ -46,10 +46,9 @@ import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api._
 import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
-import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
 import org.corespring.v2.auth.identifiers.{ PlayerTokenConfig, UserSessionOrgIdentity }
-import org.corespring.v2.auth.models.{ PlayerAccessSettings, AuthMode, OrgAndOpts }
-import org.corespring.v2.errors.Errors.{ generalError, invalidToken, noToken }
+import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player._
 import org.corespring.v2.player.cdn._
@@ -58,7 +57,6 @@ import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService,
 import org.corespring.v2.sessiondb._
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
-import org.corespring.web.token.TokenReader
 import org.corespring.web.user.SecureSocial
 import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
@@ -67,11 +65,11 @@ import play.api.mvc._
 import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import se.radley.plugin.salat.SalatPlugin
-import web.{ DefaultOrgs, PublicSiteConfig, WebModule }
 import web.models.{ ContainerVersion, WebExecutionContext }
+import web.{ PublicSiteConfig, WebModule }
 
 import scala.concurrent.ExecutionContext
-import scalaz.{ Success, Validation }
+import scalaz.Validation
 
 object Main {
   def apply(app: play.api.Application): Main = {
@@ -115,8 +113,6 @@ class Main(
   private lazy val logger = Logger(classOf[Main])
 
   lazy val appConfig = AppConfig(configuration)
-
-  override def rootOrgId: ObjectId = appConfig.rootOrgId
 
   override def accessSettingsCheckConfig: AccessSettingsCheckConfig = AccessSettingsCheckConfig(appConfig.allowAllSessions)
 

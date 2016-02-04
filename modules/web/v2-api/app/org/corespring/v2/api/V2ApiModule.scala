@@ -3,6 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.itemSearch.ItemIndexService
+import org.corespring.models.appConfig.DefaultOrgs
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ PlayerDefinition, ComponentType }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -24,6 +25,8 @@ trait V2ApiModule
   with org.corespring.services.bootstrap.Services {
 
   import com.softwaremill.macwire.MacwireMacros._
+
+  def defaultOrgs: DefaultOrgs
 
   def mainSessionService: SessionService
 
@@ -54,8 +57,6 @@ trait V2ApiModule
   def externalModelLaunchConfig: ExternalModelLaunchConfig
 
   def sessionServices: SessionServices
-
-  def rootOrgId: ObjectId
 
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 

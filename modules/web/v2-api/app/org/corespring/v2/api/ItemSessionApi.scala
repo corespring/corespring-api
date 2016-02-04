@@ -6,6 +6,7 @@ import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
+import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -24,12 +25,12 @@ import scalaz.{ Failure, Success, Validation }
 case class ItemSessionApiExecutionContext(context: ExecutionContext)
 
 class ItemSessionApi(
+  v2Actions: V2Actions,
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   scoreService: ScoreService,
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
-  rootOrgId: ObjectId,
   apiContext: ItemSessionApiExecutionContext,
   val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)],
   override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
@@ -42,7 +43,6 @@ class ItemSessionApi(
    * Creates a new v2 ItemSession in the database.
    *
    * @param itemId  - the item to point to
-   *
    * @return json - either:
    *
    *         { "id" -> "$new_session_id" }
@@ -91,9 +91,7 @@ class ItemSessionApi(
    * retrieve a v2 ItemSession in the database.
    *
    * @param sessionId  - the item to point to
-   *
    * @return json - either the session json or a json representation of a V2Error
-   *
    * @see V2Error
    *
    *      ## Authentication
@@ -119,6 +117,7 @@ class ItemSessionApi(
   /**
    * Returns the score for the given session.
    * If the session doesn't contain a 'components' object, an error will be returned.
+   *
    * @param sessionId
    * @return
    */
@@ -164,19 +163,21 @@ class ItemSessionApi(
     }
   }
 
-  def orgCount(orgId: ObjectId, month: String) = Admin.async { implicit request =>
+  import v2Actions._
+
+  def orgCount(orgId: ObjectId, month: String) = RootOrgAction.async { implicit request =>
     implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
     val monthDate = DateTimeFormat.forPattern("MM-yyyy").parseDateTime(month)
     Future {
-      val out: Validation[V2Error, Map[DateTime, Long]] = for {
-        identity <- getOrgAndOptions(request)
-        counts <- sessionAuth.orgCount(orgId, monthDate)(identity)
-      } yield counts
+      val result = sessionAuth.orgCount(orgId, monthDate)(request.orgAndOpts)
       validationToResult[JsValue](Ok(_))(
-        out.map{ m => JsArray(m.toSeq.sortBy(_._1).map{ case (d, v) => Json.obj(
-          "date" -> DateTimeFormat.forPattern("MM/dd").print(d),
-          "count" -> v
-        )})})
+        result.map { m =>
+          JsArray(m.toSeq.sortBy(_._1).map {
+            case (d, v) => Json.obj(
+              "date" -> DateTimeFormat.forPattern("MM/dd").print(d),
+              "count" -> v)
+          })
+        })
     }
   }
 
@@ -224,20 +225,6 @@ class ItemSessionApi(
   private def withApiClient(jsValue: JsValue, apiClient: ApiClient) = jsValue match {
     case jsObject: JsObject => jsObject ++ Json.obj("apiClient" -> apiClient.clientId.toString)
     case _ => jsValue
-  }
-
-  private object Admin {
-
-    def async(fn: Request[AnyContent] => Future[SimpleResult]) = Action.async { request =>
-      getOrgAndOptions(request) match {
-        case Success(orgAndOpts) if (orgAndOpts.org.id == rootOrgId) => fn(request)
-        case _ => {
-          println(getOrgAndOptions(request))
-          Future.successful(Unauthorized("Beep beep"))
-        }
-      }
-    }
-
   }
 
 }
