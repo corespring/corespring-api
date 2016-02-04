@@ -6,15 +6,16 @@ import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
-import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import play.api.Logger
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, RequestHeader }
+import play.api.libs.json._
+import play.api.mvc._
 
 import scala.concurrent._
 import scalaz.Scalaz._
@@ -28,12 +29,10 @@ class ItemSessionApi(
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
+  rootOrgId: ObjectId,
   apiContext: ItemSessionApiExecutionContext,
-  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)]) extends V2Api {
-
-  override def getOrgAndOptionsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = r => {
-    identifyFn(r).map(_._1)
-  }
+  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)],
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
   override implicit def ec: ExecutionContext = apiContext.context
 
@@ -165,6 +164,22 @@ class ItemSessionApi(
     }
   }
 
+  def orgCount(orgId: ObjectId, month: String) = Admin.async { implicit request =>
+    implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
+    val monthDate = DateTimeFormat.forPattern("MM-yyyy").parseDateTime(month)
+    Future {
+      val out: Validation[V2Error, Map[DateTime, Long]] = for {
+        identity <- getOrgAndOptions(request)
+        counts <- sessionAuth.orgCount(orgId, monthDate)(identity)
+      } yield counts
+      validationToResult[JsValue](Ok(_))(
+        out.map{ m => JsArray(m.toSeq.sortBy(_._1).map{ case (d, v) => Json.obj(
+          "date" -> DateTimeFormat.forPattern("MM/dd").print(d),
+          "count" -> v
+        )})})
+    }
+  }
+
   /**
    * Clones a session into the preview session so that it may be used for troubleshooting purposes. This API call may
    * only be called by an organization which has access to the session, and returns an api client, encrypted options,
@@ -209,6 +224,20 @@ class ItemSessionApi(
   private def withApiClient(jsValue: JsValue, apiClient: ApiClient) = jsValue match {
     case jsObject: JsObject => jsObject ++ Json.obj("apiClient" -> apiClient.clientId.toString)
     case _ => jsValue
+  }
+
+  private object Admin {
+
+    def async(fn: Request[AnyContent] => Future[SimpleResult]) = Action.async { request =>
+      getOrgAndOptions(request) match {
+        case Success(orgAndOpts) if (orgAndOpts.org.id == rootOrgId) => fn(request)
+        case _ => {
+          println(getOrgAndOptions(request))
+          Future.successful(Unauthorized("Beep beep"))
+        }
+      }
+    }
+
   }
 
 }

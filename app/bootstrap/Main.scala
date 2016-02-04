@@ -116,6 +116,8 @@ class Main(
 
   lazy val appConfig = AppConfig(configuration)
 
+  override def rootOrgId: ObjectId = appConfig.rootOrgId
+
   override def accessSettingsCheckConfig: AccessSettingsCheckConfig = AccessSettingsCheckConfig(appConfig.allowAllSessions)
 
   override def developerConfig: DeveloperConfig = DeveloperConfig(appConfig.demoOrgId)
