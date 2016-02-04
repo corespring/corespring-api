@@ -32,11 +32,15 @@ class ItemSessionApi(
   rootOrgId: ObjectId,
   apiContext: ItemSessionApiExecutionContext,
   val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)],
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  val orgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
   override implicit def ec: ExecutionContext = apiContext.context
 
   private lazy val logger = Logger(classOf[ItemSessionApi])
+
+  override def getOrgAndOptionsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = r => {
+    identifyFn(r).map(_._1)
+  }
 
   /**
    * Creates a new v2 ItemSession in the database.
@@ -169,7 +173,7 @@ class ItemSessionApi(
     val monthDate = DateTimeFormat.forPattern("MM-yyyy").parseDateTime(month)
     Future {
       val out: Validation[V2Error, Map[DateTime, Long]] = for {
-        identity <- getOrgAndOptions(request)
+        identity <- orgAndOptionsFn(request)
         counts <- sessionAuth.orgCount(orgId, monthDate)(identity)
       } yield counts
       validationToResult[JsValue](Ok(_))(
@@ -229,7 +233,7 @@ class ItemSessionApi(
   private object Admin {
 
     def async(fn: Request[AnyContent] => Future[SimpleResult]) = Action.async { request =>
-      getOrgAndOptions(request) match {
+      orgAndOptionsFn(request) match {
         case Success(orgAndOpts) if (orgAndOpts.org.id == rootOrgId) => fn(request)
         case _ => {
           println(getOrgAndOptions(request))
