@@ -60,5 +60,4 @@ class RemoteSessionService(client: SessionServiceClient) extends SessionService 
         None
       }
     }
-
 }
