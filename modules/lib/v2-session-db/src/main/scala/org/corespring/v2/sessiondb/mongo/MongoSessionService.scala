@@ -3,7 +3,7 @@ package org.corespring.v2.sessiondb.mongo
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.sessiondb.SessionService
+import org.corespring.v2.sessiondb.{SessionReportingUnsupported, SessionService}
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
 import org.joda.time.DateTime
@@ -11,7 +11,7 @@ import play.api.libs.json.JsValue
 
 import scalaz.Validation
 
-class MongoSessionService(collection: MongoCollection) extends SessionService {
+class MongoSessionService(collection: MongoCollection) extends SessionService with SessionReportingUnsupported {
 
   val impl = new MongoService(collection)
 
@@ -24,5 +24,4 @@ class MongoSessionService(collection: MongoCollection) extends SessionService {
     impl.collection.count(query)
   }
 
-  override def orgCount(orgId: ObjectId, mount: DateTime): Option[Map[DateTime, Long]] = ???
 }
