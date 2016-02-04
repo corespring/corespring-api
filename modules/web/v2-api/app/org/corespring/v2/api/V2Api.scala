@@ -5,13 +5,50 @@ import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ generalError, noToken }
 import org.corespring.v2.errors.V2Error
+import play.api.http.ContentTypes
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
 
 import scala.concurrent.{ Future, ExecutionContext }
 import scalaz.{ Failure, Success, Validation }
 
-trait V2Api extends Controller with LoadOrgAndOptions {
+trait ValidationToResultLike {
+
+  import play.api.mvc.Results.Status
+  import play.api.http.Status.OK
+  /**
+   * Convert a Validation to a SimpleResult.
+   * @param fn the function to convert A to a SimpleResult
+   * @tparam A
+   * @return
+   */
+  protected def validationToResult[A](fn: A => SimpleResult)(v: Validation[V2Error, A]) = {
+    def errResult(e: V2Error): SimpleResult = jsonResult(e.statusCode, e.json)
+    v.fold[SimpleResult](errResult, fn)
+  }
+
+  protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
+    def toResult: SimpleResult = jsonResult(error.statusCode, error.json)
+    def toResult(statusCode: Int): SimpleResult = jsonResult(statusCode, error.json)
+  }
+
+  protected implicit class ValidationToSimpleResult(v: Validation[V2Error, JsValue]) {
+    def toSimpleResult(statusCode: Int = OK): SimpleResult = {
+      v match {
+        case Success(json) => jsonResult(statusCode, json)
+        case Failure(e) => jsonResult(e.statusCode, e.json)
+      }
+    }
+  }
+
+  /**
+   * Returns a pretty-printed application/json http response with the provided status code
+   */
+  private def jsonResult(statusCode: Int, json: JsValue) =
+    Status(statusCode)(Json.prettyPrint(json)).as(ContentTypes.JSON)
+
+}
+trait V2Api extends Controller with LoadOrgAndOptions with ValidationToResultLike {
 
   implicit def ec: ExecutionContext
 
@@ -25,31 +62,6 @@ trait V2Api extends Controller with LoadOrgAndOptions {
 
     def v2Error: Validation[V2Error, A] = {
       v.leftMap { e => generalError(e.message) }
-    }
-  }
-
-  /**
-   * Convert a Validation to a SimpleResult.
-   * @param fn the function to convert A to a SimpleResult
-   * @tparam A
-   * @return
-   */
-  protected def validationToResult[A](fn: A => SimpleResult)(v: Validation[V2Error, A]) = {
-    def errResult(e: V2Error): SimpleResult = Status(e.statusCode)(e.json)
-    v.fold[SimpleResult](errResult, fn)
-  }
-
-  protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
-    def toResult: SimpleResult = Status(error.statusCode)(error.json)
-    def toResult(statusCode: Int): SimpleResult = Status(statusCode)(error.json)
-  }
-
-  protected implicit class ValidationToSimpleResult(v: Validation[V2Error, JsValue]) {
-    def toSimpleResult(statusCode: Int = OK): SimpleResult = {
-      v match {
-        case Success(json) => Status(statusCode)(json)
-        case Failure(e) => Status(e.statusCode)(e.json)
-      }
     }
   }
 

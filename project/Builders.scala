@@ -25,10 +25,10 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
     /** Note: publishArtifact := false seems to mess with routes */
     publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))))
 
-  //TODO: This is not useful at the moment - when it works however it'll be amazing:
-  // updateOptions := updateOptions.value.withConsolidatedResolution(true),
-  // see: https://github.com/sbt/sbt/issues/2105 - update: fixed in 13.9 - but we're having issues using 13.9
   val sharedSettings = Seq(
+    //TODO: This is not useful at the moment - when it works however it'll be amazing:
+    // see: https://github.com/sbt/sbt/issues/2105 - update: fixed in 13.9 - but we're having issues using 13.9
+    //updateOptions := updateOptions.value.withConsolidatedResolution(true),
     moduleConfigurations ++= Builders.moduleConfig,
     aggregate in update := false,
     parallelExecution.in(Test) := false,
@@ -57,15 +57,29 @@ class Builders[T](root: String, rootSettings: Seq[Setting[T]]) {
 
   def testLib(name: String) = lib(name, "test-lib")
 
-  def web(name: String, root: Option[sbt.File] = None) = {
+  def web(name: String, root: Option[sbt.File] = None, disablePackaging: Boolean = true) = {
+
+    import com.typesafe.sbt.SbtNativePackager._
 
     val rootFile = root.getOrElse(file(s"modules/web/$name"))
 
     //Note until we use an updated play we have to to this:
-    play.Project(makeName(name), "NOT-USED", path = rootFile)
+    val project = play.Project(makeName(name), "NOT-USED", path = rootFile)
       .settings(version := (version in ThisBuild).value)
       .settings(sharedSettings: _*)
       .settings(skipPublishSettings: _*)
+
+    if (disablePackaging) {
+      //For now just remove all the jars - an empty seq throws an error.
+      //Once we upgrade this should be easier.
+      project.settings(mappings in Universal := {
+        val universalMappings = (mappings in Universal).value
+        universalMappings.filterNot {
+          case (file, name) => name.endsWith(".jar")
+        }
+      })
+
+    } else project
   }
 
   private def makeName(s: String): String = if (s == root) root else Seq(root, s).mkString("-")

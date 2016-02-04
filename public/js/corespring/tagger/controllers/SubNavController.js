@@ -35,9 +35,7 @@
             if (!$rootScope.searchParams.collection && $scope.sortedCollections) {
               $rootScope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
             }
-            if (_.isEmpty($rootScope.items)) {
-              $scope.search();
-            }
+            $scope.search();
           }
         },
         true);

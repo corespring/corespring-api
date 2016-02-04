@@ -4,7 +4,8 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.errors.{ ItemNotFoundError, GeneralError, PlatformServiceError }
+import org.corespring.errors.item.{ ItemNotFound, OrgNotAuthorized }
+import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys
@@ -37,21 +38,24 @@ class ItemService(
 
   private val baseQuery = MongoDBObject(Keys.contentType -> Item.contentType)
 
-  override def clone(item: Item): Option[Item] = {
-    val itemClone = item.cloneItem
-    val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, itemClone)
+  override def cloneToCollection(item: Item, targetCollectionId: ObjectId): Validation[String, Item] = cloneItem(item, Some(targetCollectionId))
+
+  override def clone(item: Item): Validation[String, Item] = cloneItem(item)
+
+  private def cloneItem(item: Item, otherCollectionId: Option[ObjectId] = None): Validation[String, Item] = {
+    val collectionId = otherCollectionId.map(_.toString).getOrElse(item.collectionId)
+    val itemClone = item.cloneItem(collectionId)
+    val result: Validation[CloneError, Item] = assets.cloneStoredFiles(item, itemClone)
     logger.debug(s"clone itemId=${item.id} result=$result")
-    result match {
-      case Success(updatedItem) =>
+
+    result.bimap(
+      failure => {
+        s"Cloning failed: ${failure.message}"
+      },
+      updatedItem => {
         dao.save(updatedItem, createNewVersion = false)
-        Some(updatedItem)
-      case Failure(files) =>
-        files.foreach({
-          case CloneFileFailure(f, err) => err.printStackTrace()
-          case _ => Unit
-        })
-        None
-    }
+        updatedItem
+      })
   }
 
   override def publish(id: VersionedId[ObjectId]): Boolean = {
@@ -97,6 +101,15 @@ class ItemService(
 
   override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = addFileToPlayerDefinition(item.id, file)
 
+  override def removeFileFromPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
+    val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+    val update = MongoDBObject("$pull" -> MongoDBObject("playerDefinition.files" -> dbo))
+    val result = dao.update(itemId, update, false)
+
+    logger.trace(s"function=removeFileFromPlayerDefinition, itemId=$itemId, docsChanged=${result}")
+    Validation.fromEither(result).map(id => true)
+  }
+
   import org.corespring.services.salat.ValidationUtils._
 
   // three things occur here:
@@ -120,15 +133,20 @@ class ItemService(
 
     if (createNewVersion) {
       val newItem = dao.findOneById(VersionedId(item.id.id)).get
-      val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, newItem)
+      val result: Validation[CloneError, Item] = assets.cloneStoredFiles(item, newItem)
       logger.trace(s"function=save, cloneStoredFilesResult=$result")
       result match {
         case Success(updatedItem) => dao.save(updatedItem, createNewVersion = false).leftMap(e => GeneralError(e, None))
-        case Failure(files) =>
+        case Failure(err) =>
           dao.revertToVersion(item.id)
-          files.foreach {
-            case CloneFileSuccess(f, key) => assets.delete(key)
-            case _ => Unit
+          err match {
+            case CloningFailed(failures) => {
+              failures.foreach {
+                case CloneFileSuccess(f, key) => assets.delete(key)
+                case _ => Unit
+              }
+            }
+            case _ => //no-op
           }
           Failure(PlatformServiceError("Cloning of files failed"))
       }
@@ -162,11 +180,11 @@ class ItemService(
         Success()
       } else {
         logger.error(s"item: $contentId has an invalid collectionId: $collectionId")
-        Failure(ItemNotFoundError(orgId, p, contentId))
+        Failure(OrgNotAuthorized(orgId, p, contentId))
       }
     }.getOrElse {
       logger.debug("isAuthorized: can't find item with id: " + contentId)
-      Failure(ItemNotFoundError(orgId, p, contentId))
+      Failure(ItemNotFound(contentId))
     }
   }
 

@@ -1,5 +1,6 @@
 package org.corespring.services.salat
 
+import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
@@ -7,9 +8,13 @@ import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection
 import org.specs2.mutable.{ After, BeforeAfter }
 import org.specs2.specification.Scope
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scalaz.{ Failure, Success }
 
 class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
+
+  private lazy val testLogger = Logger(classOf[OrgCollectionServiceTest])
 
   trait scope extends BeforeAfter with Scope with InsertionHelper {
     lazy val service = services.orgCollectionService
@@ -22,12 +27,44 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     override def after: Any = removeAllData()
   }
 
+  "grandAccessToCollection + list" should {
+
+    trait grantAndList extends scope {
+      def p: Permission
+      val otherOrg = insertOrg("other-org")
+      val newCollection = insertCollection("new-collection", otherOrg)
+      val newCollectionId = newCollection.id
+      testLogger.debug(s"grant: org=${org.id}, permission=$p, collection=$newCollectionId")
+      val result = service.grantAccessToCollection(org.id, newCollectionId, p)
+    }
+
+    "list should return updated collection with clone permission" in new grantAndList {
+      override def p = Permission.Clone
+      lazy val collections = service.listAllCollectionsAvailableForOrg(org.id, 0, 0)
+      collections must equalTo(Stream(CollectionInfo(newCollection, 0, org.id, p))).await
+    }
+
+    "list should return updated collection with read permission" in new grantAndList {
+      override def p = Permission.Read
+      lazy val collections = service.listAllCollectionsAvailableForOrg(org.id, 0, 0)
+      collections must equalTo(Stream(CollectionInfo(newCollection, 0, org.id, p))).await
+    }
+
+    "list should return updated collection with write permission" in new grantAndList {
+      override def p = Permission.Write
+      lazy val collections = service.listAllCollectionsAvailableForOrg(org.id, 0, 0)
+      collections must equalTo(Stream(CollectionInfo(newCollection, 0, org.id, p))).await
+    }
+  }
+
   "grantAccessToCollection" should {
 
     trait grant extends scope {
 
       def p: Permission
-      val newCollectionId = ObjectId.get
+      val otherOrg = insertOrg("other-org")
+      val newCollection = insertCollection("new-collection", otherOrg)
+      val newCollectionId = newCollection.id
       val expected = {
         val o = services.orgService.findOneById(org.id).get
         o.copy(contentcolls = org.contentcolls :+ ContentCollRef(newCollectionId, p.value, true))
@@ -46,6 +83,11 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
 
     "read: return the updated org" in new grantRead {
       result must_== Success(expected)
+    }
+
+    "returns a failure if the collectionId doesn't belong to any collection" in new scope {
+      val randomCollectionId = ObjectId.get
+      service.grantAccessToCollection(org.id, randomCollectionId, Permission.Write) must_== Failure(_: PlatformServiceError)
     }
 
     "read: read is allowed" in new grantRead {
@@ -69,8 +111,9 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "update an existing ref if it already exists" in new scope {
-
-      val newCollectionId = ObjectId.get
+      val otherOrg = insertOrg("other-org")
+      val newCollection = insertCollection("new-collection", otherOrg)
+      val newCollectionId = newCollection.id
       val ref = ContentCollRef(newCollectionId, Permission.Read.value, true)
       services.orgService.findOneById(org.id).map { o =>
         val update = o.copy(contentcolls = o.contentcolls :+ ref)
@@ -82,6 +125,41 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       colls.find(_.collectionId == ref.collectionId) must_== Some(ref.copy(pval = Permission.Write.value))
     }
 
+  }
+
+  "isAuthorizedBatch" should {
+
+    trait isAuthorized extends scope {
+      val testOrg = insertOrg("test owner of public collection")
+      val testOrgOne = insertCollection("test org writable collection", testOrg)
+      val publicCollection = insertCollection("test public collection", testOrg, true)
+      val otherOrg = insertOrg("other-org")
+      val otherOrgOne = insertCollection("other-org-one", otherOrg)
+      giveOrgAccess(org, otherOrgOne, Permission.Read)
+
+    }
+
+    "throw an exception if the idsAndPermisions has duplicate ids" in new isAuthorized {
+      service.isAuthorizedBatch(testOrg.id, (publicCollection.id -> Permission.Read),
+        (publicCollection.id -> Permission.Read)) must throwA[IllegalArgumentException].await
+    }
+
+    "return 1 result" in new isAuthorized {
+      service.isAuthorizedBatch(testOrg.id, (publicCollection.id -> Permission.Read)) must equalTo(Seq(publicCollection.id -> true)).await
+    }
+
+    "return 2 results" in new isAuthorized {
+      service.isAuthorizedBatch(testOrg.id,
+        (publicCollection.id -> Permission.Read),
+        (otherOrgOne.id -> Permission.Write)) must equalTo(Seq(publicCollection.id -> true, otherOrgOne.id -> false)).await
+    }
+
+    "return 3 results" in new isAuthorized {
+      service.isAuthorizedBatch(testOrg.id,
+        (publicCollection.id -> Permission.Read),
+        (otherOrgOne.id -> Permission.Write),
+        (collection.id -> Permission.Write)) must equalTo(Seq(publicCollection.id -> true, otherOrgOne.id -> false, collection.id -> false)).await
+    }
   }
 
   "isAuthorized" should {
@@ -286,6 +364,53 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
 
   }
 
+  "getPermissions" should {
+    trait getPermissions extends scope {
+      val root = insertOrg("root")
+      val child = insertOrg("child", Some(root.id))
+      val otherOrg = insertOrg("otherOrg")
+      val rootOne = insertCollection("one", root)
+      val otherOrgOne = insertCollection("other-org-one", otherOrg)
+    }
+
+    "return n permissions of None for unknown org" in new getPermissions {
+      val someOrgId = ObjectId.get
+      val collectionIds = (1 to 50).map { i => ObjectId.get }
+      val permissions = Await.result(service.getPermissions(someOrgId, collectionIds: _*), 2.seconds)
+      permissions.length must_== 50
+      permissions.filter(_._2.isDefined).length must_== 0
+    }
+
+    "return 1 permission for multiple duplicate ids" in new getPermissions {
+      service.getPermissions(root.id, rootOne.id, rootOne.id, rootOne.id) must equalTo(Seq((rootOne.id -> Some(Permission.Write)))).await
+    }
+
+    "return 1 permission" in new getPermissions {
+      service.getPermissions(root.id, rootOne.id) must equalTo(Seq((rootOne.id -> Some(Permission.Write)))).await
+    }
+
+    "return 2 permissions" in new getPermissions {
+      service.getPermissions(root.id, rootOne.id, otherOrgOne.id) must equalTo(Seq(
+        (rootOne.id -> Some(Permission.Write)),
+        (otherOrgOne.id -> None))).await
+    }
+
+    "return 3 permissions" in new getPermissions {
+
+      service.grantAccessToCollection(root.id, otherOrgOne.id, Permission.Clone)
+
+      val randomId = ObjectId.get
+      val permissions = Await.result(service.getPermissions(root.id, rootOne.id, otherOrgOne.id, randomId), 2.seconds)
+
+      permissions.length must_== 3
+
+      permissions must_== Seq(
+        (rootOne.id -> Some(Permission.Write)),
+        (otherOrgOne.id -> Some(Permission.Clone)),
+        (randomId -> None))
+    }
+  }
+
   "getPermission" should {
 
     trait getPermission extends scope {
@@ -295,6 +420,11 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       val otherOrg = insertOrg("otherOrg")
       val rootOne = insertCollection("one", root)
       val otherOrgOne = insertCollection("other-org-one", otherOrg)
+    }
+
+    "return Permission.Write for a public collection that an org has write access to" in new getPermission {
+      val publicCollection = insertCollection("public", root, true)
+      service.getPermission(root.id, publicCollection.id) must_== Some(Permission.Write)
     }
 
     "return None for an unknown org and collection" in new getPermission {
@@ -350,8 +480,12 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "not remove childOne's access to the collection if it's public" in new removeAccessToAll {
-      services.orgCollectionService.grantAccessToCollection(childOne.id, publicOne.id, Permission.Write)
+      val r = services.orgCollectionService.grantAccessToCollection(childOne.id, publicOne.id, Permission.Write)
+      testLogger.debug(s"childOne id: ${childOne.id}")
+      testLogger.debug(s"r: $r")
       service.isAuthorized(childOne.id, publicOne.id, Permission.Read) must_== true
+      val perms = service.getPermission(childOne.id, publicOne.id)
+      testLogger.debug(s"perms for childOne: $perms")
       service.isAuthorized(childOne.id, publicOne.id, Permission.Write) must_== true
       service.removeAllAccessToCollection(publicOne.id)
       service.isAuthorized(childOne.id, publicOne.id, Permission.Read) must_== true

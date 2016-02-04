@@ -3,6 +3,7 @@ package org.corespring.v2.errors
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.joda.time.DateTime
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
@@ -29,7 +30,7 @@ case class Field(name: String, fieldType: String)
 
 sealed abstract class identificationFailed(override val title: String, override val description: String, rh: RequestHeader, msg: String = "Failed to identify an organization for request") extends V2Error(title, description, s"${rh.path} - $msg", UNAUTHORIZED)
 
-private[v2] object Errors {
+object Errors {
 
   case class invalidObjectId(id: String, context: String) extends V2Error("Invalid Object Id", "The provided object id was not valid.", s"Invalid object id: $id, context: $context")
 
@@ -45,7 +46,7 @@ private[v2] object Errors {
 
   case class invalidQueryStringParameter(badName: String, expectedName: String) extends V2Error("Invalid Query String", "The provided query string was not valid.", s"Bad query string parameter name: $badName - you should be using $expectedName")
 
-  case class noApiClientAndPlayerTokenInQueryString(rh: RequestHeader) extends identificationFailed("No API Client and Player Token in Query String", "An API client and player token were required in order to perform the operation, but they were not provided in the request.", rh, "No 'apiClient' and 'playerToken' in queryString")
+  case class noPlayerTokenInQueryString(rh: RequestHeader) extends identificationFailed("No Player Token in Query String", "An API client and player token were required in order to perform the operation, but they were not provided in the request.", rh, "No 'playerToken' in queryString")
 
   case class noToken(rh: RequestHeader) extends identificationFailed("No Access Token", "An access token was required to perform the operation, but it was not provided by the request.", rh, "No access token")
 
@@ -98,6 +99,8 @@ private[v2] object Errors {
   case class cantFindOrgWithId(orgId: ObjectId) extends cantFindById("Can't Find Organization with ID", "The organization with the id provided by the request could not be found.", "org", orgId.toString)
 
   case class cantFindPassageWithId(passageId: VersionedId[ObjectId]) extends cantFindById("Cant Find Passage with ID", "The passage with the id provided by the request could not be found.", "passage", passageId.toString())
+
+  case class cantFindApiClientWithId(clientId: String) extends cantFindById("Can't find apiClient with ID", "The apiClient with the id provided by the request could not be found.", "apiClient", clientId)
 
   case class cantFindMetadataSetWithId(metadataSetId: ObjectId) extends cantFindById("Can't Find Metadata Set with ID", "The metadata set with the id provided by the request could not be found.", "metadataSet", metadataSetId.toString)
 
@@ -166,5 +169,7 @@ private[v2] object Errors {
   case class couldNotWritePassage(id: VersionedId[ObjectId]) extends V2Error(s"Could not write to passage $id", s"The application was unable to write to the passage $id", s"The passage $id could not be written to", UNAUTHORIZED)
 
   case class couldNotDeletePassage(id: VersionedId[ObjectId]) extends V2Error(s"Could not delete passage $id", s"The application was unable to delete the passage $id", s"The passage $id could not be deleted", UNAUTHORIZED)
+
+  case class cannotLoadSessionCount(orgId: ObjectId, month: DateTime) extends V2Error("Could not load session count", "There was a problem loading the session count.", s"There was a problem loading the session count for $orgId at month $month", INTERNAL_SERVER_ERROR)
 
 }

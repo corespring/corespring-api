@@ -26,10 +26,13 @@ import play.api.test.FakeRequest
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
 
+import scala.concurrent.duration._
+
 class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
   val mockOrgAndOptsForSpecs = mockOrgAndOpts(AuthMode.AccessToken)
   val vid = VersionedId(ObjectId.get, Some(0))
+  val vidNoVersion = vid.copy(version = None)
 
   private class scope(
     val transformResult: JsValue = Json.obj(),
@@ -87,24 +90,26 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       containerExecutionContext)
   }
 
+  import scala.concurrent.duration._
+
   "load" should {
     "load the item" in new scope {
-      hooks.load("itemId").map(_.isRight) must equalTo(true).await
+      hooks.load("itemId").map(_.isRight) must equalTo(true).await(timeout = 2.seconds)
     }
 
     "load calls transform" in new scope(transformResult = Json.obj("transformed" -> true)) {
-      hooks.load("itemId").map(_.right.get) must equalTo(transformResult).await
+      hooks.load("itemId").map(_.right.get) must equalTo(transformResult).await(timeout = 2.seconds)
     }
 
     "return the itemAuth.loadForWrite error" in new scope() {
       val err = TestError("itemAuth.loadForWrite")
       itemAuth.loadForWrite(any[String])(any[OrgAndOpts]) returns Failure(err)
-      hooks.load("itemId").map(_.left.get) must equalTo((err.statusCode, err.message)).await
+      hooks.load("itemId").map(_.left.get) must equalTo((err.statusCode, err.message)).await(timeout = 2.seconds)
     }
 
     "return the org error" in new scope(orgAndOpts = Failure(TestError("org and opts"))) {
       val err = TestError("org and opts")
-      hooks.load("itemId").map(_.left.get) must equalTo((err.statusCode, err.message)).await
+      hooks.load("itemId").map(_.left.get) must equalTo((err.statusCode, err.message)).await(timeout = 2.seconds)
     }
   }
 
@@ -126,9 +131,16 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       status(Future(result)) === orgAndOpts.toEither.left.get.statusCode
       contentAsString(Future(result)) === orgAndOpts.toEither.left.get.message
     }
+
+    "default to latest version when itemid has no version" in new scope() {
+      val result = hooks.loadFile(vidNoVersion.toString, "path")(fakeRequest)
+      there was one(playS3).download("bucket", S3Paths.itemFile(vid, "path"), null)
+    }
+
   }
 
   "deleteFile" should {
+
     "call s3.delete" in new scope {
       await(hooks.deleteFile(vid.toString, "path"))
       there was one(playS3).delete("bucket", S3Paths.itemFile(vid, "path"))
@@ -145,6 +157,22 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       val result = await(hooks.deleteFile(vid.toString, "path"))
       result === Some(BAD_REQUEST, "s3 error")
     }
+
+    "call itemService.removeFileFromPlayerDefinition" in new scope {
+      val mockItem = Item(collectionId = ObjectId.get.toString)
+      val mockKey = "some/mock-key.png"
+
+      playS3.delete(any[String], any[String]) returns {
+        val r = mock[DeleteResponse]
+        r.success returns true
+        r
+      }
+
+      await(hooks.deleteFile(mockItem.id.toString, mockKey))
+      val file = StoredFile(mockKey, BaseFile.getContentType(mockKey), false, grizzled.file.util.basename(mockKey))
+      there was one(itemService).removeFileFromPlayerDefinition(mockItem.id, file)
+    }
+
   }
 
   "upload" should {

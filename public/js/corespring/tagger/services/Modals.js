@@ -1,10 +1,13 @@
 angular.module('tagger.services')
   .service('Modals',
-    ['$rootScope',
-    function($rootScope){
+    ['$rootScope', 'ResourceUtils',
+    function($rootScope, ResourceUtils){
 
 
   $rootScope.modals = {
+    clone: {
+      show : false
+    },
     publish: {
       show: false
     },
@@ -29,6 +32,47 @@ angular.module('tagger.services')
   };
 
   function Modals(){
+
+    this.clone = function(item, collections, done){
+
+      if(!item){
+        throw new Error('no item defined');
+      }
+
+      if(!collections){
+        throw new Error('no collections');
+      }
+
+      var cloneObj = $rootScope.modals.clone;
+      cloneObj.show = true;
+      cloneObj.item = item;
+
+      var itemWritableCollection = _.find(collections, function(c){
+        return c.id === item.collectionId && c.permission === 'write';
+      });
+
+      cloneObj.agreed = itemWritableCollection !== undefined;
+      cloneObj.item.licenseTypeUrl = ResourceUtils.getLicenseTypeUrl(cloneObj.item.licenseType);
+      cloneObj.collections = collections;
+
+      var defaultCollection = _.find(collections, function(c){
+        return c.name === 'Default';
+      });
+
+      cloneObj.collection = defaultCollection;
+
+      cloneObj.done = function(cancelled, open){
+        $rootScope.modals.clone.show = false;
+        $rootScope.modals.clone.item = null;
+
+        if(cloneObj.collection){
+          done(cancelled, open, cloneObj.collection);
+          cloneObj.collection = null;
+        } else {
+          throw new Error('no  object selected...');
+        }
+      };
+    };
 
     this.publish = function(done){
       showModal('publish', done);
@@ -59,8 +103,9 @@ angular.module('tagger.services')
     };
 
 
-    function showModal(name, done){
+    function showModal(name, done, item){
       $rootScope.modals[name].show = true;
+      $rootScope.modals[name].item = item;
       $rootScope.modals[name].done = function(cancelled){
         $rootScope.modals[name].show = false;
         done(cancelled);

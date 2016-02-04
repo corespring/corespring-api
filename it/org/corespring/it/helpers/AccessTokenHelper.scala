@@ -8,7 +8,8 @@ object AccessTokenHelper {
   lazy val service = main.tokenService
 
   def create(organizationId: ObjectId): String = {
-    val token = service.getOrCreateToken(organizationId)
+    val client = main.apiClientService.getOrCreateForOrg(organizationId).toOption.get
+    val token = service.createToken(client).toOption.get
     token.tokenId
   }
 

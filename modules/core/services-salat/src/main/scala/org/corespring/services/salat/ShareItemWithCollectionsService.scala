@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatDAOUpdateError
 import grizzled.slf4j.Logger
 import org.corespring.errors._
+import org.corespring.errors.collection.OrgNotAuthorized
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.platform.data.VersioningDao
@@ -117,7 +118,8 @@ class ShareItemWithCollectionsService(
     lazy val canWrite = if (orgCollectionService.isAuthorized(orgId, collId, Permission.Write)) {
       Success()
     } else {
-      Failure(CollectionAuthorizationError(orgId, Permission.Write, collId))
+      import org.corespring.errors.collection._
+      Failure(CantWriteToCollection(orgId, None, collId))
     }
 
     for {

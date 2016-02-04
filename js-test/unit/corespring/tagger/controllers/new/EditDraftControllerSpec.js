@@ -57,7 +57,8 @@ describe('tagger.controllers.new.EditDraftController', function() {
     };
 
     mocks.routeParams = {
-      itemId: '123:0'
+      itemId: '123:0',
+      devEditor: 'true'
     };
 
     mocks.itemService = {
@@ -144,6 +145,10 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
     it('binds beforeunload', function () {
       expect($.fn.bind).toHaveBeenCalledWith('beforeunload', jasmine.any(Function));
+    });
+
+    it('devEditorVisible is true as devEditor=true is in the routeParams', function() {
+      expect(scope.devEditorVisible).toBe(true);
     });
 
     describe("loading the initial item", function(){

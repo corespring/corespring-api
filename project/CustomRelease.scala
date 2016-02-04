@@ -7,7 +7,7 @@ import sbtrelease.Version
 import sbtrelease.ReleaseStateTransformations._
 import org.corespring.sbtrelease.ReleaseSteps._
 import org.corespring.sbtrelease.ReleaseExtrasPlugin._
-import org.corespring.sbtrelease.{Git, PrefixAndVersion, BranchNameConverter, FolderStyleConverter}
+import org.corespring.sbtrelease.{ Git, PrefixAndVersion, BranchNameConverter }
 
 object HyphenNameConverter extends BranchNameConverter {
   val pattern = """^([^-]+)-([^-]+)$""".r
@@ -24,50 +24,46 @@ object HyphenNameConverter extends BranchNameConverter {
 
 object CustomRelease {
 
-  //Run stage
-  val runStage = ReleaseStep(action = st => {
-    val extracted = Project.extract(st)
-    import com.typesafe.sbt.packager.universal.Keys.stage
-    val (newState, _) = extracted.runTask(stage, st)
-    newState
-  })
-
-  def unsupportedBranch(b:String) = ReleaseStep(action = st => {
+  def unsupportedBranch(b: String) = ReleaseStep(action = st => {
     sys.error(s"Unsupported branch for releasing: $b, must be 'rc' for releases or 'hotfix' for hotfixes")
   })
 
-  /**
-    * main releases are run from 'rc'.
-    * hotfixes from 'hf'
-    */
+  //Run `universal:packageZipTarball`
+  lazy val buildTgz = ReleaseStep(action = (st: State) => {
+    val extracted = Project.extract(st)
+    import com.typesafe.sbt.SbtNativePackager._
+    import com.typesafe.sbt.packager.Keys._
+    val (newState, _) = extracted.runTask(packageZipTarball in Universal, st)
+    newState
+  })
+
+  def shared(branchName: String, custom: Seq[ReleaseStep]) = Seq(
+    prepareReleaseVersion,
+    ensureTagDoesntExist("origin", None),
+    checkBranchName(branchName),
+    checkSnapshotDependencies,
+    runClean,
+    runTest,
+    runIntegrationTest,
+    setReleaseVersion,
+    commitReleaseVersion) ++
+    custom ++
+    Seq(
+      pushBranchChanges,
+      pushTags,
+      publishArtifacts,
+      buildTgz)
+
   lazy val settings = Seq(
     branchNameConverter := HyphenNameConverter,
     releaseVersionBump := Bump.Minor,
     releaseProcess <<= baseDirectory.apply { bd =>
 
-      def shared(branchName:String) = Seq(
-        checkBranchName(branchName),
-        checkSnapshotDependencies,
-        runClean,
-        runTest,
-        runIntegrationTest,
-        prepareReleaseVersion,
-        setReleaseVersion,
-        commitReleaseVersion)
-
-      val regularRelease = shared("rc") ++ Seq(
-        pushBranchChanges,
+      lazy val regularRelease = shared("rc", Seq(
         mergeCurrentBranchTo("master"),
-        tagBranchWithReleaseTag("master"),
-        pushBranchChanges,
-        pushTags,
-        publishArtifacts)
+        tagBranchWithReleaseTag("master")))
 
-      val hotfixRelease = shared("hf") ++ Seq(
-        tagBranchWithReleaseTag("hf"),
-        pushBranchChanges,
-        pushTags,
-        publishArtifacts)
+      lazy val hotfixRelease = shared("hf", Seq(tagBranchWithReleaseTag("hf")))
 
       Git(bd).currentBranch match {
         case "rc" => regularRelease

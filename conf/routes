@@ -52,6 +52,7 @@ POST        /reset/:token                                             securesoci
 
 # Web tier
 GET         /web                                                      @web.controllers.Main.index
+GET         /session-report/:orgId                                    @web.controllers.Main.sessions(orgId: String, month: Option[String] ?= None)
 
 # Item Preview
 GET         /web/partials/editItem                                    @web.controllers.Partials.editItem
@@ -61,7 +62,7 @@ GET         /web/javascripts/routes                                   @web.contr
 GET         /web/show-resource/:itemId/:resourceName/main             @web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
 GET         /web/show-resource/:itemId/:resourceName/:filename        @web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 GET         /web/print-resource/:itemId/data/main                     @web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
-
+GET         /web/item-search                                          @web.controllers.ItemSearch.search(query : Option[String] ?= None)
 
 GET         /password                                                 securesocial.controllers.PasswordChange.page
 POST        /password                                                 securesocial.controllers.PasswordChange.handlePasswordChange

@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.it.helpers.{ StandardHelper, ItemHelper }
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
-import org.corespring.models.item.{StandardCluster, TaskInfo, Item, PlayerDefinition}
+import org.corespring.models.item.{ StandardCluster, TaskInfo, Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
 
 import scala.concurrent.Await
@@ -40,7 +40,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
     }
 
     protected def search(text: Option[String]) = {
-      val query = ItemIndexQuery(text = text)
+      val query = ItemIndexQuery(text = text, collections = Seq(collectionId.toString))
       val futureResult = itemIndexService.search(query)
       Await.ready(futureResult, Duration.Inf).value.get.get
     }

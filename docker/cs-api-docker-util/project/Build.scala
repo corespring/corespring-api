@@ -15,7 +15,12 @@ object Build extends sbt.Build {
 
   object Dependencies {
     val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-69e5abf"
-    val elasticsearch = "org.corespring" %% "elasticsearch-play-ws" % "0.0.16-PLAY22"
+
+    val elasticsearch = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.20-PLAY22")
+      .exclude("com.typesafe.play", "sbt-plugin")
+      .exclude("com.typesafe.play", "sbt-link")
+      .exclude("commons-logging", "commons-logging")
+
     val scallop = "org.rogach" %% "scallop" % "0.9.5"
     val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
     val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
@@ -25,41 +30,17 @@ object Build extends sbt.Build {
       .exclude("com.typesafe.play", "sbt-plugin")
       .exclude("com.typesafe.play", "sbt-link")
       .exclude("commons-logging", "commons-logging")
-
   }
 
-  object Resolvers {
-    val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots"
-    val corespringReleases = "Corespring Artifactory Releases" at "http://repository.corespring.org/artifactory/ivy-releases"
-    val all: Seq[Resolver] = Seq(corespringSnapshots, corespringReleases)
-  }
-
-  val cred = {
-    val envCredentialsPath = getEnv("CREDENTIALS_PATH")
-    val path = envCredentialsPath.getOrElse(Seq(Path.userHome / ".ivy2" / ".credentials").mkString)
-    val f: File = file(path)
-    println("[credentials] check file: : " + f.getAbsolutePath)
-    if (f.exists()) {
-      println("[credentials] using credentials file")
-      Credentials(f)
-    } else {
-      //https://devcenter.heroku.com/articles/labs-user-env-compile
-      println("[credentials] using credentials env vars - you need to have: user-env-compile enabled in heroku")
-
-      def repoVar(s: String) = System.getenv("ARTIFACTORY_" + s)
-      val args = Seq("REALM", "HOST", "USER", "PASS").map(repoVar)
-      println("[credentials] args: " + args)
-      Credentials(args(0), args(1), args(2), args(3))
-    }
-  }
+  val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots"
+  val corespringReleases = "Corespring Artifactory Releases" at "http://repository.corespring.org/artifactory/ivy-releases"
 
   import Dependencies._
 
   val main = sbt.Project(appName, file("."))
     .settings(
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
-      credentials += cred,
       libraryDependencies ++= Seq(mongoDbSeeder, elasticsearch, scallop, play, scalaz, jsoup),
-      resolvers ++= Resolvers.all,
+      resolvers ++= Seq(corespringSnapshots, corespringReleases),
       scalacOptions ++= Seq("-feature", "-deprecation"))
 }

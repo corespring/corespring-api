@@ -1,7 +1,8 @@
-function CreateCollection($scope, CollectionManager, UserInfo, Logger, GetOrgsWithSharedCollection) {
+function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
 
   $scope.orgName = UserInfo.org.name;
   $scope.viewState = "org";
+  $scope.sharedPermission = "read";
 
   $scope.disableCollection = function(collection) {
     CollectionManager.disableCollection(collection.id,
@@ -87,15 +88,14 @@ function CreateCollection($scope, CollectionManager, UserInfo, Logger, GetOrgsWi
   }
 
   $scope.updateOrgsForSharedCollection = function(collection) {
-    var orgs = GetOrgsWithSharedCollection.get({collId: collection.id}, function onSuccess(success){
-        $scope.orgsForSharedCollection =  _.filter(orgs,function(org){
-          return org.id != UserInfo.org.id;
-        });
-      },
-      function onError(error){
-        $scope.setAlertClassAndMessage('error', "error getting shared orgs: ");
-      });
 
+      CollectionManager.getOrgsWithSharedCollection(collection.id, function(orgs){
+        $scope.orgsForSharedCollection = orgs;
+      },
+      function(error){
+        $scope.setAlertClassAndMessage('error', "error getting shared orgs: ");
+      }
+      );
   }
 
   $scope.openCollectionSharing = function(collection){
@@ -105,8 +105,8 @@ function CreateCollection($scope, CollectionManager, UserInfo, Logger, GetOrgsWi
 
   };
 
-  $scope.shareCollection = function(orgId, coll){
-    CollectionManager.shareCollection(coll.id, orgId,  function onSuccess(success) {
+  $scope.shareCollection = function(orgId, permission, coll){
+    CollectionManager.shareCollection(coll.id, permission, orgId,  function onSuccess(success) {
         $scope.setAlertClassAndMessage('success', "shared collection: " + coll.name);
         $scope.updateOrgsForSharedCollection(coll);
         $scope.sharedOrgId = '';
@@ -128,4 +128,4 @@ function CreateCollection($scope, CollectionManager, UserInfo, Logger, GetOrgsWi
       }
     }, true);
 }
-CreateCollection.$inject = ['$scope', 'CollectionManager', 'UserInfo', 'Logger', 'GetOrgsWithSharedCollection'];
+CreateCollection.$inject = ['$scope', 'CollectionManager', 'UserInfo', 'Logger'];

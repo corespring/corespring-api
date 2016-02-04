@@ -3,6 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.itemSearch.ItemIndexService
+import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ PlayerDefinition, ComponentType }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.ItemDraftsModule
@@ -47,6 +48,8 @@ trait V2ApiModule
 
   def getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
 
+  def getOrgOptsAndApiClientFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)]
+
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
 
   def apiClientEncryptionService: ApiClientEncryptionService
@@ -56,6 +59,8 @@ trait V2ApiModule
   def externalModelLaunchConfig: ExternalModelLaunchConfig
 
   def sessionServices: SessionServices
+
+  def rootOrgId: ObjectId
 
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 

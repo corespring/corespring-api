@@ -7,6 +7,7 @@ import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.services._
 
 trait Services {
+  def cloneItemService: CloneItemService
   def metadataSetService: MetadataSetService
   def itemService: ItemService
   def itemAggregationService: ItemAggregationService

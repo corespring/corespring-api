@@ -44,30 +44,3 @@ angular.module('tagger.services')
     }
   ]);
 
-angular.module('tagger.services')
-  .factory('ShareCollection', [
-    '$resource', 'ServiceLookup', function($resource, ServiceLookup){
-
-      return $resource(
-        ServiceLookup.getUrlFor('shareCollection'),
-        {},
-        {
-          "update": { method : 'PUT'}
-        }
-      );
-    }
-  ]);
-
-angular.module('tagger.services')
-  .factory('GetOrgsWithSharedCollection', [
-    '$resource', 'ServiceLookup', function($resource, ServiceLookup){
-
-      return $resource(
-        ServiceLookup.getUrlFor('getOrgsWithSharedCollection'),
-        {},
-        {
-          "get": { method : 'GET', isArray: true}
-        }
-      );
-    }
-  ]);

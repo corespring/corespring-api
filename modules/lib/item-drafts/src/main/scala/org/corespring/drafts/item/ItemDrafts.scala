@@ -109,7 +109,7 @@ class ItemDrafts(
 
   def cloneDraft(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
     d <- load(user)(draftId)
-    cloned <- Success(d.change.data.cloneItem)
+    cloned <- Success(d.change.data.cloneItem())
     vid <- itemService.save(cloned).disjunction.validation.leftMap { s => SaveDraftFailed(s.message) }
     _ <- assets.copyDraftToItem(draftId, vid)
     newDraft <- create(draftId, user)
@@ -272,6 +272,16 @@ class ItemDrafts(
     val result = draftService.collection.update(query, update, false, false)
     logger.trace(s"function=addFileToChangeSet, draftId=${draft.id}, docsChanged=${result.getN}")
     require(result.getN == 1, s"Exactly 1 document with id: ${draft.id} must have been updated")
+    result.getN == 1
+  }
+
+  def removeFileFromChangeSet(draftId: DraftId, f: StoredFile): Boolean = {
+    val query = idToDbo(draftId)
+    val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
+    val update = MongoDBObject("$pull" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
+    val result = draftService.collection.update(query, update, false, false)
+    logger.trace(s"function=removeFileFromChangeSet, draftId=${draftId}, docsChanged=${result.getN}")
+    require(result.getN == 1, s"Exactly 1 document with id: ${draftId} must have been updated")
     result.getN == 1
   }
 }

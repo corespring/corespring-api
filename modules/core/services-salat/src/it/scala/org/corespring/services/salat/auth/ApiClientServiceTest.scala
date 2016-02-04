@@ -61,26 +61,16 @@ class ApiClientServiceTest extends ServicesSalatIntegrationTest {
     }
   }
 
-  "findOneByOrgId" should {
+  "findByOrgId" should {
     "find an existing api client by org id" in new scope {
       val apiClient = service.getOrCreateForOrg(org.id).toOption
-      service.findOneByOrgId(org.id) must_== apiClient
+      service.findByOrgId(org.id) must_== apiClient.toSeq
     }
     "return none if api client does not exist" in new scope {
-      service.findOneByOrgId(org.id) must_== None
+      service.findByOrgId(org.id) must_== Nil
     }
     "return none if org does not exist" in new scope {
-      service.findOneByOrgId(ObjectId.get) must_== None
-    }
-  }
-  "generateTokenId" should {
-    "generate a token id" in new scope {
-      val res = service.generateTokenId()
-      val validId = """([a-z0-9]{24})""".r
-      res match {
-        case validId(id) => success
-        case _ => failure(s"Unexpected token format: $res")
-      }
+      service.findByOrgId(ObjectId.get) must_== Nil
     }
   }
 

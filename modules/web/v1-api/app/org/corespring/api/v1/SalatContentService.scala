@@ -5,7 +5,7 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatMongoCursor
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.{ Item, Content }
+import org.corespring.models.item.{ Content, Item }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.BaseContentService
@@ -29,7 +29,7 @@ class ItemApiContentService(underlying: BaseContentService[Item, VersionedId[Obj
     underlying.isAuthorized(orgId, contentId, p)
   }
 
-  override def clone(content: Item): Option[Item] = {
+  override def clone(content: Item): Validation[String, Item] = {
     underlying.clone(content)
   }
 

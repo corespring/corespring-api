@@ -9,8 +9,12 @@ case class Organization(name: String,
   metadataSets: Seq[MetadataSetRef] = Seq(),
   id: ObjectId = new ObjectId()) {
 
-  private def readable = (collection: ContentCollRef) => (collection.pval > 0 && collection.enabled == true)
-  def accessibleCollections = contentcolls.filter(readable)
+  def accessibleCollections = contentcolls.filter(_.enabled).flatMap { r =>
+    Permission.fromLong(r.pval).filter {
+      p => p.has(Permission.Read)
+    }.map(_ => r)
+  }
+
 }
 
 case class ContentCollRef(collectionId: ObjectId, pval: Long = Permission.Read.value, enabled: Boolean = false)

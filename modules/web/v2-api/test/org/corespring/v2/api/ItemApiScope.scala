@@ -6,7 +6,7 @@ import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.services.{CloneItemService, OrgCollectionService, OrganizationService}
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
@@ -114,6 +114,11 @@ private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory w
     m
   }
 
+  lazy val cloneItemService = {
+    val m = mock[CloneItemService]
+    m
+  }
+
   var itemTypes = Seq.empty[ComponentType]
 
   lazy val apiContext = ItemApiExecutionContext(ExecutionContext.Implicits.global)
@@ -122,6 +127,7 @@ private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory w
     itemService,
     orgService,
     orgCollectionService,
+    cloneItemService,
     itemIndexService,
     itemAuth,
     itemTypes,

@@ -1,14 +1,14 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.models.{Standard, Subject}
+import org.corespring.models.{ Standard, Subject }
 import org.corespring.services._
 import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.mock.Mockito
 import org.specs2.specification.{ Fragment, Scope }
-import play.api.libs.json.{ JsArray, JsValue, JsObject, Json }
-import play.api.mvc.RequestHeader
-import scala.concurrent.{ Future, Await }
+import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
+
 import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 
 class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
 
@@ -34,7 +34,7 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
 
     val standardsTree: StandardsTree = new StandardsTree(Json.arr())
 
-    def wait[A](f: Future[A]) = Await.result(f, 1.second)
+    def wait[A](f: Future[A]) = Await.result(f, 3.second)
 
     val hooks = new DataQueryHooks(
       subjectQueryService,
@@ -165,18 +165,15 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
     "uniqueClustersFromStandards" should {
       "remove duplicate domains" in new scope {
         val standards = Seq(
-          Standard(subject=Some("ELA"), category=Some("category-1"), subCategory=Some("subCategory-1")),
-          Standard(subject=Some("ELA"), category=Some("category-2"), subCategory=Some("subCategory-1")),
-          Standard(subject=Some("Math"), category=Some("category-3"), subCategory=Some("subCategory-2"))
-        )
+          Standard(subject = Some("ELA"), category = Some("category-1"), subCategory = Some("subCategory-1")),
+          Standard(subject = Some("ELA"), category = Some("category-2"), subCategory = Some("subCategory-1")),
+          Standard(subject = Some("Math"), category = Some("category-3"), subCategory = Some("subCategory-2")))
         hooks.uniqueClustersFromStandards(standards) === Json.arr(Json.obj(
           "subject" -> "ELA",
-          "domain" -> "subCategory-1"
-        ),
+          "domain" -> "subCategory-1"),
           Json.obj(
             "subject" -> "Math",
-            "domain" -> "category-3"
-          ))
+            "domain" -> "category-3"))
       }
     }
 

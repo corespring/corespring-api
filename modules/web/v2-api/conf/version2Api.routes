@@ -14,6 +14,7 @@ POST    /sessions/:sessionId/clone         @org.corespring.v2.api.ItemSessionApi
 PUT     /sessions/:sessionId/reopen        @org.corespring.v2.api.ItemSessionApi.reopen(sessionId: String)
 PUT     /sessions/:sessionId/complete      @org.corespring.v2.api.ItemSessionApi.complete(sessionId: String)
 
+GET     /sessions/org/:orgId/count/:month  @org.corespring.v2.api.ItemSessionApi.orgCount(orgId: ObjectId, month: String)
 
 
 ## V1 Port to v2 (cms support)

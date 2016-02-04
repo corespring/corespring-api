@@ -1,0 +1,16 @@
+{
+  "_id": {
+    "$oid" : "000000000000000000002931"
+  },
+  "provider": "userpass",
+  "userName": "owner",
+  "fullName": "Content Owner",
+  "email": "owner@corespring.org",
+  "password": "$2a$10$ztrohKSsxniXnLsTJyAJVOlye5DFYlMi3GUQH1SHkVSO5IH.E9O72",
+  "org": {
+    "orgId": {
+      "$oid" : "000000000000000000002931"
+    },
+    "pval" : 3
+  }
+}

@@ -1,21 +1,21 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.encryption.apiClient.{ EncryptionSuccess, EncryptionResult, ApiClientEncryptionService }
+import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionResult, EncryptionSuccess }
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.services.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.auth.ApiClientService
+import org.corespring.services.OrganizationService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ generalError, sessionDoesNotContainResponses }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import play.api.Logger
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{ RequestHeader, Action, AnyContent }
+import play.api.libs.json._
+import play.api.mvc._
 
 import scala.concurrent._
 import scalaz.Scalaz._
@@ -28,14 +28,19 @@ class ItemSessionApi(
   scoreService: ScoreService,
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
-  apiClientService: ApiClientService,
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
+  rootOrgId: ObjectId,
   apiContext: ItemSessionApiExecutionContext,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)],
+  val orgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
   override implicit def ec: ExecutionContext = apiContext.context
 
   private lazy val logger = Logger(classOf[ItemSessionApi])
+
+  override def getOrgAndOptionsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = r => {
+    identifyFn(r).map(_._1)
+  }
 
   /**
    * Creates a new v2 ItemSession in the database.
@@ -163,6 +168,22 @@ class ItemSessionApi(
     }
   }
 
+  def orgCount(orgId: ObjectId, month: String) = Admin.async { implicit request =>
+    implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
+    val monthDate = DateTimeFormat.forPattern("MM-yyyy").parseDateTime(month)
+    Future {
+      val out: Validation[V2Error, Map[DateTime, Long]] = for {
+        identity <- orgAndOptionsFn(request)
+        counts <- sessionAuth.orgCount(orgId, monthDate)(identity)
+      } yield counts
+      validationToResult[JsValue](Ok(_))(
+        out.map{ m => JsArray(m.toSeq.sortBy(_._1).map{ case (d, v) => Json.obj(
+          "date" -> DateTimeFormat.forPattern("MM/dd").print(d),
+          "count" -> v
+        )})})
+    }
+  }
+
   /**
    * Clones a session into the preview session so that it may be used for troubleshooting purposes. This API call may
    * only be called by an organization which has access to the session, and returns an api client, encrypted options,
@@ -173,9 +194,10 @@ class ItemSessionApi(
 
     Future {
       val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
+        tuple <- identifyFn(request)
+        identity <- Success(tuple._1)
+        apiClient <- Success(tuple._2)
         sessionId <- sessionAuth.cloneIntoPreview(sessionId)(identity)
-        apiClient <- randomApiClient(identity.org.id).toSuccess(invalidToken(request))
         options <- encryptionService.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
         session <- sessionAuth.loadWithIdentity(sessionId.toString)(identity)
           .map { case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
@@ -184,8 +206,6 @@ class ItemSessionApi(
       validationToResult[JsValue](Created(_))(out)
     }
   }
-
-  protected def randomApiClient(orgId: ObjectId): Option[ApiClient] = apiClientService.findOneByOrgId(orgId)
 
   private def withOrg(jsValue: JsValue) = jsValue match {
     case jsObject: JsObject => (jsObject \ "identity" \ "orgId").asOpt[String]
@@ -208,6 +228,20 @@ class ItemSessionApi(
   private def withApiClient(jsValue: JsValue, apiClient: ApiClient) = jsValue match {
     case jsObject: JsObject => jsObject ++ Json.obj("apiClient" -> apiClient.clientId.toString)
     case _ => jsValue
+  }
+
+  private object Admin {
+
+    def async(fn: Request[AnyContent] => Future[SimpleResult]) = Action.async { request =>
+      orgAndOptionsFn(request) match {
+        case Success(orgAndOpts) if (orgAndOpts.org.id == rootOrgId) => fn(request)
+        case _ => {
+          println(getOrgAndOptions(request))
+          Future.successful(Unauthorized("Beep beep"))
+        }
+      }
+    }
+
   }
 
 }

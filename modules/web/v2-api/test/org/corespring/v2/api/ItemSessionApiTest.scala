@@ -6,33 +6,43 @@ import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
-import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{ AnyContentAsJson, RequestHeader }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.concurrent.ExecutionContext
+import scala.util.Random
 import scalaz.{ Failure, Success, Validation }
 
 class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
+  lazy val mockedOrgAndOpts = mockOrgAndOpts()
+  private lazy val client: ApiClient = ApiClient(mockedOrgAndOpts.org.id, ObjectId.get, "secret")
+
+  val rootOrgId = new ObjectId()
+  val rootApiClient = ApiClient(rootOrgId, ObjectId.get, "secret")
+  val rootOrgAndClient = Success((mockOrgAndOpts().copy(org = mockOrg().copy(id = rootOrgId)) , rootApiClient))
+
   class apiScope(
     val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
-    val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+    val orgAndClient: V2ApiScope.OrgAndClient = Success((mockedOrgAndOpts, client)),
     val maybeSessionId: Option[ObjectId] = None,
     val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
     val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
     val clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
-    val apiClient: Option[ApiClient] = None) extends Scope {
+    val apiClient: Option[ApiClient] = None,
+    val sessionCounts: Validation[V2Error, Map[DateTime, Long]] = Success(Map.empty[DateTime, Long])) extends Scope {
 
     val mockSessionAuth = {
       val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
@@ -41,6 +51,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       m.loadForWrite(anyString)(any[OrgAndOpts]) returns sessionAndItem
       m.loadWithIdentity(anyString)(any[OrgAndOpts]) returns sessionAndItem
       m.cloneIntoPreview(anyString)(any[OrgAndOpts]) returns clonedSession
+      m.orgCount(any[ObjectId], any[DateTime])(any[OrgAndOpts]) returns sessionCounts
       import scalaz.Scalaz._
       m.create(any[JsValue])(any[OrgAndOpts]) returns maybeSessionId.toSuccess(errorSaving("no session id returned from mock"))
       m
@@ -63,27 +74,27 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       m
     }
 
-    val mockApiClientService = {
-      val m = mock[ApiClientService]
-      m.findOneByOrgId(any[ObjectId]) returns apiClient
-      m
-    }
-
-    def getOrgAndOpts(rh: RequestHeader) = orgAndOpts
+    def getOrgAndClient(rh: RequestHeader) = orgAndClient
 
     def sessionCreatedForItem(id: VersionedId[ObjectId]): Unit = {}
 
     val apiContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
+
+    val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts] = { request: RequestHeader =>
+      getOrgAndClient(request).map(_._1)
+    }
+
 
     val api = new ItemSessionApi(
       mockSessionAuth,
       mockScoreService,
       mockOrgService,
       mockEncryptionService,
-      mockApiClientService,
       sessionCreatedForItem,
+      rootOrgId,
       apiContext,
-      getOrgAndOpts)
+      getOrgAndClient,
+      getOrgAndOptionsFn)
   }
 
   "cloneSession" should {
@@ -93,9 +104,8 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
       "return 404" in new apiScope(clonedSession = Failure(cantLoadSession(missingSessionId))) {
         val result = api.cloneSession(missingSessionId)(FakeRequest("", ""))
-        status(result) must be equalTo (NOT_FOUND)
+        status(result) === NOT_FOUND
       }
-
     }
 
     "without authentication" should {
@@ -104,40 +114,35 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       val request = FakeRequest("", "")
 
       "return 401" in new apiScope(clonedSession = Success(new ObjectId()),
-        orgAndOpts = Failure(noOrgIdAndOptions(request))) {
+        orgAndClient = Failure(noOrgIdAndOptions(request))) {
         val result = api.cloneSession(sessionId)(request)
-        status(result) must be equalTo (UNAUTHORIZED)
+        status(result) === UNAUTHORIZED
       }
-
     }
 
     "with valid session and authentication" should {
 
-      val apiClient = ApiClient(mockOrg().id, new ObjectId(), "secret")
-
-      "return 201" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
+      "return 201" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(client),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
-        status(result) must be equalTo (CREATED)
+        status(result) === CREATED
       }
 
-      "return apiClient" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
+      "return apiClient" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(client),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
-        Option((contentAsJson(result) \ "apiClient").as[String]) must be equalTo (apiClient.map(_.clientId.toString))
+        (contentAsJson(result) \ "apiClient").asOpt[String] === apiClient.map(_.clientId.toString)
       }
 
       "return cloned session options decryptable by apiClient" in new apiScope(
-        clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
+        clonedSession = Success(new ObjectId()), apiClient = Some(client),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val encryptedData = "encrypted"
         mockEncryptionService.encrypt(any[ApiClient], any[String]) returns Some(EncryptionSuccess("clientId", encryptedData))
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
         (contentAsJson(result) \ "options").as[String] === encryptedData
       }
-
     }
-
   }
 
   "V2 - ItemSessionApi" should {
@@ -151,17 +156,15 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
       "fail when service fails" in new apiScope(Success(true)) {
         val result = api.create(VersionedId(ObjectId.get))(FakeRequest().withBody(Some()))
-        status(result) === BAD_REQUEST
-        (contentAsJson(result) \ "errorType").as[String] === "errorSaving"
+        val json = Json.obj("message" -> "no session id returned from mock", "errorType" -> "errorSaving")
+        result must beCodeAndJson(BAD_REQUEST, json)
       }
 
       "work" in new apiScope(
         Success(true),
         maybeSessionId = Some(ObjectId.get)) {
         val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", "").withBody(Some()))
-        status(result) === OK
-        (contentAsJson(result) \ "_id").asOpt[JsValue] must beNone
-        contentAsJson(result) === Json.obj("id" -> maybeSessionId.get.toString)
+        result must beCodeAndJson(OK, Json.obj("id" -> maybeSessionId.get.toString))
       }
 
       "work with json header, but no body" in new apiScope(
@@ -169,9 +172,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
         maybeSessionId = Some(ObjectId.get)) {
         val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", "")
           .withHeaders(("Content-Type", "application/json")).withBody(None))
-        status(result) === OK
-        (contentAsJson(result) \ "_id").asOpt[JsValue] must beNone
-        contentAsJson(result) === Json.obj("id" -> maybeSessionId.get.toString)
+        result must beCodeAndJson(OK, Json.obj("id" -> maybeSessionId.get.toString))
       }
     }
 
@@ -193,8 +194,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       "fail when session and item are not found" in new apiScope() {
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
         val error = sessionAndItem.toEither.left.get
-        status(result) === error.statusCode
-        contentAsJson(result) === error.json
+        result must beCodeAndJson(error.statusCode, error.json)
       }
 
       def emptyPlayerDefinition = PlayerDefinition(Seq.empty, "", Json.obj(), "", None)
@@ -202,8 +202,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
         sessionAndItem = Success(Json.obj(), emptyPlayerDefinition)) {
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
         val error = sessionDoesNotContainResponses("sessionId")
-        status(result) === error.statusCode
-        contentAsJson(result) === error.json
+        result must beCodeAndJson(error.statusCode, error.json)
       }
 
       "work" in new apiScope(
@@ -212,10 +211,52 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
           emptyPlayerDefinition),
         scoreResult = Success(Json.obj("score" -> 100))) {
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        val error = generalError("This item has no player definition")
-        status(result) === OK
-        contentAsJson(result) === Json.obj("score" -> 100)
+        result must beCodeAndJson(OK, Json.obj("score" -> 100))
       }
     }
+  }
+
+  "orgCount" should {
+
+    val orgId = new ObjectId()
+    val month = "01-2016"
+
+    "return UNAUTHORIZED" in new apiScope() {
+      val result = api.orgCount(orgId, month)(FakeRequest())
+      status(result) must be equalTo(UNAUTHORIZED)
+    }
+
+    "request is authorized by non-admin" should {
+
+      "return UNAUTHORIZED" in new apiScope(apiClient = Some(client)) {
+        val result = api.orgCount(orgId, month)(FakeRequest())
+        status(result) must be equalTo(UNAUTHORIZED)
+      }
+
+    }
+
+    "request is authorized by admin" should {
+      implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
+
+      val results = {
+        val r = scala.util.Random
+        1.to(31).map(day => new DateTime().withMonthOfYear(1).withDayOfMonth(day) -> r.nextInt(100).toLong).toMap
+      }
+
+      "return OK" in new apiScope(apiClient = Some(rootApiClient), orgAndClient = rootOrgAndClient) {
+        val result = api.orgCount(orgId, month)(FakeRequest())
+        status(result) must be equalTo(OK)
+      }
+
+      "return JSON formatted results from SessionAuth.orgCount" in new apiScope(apiClient = Some(rootApiClient),
+          orgAndClient = rootOrgAndClient, sessionCounts = Success(results)) {
+        val result = api.orgCount(orgId, month)(FakeRequest())
+        val format = DateTimeFormat.forPattern("MM/dd")
+        contentAsJson(result) must be equalTo(
+          JsArray(results.toSeq.sortBy(_._1).map{ case(date, count) => Json.obj("date" -> format.print(date), "count" -> count) }))
+      }
+
+    }
+
   }
 }

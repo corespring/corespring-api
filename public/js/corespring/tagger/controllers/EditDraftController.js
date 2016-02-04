@@ -63,6 +63,7 @@
     $scope.navigationHooks.beforeUnload = angularBeforeUnload;
     $($window).bind('beforeunload', jqueryBeforeUnload);
 
+    $scope.devEditorVisible = !_.isUndefined($routeParams.devEditor) && $routeParams.devEditor !== 'false';
     //AC-252
     $scope.initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem();
 

@@ -1,14 +1,12 @@
 package developer.controllers
 
+import developer.controllers.routes.{ AuthController => Route }
 import org.bson.types.ObjectId
-import org.corespring.errors.GeneralError
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ OrganizationHelper, ApiClientHelper }
-import org.corespring.web.api.v1.errors.ApiError
+import org.corespring.it.helpers.{ ApiClientHelper, OrganizationHelper }
+import org.corespring.v2.errors.Errors.cantFindApiClientWithId
 import org.specs2.mutable.After
 import org.specs2.specification.Scope
-import developer.controllers.routes.{ AuthController => Route }
-import play.api.libs.json.Json
 import play.api.test.FakeRequest
 
 class AuthControllerIntegrationTest extends IntegrationSpecification {
@@ -39,11 +37,11 @@ class AuthControllerIntegrationTest extends IntegrationSpecification {
     trait okAccessToken extends accessToken
 
     trait badClientId extends accessToken {
-      override def clientId = ObjectId.get.toString
+      override val clientId = ObjectId.get.toString
     }
 
     trait badClientSecret extends accessToken {
-      override def clientSecret = ObjectId.get.toString
+      override val clientSecret = ObjectId.get.toString
     }
 
     s"return $OK for a valid request" in new okAccessToken {
@@ -52,8 +50,8 @@ class AuthControllerIntegrationTest extends IntegrationSpecification {
 
     s"return json with the new token in it" in new okAccessToken {
       val json = contentAsJson(result)
-      val token = main.tokenService.find(orgId, None).get
-      json must_== Json.obj(OAuthConstants.AccessToken -> token.tokenId)
+      val tokenId = (json \ OAuthConstants.AccessToken).as[String]
+      main.tokenService.findByTokenId(tokenId) must not beNone
     }
 
     s"return $FORBIDDEN for bad client id " in new badClientId {
@@ -62,7 +60,7 @@ class AuthControllerIntegrationTest extends IntegrationSpecification {
 
     s"return error json for bad client id " in new badClientId {
       val json = contentAsJson(result)
-      (json \ "message").asOpt[String] must_== Some("No api client found")
+      (json \ "message").asOpt[String] must_== Some(s"[OAuthProvider] Can't find apiClient with id: $clientId")
     }
 
     s"return $FORBIDDEN for bad client secret " in new badClientSecret {
@@ -71,7 +69,7 @@ class AuthControllerIntegrationTest extends IntegrationSpecification {
 
     s"return error json for bad client secret " in new badClientSecret {
       val json = contentAsJson(result)
-      (json \ "message").asOpt[String] must_== Some("No api client found")
+      (json \ "message").asOpt[String] must_== Some(s"[OAuthProvider] Can't find apiClient with id: $clientId")
     }
   }
 }

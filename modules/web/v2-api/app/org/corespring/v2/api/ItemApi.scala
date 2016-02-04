@@ -1,13 +1,13 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexQuery, ItemIndexSearchResult, ItemIndexService }
-import org.corespring.models.ContentCollRef
+import org.corespring.itemSearch._
+import org.corespring.futureValidation.FutureValidation._
 import org.corespring.models.item.{ ComponentType, Item }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
-import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.services.{ CloneItemService, OrgCollectionService, OrganizationService }
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -16,6 +16,7 @@ import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.SessionService
 import play.api.Logger
 import play.api.libs.json._
+import play.api.libs.json.Json._
 import play.api.mvc._
 
 import scala.concurrent._
@@ -28,6 +29,7 @@ class ItemApi(
   itemService: ItemService,
   orgService: OrganizationService,
   orgCollectionService: OrgCollectionService,
+  cloneItemService: CloneItemService,
   itemIndexService: ItemIndexService,
   itemAuth: ItemAuth[OrgAndOpts],
   itemTypes: Seq[ComponentType],
@@ -84,20 +86,6 @@ class ItemApi(
     }
   }
 
-  private def searchWithQuery(
-    q: ItemIndexQuery,
-    accessibleCollections: Seq[ContentCollRef]): Future[Validation[Error, ItemIndexSearchResult]] = {
-    val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
-    val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
-    val scopedQuery = collections.isEmpty match {
-      case true => q.copy(collections = accessibleCollectionStrings)
-      case _ => q.copy(collections = collections)
-    }
-
-    logger.trace(s"function=searchWithQuery, scopedQuery=$scopedQuery")
-    itemIndexService.search(scopedQuery)
-  }
-
   private[ItemApi] implicit class JsResultToValidation[T](jsResult: JsResult[T]) {
     def toValidation: Validation[V2Error, T] = jsResult match {
       case JsSuccess(d, _) => Success(d)
@@ -105,76 +93,27 @@ class ItemApi(
     }
   }
 
-  //upgrade of v1 item api - listWithColl
+  def search(query: Option[String]) = futureWithIdentity { (identity, request) =>
+    logger.debug(s"function=search, query=$query")
+    searchWithQueryAndCollections(query, identity.org.accessibleCollections.map(_.collectionId): _*) { r => toJson(r) }
+  }
+
   def searchByCollectionId(
     collectionId: ObjectId,
-    q: Option[String] = None) = Action.async { request =>
-
-    val queryString = q.getOrElse("{}")
-
-    val out: Validation[V2Error, Future[SimpleResult]] = for {
-      queryJson <- safeParse(queryString).leftMap(e => invalidJson(e.getMessage))
-      query <- Json.fromJson[ItemIndexQuery](queryJson).toValidation
-      //Note: mapping error statusCode to a BAD_REQUEST to fix api regression
-      identity <- getOrgAndOptions(request).leftMap(e => generalError(e.message, BAD_REQUEST))
-    } yield {
-      val scopedQuery = query.copy(collections = Seq(collectionId.toString))
-      searchWithQuery(scopedQuery, identity.org.accessibleCollections).map { v =>
-        v match {
-          case Success(searchResult) => {
-            implicit val ItemIndexHitFormat = ItemIndexHit.Format
-            Ok(Json.toJson(searchResult.hits))
-          }
-          case Failure(error) => BadRequest(error.getMessage)
-        }
-      }
-    }
-
-    out match {
-      case Failure(e) => Future(Status(e.statusCode)(e.message))
-      case Success(f) => f
+    q: Option[String] = None) = futureWithIdentity(BAD_REQUEST) { (identity, request) =>
+    searchWithQueryAndCollections(q, collectionId) { searchResult =>
+      implicit val f = ItemIndexHit.Format
+      toJson(searchResult.hits)
     }
   }
 
-  def search(query: Option[String]) = Action.async { implicit request =>
-
-    logger.debug(s"function=search, rawQueryString=${request.rawQueryString}")
-
-    logger.debug(s"function=search, query=$query")
-
-    def searchQueryResult(
-      q: ItemIndexQuery,
-      accessibleCollections: Seq[ContentCollRef]): Future[SimpleResult] = {
-      logger.trace(s"function=search#searchQueryResult, q=$q")
-      searchWithQuery(q, accessibleCollections).map(result => result match {
-        case Success(searchResult) => Ok(Json.toJson(searchResult))
-        case Failure(error) => BadRequest(error.getMessage)
-      })
-    }
-
-    val queryString = query.getOrElse("{}")
-
-    logger.trace(s"function=search, queryString=$queryString")
-
-    getOrgAndOptions(request) match {
-      case Success(orgAndOpts) => safeParse(queryString) match {
-        case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
-          case JsSuccess(query, _) => searchQueryResult(query, orgAndOpts.org.accessibleCollections)
-
-          case _ => future {
-            val error = invalidJson(queryString)
-            Status(error.statusCode)(error.message)
-          }
-        }
-        case _ => future {
-          val error = invalidJson(queryString)
-          Status(error.statusCode)(error.message)
-        }
-      }
-      case _ => future {
-        val error = invalidToken(request)
-        Status(error.statusCode)(error.message)
-      }
+  private def searchWithQueryAndCollections(query: Option[String], collectionIds: ObjectId*)(mkJson: ItemIndexSearchResult => JsValue): Future[SimpleResult] = {
+    (for {
+      sq <- fv(QueryStringParser.scopedSearchQuery(query, collectionIds))
+      _ <- fv(Success(logger.debug(s"function=searchWithQueryAndCollection, sq=$sq")))
+      results <- fv(itemIndexService.search(sq))
+    } yield results).future.map { v =>
+      v.fold(e => BadRequest(e.getMessage), results => Ok(mkJson(results)))
     }
   }
 
@@ -220,6 +159,7 @@ class ItemApi(
 
   /**
    * Check a score against a given item
+   *
    * @param itemId
    * @return
    */
@@ -256,17 +196,36 @@ class ItemApi(
     }
   }
 
-  def cloneItem(id: String) = Action.async { implicit request =>
-    Future {
-      val out = for {
-        identity <- getOrgAndOptions(request)
-        vid <- VersionedId(id).toSuccess(cantParseItemId(id))
-        item <- itemAuth.loadForRead(id)(identity)
-        cloned <- itemService.clone(item).toSuccess(generalError(s"Error cloning item with id: $id"))
-      } yield Json.obj("id" -> cloned.id.toString)
-      validationToResult[JsValue](i => Ok(i))(out)
+  def cloneItem(id: String) = futureWithIdentity((identity, request) => {
+
+    lazy val targetCollectionId: Validation[V2Error, Option[ObjectId]] = {
+      val rawId: Option[String] = request.body.asJson.flatMap { j =>
+        (j \ "collectionId").asOpt[String]
+      }
+
+      rawId.map { r =>
+        if (ObjectId.isValid(r)) {
+          Success(Some(new ObjectId(r)))
+        } else {
+          Failure(generalError(s"Not a valid object id string: $r"))
+        }
+      }.getOrElse(Success(None))
     }
-  }
+
+    VersionedId(id).map { vid =>
+      targetCollectionId match {
+        case Success(collectionId) => {
+          cloneItemService.cloneItem(vid, identity.org.id, collectionId).future.map { v =>
+            val asJson = v.bimap(
+              e => generalError(s"Error cloning item with id: $id: ${e.message}"),
+              id => Json.obj("id" -> id.toString))
+            validationToResult[JsValue](i => Ok(i))(asJson)
+          }
+        }
+        case Failure(e) => Future(e.toResult)
+      }
+    }.getOrElse(Future(cantParseItemId(id).toResult))
+  })
 
   def publish(id: String) = Action.async { implicit request =>
     Future {

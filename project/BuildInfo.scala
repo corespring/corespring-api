@@ -15,7 +15,12 @@ object BuildInfo {
       val branch: String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
       val formatter = DateTimeFormat.forPattern("HH:mm dd MMMM yyyy");
       val date = formatter.print(DateTime.now)
-      val contents = "commit.hash=%s\nbranch=%s\nversion=%s\ndate=%s".format(commitHash, branch, v, date)
+      val contents = s"""
+      |commit.hash=$commitHash
+      |branch=$branch
+      |version=$v
+      |date=$date""".stripMargin.trim
+
       IO.write(file, contents)
   }
 }

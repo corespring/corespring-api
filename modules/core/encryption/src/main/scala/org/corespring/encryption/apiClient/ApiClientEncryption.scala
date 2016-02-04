@@ -11,9 +11,7 @@ trait ApiClientEncryptionService {
   def encrypt(apiClient: ApiClient, s: String): Option[EncryptionResult]
 
   def decrypt(apiClientId: String, s: String): Option[String]
-  def decrypt(apiCilent: ApiClient, s: String): Option[String]
-
-  def encryptByOrg(orgId: ObjectId, s: String): Option[EncryptionResult]
+  def decrypt(apiClient: ApiClient, s: String): Option[String]
 }
 
 class MainApiClientEncryptionService(
@@ -52,11 +50,5 @@ class MainApiClientEncryptionService(
       }
     }
   }
-
-  /**
-   * We should stop using this method. It is dangerous because there is no guarantee of what API client will be used.
-   */
-  override def encryptByOrg(orgId: ObjectId, s: String) = randomApiClientForOrg(orgId).map(encrypt(_, s)).flatten
-  protected def randomApiClientForOrg(orgId: ObjectId) = apiClientService.findOneByOrgId(orgId)
 
 }

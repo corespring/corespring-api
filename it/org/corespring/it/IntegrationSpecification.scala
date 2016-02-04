@@ -23,7 +23,6 @@ abstract class IntegrationSpecification
 
   sequential
 
-
   lazy val main = global.Global.main
 
   lazy val logger: grizzled.slf4j.Logger = Logger(this.getClass)
@@ -64,7 +63,7 @@ trait ItemIndexCleaner {
       createResult <- main.itemIndexService.asInstanceOf[ItemIndexDeleteService].create()
     } yield (deleteResult, createResult)
 
-    val result = Await.result(out, 2.seconds)
+    val result = Await.result(out, 10.seconds)
 
     logger.info(s"function=cleanIndex, deleteResult=$result")
   }
