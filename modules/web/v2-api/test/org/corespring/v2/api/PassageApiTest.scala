@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.errors.CollectionAuthorizationError
+import org.corespring.errors.collection._
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ContentCollection, ContentCollRef, Organization}
 import org.corespring.models.item.Passage
@@ -239,7 +239,7 @@ class PassageApiTest extends Specification with Mockito {
             }
 
             "return message for CollectionAuthorizationError" in new AuthorizedCreateScopeSavedInvalidCollection {
-              contentAsString(result) must be equalTo(CollectionAuthorizationError(orgId, Permission.Write, unwriteableCollectionId).message)
+              contentAsString(result) must be equalTo(CantWriteToCollection(orgId, None, unwriteableCollectionId).message)
             }
 
           }

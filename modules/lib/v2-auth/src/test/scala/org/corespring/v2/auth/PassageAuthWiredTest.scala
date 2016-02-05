@@ -216,13 +216,74 @@ class PassageAuthWiredTest extends Specification with Mockito {
         val result = Await.result(passageAuthWired.delete(passageId.toString)(identity, executionContext), Duration.Inf)
       }
 
-      "be awesome" in new CannotFindPassageScope {
-        result must be equalTo
+      "return cantFindPassageWithId" in new CannotFindPassageScope {
+        result must be equalTo Failure(cantFindPassageWithId(passageId))
       }
 
     }
 
+    "passage with specified id is found" should {
 
+      trait FoundPassageScope extends PassageAuthScope {
+        passageService.get(passageId) returns Future.successful(Success(Some(passage)))
+      }
+
+      "user does not have permission to write passage" should {
+
+        trait PermissionDeniedScope extends FoundPassageScope {
+          access.grant(identity, Permission.Write, (passage, None)) returns Future.successful(Success(false))
+          val result = Await.result(passageAuthWired.delete(passageId.toString)(identity, executionContext), Duration.Inf)
+        }
+
+        "return couldNotWritePassage error" in new PermissionDeniedScope {
+          result must be equalTo Failure(couldNotWritePassage(passageId))
+        }
+
+      }
+
+      "user does have permission to write passage" should {
+
+        trait PermissionAllowed extends FoundPassageScope {
+          access.grant(identity, Permission.Write, (passage, None)) returns Future.successful(Success(true))
+        }
+
+        "passageService#delete fails" should {
+
+          trait PassageDeleteFails extends PermissionAllowed {
+            passageService.delete(passageId) returns Future.successful(Failure(PassageSaveError(passageId)))
+            val result = Await.result(passageAuthWired.delete(passageId.toString)(identity, executionContext), Duration.Inf)
+          }
+
+          "call passageService#delete" in new PassageDeleteFails {
+            there was one(passageService).delete(passageId)
+          }
+
+          "return couldNotDeletePassage" in new PassageDeleteFails {
+            result must be equalTo Failure(couldNotDeletePassage(passageId))
+          }
+
+        }
+
+        "passageService#delete succeeds" should {
+
+          trait PassageDeleteSucceeds extends PermissionAllowed {
+            passageService.delete(passageId) returns Future.successful(Success(passage))
+            val result = Await.result(passageAuthWired.delete(passageId.toString)(identity, executionContext), Duration.Inf)
+          }
+
+          "call passageService#delete" in new PassageDeleteSucceeds {
+            there was one(passageService).delete(passageId)
+          }
+
+          "return the deleted passage" in new PassageDeleteSucceeds {
+            result must be equalTo Success(passage)
+          }
+
+        }
+
+      }
+
+    }
 
   }
 

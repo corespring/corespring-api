@@ -214,6 +214,7 @@ trait SalatServices extends interface.bootstrap.Services {
   override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, orgCollectionService, contentCollectionService, metadataSetService, itemService)
   override lazy val passageService: interface.PassageService = new PassageService(
     passageDao,
+    archiveConfig,
     salatServicesExecutionContext
   )
   override lazy val registrationTokenService: interface.RegistrationTokenService = wire[RegistrationTokenService]

@@ -74,11 +74,15 @@ class PassageAuthWired(
     }
 
   private def ifWritable(passage: Passage, block: Passage => Future[Validation[V2Error, Passage]])
-                 (implicit identity: OrgAndOpts, executionContext: ExecutionContext): Future[Validation[V2Error, Passage]] =
+                 (implicit identity: OrgAndOpts, executionContext: ExecutionContext): Future[Validation[V2Error, Passage]] = {
+    println(identity)
+    println(access)
+    println(access.grant(identity, Permission.Write, (passage, None)))
     access.grant(identity, Permission.Write, (passage, None)).flatMap(_ match {
       case Success(true) => block(passage)
       case Success(false) => Future.successful(Failure(couldNotWritePassage(passage.id)))
       case Failure(error) => Future.successful(Failure(error))
     })
+  }
 
 }

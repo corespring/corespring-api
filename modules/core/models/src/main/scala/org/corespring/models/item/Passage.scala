@@ -23,6 +23,10 @@ object Passage {
     }
   }
 
+  object Keys {
+    val collectionId = "collectionId"
+  }
+
   def defaultFile: BaseFile = new VirtualFile(
     name = Defaults.File.name,
     contentType = Defaults.File.contentType,
