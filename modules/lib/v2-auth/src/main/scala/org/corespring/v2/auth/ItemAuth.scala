@@ -5,6 +5,7 @@ import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.SessionAuth.Session
 import org.corespring.v2.errors.V2Error
+import org.joda.time.DateTime
 import play.api.libs.json.JsValue
 
 import scalaz.Validation
@@ -37,5 +38,6 @@ trait SessionAuth[IDENTITY, CONTENT] {
   def cloneIntoPreview(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, ObjectId]
   def reopen(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, Session]
   def complete(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, Session]
+  def orgCount(orgId: ObjectId, month: DateTime)(implicit identity: IDENTITY): Validation[V2Error, Map[DateTime, Long]]
 }
 

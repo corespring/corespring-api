@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.62.4"
+  val containerVersion = "0.63.0"
   val qtiVersion = "0.16"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
@@ -82,7 +82,7 @@ object Dependencies {
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
   val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.23-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
-  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.3"
+  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.4"
 
   val ztZip = "org.zeroturnaround" % "zt-zip" % "1.8" % "it"
 

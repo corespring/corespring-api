@@ -55,6 +55,8 @@ trait V2ApiModule
 
   def sessionServices: SessionServices
 
+  def rootOrgId: ObjectId
+
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 
   private lazy val itemApi: Controller = wire[ItemApi]

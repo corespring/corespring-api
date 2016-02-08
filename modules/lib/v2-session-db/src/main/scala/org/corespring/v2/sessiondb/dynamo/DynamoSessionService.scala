@@ -4,16 +4,19 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.document.{ Item, Table }
 import com.amazonaws.services.dynamodbv2.model._
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.sessiondb.SessionService
+import org.corespring.v2.sessiondb.{SessionReportingUnsupported, SessionService}
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import play.api.libs.json.{ Json, JsValue }
 
 import scala.collection.JavaConversions._
+import scalaz.Validation
 
 /**
  * Writes/Reads session to db as (sessionId,itemId,json)
  */
-class DynamoSessionService(table: Table, client: AmazonDynamoDBClient) extends SessionService {
+class DynamoSessionService(table: Table, client: AmazonDynamoDBClient) extends SessionService
+    with SessionReportingUnsupported {
 
   val itemIdKey = "itemId"
   val jsonKey = "json"

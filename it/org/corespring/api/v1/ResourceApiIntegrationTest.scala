@@ -7,7 +7,6 @@ import org.corespring.models.item.Item.QtiResource
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.item.resource.VirtualFile
 import org.corespring.models.json.item.resource.BaseFileFormat
-import org.specs2.specification.Scope
 import play.api.libs.json.Json
 
 class ResourceApiIntegrationTest extends IntegrationSpecification {
