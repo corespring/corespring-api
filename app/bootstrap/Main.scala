@@ -10,7 +10,7 @@ import com.amazonaws.services.s3.{ AmazonS3, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import developer.{ DeveloperConfig, DeveloperModule }
-import filters.{ BlockingFutureQueuer, CacheFilter, FutureQueuer }
+import filters.{ItemFileFilter, BlockingFutureQueuer, CacheFilter, FutureQueuer}
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
@@ -180,6 +180,15 @@ class Main(
     override val gzipEnabled = containerConfig.componentsGzip
 
     override lazy val futureQueue: FutureQueuer = new BlockingFutureQueuer()
+  }
+
+  lazy val itemFileFilter = new ItemFileFilter {
+
+    override def cdnResolver: CdnResolver = Main.this.cdnResolver
+
+    override def sessionServices: SessionServices = Main.this.sessionServices
+
+    override implicit def ec: ExecutionContext = Main.this.v2PlayerExecutionContext
   }
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
