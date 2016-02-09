@@ -54,7 +54,7 @@ class MainTest extends Specification with Mockito {
         Mode.Test,
         this.getClass.getClassLoader,
         resourceAsStream _)
-      main.componentSetFilter must haveInterface[CacheFilter]
+      main.componentSetFilter.get must haveInterface[CacheFilter]
     }
   }
 
