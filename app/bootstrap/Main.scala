@@ -10,14 +10,14 @@ import com.amazonaws.services.s3.{ AmazonS3, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import developer.{ DeveloperConfig, DeveloperModule }
-import filters.{ItemFileFilter, BlockingFutureQueuer, CacheFilter, FutureQueuer}
+import filters.{ ItemFileFilter, BlockingFutureQueuer, CacheFilter, FutureQueuer }
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ EncodedKeyS3Client, ItemAssetKeys }
-import org.corespring.common.config.{ ItemAssetResolverConfig, ContainerConfig }
+import org.corespring.common.config.{ItemFileFilterConfig, ItemAssetResolverConfig, ContainerConfig}
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ ComponentSetExecutionContext, ItemAssetResolver }
@@ -183,9 +183,12 @@ class Main(
   }
 
   lazy val itemFileFilter = {
-    if (Main.this.cdnResolver.cdnDomain.isDefined)
+    val config = ItemFileFilterConfig(configuration, mode)
+    if (config.enabled)
       Some(new ItemFileFilter {
-        override def cdnResolver: CdnResolver = Main.this.cdnResolver
+        override def cdnResolver: CdnResolver = new CdnResolver(
+          config.domain,
+          if (config.addVersionAsQueryParam) Some(mainAppVersion) else None)
 
         override def sessionServices: SessionServices = Main.this.sessionServices
 
