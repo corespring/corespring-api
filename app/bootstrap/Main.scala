@@ -164,7 +164,7 @@ class Main(
     result
   }
 
-  lazy val componentSetFilter = new CacheFilter {
+  lazy val componentSetFilter = Some(new CacheFilter {
     override implicit def ec: ExecutionContext = componentSetExecutionContext.heavyLoad
 
     override lazy val bucket: String = Main.this.bucket.bucket
@@ -180,15 +180,18 @@ class Main(
     override val gzipEnabled = containerConfig.componentsGzip
 
     override lazy val futureQueue: FutureQueuer = new BlockingFutureQueuer()
-  }
+  })
 
-  lazy val itemFileFilter = new ItemFileFilter {
+  lazy val itemFileFilter = {
+    if (Main.this.cdnResolver.cdnDomain.isDefined)
+      Some(new ItemFileFilter {
+        override def cdnResolver: CdnResolver = Main.this.cdnResolver
 
-    override def cdnResolver: CdnResolver = Main.this.cdnResolver
+        override def sessionServices: SessionServices = Main.this.sessionServices
 
-    override def sessionServices: SessionServices = Main.this.sessionServices
-
-    override implicit def ec: ExecutionContext = Main.this.v2PlayerExecutionContext
+        override implicit def ec: ExecutionContext = Main.this.v2PlayerExecutionContext
+      })
+    else None
   }
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
