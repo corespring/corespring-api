@@ -3,7 +3,7 @@ package bootstrap
 import java.io.InputStream
 
 import com.mongodb.casbah.{ MongoConnection, MongoURI }
-import filters.CacheFilter
+import filters.{ItemFileFilter, CacheFilter}
 import org.bson.types.ObjectId
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -54,7 +54,28 @@ class MainTest extends Specification with Mockito {
         Mode.Test,
         this.getClass.getClassLoader,
         resourceAsStream _)
-      main.componentSetFilter.get must haveInterface[CacheFilter]
+      main.componentSetFilter must haveInterface[CacheFilter]
+    }
+  }
+
+  "ItemFileFilter" should {
+    "be instantiated when cdn is configured" in {
+      val main = new Main(db,
+        Configuration.from(config),
+        Mode.Test,
+        this.getClass.getClassLoader,
+        resourceAsStream _)
+      main.itemFileFilter.get must haveInterface[ItemFileFilter]
+    }
+
+    "not be instantiated when cdn is not configured" in {
+      val minusCdn = config - "container.cdn.domain"
+      val main = new Main(db,
+        Configuration.from(minusCdn),
+        Mode.Test,
+        this.getClass.getClassLoader,
+        resourceAsStream _)
+      main.itemFileFilter must_== None
     }
   }
 
