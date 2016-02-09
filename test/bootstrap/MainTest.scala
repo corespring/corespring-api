@@ -47,34 +47,29 @@ class MainTest extends Specification with Mockito {
 
   val config = mkConfig("//blah.com", false)
 
+  def instantiateMain(config: Map[String, Any]) = {
+    new Main(db,
+      Configuration.from(config),
+      Mode.Test,
+      this.getClass.getClassLoader,
+      resourceAsStream _)
+  }
+
   "Main" should {
     "use new CacheFilter" in {
-      val main = new Main(db,
-        Configuration.from(config),
-        Mode.Test,
-        this.getClass.getClassLoader,
-        resourceAsStream _)
+      val main = instantiateMain(config)
       main.componentSetFilter must haveInterface[CacheFilter]
     }
   }
 
   "ItemFileFilter" should {
     "be instantiated when cdn is configured" in {
-      val main = new Main(db,
-        Configuration.from(config),
-        Mode.Test,
-        this.getClass.getClassLoader,
-        resourceAsStream _)
+      val main = instantiateMain(config)
       main.itemFileFilter.get must haveInterface[ItemFileFilter]
     }
 
     "not be instantiated when cdn is not configured" in {
-      val minusCdn = config - "container.cdn.domain"
-      val main = new Main(db,
-        Configuration.from(minusCdn),
-        Mode.Test,
-        this.getClass.getClassLoader,
-        resourceAsStream _)
+      val main = instantiateMain(config - "container.cdn.domain")
       main.itemFileFilter must_== None
     }
   }
@@ -82,13 +77,12 @@ class MainTest extends Specification with Mockito {
   "resolveDomain" should {
 
     "return the path directly if no cdn is configured" in {
-      val minusCdn = config - "container.cdn.domain"
-      val main = new Main(db, Configuration.from(minusCdn), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = instantiateMain(config - "container.cdn.domain")
       main.resolveDomain("hi") must_== "hi"
     }
 
     "return the path with the cdn prefixed if the cdn is configured" in {
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = instantiateMain(config)
       main.resolveDomain("hi") must_== "//blah.com/hi"
     }
   }
@@ -110,19 +104,19 @@ class MainTest extends Specification with Mockito {
     }
     "return the file when enabled is false" in new scope {
       val config = mkItemAssetResolverConfig(false, true)
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = instantiateMain(config)
       main.itemAssetResolver.resolve(itemId)(file) === "test.jpeg"
     }
 
     "return the unsigned url when signUrl is false" in new scope {
       val config = mkItemAssetResolverConfig(true, false)
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = instantiateMain(config)
       main.itemAssetResolver.resolve(itemId)(file) === "//blah/123456789012345678901234/0/data/test.jpeg"
     }
 
     "return the signed url when signUrl is true" in new scope {
       val config = mkItemAssetResolverConfig(true, true)
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = instantiateMain(config)
       main.itemAssetResolver.resolve(itemId)(file) must startingWith("https://blah/123456789012345678901234/0/data/test.jpeg?Expires=")
     }
   }
