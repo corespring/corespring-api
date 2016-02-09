@@ -5,9 +5,9 @@ import org.corespring.v2.player.cdn.CdnResolver
 import org.corespring.v2.sessiondb.SessionServices
 import play.api.Logger
 import play.api.mvc.Results._
-import play.api.mvc.{Filter, RequestHeader, SimpleResult}
+import play.api.mvc.{ Filter, RequestHeader, SimpleResult }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.matching.Regex
 
 /**
@@ -44,8 +44,8 @@ trait ItemFileFilter extends Filter {
     }).getOrElse(BadRequest)
   }
 
-  private def isOnCdn(file) = {
-    return file != "index.html"
+  private def isOnCdn(file: String) = {
+    file != "index.html"
   }
 
   private lazy val urlPattern = new Regex("/v2/player/player/session/([^/]*)/(.*)$")
