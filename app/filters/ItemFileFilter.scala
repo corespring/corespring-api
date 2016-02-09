@@ -32,16 +32,22 @@ trait ItemFileFilter extends Filter {
   implicit def ec: ExecutionContext
 
   private def redirectToCdn(sessionId: String, file: String) = Future {
+    import scalaz.Scalaz._
+    import scalaz.{Success, Failure}
+
     (for {
-      json <- sessionServices.main.load(sessionId).orElse(sessionServices.preview.load(sessionId))
-      itemId <- (json \ "itemId").asOpt[String]
-      vid <- VersionedId(itemId)
-      if vid.version.isDefined
-      url <- Some(s"/${vid.id}/${vid.version.get}/data/$file")
-      resolvedUrl <- Some(cdnResolver.resolveDomain(url))
+      json <- sessionServices.main.load(sessionId).orElse(sessionServices.preview.load(sessionId)).toSuccess(s"Error: session $sessionId not found.")
+      itemId <- (json \ "itemId").asOpt[String].toSuccess(s"Error: session $sessionId does not contain itemId.")
+      vid <- VersionedId(itemId).toSuccess(s"Error: vid cannot be parsed from session $sessionId.")
+      hasVersion <- if(vid.version.isDefined) Success(true) else Failure(s"Error: itemId does not have version in session $sessionId.")
+      url <- Success(s"/${vid.id}/${vid.version.get}/data/$file")
+      resolvedUrl <- Success(cdnResolver.resolveDomain(url))
     } yield {
-      Redirect(resolvedUrl)
-    }).getOrElse(BadRequest)
+      resolvedUrl
+    }) match {
+      case Success(url) => TemporaryRedirect(url)
+      case Failure(msg) => InternalServerError(msg)
+    }
   }
 
   private def isOnCdn(file: String) = {
