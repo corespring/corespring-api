@@ -46,7 +46,10 @@ trait ItemFileFilter extends Filter {
       resolvedUrl
     }) match {
       case Success(url) => TemporaryRedirect(url)
-      case Failure(msg) => InternalServerError(msg)
+      case Failure(msg) => {
+        logger.error(msg)
+        InternalServerError(s"Error loading file '$file' for session $sessionId.")
+      }
     }
   }
 
