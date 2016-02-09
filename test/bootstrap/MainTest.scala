@@ -63,15 +63,27 @@ class MainTest extends Specification with Mockito {
   }
 
   "ItemFileFilter" should {
-    "be instantiated when cdn is configured" in {
-      val main = instantiateMain(config)
+
+    trait scope extends Scope {
+      def mkItemFileFilterConfig(enabled: Boolean, domain: String) = {
+        val mainConfig = mkConfig("//blah", false)
+        val iffConfig = Map(
+          "item-file-filter.enabled" -> enabled,
+          "item-file-filter.domain" -> domain)
+        mainConfig ++ iffConfig
+      }
+    }
+
+    "be instantiated when cdn is enabled" in new scope {
+      val main = instantiateMain(mkItemFileFilterConfig(true, "//cdn"))
       main.itemFileFilter.get must haveInterface[ItemFileFilter]
     }
 
-    "not be instantiated when cdn is not configured" in {
-      val main = instantiateMain(config - "container.cdn.domain")
+    "not be instantiated when cdn is not enabled" in new scope {
+      val main = instantiateMain(mkItemFileFilterConfig(false, "//cdn"))
       main.itemFileFilter must_== None
     }
+
   }
 
   "resolveDomain" should {
@@ -91,6 +103,7 @@ class MainTest extends Specification with Mockito {
     trait scope extends Scope {
       val itemId = "123456789012345678901234:0"
       val file = "test.jpeg"
+
       def mkItemAssetResolverConfig(enabled: Boolean, signUrls: Boolean) = {
         val mainConfig = mkConfig("//blah", false)
         val iarConfig = Map(
