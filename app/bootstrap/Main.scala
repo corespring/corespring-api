@@ -17,7 +17,7 @@ import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ EncodedKeyS3Client, ItemAssetKeys }
-import org.corespring.common.config.{ItemFileFilterConfig, ItemAssetResolverConfig, ContainerConfig}
+import org.corespring.common.config.{ItemFileFilterConfig, ContainerConfig}
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ ComponentSetExecutionContext, ItemAssetResolver }
@@ -186,9 +186,17 @@ class Main(
     val config = ItemFileFilterConfig(configuration, mode)
     if (config.enabled)
       Some(new ItemFileFilter {
-        override def cdnResolver: CdnResolver = new CdnResolver(
-          config.domain,
-          if (config.addVersionAsQueryParam) Some(mainAppVersion) else None)
+        override def cdnResolver: CdnResolver = {
+          val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
+          if (config.signUrls) {
+            val keyPairId = config.keyPairId.getOrElse(throw new RuntimeException("ItemFileFilter: keyPairId is not set"))
+            val privateKey = config.privateKey.getOrElse(throw new RuntimeException("ItemFileFilter: privateKey is not set"))
+            val urlSigner = new CdnUrlSigner(keyPairId, privateKey)
+            new SignedUrlCdnResolver(config.domain, version, urlSigner, config.urlExpiresAfterMinutes, "https:")
+          } else {
+            new CdnResolver(config.domain, version)
+          }
+        }
 
         override def sessionServices: SessionServices = Main.this.sessionServices
 
@@ -220,23 +228,8 @@ class Main(
 
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
-  lazy val itemAssetResolver: ItemAssetResolver = {
-    val config = ItemAssetResolverConfig(configuration, mode)
-    if (config.enabled) {
-      val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
-      val cdnResolver: CdnResolver = if (config.signUrls) {
-        val keyPairId = config.keyPairId.getOrElse(throw new RuntimeException("ItemAssetResolver: keyPairId is not set"))
-        val privateKey = config.privateKey.getOrElse(throw new RuntimeException("ItemAssetResolver: privateKey is not set"))
-        val urlSigner = new CdnUrlSigner(keyPairId, privateKey)
-        new SignedUrlCdnResolver(config.domain, version, urlSigner, config.urlValidInHours, "https:")
-      } else {
-        new CdnResolver(config.domain, version)
-      }
-      new CdnItemAssetResolver(cdnResolver)
-    } else {
-      new DisabledItemAssetResolver
-    }
-  }
+  //@deprecated remove from container before removing this
+  lazy val itemAssetResolver: ItemAssetResolver = new DisabledItemAssetResolver
 
   override lazy val elasticSearchConfig = ElasticSearchConfig(
     appConfig.elasticSearchUrl,
