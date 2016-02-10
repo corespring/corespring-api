@@ -6,7 +6,12 @@ import play.api.{ Configuration, Mode }
 case class ItemFileFilterConfig(
   enabled: Boolean,
   addVersionAsQueryParam: Boolean,
-  domain: Option[String])
+  domain: Option[String],
+  signUrls: Boolean,
+  keyPairId: Option[String],
+  privateKey: Option[String],
+  urlExpiresAfterMinutes: Int,
+  httpProtocolForSignedUrls: String)
 
 object ItemFileFilterConfig extends ConfigurationHelper {
 
@@ -18,7 +23,12 @@ object ItemFileFilterConfig extends ConfigurationHelper {
 
     ItemFileFilterConfig(
       getBoolean("enabled", false),
-      getBoolean("add-version-as-query-param", false),
-      getMaybeString("domain"))
+      getBoolean("add-version-as-query-param", true),
+      getMaybeString("domain"),
+      getBoolean("sign-urls", false),
+      getMaybeString("key-pair-id"),
+      getMaybeString("private-key"),
+      getInt("url-expires-after-minutes", 5),
+      getString("http-protocol-for-signed-urls", "https:"))
   }
 }
