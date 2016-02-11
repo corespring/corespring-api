@@ -83,12 +83,12 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
 
     val query = MongoDBObject(l)
 
-    def invert(key: String, k: Option[String]): Option[DBObject] = {
+    def invert(key: String, k: Option[String] = None): Option[DBObject] = {
       if (k.isEmpty) Some(MongoDBObject(key -> toRegex(q.term))) else None
     }
 
     val queryList = List(
-      Some(MongoDBObject("dotNotation" -> q.term)),
+      invert("dotNotation"),
       invert("category", q.category),
       invert("subject", q.subject),
       invert("standard", q.standard),
