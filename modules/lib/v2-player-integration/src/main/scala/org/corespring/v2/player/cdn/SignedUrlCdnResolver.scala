@@ -6,11 +6,11 @@ class SignedUrlCdnResolver(
   domain: Option[String],
   version: Option[String],
   urlSigner: CdnUrlSigner,
-  urlValidInHours: Int,
+  urlExpiresAfterMinutes: Int,
   httpProtocol: String = "") extends CdnResolver(domain, version) {
 
   override def resolveDomain(path: String): String = if (cdnDomain.isDefined) {
-    val validUntil = DateTime.now().plusHours(urlValidInHours).toDate
+    val validUntil = DateTime.now().plusMinutes(urlExpiresAfterMinutes).toDate
     urlSigner.signUrl(httpProtocol + super.resolveDomain(path), validUntil)
   } else {
     path

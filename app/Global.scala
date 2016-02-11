@@ -48,7 +48,7 @@ object Global
   }
 
   override def doFilter(a: EssentialAction): EssentialAction = {
-    Filters(super.doFilter(a), Seq(main.componentSetFilter): _*)
+    Filters(super.doFilter(a), Seq(main.componentSetFilter) ++ main.itemFileFilter: _*)
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
