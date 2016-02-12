@@ -53,9 +53,9 @@ class AssetUtilsTest extends Specification with Mockito {
       }
 
       "call copyObject for each key that's encoded" in new scope(Seq("a path/apple.jpg"), encode = true) {
-        assetUtils.copyDir("a path", "to")
-        there was one(s3).listObjects(bucket, "a path")
-        there was one(s3).copyObject(bucket, "a path/apple.jpg", bucket, "to/apple.jpg")
+        assetUtils.copyDir(URIUtil.encodePath("a path"), "to")
+        there was one(s3).listObjects(bucket, URIUtil.encodePath("a path"))
+        there was one(s3).copyObject(bucket, URIUtil.encodePath("a path/apple.jpg"), bucket, "to/apple.jpg")
       }
 
       "return true and does nothing for a key that wasn't found" in new scope() {
