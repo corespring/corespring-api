@@ -26,6 +26,8 @@ import play.api.test.FakeRequest
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
 
+import scala.concurrent.duration._
+
 class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
   val mockOrgAndOptsForSpecs = mockOrgAndOpts(AuthMode.AccessToken)

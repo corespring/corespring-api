@@ -2,6 +2,7 @@ package org.corespring.v2.sessiondb.webservice
 
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.sessions.SessionServiceClient
+import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -131,6 +132,37 @@ class RemoteSessionServiceTest extends Specification with Mockito {
 
       "return None" in new SessionCreateFailure {
         remoteSessionService.create(sessionJson) must beEmpty
+      }
+
+    }
+
+  }
+
+  "orgCount" should {
+
+    val orgId = new ObjectId().toString
+    val month = new DateTime()
+    val results = {
+      val r = scala.util.Random
+      1.to(31).map(day => new DateTime().withMonthOfYear(1).withDayOfMonth(day) -> r.nextInt(100).toLong).toMap
+    }
+
+    trait OrgCountSuccess extends RemoteSessionServiceScope {
+      sessionServiceClient.sessionOrgCount(orgId, month).returns(Future.successful(Success(results)))
+    }
+
+    "return count from client" in new OrgCountSuccess {
+      remoteSessionService.orgCount(new ObjectId(orgId), month) must be equalTo(Some(results))
+    }
+
+    "client returns an Error" should {
+
+      trait OrgCountFailure extends RemoteSessionServiceScope {
+        sessionServiceClient.sessionOrgCount(orgId, month).returns(Future.successful(Failure(new Error(errorMessage))))
+      }
+
+      "return None" in new OrgCountFailure {
+        remoteSessionService.orgCount(new ObjectId(orgId), month) must beEmpty
       }
 
     }

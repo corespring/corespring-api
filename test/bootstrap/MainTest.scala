@@ -3,8 +3,9 @@ package bootstrap
 import java.io.InputStream
 
 import com.mongodb.casbah.{ MongoConnection, MongoURI }
-import filters.CacheFilter
+import filters.{ItemFileFilter, CacheFilter}
 import org.bson.types.ObjectId
+import org.corespring.v2.player.cdn.{CdnResolver, SignedUrlCdnResolver}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -47,62 +48,81 @@ class MainTest extends Specification with Mockito {
 
   val config = mkConfig("//blah.com", false)
 
+  def instantiateMain(config: Map[String, Any]) = {
+    new Main(db,
+      Configuration.from(config),
+      Mode.Test,
+      this.getClass.getClassLoader,
+      resourceAsStream _)
+  }
+
   "Main" should {
     "use new CacheFilter" in {
-      val main = new Main(db,
-        Configuration.from(config),
-        Mode.Test,
-        this.getClass.getClassLoader,
-        resourceAsStream _)
+      val main = instantiateMain(config)
       main.componentSetFilter must haveInterface[CacheFilter]
     }
+  }
+
+  "ItemFileFilter" should {
+
+    trait scope extends Scope {
+      def mkItemFileFilterConfig(enabled: Boolean, domain: String, signUrls: Boolean = false) = {
+        val mainConfig = mkConfig("//blah", false)
+        val iffConfig = Map(
+          "item-file-filter.enabled" -> enabled,
+          "item-file-filter.domain" -> domain,
+          "item-file-filter.sign-urls" -> signUrls,
+          "item-file-filter.key-pair-id" -> "APKAI3FT54PDZMY3U24A",
+          "item-file-filter.private-key" -> "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA2ivBexp6pxfWupSR06rdwJHkXpd48hqw8XSzV/AWtkel6bnw\nBl1ltE5YrOoyOA0VjFw6jNj+0XmSgt1cUjBbQ8vM5dzTDUHeePQQtsNVmF7WErQT\n9d2LHoAX42HgwKbmXjXnYiTyMqO87q2jyhvt7q9wzk6gSI0gtvnm0iYf0DXYK57G\nScmoGnxDnDKkW0HP3eJrWakAcSScapK4/Jv5cnDZ8nQIS9Z5XxaXzE3djIkO46p/\nzu4BCXFDRwqnaWn5yiNP9c4WNQLB38VBej3hgfRQYrMzTqn6M8K3PCYUj3nUb0xB\nUv0+lQ+p1b8Oe5cBySjhslloQ0tg3JEntvaJuQIDAQABAoIBADXcBXjRkaP8g5su\nIE4D6Zinq5wagtYp9rK1H60+7Sx0xaXMrE+18OyxRrzxWBJ0UHSFNEMfMtEd1SiP\nY0I7A9zZzCyW9ldYgoaToiisUk46Y1jcsezJk5WlA8CzohuNWGO7pPKaslwEBhla\nLowvlu6MyylzSah/hqsFSJFqrgHlRFAhvQ0udSrx8/6ae5uBUqoq+bkSb1hX0ive\nGm9Xko9r3+LWj83xVnGKIb0tZFofO5C/qnRgHa6KiOwNrMZa/HgRc5OTTxEMo+Bm\novfbpj0EDPtfdUDF0bKipVrAU1iw0c6Q6kgKFoLKUKnxDu9A+VN2tsIbCXakekGj\nPYjUiAECgYEA8cDDidVoKjwjGXXXXDNSJoiuCzE65SnV9A6clrtcOMyfpPLiSy8H\n1rbir8DIFw03uUypbvUyqkenBq598lRo/Rhw2CRK4XLalTcj9E2hy+Fc5lcZeXd4\nJ0gV6LmqjsMh17vXacn+S8YDq6y52GZGQB/qUDyX++2b7z8Sxl7sLQECgYEA5wc3\n4HYIwDlH80BIauM74MjcRmW50BtpY+4E4EQY2Gn3w0Rsf0Ck20oYKhHFQ75xMOF+\nvpodSECz4ye03mlD14p5JaIn+fhrJ3/w6rdBt8lYzYB6Vs0I/kCnofpAcCbxhoNX\n10BEg27IV6aktXgZinq9cvzfCOh962MVTA+WBLkCgYAgSrFTze+2BIZjtjvoEurc\nPtGQqSjGx4nOqcz8zVYKODry24aiqEuRwKgS9dtESP2ygKz5J0N3P07uM4ybO+8y\nL3uTQ3XFG4Ra/hyNW3lLNHUmR2gds3mXNafHiFVh8Gqq2GpztQmEsZR38AB7CV5E\n3n577TwX6Ks1j+VAHhnKAQKBgQDFDmce0g8Mxs8UMRST91avmSQp98LSO09dqTwH\nfo4iqeBncgmJUT5MvZp258l2yw4JP424TgQECQxnCQtBWlA/nSFQdEvc74OWoY6A\n5ebsOJXCU4AGYcT1+XgCtU4ZW15P+eAG/g5yfR/tg3qiPtqqP58wYXhsRMKC8HTN\n981iIQKBgQC8Lf16Auex9vIrkX9dlR7RLo6uiUedjRLU2s3y2EX7no1v+pC8VW8W\n0cGqQZZMjTGAdTT1sR9r/+D24NOHKYV1lzDbit+G0MJK/ET27BdPP8v+i/wcad3M\nVM5uR8Qn7Oa3VycHrDNPL22912awnmbRmwP+AIvTkN5g9VLfqbGPOA==\n-----END RSA PRIVATE KEY-----"
+        )
+        mainConfig ++ iffConfig
+      }
+    }
+
+    "be instantiated when cdn is enabled" in new scope {
+      val main = instantiateMain(mkItemFileFilterConfig(true, "//cdn"))
+      main.itemFileFilter.get must haveInterface[ItemFileFilter]
+    }
+
+    "not be instantiated when cdn is not enabled" in new scope {
+      val main = instantiateMain(mkItemFileFilterConfig(false, "//cdn"))
+      main.itemFileFilter must_== None
+    }
+
+    "use a CdnResolver when signUrl is false" in new scope {
+      val config = mkItemFileFilterConfig(true, "//cdn", false)
+      val main = instantiateMain(config)
+      main.itemFileFilter.get.cdnResolver must haveClass[CdnResolver]
+    }
+
+    "use a SignedUrlCdnResolver when signUrl is true" in new scope {
+      val config = mkItemFileFilterConfig(true, "//cdn", true)
+      val main = instantiateMain(config)
+      main.itemFileFilter.get.cdnResolver must haveClass[SignedUrlCdnResolver]
+    }
+
   }
 
   "resolveDomain" should {
 
     "return the path directly if no cdn is configured" in {
-      val minusCdn = config - "container.cdn.domain"
-      val main = new Main(db, Configuration.from(minusCdn), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = instantiateMain(config - "container.cdn.domain")
       main.resolveDomain("hi") must_== "hi"
     }
 
     "return the path with the cdn prefixed if the cdn is configured" in {
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = instantiateMain(config)
       main.resolveDomain("hi") must_== "//blah.com/hi"
     }
   }
 
   "itemAssetResolver.resolve" should {
-    trait scope extends Scope {
-      val itemId = "123456789012345678901234:0"
-      val file = "test.jpeg"
-      def mkItemAssetResolverConfig(enabled: Boolean, signUrls: Boolean) = {
-        val mainConfig = mkConfig("//blah", false)
-        val iarConfig = Map(
-          "item-asset-resolver.enabled" -> enabled,
-          "item-asset-resolver.sign-urls" -> signUrls,
-          "item-asset-resolver.domain" -> "//blah",
-          "item-asset-resolver.key-pair-id" -> "APKAI3FT54PDZMY3U24A",
-          "item-asset-resolver.private-key" -> "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA2ivBexp6pxfWupSR06rdwJHkXpd48hqw8XSzV/AWtkel6bnw\nBl1ltE5YrOoyOA0VjFw6jNj+0XmSgt1cUjBbQ8vM5dzTDUHeePQQtsNVmF7WErQT\n9d2LHoAX42HgwKbmXjXnYiTyMqO87q2jyhvt7q9wzk6gSI0gtvnm0iYf0DXYK57G\nScmoGnxDnDKkW0HP3eJrWakAcSScapK4/Jv5cnDZ8nQIS9Z5XxaXzE3djIkO46p/\nzu4BCXFDRwqnaWn5yiNP9c4WNQLB38VBej3hgfRQYrMzTqn6M8K3PCYUj3nUb0xB\nUv0+lQ+p1b8Oe5cBySjhslloQ0tg3JEntvaJuQIDAQABAoIBADXcBXjRkaP8g5su\nIE4D6Zinq5wagtYp9rK1H60+7Sx0xaXMrE+18OyxRrzxWBJ0UHSFNEMfMtEd1SiP\nY0I7A9zZzCyW9ldYgoaToiisUk46Y1jcsezJk5WlA8CzohuNWGO7pPKaslwEBhla\nLowvlu6MyylzSah/hqsFSJFqrgHlRFAhvQ0udSrx8/6ae5uBUqoq+bkSb1hX0ive\nGm9Xko9r3+LWj83xVnGKIb0tZFofO5C/qnRgHa6KiOwNrMZa/HgRc5OTTxEMo+Bm\novfbpj0EDPtfdUDF0bKipVrAU1iw0c6Q6kgKFoLKUKnxDu9A+VN2tsIbCXakekGj\nPYjUiAECgYEA8cDDidVoKjwjGXXXXDNSJoiuCzE65SnV9A6clrtcOMyfpPLiSy8H\n1rbir8DIFw03uUypbvUyqkenBq598lRo/Rhw2CRK4XLalTcj9E2hy+Fc5lcZeXd4\nJ0gV6LmqjsMh17vXacn+S8YDq6y52GZGQB/qUDyX++2b7z8Sxl7sLQECgYEA5wc3\n4HYIwDlH80BIauM74MjcRmW50BtpY+4E4EQY2Gn3w0Rsf0Ck20oYKhHFQ75xMOF+\nvpodSECz4ye03mlD14p5JaIn+fhrJ3/w6rdBt8lYzYB6Vs0I/kCnofpAcCbxhoNX\n10BEg27IV6aktXgZinq9cvzfCOh962MVTA+WBLkCgYAgSrFTze+2BIZjtjvoEurc\nPtGQqSjGx4nOqcz8zVYKODry24aiqEuRwKgS9dtESP2ygKz5J0N3P07uM4ybO+8y\nL3uTQ3XFG4Ra/hyNW3lLNHUmR2gds3mXNafHiFVh8Gqq2GpztQmEsZR38AB7CV5E\n3n577TwX6Ks1j+VAHhnKAQKBgQDFDmce0g8Mxs8UMRST91avmSQp98LSO09dqTwH\nfo4iqeBncgmJUT5MvZp258l2yw4JP424TgQECQxnCQtBWlA/nSFQdEvc74OWoY6A\n5ebsOJXCU4AGYcT1+XgCtU4ZW15P+eAG/g5yfR/tg3qiPtqqP58wYXhsRMKC8HTN\n981iIQKBgQC8Lf16Auex9vIrkX9dlR7RLo6uiUedjRLU2s3y2EX7no1v+pC8VW8W\n0cGqQZZMjTGAdTT1sR9r/+D24NOHKYV1lzDbit+G0MJK/ET27BdPP8v+i/wcad3M\nVM5uR8Qn7Oa3VycHrDNPL22912awnmbRmwP+AIvTkN5g9VLfqbGPOA==\n-----END RSA PRIVATE KEY-----")
-        mainConfig ++ iarConfig
-      }
-    }
-    "return the file when enabled is false" in new scope {
-      val config = mkItemAssetResolverConfig(false, true)
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
-      main.itemAssetResolver.resolve(itemId)(file) === "test.jpeg"
+
+    "return the file (because it is disabled)" in {
+      val main = instantiateMain(config)
+      main.itemAssetResolver.resolve("123")("test.jpeg") === "test.jpeg"
     }
 
-    "return the unsigned url when signUrl is false" in new scope {
-      val config = mkItemAssetResolverConfig(true, false)
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
-      main.itemAssetResolver.resolve(itemId)(file) === "//blah/123456789012345678901234/0/data/test.jpeg"
-    }
 
-    "return the signed url when signUrl is true" in new scope {
-      val config = mkItemAssetResolverConfig(true, true)
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
-      main.itemAssetResolver.resolve(itemId)(file) must startingWith("https://blah/123456789012345678901234/0/data/test.jpeg?Expires=")
-    }
   }
 }

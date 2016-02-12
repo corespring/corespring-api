@@ -1,4 +1,4 @@
-![corespring](public/images/logo.png)
+![corespring](public/images/logo2015.png)
 
 This project contains the api rest layer and web ui for administering corespring items.
 
@@ -77,6 +77,20 @@ Add a logger to `it-resources/application-logger.xml` - it's ignored by git so d
 ### Regression Testing
 
 see: [corespring-container-regression-tests](https://github.com/corespring/corespring-container-regression-tests)
+
+### Test code coverage
+
+[sbt-scoverage](http://github.com/scoverage/sbt-scoverage) is part of the build. This can be useful to give you an idea of what our coverage is like.
+
+Usage:
+
+```bash
+    $ play clean coverage test #or it:test
+    $ play scoverageReport 
+```
+
+Reports will be generated in the modules' target directories.
+
 
 ### Application configuration
 
