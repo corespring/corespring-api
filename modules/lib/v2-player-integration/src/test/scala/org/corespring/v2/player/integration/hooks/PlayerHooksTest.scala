@@ -12,6 +12,7 @@ import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSetting
 import org.corespring.v2.errors.Errors.cantLoadSession
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec
+import org.corespring.v2.player.cdn.ItemAssetResolver
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
@@ -50,16 +51,20 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
 
     val playerAssets = mock[PlayerAssets]
 
+    val itemAssetResolver = mock[ItemAssetResolver]
+
     def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
 
     val hooks = new PlayerHooks(
+      getOrgAndOptions,
+      itemAssetResolver,
       itemService,
       itemTransformer,
-      sessionAuth,
       jsonFormatting,
       playerAssets,
-      getOrgAndOptions,
-      containerExecutionContext)
+      sessionAuth,
+      containerExecutionContext
+    )
 
   }
 

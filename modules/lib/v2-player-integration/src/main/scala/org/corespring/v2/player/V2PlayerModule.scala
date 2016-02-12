@@ -20,6 +20,7 @@ import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.assets.{ PlayerAssetHelper, CatalogAssetHelper }
+import org.corespring.v2.player.cdn.ItemAssetResolver
 import org.corespring.v2.player.hooks._
 import org.corespring.container.client
 import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService }
@@ -43,53 +44,40 @@ trait V2PlayerModule extends DefaultIntegration {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  def playMode: Mode
-
-  def playerJsonToItem: PlayerJsonToItem
-
+  def bucket: Bucket
+  def componentLoader: ComponentLoader
+  def componentSetExecutionContext: ComponentSetExecutionContext
+  def containerConfig: ContainerConfig
+  def contentCollectionService: ContentCollectionService
+  def draftSupportingMaterialsService: DraftSupportingMaterialsService
+  def getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
+  def itemAssetResolver: ItemAssetResolver
+  def itemAuth: ItemAuth[OrgAndOpts]
+  def itemDrafts: ItemDrafts
   def itemService: ItemService
+  def itemSupportingMaterialsService: ItemSupportingMaterialsService
+  def itemTransformer: ItemTransformer
+  def jsonFormatting: JsonFormatting
   def metadataService: MetadataService
   def metadataSetService: MetadataSetService
-  def orgService: OrganizationService
   def orgCollectionService: OrgCollectionService
-  def subjectService: SubjectService
-  def standardService: StandardService
-  def contentCollectionService: ContentCollectionService
-  def userService: UserService
+  def orgService: OrganizationService
+  def playerJsonToItem: PlayerJsonToItem
+  def playMode: Mode
   def s3Service: S3Service
-  def itemDrafts: ItemDrafts
-
-  def itemAuth: ItemAuth[OrgAndOpts]
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
-
-  def itemTransformer: ItemTransformer
-  def getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
-
-  def standardTree: StandardsTree
-  def jsonFormatting: JsonFormatting
-
-  def bucket: Bucket
-
-  def sessionServices: SessionServices
-
-  def v2PlayerExecutionContext: V2PlayerExecutionContext
-
-  def componentSetExecutionContext: ComponentSetExecutionContext
-
   def sessionExecutionContext: SessionExecutionContext
-
-  def containerConfig: ContainerConfig
+  def sessionServices: SessionServices
+  def standardService: StandardService
+  def standardTree: StandardsTree
+  def subjectService: SubjectService
+  def userService: UserService
+  def v2PlayerExecutionContext: V2PlayerExecutionContext
 
   lazy val catalogAssets: CatalogAssets = wire[CatalogAssetHelper]
   lazy val playerAssets: PlayerAssets = wire[PlayerAssetHelper]
 
-  def componentLoader: ComponentLoader
-
   override def components: Seq[Component] = componentLoader.all
-
-  def itemSupportingMaterialsService: ItemSupportingMaterialsService
-
-  def draftSupportingMaterialsService: DraftSupportingMaterialsService
 
   override lazy val itemDraftSupportingMaterialHooks: client.hooks.ItemDraftSupportingMaterialHooks = {
     wire[ItemDraftSupportingMaterialHooks]
@@ -99,29 +87,18 @@ trait V2PlayerModule extends DefaultIntegration {
     wire[ItemSupportingMaterialHooks]
   }
 
-  override lazy val versionInfo: JsObject = VersionInfo(containerConfig.config)
-
-  override lazy val draftEditorHooks: client.hooks.DraftEditorHooks = wire[DraftEditorHooks]
-
-  override lazy val itemEditorHooks: client.hooks.ItemEditorHooks = wire[ItemEditorHooks]
-
-  override lazy val playerHooks: client.hooks.PlayerHooks = wire[PlayerHooks]
   override lazy val catalogHooks: client.hooks.CatalogHooks = wire[CatalogHooks]
-
   override lazy val collectionHooks: client.hooks.CollectionHooks = wire[CollectionHooks]
-
-  override lazy val playerLauncherHooks: client.hooks.PlayerLauncherHooks = wire[PlayerLauncherHooks]
-
-  override lazy val itemDraftHooks: client.hooks.DraftHooks with client.hooks.CoreItemHooks = wire[ItemDraftHooks]
-
-  override lazy val itemHooks: client.hooks.ItemHooks = wire[ItemHooks]
-
-  override lazy val sessionHooks: client.hooks.SessionHooks = wire[SessionHooks]
-
-  override lazy val dataQueryHooks: client.hooks.DataQueryHooks = wire[DataQueryHooks]
-
-  override lazy val itemMetadataHooks: client.hooks.ItemMetadataHooks = wire[ItemMetadataHooks]
-
   override lazy val componentSets: client.controllers.ComponentSets = wire[CompressedComponentSets]
+  override lazy val dataQueryHooks: client.hooks.DataQueryHooks = wire[DataQueryHooks]
+  override lazy val draftEditorHooks: client.hooks.DraftEditorHooks = wire[DraftEditorHooks]
+  override lazy val itemDraftHooks: client.hooks.DraftHooks with client.hooks.CoreItemHooks = wire[ItemDraftHooks]
+  override lazy val itemEditorHooks: client.hooks.ItemEditorHooks = wire[ItemEditorHooks]
+  override lazy val itemHooks: client.hooks.ItemHooks = wire[ItemHooks]
+  override lazy val itemMetadataHooks: client.hooks.ItemMetadataHooks = wire[ItemMetadataHooks]
+  override lazy val playerHooks: client.hooks.PlayerHooks = wire[PlayerHooks]
+  override lazy val playerLauncherHooks: client.hooks.PlayerLauncherHooks = wire[PlayerLauncherHooks]
+  override lazy val sessionHooks: client.hooks.SessionHooks = wire[SessionHooks]
+  override lazy val versionInfo: JsObject = VersionInfo(containerConfig.config)
 
 }
