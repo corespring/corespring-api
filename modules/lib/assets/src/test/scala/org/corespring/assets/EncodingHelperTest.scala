@@ -52,9 +52,17 @@ class EncodingHelperTest extends Specification {
         helper.decodeCompletely(encoded) must_== s
       }
     }
-    //Note: + is treated as a space on decode.
-    assertDecodeCompletely(rfc3986Reserved.replace("+", " "))
-    assertDecodeCompletely(rfc3986Reserved.replace("+", " "), 10)
-    assertDecodeCompletely("hi how are you $/there !/test")
+
+    "decode retains +" in {
+      helper.decodeCompletely("+") must_== "+"
+    }
+
+    "decode retains ++" in {
+      helper.decodeCompletely("++") must_== "++"
+    }
+
+    assertDecodeCompletely(rfc3986Reserved)
+    assertDecodeCompletely(rfc3986Reserved, 10)
+    assertDecodeCompletely("hi+how are you $/there !/test")
   }
 }
