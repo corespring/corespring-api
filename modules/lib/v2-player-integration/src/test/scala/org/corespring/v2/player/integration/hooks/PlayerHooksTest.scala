@@ -4,21 +4,20 @@ import java.util.concurrent.TimeUnit
 
 import org.bson.types.ObjectId
 import org.corespring.conversion.qti.transformers.ItemTransformer
-import org.corespring.models.item.{ Item, PlayerDefinition }
+import org.corespring.models.item.{Item, PlayerDefinition}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.SessionAuth
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{AuthMode, OrgAndOpts, PlayerAccessSettings}
 import org.corespring.v2.errors.Errors.cantLoadSession
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.V2PlayerIntegrationSpec
-import org.corespring.v2.player.cdn.ItemAssetResolver
+import org.corespring.v2.player.{PlayerItemProcessor, V2PlayerIntegrationSpec}
 import org.specs2.specification.Scope
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import play.api.test.FakeRequest
 
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{Failure, Success, Validation}
 
 class PlayerHooksTest extends V2PlayerIntegrationSpec {
 
@@ -51,17 +50,19 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
 
     val playerAssets = mock[PlayerAssets]
 
-    val itemAssetResolver = mock[ItemAssetResolver]
+    val playerItemProcessor = {
+      val m = mock[PlayerItemProcessor]
+      m.makePlayerDefinitionJson(any[JsValue], any[Option[PlayerDefinition]]) returns Json.obj("xhtml" -> "hi")
+    }
 
     def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
 
     val hooks = new PlayerHooks(
       getOrgAndOptions,
-      itemAssetResolver,
       itemService,
       itemTransformer,
-      jsonFormatting,
       playerAssets,
+      playerItemProcessor,
       sessionAuth,
       containerExecutionContext
     )

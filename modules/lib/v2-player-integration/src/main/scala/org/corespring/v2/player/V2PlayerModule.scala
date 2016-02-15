@@ -76,6 +76,7 @@ trait V2PlayerModule extends DefaultIntegration {
 
   lazy val catalogAssets: CatalogAssets = wire[CatalogAssetHelper]
   lazy val playerAssets: PlayerAssets = wire[PlayerAssetHelper]
+  lazy val playerItemProcessor: PlayerItemProcessor = wire[CdnPlayerItemProcessor]
 
   override def components: Seq[Component] = componentLoader.all
 
