@@ -27,7 +27,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
 
   "apply" should {
 
-    class scope[A](val apiClientId: Option[ObjectId] = Some(ObjectId.get),
+    class scope[A](val apiClientId: ObjectId = ObjectId.get,
       val org: Validation[PlatformServiceError, Organization] = Failure(testError))
       extends Scope {
 
@@ -79,11 +79,6 @@ class TokenOrgIdentityTest extends Specification with Mockito {
       identifier.apply(FakeRequest("", "?access_token=blah")).map(_.org) must_== Success(mockOrg)
     }
 
-    "call UpdateAccessTokenService.update if token.apiClient is empty" in new scope[AnyContentAsEmpty.type](
-      org = Success(mockOrg), apiClientId = None) {
-      identifier.apply(FakeRequest("", "?access_token=blah"))
-      there was one(updateAccessTokenService).update(any[AccessToken])
-    }
   }
 
 }

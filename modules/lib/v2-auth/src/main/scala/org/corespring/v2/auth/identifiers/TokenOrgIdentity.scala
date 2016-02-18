@@ -24,7 +24,7 @@ case class TokenIdentityInput(input: AccessToken) extends Input[AccessToken] {
 
   override def authMode: AuthMode = AuthMode.AccessToken
 
-  override def apiClientId: Option[ObjectId] = input.apiClientId
+  override def apiClientId: Option[ObjectId] = Some(input.apiClientId)
 }
 
 class TokenOrgIdentity(
@@ -41,35 +41,12 @@ class TokenOrgIdentity(
   override def toInput(rh: RequestHeader): Validation[V2Error, Input[AccessToken]] = {
     def onToken(token: String) = for {
       t <- tokenService.findByTokenId(token).toSuccess(generalError(s"can't find token with id: $token"))
-      withApiClientId <- Success(tokenWithApiClientId(t))
+      withApiClientId <- Success(t)
     } yield TokenIdentityInput(withApiClientId)
 
     def onError(e: String) = Failure(if (e == "Invalid token") invalidToken(rh) else noToken(rh))
     logger.trace(s"getToken from request")
     getToken[String](rh, "Invalid token", "No token").fold(onError, onToken)
-  }
-
-  /**
-   * AC-258
-   * We are temporarily ensuring that all accessTokens have an associated apiClientId.
-   * All new tokens have it, so this will only affect unexpired tokens what were created before this release.
-   * @param t
-   * @return
-   */
-  private def tokenWithApiClientId(t: AccessToken): AccessToken = t.apiClientId match {
-    case Some(_) => t
-    case None => {
-      logger.warn(s"Token: ${t.tokenId} has no apiClientId - adding one...")
-      apiClientService.getOrCreateForOrg(t.organization).toOption.map { c =>
-        val update = t.copy(apiClientId = Some(c.clientId))
-        logger.info(s"Token: ${t.tokenId} has no apiClientId - adding one apiClient: ${c.clientId}")
-        updateAccessTokenService.update(update)
-        update
-      }.getOrElse {
-        logger.error(s"Failed to get or create apiClient for org: ${t.organization}")
-        t
-      }
-    }
   }
 
   override def toOrgAndUser(i: Input[AccessToken]): Validation[V2Error, (Organization, Option[User])] = {
@@ -81,7 +58,7 @@ class TokenOrgIdentity(
 
   def headerToOrgAndApiClient(rh: RequestHeader): Validation[V2Error, (Organization, ApiClient)] = for {
     accessToken <- toInput(rh).map(_.input)
-    apiClientId <- accessToken.apiClientId.toSuccess(generalError(s"token: ${accessToken.tokenId} has no apiClientId"))
+    apiClientId <- Success(accessToken.apiClientId)
     apiClient <- apiClientService.findByClientId(apiClientId.toString).toSuccess(cantFindApiClientWithId(apiClientId.toString))
     org <- orgService.findOneById(accessToken.organization).toSuccess(cantFindOrgWithId(accessToken.organization))
   } yield org -> apiClient

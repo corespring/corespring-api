@@ -70,7 +70,7 @@ class AccessTokenService(
 
   private def mkToken(apiClient: ApiClient) = {
     val creationTime = DateTime.now()
-    AccessToken(Some(apiClient.clientId), apiClient.orgId, None, ObjectId.get.toString, creationTime, creationTime.plusHours(config.tokenDurationInHours))
+    AccessToken(apiClient.clientId, apiClient.orgId, None, ObjectId.get.toString, creationTime, creationTime.plusHours(config.tokenDurationInHours))
   }
 
   override def createToken(apiClient: ApiClient): Validation[PlatformServiceError, AccessToken] =
