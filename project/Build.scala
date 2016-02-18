@@ -50,7 +50,7 @@ object Build extends sbt.Build {
   lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
     .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
-  lazy val futureValidation = builders.lib("future-validation", "core")
+  lazy val futureValidation = builders.lib("future-validation", "core", publish = true)
     .settings(libraryDependencies ++= Seq(scalaz, specs2 % "test"))
 
   lazy val coreServices = builders.lib("services", "core", publish = true)
@@ -287,6 +287,9 @@ object Build extends sbt.Build {
       coreModels,
       coreServices,
       coreServicesSalat,
+      coreSalatConfig,
+      coreUtils,
+      futureValidation,
       coreWeb,
       coreJson,
       apiUtils,
