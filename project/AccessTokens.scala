@@ -8,7 +8,7 @@ import com.mongodb.casbah.Imports._
 
 object AccessTokens {
 
-  val cleanup = TaskKey[Unit]("cleanup-expired-access-tokens")
+  val cleanup = TaskKey[Unit]("cleanup-expired-access-tokens", "remove expired access tokens")
   val cleanupTask = cleanup <<= (streams) map safeCleanupExpiredAccessTokens
 
   private def safeCleanupExpiredAccessTokens(s: TaskStreams): Unit = {
@@ -30,7 +30,10 @@ object AccessTokens {
     connect(mongoUri).map { db =>
       val query = MongoDBObject(
         "expirationDate" -> MongoDBObject(
-          "$lt" -> DateTime.now().toDate
+          //minus one day so we don't run into problems
+          //when the clocks of the corespring server and
+          //the executing machine are different
+          "$lt" -> DateTime.now().minusDays(1).toDate
         ),
         "neverExpire" -> false
       )
