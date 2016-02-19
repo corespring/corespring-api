@@ -12,17 +12,16 @@ object AccessTokens {
   val cleanupTask = cleanup <<= (streams) map safeCleanupExpiredAccessTokens
 
   private def safeCleanupExpiredAccessTokens(s: TaskStreams): Unit = {
-    val logId = "[safeCleanupExpiredAccessTokens]"
     lazy val isRemoteCleanupAllowed = System.getProperty("allow.remote.cleanup", "false") == "true"
     val mongoUri = Utils.getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost:27017/api")
     if (isRemoteCleanupAllowed || mongoUri.contains("localhost") || mongoUri.contains("127.0.0.1")) {
       doClean(mongoUri).map { res =>
         val (countBefore, countAfter) = res.get
-        info(s"$logId - Cleaning accessTokens in $mongoUri complete. Count before/after: $countBefore/$countAfter.")
+        console.info(s"Cleaning accessTokens in $mongoUri complete. Count before/after: $countBefore/$countAfter.")
       }
     } else {
-      error(
-        s"$logId - Not allowed to cleanup a remote db. Add -Dallow.remote.cleanup=true to override.")
+      console.error(
+        s"Not allowed to cleanup a remote db. Add -Dallow.remote.cleanup=true to override.")
     }
   }
 
@@ -54,17 +53,24 @@ object AccessTokens {
       }
     } catch {
       case e: Throwable => {
-        error("Error: " + e.getMessage)
+        console.error("Error: " + e.getMessage)
         None
       }
     }
   }
 
-  private def info(s:String){
-    println(s"INFO [safeCleanupExpiredAccessTokens] - $s")
-  }
+  private object console {
 
-  private def error(s:String){
-    println(s"ERROR [safeCleanupExpiredAccessTokens] - $s")
+    def info(s: String) {
+      log("INFO", s)
+    }
+
+    def error(s: String) {
+      log("ERROR", s)
+    }
+
+    private def log(level: String, s: String) = {
+      println(s"$level [safeCleanupExpiredAccessTokens] - $s")
+    }
   }
 }
