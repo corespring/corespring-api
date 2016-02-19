@@ -262,6 +262,7 @@ object Build extends sbt.Build {
     .settings(CustomRelease.settings: _*)
     .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
+    .settings(AccessTokens.cleanupTask)
     .dependsOn(
       apiUtils,
       coreModels,
