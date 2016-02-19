@@ -216,7 +216,7 @@ ENV_IAR_SIGN_URLS - set it to true or false to activate/deactivate signing of ur
 ENV_IAR_CDN_DOMAIN - set it to the the cloudfront domain with two leading slashes - no default    
 ENV_IAR_KEY_PAIR_ID - set it to the name of the key pair that you created in step 1 - no default    
 ENV_IAR_PRIVATE_KEY - set it to the content of the private key file - no default   
-ENV_IAR_URL_VALID_IN_HOURS - set it to the number of hours a url should remain valid - default is 24    
+ENV_IAR_URL_EXPIRES_AFTER_MINUTES - set it to the number of minutes a url should remain valid - default is 5    
 ENV_IAR_ADD_VERSION_AS_QUERY_PARAM - set it to true to add the app version to the url - default is true
 ENV_IAR_HTTP_PROTOCOL_FOR_SIGNED_URLS - the signed url will get this protocol - default is https: 
 
@@ -331,3 +331,13 @@ If your updates are slow due to snapshot updates, you may set the following in y
 
 This will disable snapshots updating themselves.
 
+## AccessToken database
+
+To remove expired tokens from the db run:
+
+    play cleanup-expired-access-tokens
+
+To target a specific database set ENV_MONGO_URI.  
+If your db is not running locally you have to pass `-Dallow.remote.cleanup=true`  
+
+  
