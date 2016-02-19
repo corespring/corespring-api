@@ -5,7 +5,7 @@ import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.Organization
 import org.corespring.models.auth.{ ApiClient, AccessToken }
 import org.corespring.services.OrganizationService
-import org.corespring.services.auth.{ AccessTokenService, ApiClientService, UpdateAccessTokenService }
+import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.corespring.v2.errors.Errors.{ noToken, _ }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -39,11 +39,6 @@ class TokenOrgIdentityTest extends Specification with Mockito {
         m
       }
 
-      lazy val updateAccessTokenService: UpdateAccessTokenService = {
-        val m = mock[UpdateAccessTokenService]
-        m
-      }
-
       lazy val orgService: OrganizationService = {
         val m = mock[OrganizationService]
         m.findOneById(any[ObjectId]) returns org.toOption
@@ -60,7 +55,6 @@ class TokenOrgIdentityTest extends Specification with Mockito {
 
       val identifier = new TokenOrgIdentity(
         tokenService,
-        updateAccessTokenService,
         orgService,
         apiClientService)
     }

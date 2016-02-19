@@ -23,13 +23,7 @@ class AccessTokenService(
   orgService: interface.OrganizationService,
   config: AccessTokenConfig)
   extends interface.auth.AccessTokenService
-  with interface.auth.UpdateAccessTokenService
   with HasDao[AccessToken, ObjectId] {
-
-  override def update(token: AccessToken): Unit = {
-    logger.trace(s"function=update, token=$token")
-    dao.update(MongoDBObject("tokenId" -> token.tokenId), token, false, false, WriteConcern.Safe)
-  }
 
   private val logger = Logger[AccessTokenService]()
 

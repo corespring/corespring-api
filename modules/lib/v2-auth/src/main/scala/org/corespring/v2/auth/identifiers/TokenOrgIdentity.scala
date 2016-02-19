@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.auth.{ AccessToken, ApiClient }
 import org.corespring.models.{ Organization, User }
 import org.corespring.services.OrganizationService
-import org.corespring.services.auth.{ AccessTokenService, ApiClientService, UpdateAccessTokenService }
+import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
@@ -29,7 +29,6 @@ case class TokenIdentityInput(input: AccessToken) extends Input[AccessToken] {
 
 class TokenOrgIdentity(
   tokenService: AccessTokenService,
-  updateAccessTokenService: UpdateAccessTokenService,
   val orgService: OrganizationService,
   apiClientService: ApiClientService)
   extends OrgAndOptsIdentity[AccessToken]

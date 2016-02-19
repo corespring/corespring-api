@@ -41,7 +41,6 @@ import org.corespring.platform.core.LegacyModule
 import org.corespring.platform.core.services.item.SupportingMaterialsAssets
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.auth.UpdateAccessTokenService
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api._
@@ -276,9 +275,6 @@ class Main(
   private lazy val playerTokenConfig: PlayerTokenConfig = {
     PlayerTokenConfig(mode == Mode.Dev || mode == Mode.Test)
   }
-
-  /** AC-258 - until we've removed all the old accessTokens that are missing the apiClientId we need this */
-  lazy val updateAccessTokenService: UpdateAccessTokenService = tokenService.asInstanceOf[UpdateAccessTokenService]
 
   private lazy val requestIdentifiers: RequestIdentifiers = wire[RequestIdentifiers]
 
