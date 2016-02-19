@@ -40,8 +40,7 @@ class TokenOrgIdentity(
   override def toInput(rh: RequestHeader): Validation[V2Error, Input[AccessToken]] = {
     def onToken(token: String) = for {
       t <- tokenService.findByTokenId(token).toSuccess(generalError(s"can't find token with id: $token"))
-      withApiClientId <- Success(t)
-    } yield TokenIdentityInput(withApiClientId)
+    } yield TokenIdentityInput(t)
 
     def onError(e: String) = Failure(if (e == "Invalid token") invalidToken(rh) else noToken(rh))
     logger.trace(s"getToken from request")
@@ -49,7 +48,6 @@ class TokenOrgIdentity(
   }
 
   override def toOrgAndUser(i: Input[AccessToken]): Validation[V2Error, (Organization, Option[User])] = {
-    println(s"? $i")
     orgService.findOneById(i.input.organization).toSuccess(cantFindOrgWithId(i.input.organization)).map { o =>
       o -> None
     }
@@ -57,8 +55,7 @@ class TokenOrgIdentity(
 
   def headerToOrgAndApiClient(rh: RequestHeader): Validation[V2Error, (Organization, ApiClient)] = for {
     accessToken <- toInput(rh).map(_.input)
-    apiClientId <- Success(accessToken.apiClientId)
-    apiClient <- apiClientService.findByClientId(apiClientId.toString).toSuccess(cantFindApiClientWithId(apiClientId.toString))
+    apiClient <- apiClientService.findByClientId(accessToken.apiClientId.toString).toSuccess(cantFindApiClientWithId(accessToken.apiClientId.toString))
     org <- orgService.findOneById(accessToken.organization).toSuccess(cantFindOrgWithId(accessToken.organization))
   } yield org -> apiClient
 }
