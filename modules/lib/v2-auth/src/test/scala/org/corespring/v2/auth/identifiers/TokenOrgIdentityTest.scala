@@ -5,7 +5,7 @@ import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.Organization
 import org.corespring.models.auth.{ ApiClient, AccessToken }
 import org.corespring.services.OrganizationService
-import org.corespring.services.auth.{ AccessTokenService, ApiClientService, UpdateAccessTokenService }
+import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.corespring.v2.errors.Errors.{ noToken, _ }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -27,7 +27,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
 
   "apply" should {
 
-    class scope[A](val apiClientId: Option[ObjectId] = Some(ObjectId.get),
+    class scope[A](val apiClientId: ObjectId = ObjectId.get,
       val org: Validation[PlatformServiceError, Organization] = Failure(testError))
       extends Scope {
 
@@ -36,11 +36,6 @@ class TokenOrgIdentityTest extends Specification with Mockito {
       lazy val tokenService: AccessTokenService = {
         val m = mock[AccessTokenService]
         m.findByTokenId(any[String]) returns Some(accessToken)
-        m
-      }
-
-      lazy val updateAccessTokenService: UpdateAccessTokenService = {
-        val m = mock[UpdateAccessTokenService]
         m
       }
 
@@ -60,7 +55,6 @@ class TokenOrgIdentityTest extends Specification with Mockito {
 
       val identifier = new TokenOrgIdentity(
         tokenService,
-        updateAccessTokenService,
         orgService,
         apiClientService)
     }
@@ -79,11 +73,6 @@ class TokenOrgIdentityTest extends Specification with Mockito {
       identifier.apply(FakeRequest("", "?access_token=blah")).map(_.org) must_== Success(mockOrg)
     }
 
-    "call UpdateAccessTokenService.update if token.apiClient is empty" in new scope[AnyContentAsEmpty.type](
-      org = Success(mockOrg), apiClientId = None) {
-      identifier.apply(FakeRequest("", "?access_token=blah"))
-      there was one(updateAccessTokenService).update(any[AccessToken])
-    }
   }
 
 }
