@@ -1,15 +1,16 @@
 package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
-import org.corespring.container.client.hooks.{PlayerHooks => ContainerPlayerHooks}
+import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
-import org.corespring.models.item.{Item, PlayerDefinition}
+import org.corespring.models.appConfig.ArchiveConfig
+import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{LoadOrgAndOptions, SessionAuth}
-import org.corespring.v2.errors.Errors.{cantParseItemId, generalError}
+import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
+import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.PlayerItemProcessor
 import play.api.Logger
@@ -29,6 +30,7 @@ trait PlayerAssets {
 }
 
 class PlayerHooks(
+  archiveConfig: ArchiveConfig,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
   itemService: ItemService,
   itemTransformer: ItemTransformer,
@@ -95,5 +97,6 @@ class PlayerHooks(
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = playerAssets.loadFile(id, path)(request)
 
+  override def archiveCollectionId: String = archiveConfig.contentCollectionId.toString()
 }
 

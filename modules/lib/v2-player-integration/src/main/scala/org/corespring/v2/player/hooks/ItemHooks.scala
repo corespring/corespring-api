@@ -5,6 +5,7 @@ import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
 import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
+import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
@@ -62,27 +63,38 @@ class ItemHooks(
     } yield Json.obj("id" -> vid.toString)
   }
 
-  override def createItem(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
+  override def createSingleComponentItem(collectionId: Option[String], componentType: String, key: String, defaultData: JsObject)(implicit h: RequestHeader): R[String] = {
+    _createItem(h, collectionId) { (collectionId, orgAndOpts) =>
+      val xhtml = s"""<div><div $componentType="" id="$key"></div></div>"""
+      val definition = PlayerDefinition(xhtml = xhtml, components = Json.obj(key -> defaultData))
+      val item = ModelItem(
+        collectionId = collectionId,
+        playerDefinition = Some(definition))
+      auth.insert(item)(orgAndOpts)
+    }
+  }
 
-    def createItem(collectionId: String, identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
+  override def createItem(collectionId: Option[String])(implicit header: RequestHeader): R[String] = {
+    _createItem(header, collectionId) { (collectionId, orgAndOpts) =>
       val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
       val item = ModelItem(
         collectionId = collectionId,
         playerDefinition = Some(definition))
-      auth.insert(item)(identity)
+      auth.insert(item)(orgAndOpts)
     }
+  }
 
+  private def _createItem(header: RequestHeader, collectionId: Option[String])(mkItem: (String, OrgAndOpts) => Option[VersionedId[ObjectId]]): Future[Either[StatusMessage, String]] = Future {
     val accessResult: Validation[V2Error, VersionedId[ObjectId]] = for {
       identity <- getOrgAndOptions(header)
-      json <- maybeJson.toSuccess(noJson)
-      collectionId <- (json \ "collectionId").asOpt[String].toSuccess(propertyNotFoundInJson("collectionId"))
+      collectionId <- collectionId.toSuccess(generalError("no collectionId defined"))
       canWrite <- auth.canCreateInCollection(collectionId)(identity)
       hasAccess <- if (canWrite) {
         Success(true)
       } else {
         Failure(generalError("Write to item denied"))
       }
-      id <- createItem(collectionId, identity).toSuccess(generalError("Error creating item"))
+      id <- mkItem(collectionId, identity).toSuccess(generalError("Error creating item"))
     } yield id
 
     accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString()).toEither

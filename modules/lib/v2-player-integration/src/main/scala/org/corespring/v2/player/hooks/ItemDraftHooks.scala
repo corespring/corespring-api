@@ -112,14 +112,28 @@ class ItemDraftHooks(
     } yield CommitJson(result)
   }
 
-  override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = Future {
-    def mkItem(u: OrgAndUser) = {
-      orgCollectionService.getDefaultCollection(u.org.id).toOption.map { c =>
-        ModelItem(
-          collectionId = c.toString,
-          playerDefinition = Some(PlayerDefinition("")))
-      }
+  override def createSingleComponentItemDraft(componentType: String, key: String, defaultData: JsObject)(implicit r: RequestHeader): R[(String, String)] = {
+    val xhtml = s"""<div $componentType="" id="$key"></div>"""
+    createItemAndDraft(r) { (u: OrgAndUser) =>
+      mkItem(u, PlayerDefinition(xhtml = xhtml, components = Json.obj(key -> defaultData)))
     }
+  }
+
+  override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = {
+    createItemAndDraft(h) { (u: OrgAndUser) =>
+      mkItem(u, PlayerDefinition(""))
+    }
+  }
+
+  private def mkItem(u: OrgAndUser, playerDefinition: PlayerDefinition) = {
+    orgCollectionService.getDefaultCollection(u.org.id).toOption.map { c =>
+      ModelItem(
+        collectionId = c.toString,
+        playerDefinition = Some(playerDefinition))
+    }
+  }
+
+  private def createItemAndDraft(h: RequestHeader)(mkItem: OrgAndUser => Option[ModelItem]): R[(String, String)] = Future {
 
     def randomDraftName = scala.util.Random.alphanumeric.take(12).mkString
 
@@ -129,8 +143,6 @@ class ItemDraftHooks(
       vid <- itemService.save(item, false).leftMap(e => generalError(e.message))
       draft <- backend.create(DraftId(vid.id, randomDraftName, identity.org.id), identity).v2Error
     } yield (vid.toString, draft.id.toString)
-
     result.leftMap { e => (e.statusCode -> e.message) }.toEither
   }
-
 }

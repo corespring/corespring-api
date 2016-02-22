@@ -47,7 +47,9 @@ class PlayerLauncherHooks(
 
       }
     }
-
   }
 
+  override def componentEditorJs(implicit header: RequestHeader): Future[PlayerJs] = {
+    load(header)
+  }
 }
