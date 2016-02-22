@@ -64,7 +64,7 @@ class ItemHooks(
   }
 
   override def createSingleComponentItem(collectionId: Option[String], componentType: String, key: String, defaultData: JsObject)(implicit h: RequestHeader): R[String] = {
-    _createItem(h, collectionId) { (collectionId, orgAndOpts) =>
+    createItem(h, collectionId) { (collectionId, orgAndOpts) =>
       val xhtml = s"""<div><div $componentType="" id="$key"></div></div>"""
       val definition = PlayerDefinition(xhtml = xhtml, components = Json.obj(key -> defaultData))
       val item = ModelItem(
@@ -75,7 +75,7 @@ class ItemHooks(
   }
 
   override def createItem(collectionId: Option[String])(implicit header: RequestHeader): R[String] = {
-    _createItem(header, collectionId) { (collectionId, orgAndOpts) =>
+    createItem(header, collectionId) { (collectionId, orgAndOpts) =>
       val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
       val item = ModelItem(
         collectionId = collectionId,
@@ -84,7 +84,7 @@ class ItemHooks(
     }
   }
 
-  private def _createItem(header: RequestHeader, collectionId: Option[String])(mkItem: (String, OrgAndOpts) => Option[VersionedId[ObjectId]]): Future[Either[StatusMessage, String]] = Future {
+  private def createItem(header: RequestHeader, collectionId: Option[String])(mkItem: (String, OrgAndOpts) => Option[VersionedId[ObjectId]]): Future[Either[StatusMessage, String]] = Future {
     val accessResult: Validation[V2Error, VersionedId[ObjectId]] = for {
       identity <- getOrgAndOptions(header)
       collectionId <- collectionId.toSuccess(generalError("no collectionId defined"))

@@ -112,23 +112,23 @@ class ItemDraftHooks(
     } yield CommitJson(result)
   }
 
-  override def createSingleComponentItemDraft(componentType: String, key: String, defaultData: JsObject)(implicit r: RequestHeader): R[(String, String)] = {
+  override def createSingleComponentItemDraft(collectionId: Option[String], componentType: String, key: String, defaultData: JsObject)(implicit r: RequestHeader): R[(String, String)] = {
     val xhtml = s"""<div $componentType="" id="$key"></div>"""
     createItemAndDraft(r) { (u: OrgAndUser) =>
-      mkItem(u, PlayerDefinition(xhtml = xhtml, components = Json.obj(key -> defaultData)))
+      mkItem(collectionId, u, PlayerDefinition(xhtml = xhtml, components = Json.obj(key -> defaultData)))
     }
   }
 
-  override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = {
+  override def createItemAndDraft(collectionId: Option[String])(implicit h: RequestHeader): R[(String, String)] = {
     createItemAndDraft(h) { (u: OrgAndUser) =>
-      mkItem(u, PlayerDefinition(""))
+      mkItem(collectionId, u, PlayerDefinition(""))
     }
   }
 
-  private def mkItem(u: OrgAndUser, playerDefinition: PlayerDefinition) = {
-    orgCollectionService.getDefaultCollection(u.org.id).toOption.map { c =>
+  private def mkItem(collectionId: Option[String], u: OrgAndUser, playerDefinition: PlayerDefinition) = {
+    collectionId.orElse(orgCollectionService.getDefaultCollection(u.org.id).map(_.toString).toOption).map { c =>
       ModelItem(
-        collectionId = c.toString,
+        collectionId = c,
         playerDefinition = Some(playerDefinition))
     }
   }

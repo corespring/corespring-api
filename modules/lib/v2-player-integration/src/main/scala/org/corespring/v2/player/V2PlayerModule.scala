@@ -109,6 +109,4 @@ trait V2PlayerModule extends DefaultIntegration {
   override lazy val sessionHooks: client.hooks.SessionHooks = wire[SessionHooks]
   override lazy val versionInfo: JsObject = VersionInfo(containerConfig.config)
 
-  override def pageSourceServiceConfig: PageSourceServiceConfig = ???
-
 }
