@@ -4,11 +4,12 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
-import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
+import org.corespring.conversion.qti.transformers.{ ItemTransformer, PlayerJsonToItem }
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.models.item.{ PlayerDefinition, Item => ModelItem }
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
@@ -35,6 +36,7 @@ class ItemHooks(
   val jsonFormatting: JsonFormatting,
   val playerJsonToItem: PlayerJsonToItem,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  orgCollectionService: OrgCollectionService,
   override implicit val containerContext: ContainerExecutionContext)
   extends containerHooks.ItemHooks
   with BaseItemHooks
@@ -85,16 +87,21 @@ class ItemHooks(
   }
 
   private def createItem(header: RequestHeader, collectionId: Option[String])(mkItem: (String, OrgAndOpts) => Option[VersionedId[ObjectId]]): Future[Either[StatusMessage, String]] = Future {
+
+    def getDefaultCollectionId(orgId: ObjectId): Validation[V2Error, String] = {
+      orgCollectionService.getDefaultCollection(orgId).bimap(_ => generalError(""), _.id.toString)
+    }
+
     val accessResult: Validation[V2Error, VersionedId[ObjectId]] = for {
       identity <- getOrgAndOptions(header)
-      collectionId <- collectionId.toSuccess(generalError("no collectionId defined"))
-      canWrite <- auth.canCreateInCollection(collectionId)(identity)
+      c <- collectionId.toSuccess(generalError("no collection id defined")).orElse(getDefaultCollectionId(identity.org.id))
+      canWrite <- auth.canCreateInCollection(c)(identity)
       hasAccess <- if (canWrite) {
         Success(true)
       } else {
         Failure(generalError("Write to item denied"))
       }
-      id <- mkItem(collectionId, identity).toSuccess(generalError("Error creating item"))
+      id <- mkItem(c, identity).toSuccess(generalError("Error creating item"))
     } yield id
 
     accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString()).toEither
