@@ -22,7 +22,7 @@ import org.corespring.container.client.controllers.resources.SessionExecutionCon
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.io.ResourcePath
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.container.components.model.{ Component, ComponentInfo }
+import org.corespring.container.components.model.{ Component, ComponentInfo, Interaction }
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
@@ -369,10 +369,10 @@ class Main(
     underlying.reload
     val showNonReleasedComponents: Boolean = containerConfig.showNonReleasedComponents
     override def all: Seq[Component] = if (showNonReleasedComponents) underlying.all else underlying.all.filter { c =>
-      if (c.isInstanceOf[ComponentInfo]) {
-        c.asInstanceOf[ComponentInfo].released
+      if (c.isInstanceOf[Interaction]) {
+        c.asInstanceOf[Interaction].released
       } else {
-        false
+        true
       }
     }
 
@@ -440,5 +440,6 @@ class Main(
   override lazy val assetsLoader: AssetsLoader = new AssetsLoader(playMode, configuration, s3, buildInfo)
 
   initServiceLookup()
+  componentLoader.reload
 
 }
