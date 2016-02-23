@@ -5,11 +5,10 @@ import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, PlayerJsonToItem }
-import org.corespring.drafts.item.models.OrgAndUser
+import org.corespring.models.item.{ PlayerDefinition, Item => ModelItem }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.models.item.{ PlayerDefinition, Item => ModelItem }
-import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.services.OrgCollectionService
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }

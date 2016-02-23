@@ -113,7 +113,7 @@ class ItemDraftHooks(
   }
 
   override def createSingleComponentItemDraft(collectionId: Option[String], componentType: String, key: String, defaultData: JsObject)(implicit r: RequestHeader): R[(String, String)] = {
-    val xhtml = s"""<div $componentType="" id="$key"></div>"""
+    val xhtml = s"""<div><div $componentType="" id="$key"></div></div>"""
     createItemAndDraft(r) { (u: OrgAndUser) =>
       mkItem(collectionId, u, PlayerDefinition(xhtml = xhtml, components = Json.obj(key -> defaultData)))
     }

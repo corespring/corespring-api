@@ -1,6 +1,7 @@
 package bootstrap
 
 import java.io.InputStream
+import java.net.URL
 
 import com.mongodb.casbah.{ MongoConnection, MongoURI }
 import filters.CacheFilter
@@ -43,7 +44,7 @@ class MainTest extends Specification with Mockito {
     "container.components.path" -> "path",
     "container.cdn.add-version-as-query-param" -> queryParam)
 
-  def resourceAsStream(s: String): Option[InputStream] = None
+  def resourceAsUrl(s: String): Option[URL] = None
 
   val config = mkConfig("//blah.com", false)
 
@@ -53,7 +54,7 @@ class MainTest extends Specification with Mockito {
         Configuration.from(config),
         Mode.Test,
         this.getClass.getClassLoader,
-        resourceAsStream _)
+        resourceAsUrl _)
       main.componentSetFilter must haveInterface[CacheFilter]
     }
   }
@@ -62,12 +63,12 @@ class MainTest extends Specification with Mockito {
 
     "return the path directly if no cdn is configured" in {
       val minusCdn = config - "container.cdn.domain"
-      val main = new Main(db, Configuration.from(minusCdn), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = new Main(db, Configuration.from(minusCdn), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       main.resolveDomain("hi") must_== "hi"
     }
 
     "return the path with the cdn prefixed if the cdn is configured" in {
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       main.resolveDomain("hi") must_== "//blah.com/hi"
     }
   }
@@ -90,19 +91,19 @@ class MainTest extends Specification with Mockito {
     }
     "return the file when enabled is false" in new scope {
       val config = mkItemAssetResolverConfig(false, true)
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       main.itemAssetResolver.resolve(itemId)(file) === "test.jpeg"
     }
 
     "return the unsigned url when signUrl is false" in new scope {
       val config = mkItemAssetResolverConfig(true, false)
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       main.itemAssetResolver.resolve(itemId)(file) === "//blah/123456789012345678901234/0/data/test.jpeg"
     }
 
     "return the signed url when signUrl is true" in new scope {
       val config = mkItemAssetResolverConfig(true, true)
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsStream _)
+      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       main.itemAssetResolver.resolve(itemId)(file) must startingWith("https://blah/123456789012345678901234/0/data/test.jpeg?Expires=")
     }
   }
