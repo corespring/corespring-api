@@ -8,7 +8,7 @@ object Build extends sbt.Build {
   import ComponentsBuilder._
 
   val rootSettings = Seq(
-    scalaVersion in ThisBuild := "2.10.5",
+    scalaVersion in ThisBuild := "2.10.6",
     organization in ThisBuild := "org.corespring")
 
   lazy val builders = new Builders("corespring", rootSettings)
