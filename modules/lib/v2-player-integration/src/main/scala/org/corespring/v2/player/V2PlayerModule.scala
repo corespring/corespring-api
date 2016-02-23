@@ -71,6 +71,7 @@ trait V2PlayerModule extends DefaultIntegration {
   def orgService: OrganizationService
   def playerJsonToItem: PlayerJsonToItem
   def playMode: Mode
+
   def s3Service: S3Service
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
   def sessionExecutionContext: SessionExecutionContext

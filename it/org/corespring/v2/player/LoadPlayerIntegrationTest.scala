@@ -3,9 +3,10 @@ package org.corespring.v2.player
 import org.bson.types.ObjectId
 import org.corespring.container.client.V2PlayerConfig
 import org.corespring.container.client.component.ComponentUrls
-import org.corespring.container.client.controllers.apps.ComponentScriptInfo
+import org.corespring.container.client.controllers.apps.PageSourceService
 import org.corespring.container.client.hooks.PlayerHooks
 import org.corespring.container.client.integration.ContainerExecutionContext
+import org.corespring.container.client.pages.processing.AssetPathProcessor
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.processing.PlayerItemPreProcessor
 import org.corespring.it.IntegrationSpecification
@@ -45,6 +46,8 @@ class LoadPlayerIntegrationTest
       override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = ???
 
       override implicit def containerContext: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
+
+      override def archiveCollectionId: String = main.archiveConfig.contentCollectionId.toString
     }
 
     override def urls: ComponentUrls = mock[ComponentUrls]
@@ -62,9 +65,9 @@ class LoadPlayerIntegrationTest
 
     override def versionInfo: JsObject = Json.obj()
 
-    override protected def buildJs(scriptInfo: ComponentScriptInfo, extras: Seq[String])(implicit rh: RequestHeader): Seq[String] = Seq.empty
+    override def assetPathProcessor: AssetPathProcessor = main.assetPathProcessor
 
-    override protected def buildCss(scriptInfo: ComponentScriptInfo)(implicit rh: RequestHeader): Seq[String] = Seq.empty
+    override def pageSourceService: PageSourceService = main.pageSourceService
   }
 
   "when I load the player with orgId and options" should {
