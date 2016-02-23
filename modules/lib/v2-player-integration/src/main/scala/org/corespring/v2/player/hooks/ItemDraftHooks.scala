@@ -126,7 +126,7 @@ class ItemDraftHooks(
   }
 
   private def mkItem(collectionId: Option[String], u: OrgAndUser, playerDefinition: PlayerDefinition) = {
-    collectionId.orElse(orgCollectionService.getDefaultCollection(u.org.id).map(_.toString).toOption).map { c =>
+    collectionId.orElse(orgCollectionService.getDefaultCollection(u.org.id).map(_.id.toString).toOption).map { c =>
       ModelItem(
         collectionId = c,
         playerDefinition = Some(playerDefinition))
@@ -142,7 +142,7 @@ class ItemDraftHooks(
       item <- mkItem(identity).toSuccess(generalError("Can't make a new item"))
       vid <- itemService.save(item, false).leftMap(e => generalError(e.message))
       draft <- backend.create(DraftId(vid.id, randomDraftName, identity.org.id), identity).v2Error
-    } yield (vid.toString, draft.id.toString)
+    } yield (vid.id.toString, draft.id.name)
     result.leftMap { e => (e.statusCode -> e.message) }.toEither
   }
 }
