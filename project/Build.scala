@@ -237,7 +237,7 @@ object Build extends sbt.Build {
       shellPrompt := ShellPrompt.buildShellPrompt,
       packagedArtifacts := Map.empty,
       libraryDependencies ++= Seq(playMemcached, assetsLoader, ztZip),
-      (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
+      (javacOptions in Compile) ++= Seq("-source", "1.8", "-target", "1.8"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
       moduleConfigurations ++= Builders.moduleConfig,
