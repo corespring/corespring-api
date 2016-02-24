@@ -48,9 +48,15 @@ class ItemDraftHooksTest
       m
     }
 
+    val orgDefaultCollectionId = ObjectId.get
+
+    println(s"default: ${orgDefaultCollectionId}")
+
     val orgCollectionService = {
       val m = mock[OrgCollectionService]
-      m.getDefaultCollection(any[ObjectId]) returns Success(ContentCollection("coll", ObjectId.get))
+      m.getDefaultCollection(any[ObjectId]) returns {
+        Success(ContentCollection("coll", ownerOrgId = ObjectId.get, id = orgDefaultCollectionId))
+      }
       m
     }
 
@@ -76,7 +82,7 @@ class ItemDraftHooksTest
       override protected def update(draftId: String,
         json: JsValue,
         updateFn: (Item, JsValue) => Item)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-        updateFn(Item(collectionId = ObjectId.get.toString), json)
+        updateFn(Item(collectionId = orgDefaultCollectionId.toString), json)
         Future(Right(json))(ec)
       }
 
@@ -98,9 +104,11 @@ class ItemDraftHooksTest
   "createSingleComponentItemDraft" should {
 
     trait createSingleComponentItemDraft extends scope {
+
+      def collectionId: Option[String] = None
       lazy val captor = capture[Item]
       val result = Await.result(
-        hooks.createSingleComponentItemDraft(None, "component", "key", Json.obj("a" -> "b")),
+        hooks.createSingleComponentItemDraft(collectionId, "component", "key", Json.obj("a" -> "b")),
         1.second)
 
       there was one(itemService).save(captor, any[Boolean])
@@ -112,6 +120,15 @@ class ItemDraftHooksTest
 
     "call item service save with singleComponent json" in new createSingleComponentItemDraft {
       captor.value.playerDefinition.map(_.components) must_== Some(Json.obj("key" -> Json.obj("a" -> "b")))
+    }
+
+    "call item service save with the default collectionId" in new createSingleComponentItemDraft {
+      captor.value.collectionId must_== orgDefaultCollectionId.toString
+    }
+
+    "call item service save with the passed collectionId" in new createSingleComponentItemDraft {
+      override def collectionId = Some("id")
+      captor.value.collectionId must_== "id"
     }
 
     "returns the id and name" in new createSingleComponentItemDraft {

@@ -78,9 +78,11 @@ class ItemHooksTest extends V2PlayerIntegrationSpec with NoTimeConversions {
 
     val playerJsonToItem = new PlayerJsonToItem(jsonFormatting)
 
+    val orgDefaultCollectionId = ObjectId.get
+
     lazy val orgCollectionService = {
       val m = mock[OrgCollectionService]
-      m.getDefaultCollection(any[ObjectId]) returns Success(ContentCollection("coll", ObjectId.get))
+      m.getDefaultCollection(any[ObjectId]) returns Success(ContentCollection("coll", ownerOrgId = ObjectId.get, id = orgDefaultCollectionId))
       m
     }
 
@@ -163,9 +165,10 @@ class ItemHooksTest extends V2PlayerIntegrationSpec with NoTimeConversions {
   "createSingleComponentItem" should {
 
     trait createSingleComponentItem extends baseContext[(Int, String), String] {
+      def collectionId: Option[String] = None
       override val authResult = Success(mockItem)
       lazy val captor = capture[Item]
-      val result = Await.result(hooks.createSingleComponentItem(None, "component", "key", Json.obj("a" -> "b")), 1.second)
+      val result = Await.result(hooks.createSingleComponentItem(collectionId, "component", "key", Json.obj("a" -> "b")), 1.second)
       there was one(itemAuth).insert(captor)(any[OrgAndOpts])
     }
 
@@ -175,6 +178,15 @@ class ItemHooksTest extends V2PlayerIntegrationSpec with NoTimeConversions {
 
     "call auth.insert with singleComponent json" in new createSingleComponentItem {
       captor.value.playerDefinition.map(_.components) must_== Some(Json.obj("key" -> Json.obj("a" -> "b")))
+    }
+
+    "call item service save with the default collectionId" in new createSingleComponentItem {
+      captor.value.collectionId must_== orgDefaultCollectionId.toString
+    }
+
+    "call item service save with collectionId" in new createSingleComponentItem {
+      override def collectionId = Some("id")
+      captor.value.collectionId must_== "id"
     }
 
     "return the id" in new createSingleComponentItem {

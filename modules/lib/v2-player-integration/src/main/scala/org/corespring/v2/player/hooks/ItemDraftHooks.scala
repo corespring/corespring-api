@@ -126,7 +126,13 @@ class ItemDraftHooks(
   }
 
   private def mkItem(collectionId: Option[String], u: OrgAndUser, playerDefinition: PlayerDefinition) = {
-    collectionId.orElse(orgCollectionService.getDefaultCollection(u.org.id).map(_.id.toString).toOption).map { c =>
+
+    logger.debug(s"function=mkItem, collectionId=$collectionId")
+
+    lazy val default = orgCollectionService.getDefaultCollection(u.org.id)
+
+    collectionId.orElse(default.toOption.map(_.id.toString)).map { c =>
+      logger.debug(s"function=mkItem, c=$c")
       ModelItem(
         collectionId = c,
         playerDefinition = Some(playerDefinition))
