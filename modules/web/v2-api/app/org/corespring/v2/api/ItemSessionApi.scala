@@ -33,11 +33,15 @@ class ItemSessionApi(
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
   apiContext: ItemSessionApiExecutionContext,
   val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)],
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  val orgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
   override implicit def ec: ExecutionContext = apiContext.context
 
   private lazy val logger = Logger(classOf[ItemSessionApi])
+
+  override def getOrgAndOptionsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = r => {
+    identifyFn(r).map(_._1)
+  }
 
   /**
    * Creates a new v2 ItemSession in the database.
@@ -227,6 +231,23 @@ class ItemSessionApi(
     case _ => jsValue
   }
 
+  <<<<<<< HEAD
+    =======
+  private object Admin {
+
+    def async(fn: Request[AnyContent] => Future[SimpleResult]) = Action.async { request =>
+      orgAndOptionsFn(request) match {
+        case Success(orgAndOpts) if (orgAndOpts.org.id == rootOrgId) => fn(request)
+        case _ => {
+          println(getOrgAndOptions(request))
+          Future.successful(Unauthorized("Beep beep"))
+        }
+      }
+    }
+
+  }
+
+  >>>>>>> develop
 }
 
 object ItemSessionApi {
