@@ -1,15 +1,20 @@
 package org.corespring.v2.player
 
+import java.net.URL
+
 import org.corespring.amazon.s3.S3Service
 import org.corespring.common.config.ContainerConfig
+import org.corespring.container.client.controllers.apps.PageSourceServiceConfig
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
+import org.corespring.container.client.io.ResourcePath
+import org.corespring.container.client.pages.engine.JadeEngineConfig
 import org.corespring.container.client.{ ComponentSetExecutionContext, VersionInfo }
-import org.corespring.container.client.integration.DefaultIntegration
+import org.corespring.container.client.integration.{ ContainerExecutionContext, DefaultIntegration }
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
 import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.models.appConfig.Bucket
+import org.corespring.models.appConfig.{ ArchiveConfig, Bucket }
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services._
@@ -25,6 +30,7 @@ import org.corespring.v2.player.hooks._
 import org.corespring.container.client
 import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService }
 import org.corespring.v2.sessiondb.SessionServices
+import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.libs.json.JsObject
 import play.api.mvc.RequestHeader
@@ -44,6 +50,7 @@ trait V2PlayerModule extends DefaultIntegration {
 
   import com.softwaremill.macwire.MacwireMacros._
 
+  def archiveConfig: ArchiveConfig
   def bucket: Bucket
   def componentLoader: ComponentLoader
   def componentSetExecutionContext: ComponentSetExecutionContext
@@ -64,6 +71,7 @@ trait V2PlayerModule extends DefaultIntegration {
   def orgService: OrganizationService
   def playerJsonToItem: PlayerJsonToItem
   def playMode: Mode
+
   def s3Service: S3Service
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
   def sessionExecutionContext: SessionExecutionContext

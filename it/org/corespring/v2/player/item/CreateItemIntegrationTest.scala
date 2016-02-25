@@ -2,14 +2,14 @@ package org.corespring.v2.player.item
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ItemHelper, SecureSocialHelper}
+import org.corespring.it.helpers.{ ItemHelper, OrgCollectionHelper, SecureSocialHelper }
 import org.corespring.it.scopes.user
 import org.corespring.models.User
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
-import org.corespring.v2.errors.Errors.{orgCantAccessCollection, propertyNotFoundInJson}
-import play.api.libs.json.{JsValue, Json}
+import org.corespring.v2.errors.Errors.orgCantAccessCollection
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Cookie
 import play.api.test.FakeRequest
 
@@ -36,13 +36,18 @@ class CreateItemIntegrationTest extends IntegrationSpecification with SecureSoci
       (contentAsJson(result) \ "error").asOpt[String] === Some(orgCantAccessCollection(orgId, badCollectionId.toString, Permission.Write.name).message)
     }
 
-    "should fail for a plain request with json" in new createItem(
+    "should work for a plain request with json by using looking up the default collectionId for the org" in new createItem(
       false,
       id => Some(Json.obj()),
       u => secureSocialCookie(u)) {
-      status(result) === BAD_REQUEST
+      status(result) === OK
       logger.debug(s"content: ${contentAsString(result)}")
-      (contentAsJson(result) \ "error").asOpt[String] === Some(propertyNotFoundInJson("collectionId").message)
+      val itemId = (contentAsJson(result) \ "itemId").asOpt[String].flatMap { id =>
+        VersionedId(id)
+      }
+      val itemCollectionId = ItemHelper.get(itemId.get).get.collectionId
+      val orgDefaultCollection = OrgCollectionHelper.getDefaultCollection(user.org.orgId).get
+      itemCollectionId must_== orgDefaultCollection.id.toString
     }
 
     "should work for a auth request with json + collection id" in new createItem(false,

@@ -1,6 +1,6 @@
 package bootstrap
 
-import java.io.InputStream
+import java.net.URL
 
 import bootstrap.Actors.UpdateItem
 import com.amazonaws.auth.AWSCredentials
@@ -11,18 +11,18 @@ import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import developer.{ DeveloperConfig, DeveloperModule }
 import filters.{ BlockingFutureQueuer, CacheFilter, FutureQueuer }
-import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ EncodedKeyS3Client, ItemAssetKeys }
-import org.corespring.common.config.{ ItemAssetResolverConfig, ContainerConfig }
+import org.corespring.common.config.{ ContainerConfig, ItemAssetResolverConfig }
+import org.corespring.container.client.ComponentSetExecutionContext
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
-import org.corespring.container.client.{ ComponentSetExecutionContext }
+import org.corespring.container.client.io.ResourcePath
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.container.components.model.Component
+import org.corespring.container.components.model.{ Component, ComponentInfo, Interaction }
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
@@ -33,7 +33,7 @@ import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
-import org.corespring.models.auth.{ AccessToken, ApiClient }
+import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
@@ -45,10 +45,9 @@ import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api._
 import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
-import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
 import org.corespring.v2.auth.identifiers.{ PlayerTokenConfig, UserSessionOrgIdentity }
-import org.corespring.v2.auth.models.{ PlayerAccessSettings, AuthMode, OrgAndOpts }
-import org.corespring.v2.errors.Errors.{ generalError, invalidToken, noToken }
+import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player._
 import org.corespring.v2.player.cdn._
@@ -57,7 +56,6 @@ import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService,
 import org.corespring.v2.sessiondb._
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
-import org.corespring.web.token.TokenReader
 import org.corespring.web.user.SecureSocial
 import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
@@ -66,11 +64,11 @@ import play.api.mvc._
 import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import se.radley.plugin.salat.SalatPlugin
-import web.{ DefaultOrgs, PublicSiteConfig, WebModule }
 import web.models.{ ContainerVersion, WebExecutionContext }
+import web.{ DefaultOrgs, PublicSiteConfig, WebModule }
 
 import scala.concurrent.ExecutionContext
-import scalaz.{ Success, Validation }
+import scalaz.Validation
 
 object Main {
   def apply(app: play.api.Application): Main = {
@@ -85,7 +83,7 @@ object Main {
         }
     }
 
-    new Main(db, app.configuration, app.mode, app.classloader, app.resourceAsStream)
+    new Main(db, app.configuration, app.mode, app.classloader, app.resource)
   }
 }
 
@@ -93,9 +91,9 @@ class Main(
   val db: MongoDB,
   //TODO: rm Configuration (needed for [[HasConfig]]) and use appConfig + containerConfig instead.
   val configuration: Configuration,
-  val mode: PlayMode,
+  override val mode: PlayMode,
   classLoader: ClassLoader,
-  resourceAsStream: String => Option[InputStream])
+  resourceAsURL: String => Option[URL])
   extends SalatServices
   with DeveloperModule
   with EncryptionModule
@@ -107,8 +105,9 @@ class Main(
   with V2ApiModule
   with V2AuthModule
   with V2PlayerModule
-  with WebModule
-{
+  with WebModule {
+
+  override val loadResource: String => Option[URL] = resourceAsURL(_)
 
   import com.softwaremill.macwire.MacwireMacros._
 
@@ -126,7 +125,7 @@ class Main(
 
   override def publicSiteConfig: PublicSiteConfig = PublicSiteConfig(appConfig.publicSite)
 
-  override lazy val buildInfo = BuildInfo(resourceAsStream)
+  override lazy val buildInfo = BuildInfo(resourceLoader.loadPath)
 
   private def ecLookup(id: String) = {
     def hasEnabledAkkaConfiguration(id: String) = {
@@ -364,20 +363,26 @@ class Main(
 
   override def s3Service: S3Service = wire[ConcreteS3Service]
 
-  lazy val componentLoader: ComponentLoader = {
+  lazy val componentLoader: ComponentLoader = new ComponentLoader {
     val path = containerConfig.componentsPath
+    val underlying = new FileComponentLoader(Seq(path))
+    underlying.reload
     val showNonReleasedComponents: Boolean = containerConfig.showNonReleasedComponents
-    val out = new FileComponentLoader(Seq(path), showNonReleasedComponents)
-    out.reload
-    out
+    override def all: Seq[Component] = if (showNonReleasedComponents) underlying.all else underlying.all.filter { c =>
+      if (c.isInstanceOf[Interaction]) {
+        c.asInstanceOf[Interaction].released
+      } else {
+        true
+      }
+    }
+
+    override def reload: Unit = underlying.reload
   }
 
   override lazy val standardTree: StandardsTree = {
     val json: JsArray = {
-      resourceAsStream("public/web/standards_tree.json").map { is =>
-        val contents = IOUtils.toString(is, "UTF-8")
-        IOUtils.closeQuietly(is)
-        Json.parse(contents).as[JsArray]
+      resourceLoader.loadPath("public/web/standards_tree.json").map { s =>
+        Json.parse(s).as[JsArray]
       }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
     }
     StandardsTree(json)
@@ -423,10 +428,10 @@ class Main(
 
   override lazy val itemSchema: ItemSchema = {
     val file = "schema/item-schema.json"
-    val inputStream = resourceAsStream("schema/item-schema.json")
+    val schemaString = resourceLoader
+      .loadPath("schema/item-schema.json")
       .getOrElse(throw new IllegalArgumentException(s"File $file not found"))
-    val schema = ItemSchema(IOUtils.toString(inputStream, "UTF-8"))
-    IOUtils.closeQuietly(inputStream)
+    val schema = ItemSchema(schemaString)
     schema
   }
 
@@ -435,5 +440,6 @@ class Main(
   override lazy val assetsLoader: AssetsLoader = new AssetsLoader(playMode, configuration, s3, buildInfo)
 
   initServiceLookup()
+  componentLoader.reload
 
 }

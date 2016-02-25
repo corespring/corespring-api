@@ -4,20 +4,21 @@ import java.util.concurrent.TimeUnit
 
 import org.bson.types.ObjectId
 import org.corespring.conversion.qti.transformers.ItemTransformer
-import org.corespring.models.item.{Item, PlayerDefinition}
+import org.corespring.models.appConfig.ArchiveConfig
+import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.SessionAuth
-import org.corespring.v2.auth.models.{AuthMode, OrgAndOpts, PlayerAccessSettings}
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.cantLoadSession
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.{PlayerItemProcessor, V2PlayerIntegrationSpec}
+import org.corespring.v2.player.{ PlayerItemProcessor, V2PlayerIntegrationSpec }
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
 import play.api.test.FakeRequest
 
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class PlayerHooksTest extends V2PlayerIntegrationSpec {
 
@@ -57,15 +58,17 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
 
     def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
 
+    lazy val archiveConfig = ArchiveConfig(ObjectId.get, ObjectId.get)
+
     val hooks = new PlayerHooks(
+      archiveConfig,
       getOrgAndOptions,
       itemService,
       itemTransformer,
       playerAssets,
       playerItemProcessor,
       sessionAuth,
-      containerExecutionContext
-    )
+      containerExecutionContext)
 
   }
 
@@ -86,6 +89,12 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
     "loadSessionAndItem" should {
       "pass back the status code" in new hooksScope(loadForReadResult = Failure(cantLoadSessionError)) {
         hooks.loadSessionAndItem("sessionId")(FakeRequest("", "")) must equalTo(Left(cantLoadSessionError.statusCode -> cantLoadSessionError.message)).await
+      }
+    }
+
+    "archiveCollectionId" should {
+      "return the id" in new defaultScope {
+        hooks.archiveCollectionId must_== archiveConfig.contentCollectionId.toString
       }
     }
 
