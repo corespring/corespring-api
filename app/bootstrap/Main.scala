@@ -17,9 +17,10 @@ import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTrackin
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ EncodedKeyS3Client, ItemAssetKeys }
 import org.corespring.common.config.{ ContainerConfig, ItemAssetResolverConfig }
-import org.corespring.container.client.ComponentSetExecutionContext
+import org.corespring.container.client.VersionInfo
+import org.corespring.container.client.component.ComponentSetExecutionContext
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
-import org.corespring.container.client.integration.ContainerExecutionContext
+import org.corespring.container.client.integration.{ DefaultIntegration, ContainerExecutionContext }
 import org.corespring.container.client.io.ResourcePath
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.{ Component, ComponentInfo, Interaction }
@@ -64,7 +65,7 @@ import play.api.mvc._
 import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import se.radley.plugin.salat.SalatPlugin
-import web.models.{ ContainerVersion, WebExecutionContext }
+import web.models.{ WebExecutionContext }
 import web.{ DefaultOrgs, PublicSiteConfig, WebModule }
 
 import scala.concurrent.ExecutionContext
@@ -143,8 +144,6 @@ class Main(
     }
   }
 
-  override lazy val containerVersion: ContainerVersion = ContainerVersion(versionInfo)
-
   override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
@@ -186,8 +185,8 @@ class Main(
 
   logger.debug(s"bootstrapping... ${mainAppVersion()}")
 
-  override lazy val controllers: Seq[Controller] = {
-    super.controllers ++
+  lazy val controllers: Seq[Controller] = {
+    v2PlayerControllers ++
       v2ApiControllers ++
       v1ApiControllers ++
       webControllers ++
@@ -442,4 +441,5 @@ class Main(
   initServiceLookup()
   componentLoader.reload
 
+  override lazy val containerVersion: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
 }

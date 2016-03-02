@@ -1,6 +1,7 @@
 package web.controllers
 
 import org.bson.types.ObjectId
+import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
 import org.corespring.models.item.FieldValue
 import org.corespring.models.json.JsonFormatting
@@ -10,7 +11,6 @@ import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
-import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import org.specs2.mock.Mockito
@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsArray, Json }
 import play.api.test.PlaySpecification
-import web.models.{ WebExecutionContext, ContainerVersion }
+import web.models.{ WebExecutionContext }
 
 import scala.concurrent.ExecutionContext
 
@@ -80,7 +80,7 @@ class MainTest extends Specification with Mockito with PlaySpecification {
       m
     }
 
-    lazy val containerVersion = ContainerVersion(Json.obj())
+    lazy val containerVersion = VersionInfo("version", "commit", "date", "", Json.obj())
 
     lazy val webExecutionContext = WebExecutionContext(ExecutionContext.global)
 
