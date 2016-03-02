@@ -20,6 +20,7 @@ class LoadCatalogIntegrationTest
   "showing catalog" should {
 
     "fail if I'm not authorized" in new unknownUser_catalogLoader() {
+      println(contentAsString(result))
       status(result) === UNAUTHORIZED
       val err = generalError(WithRequestIdentitySequence.errorMessage, UNAUTHORIZED)
       contentAsString(result) === org.corespring.container.client.views.html.error.main(err.statusCode, err.message, false).toString

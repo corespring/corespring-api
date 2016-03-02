@@ -2,7 +2,6 @@ package web.controllers
 
 import java.util.Date
 
-import com.softwaremill.macwire.MacwireMacros._
 import org.bson.types.ObjectId
 import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
@@ -14,17 +13,16 @@ import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.services.item.FieldValueService
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
-import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import play.api.Logger
-import play.api.libs.json.{ JsString, JsValue, Json, JsObject }
+import play.api.libs.json.{ Json, JsObject }
 import play.api.mvc._
 import play.api.libs.json.Json._
 import securesocial.core.SecuredRequest
-import web.models.{ WebExecutionContext, ContainerVersion }
+import web.models.{ WebExecutionContext }
 import scalaz.Scalaz._
 
 import scala.concurrent.Future
@@ -38,7 +36,7 @@ class Main(
   orgService: OrganizationService,
   itemType: ItemType,
   widgetType: WidgetType,
-  containerVersionInfo: ContainerVersion,
+  containerVersionInfo: VersionInfo,
   webExecutionContext: WebExecutionContext,
   playerTokenService: PlayerTokenService,
   userSessionOrgIdentity: UserSessionOrgIdentity,
@@ -113,12 +111,13 @@ class Main(
   }
 
   private def AdminAction(block: SecuredRequest[AnyContent] => SimpleResult) = SecuredAction {
-    implicit request: SecuredRequest[AnyContent] => {
-      userSessionOrgIdentity(request) match {
-        case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => block(request)
-        case _ => Unauthorized("Please contact a CoreSpring representative for access.")
+    implicit request: SecuredRequest[AnyContent] =>
+      {
+        userSessionOrgIdentity(request) match {
+          case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => block(request)
+          case _ => Unauthorized("Please contact a CoreSpring representative for access.")
+        }
       }
-    }
   }
 
   def index = SecuredAction {
