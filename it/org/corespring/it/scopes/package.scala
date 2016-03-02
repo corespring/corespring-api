@@ -238,7 +238,8 @@ package object scopes {
       val call = getCall(itemId)
       implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
       val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
-      play.api.test.Helpers.route(makeRequest(call))(writeable).getOrElse(throw new RuntimeException("Error calling route"))
+      val req = makeRequest(call)
+      play.api.test.Helpers.route(req)(writeable).getOrElse(throw new RuntimeException("Error calling route"))
     }
   }
 

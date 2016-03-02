@@ -1,6 +1,5 @@
 package bootstrap
 
-import java.io.InputStream
 import java.net.URL
 
 import com.mongodb.casbah.{ MongoConnection, MongoURI }
