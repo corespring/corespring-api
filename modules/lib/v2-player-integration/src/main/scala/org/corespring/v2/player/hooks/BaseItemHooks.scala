@@ -59,6 +59,15 @@ trait BaseItemHooks
     update(id, Json.obj("customScoring" -> customScoring), updateCustomScoring)
   }
 
+  override final def saveXhtmlAndComponents(id: String, markup: String, components: JsValue)(implicit h: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    update(id, Json.obj(), (item, _) => {
+      val updatedDefinition = item.playerDefinition.map { pd =>
+        new PlayerDefinition(pd.files, markup, components, pd.summaryFeedback, pd.customScoring)
+      }.getOrElse(PlayerDefinition(markup, components))
+      item.copy(playerDefinition = Some(updatedDefinition))
+    })
+  }
+
   override final def saveComponents(id: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     savePartOfPlayerDef(id, Json.obj("components" -> json))
   }

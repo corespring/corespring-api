@@ -89,6 +89,19 @@ class BaseItemHooksTest extends V2PlayerIntegrationSpec {
     }
   }
 
+  "saveXhtmlAndComponents" should {
+    "update xhtml" in new scope {
+      saveXhtmlAndComponents("id", "<div>new</div>", Json.obj())
+      updatedItem.playerDefinition.get.xhtml must_== "<div>new</div>"
+    }
+
+    "update components" in new scope {
+      saveXhtmlAndComponents("id", "", Json.obj("new" -> true))
+      updatedItem.playerDefinition.get.components must_== Json.obj("new" -> true)
+    }
+
+  }
+
   "saveProfile" should {
     "update taskInfo.title" in new scope {
 
