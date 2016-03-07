@@ -1,7 +1,9 @@
 package org.corespring.services.salat.auth
 
+import com.mongodb.casbah.WriteConcern
+import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.services.auth.UpdateAccessTokenService
+import org.corespring.models.auth.AccessToken
 import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.joda.time.DateTime
 import org.specs2.mutable.BeforeAfter
@@ -28,6 +30,12 @@ class AccessTokenServiceTest extends ServicesSalatIntegrationTest {
 
     def isDate(d1: DateTime)(d2: DateTime) = {
       Math.abs(d1.getMillis - d2.getMillis) < 1000
+    }
+
+    def updateToken(token: AccessToken) = {
+      services.tokenDao.update(
+        MongoDBObject("tokenId" -> token.tokenId),
+        token, false, false, WriteConcern.Safe)
     }
   }
 
@@ -71,13 +79,13 @@ class AccessTokenServiceTest extends ServicesSalatIntegrationTest {
 
     "return failure if the token is expired" in new scope {
       val updated = token.get.copy(expirationDate = DateTime.now.minusHours(2))
-      service.asInstanceOf[UpdateAccessTokenService].update(updated)
+      updateToken(updated)
       service.orgForToken(updated.tokenId).isFailure must_== true
     }
 
     "return failure if the org does not exist" in new scope {
       val updated = token.get.copy(organization = ObjectId.get)
-      service.asInstanceOf[UpdateAccessTokenService].update(updated)
+      updateToken(updated)
       service.orgForToken(updated.tokenId).isFailure must_== true
     }
   }

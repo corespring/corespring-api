@@ -26,7 +26,7 @@ class EncodedKeyS3ClientIntegrationTest extends IntegrationSpecification {
   }
 
   trait path extends scope {
-    val sample = "raw^path/to a/ervin.png"
+    val sample = "raw^path/to a/ervin+ed.png"
     def mkS3Path(s: String): String
     def mkRequestPath(s: String): String
     lazy val s3Path = mkS3Path(sample)

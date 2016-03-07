@@ -1,6 +1,6 @@
 package bootstrap
 
-import java.io.InputStream
+import java.net.URL
 
 import bootstrap.Actors.UpdateItem
 import com.amazonaws.auth.AWSCredentials
@@ -11,18 +11,18 @@ import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import developer.{ DeveloperConfig, DeveloperModule }
 import filters.{ BlockingFutureQueuer, CacheFilter, FutureQueuer }
-import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ EncodedKeyS3Client, ItemAssetKeys }
 import org.corespring.common.config.{ ContainerConfig, ItemAssetResolverConfig }
+import org.corespring.container.client.VersionInfo
+import org.corespring.container.client.component.ComponentSetExecutionContext
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.ContainerExecutionContext
-import org.corespring.container.client.{ ComponentSetExecutionContext, ItemAssetResolver }
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.container.components.model.Component
+import org.corespring.container.components.model.{ Component, Interaction }
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
@@ -32,7 +32,7 @@ import org.corespring.importing.validation.ItemSchema
 import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
-import org.corespring.models.appConfig.{ DefaultOrgs, AccessTokenConfig, ArchiveConfig, Bucket }
+import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket, DefaultOrgs }
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
@@ -41,9 +41,9 @@ import org.corespring.platform.core.LegacyModule
 import org.corespring.platform.core.services.item.SupportingMaterialsAssets
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.auth.UpdateAccessTokenService
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
+import org.corespring.v2.actions.{ DefaultV2Actions, V2ActionExecutionContext, V2Actions }
 import org.corespring.v2.api._
 import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
 import org.corespring.v2.auth.identifiers.{ PlayerTokenConfig, UserSessionOrgIdentity }
@@ -65,10 +65,10 @@ import play.api.mvc._
 import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import se.radley.plugin.salat.SalatPlugin
-import web.models.{ ContainerVersion, WebExecutionContext }
+import web.models.WebExecutionContext
 import web.{ PublicSiteConfig, WebModule }
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Validation
 
 object Main {
@@ -84,7 +84,7 @@ object Main {
         }
     }
 
-    new Main(db, app.configuration, app.mode, app.classloader, app.resourceAsStream)
+    new Main(db, app.configuration, app.mode, app.classloader, app.resource)
   }
 }
 
@@ -92,21 +92,23 @@ class Main(
   val db: MongoDB,
   //TODO: rm Configuration (needed for [[HasConfig]]) and use appConfig + containerConfig instead.
   val configuration: Configuration,
-  val mode: PlayMode,
+  override val mode: PlayMode,
   classLoader: ClassLoader,
-  resourceAsStream: String => Option[InputStream])
+  resourceAsURL: String => Option[URL])
   extends SalatServices
-  with EncryptionModule
-  with ItemSearchModule
-  with V2AuthModule
-  with V2ApiModule
-  with V1ApiModule
-  with V2PlayerModule
-  with SessionDbModule
-  with LegacyModule
   with DeveloperModule
-  with WebModule
-  with ItemImportModule {
+  with EncryptionModule
+  with ItemImportModule
+  with ItemSearchModule
+  with LegacyModule
+  with SessionDbModule
+  with V1ApiModule
+  with V2ApiModule
+  with V2AuthModule
+  with V2PlayerModule
+  with WebModule {
+
+  override val loadResource: String => Option[URL] = resourceAsURL(_)
 
   import com.softwaremill.macwire.MacwireMacros._
 
@@ -122,7 +124,7 @@ class Main(
 
   override def publicSiteConfig: PublicSiteConfig = PublicSiteConfig(appConfig.publicSite)
 
-  override lazy val buildInfo = BuildInfo(resourceAsStream)
+  override lazy val buildInfo = BuildInfo(resourceLoader.loadPath)
 
   private def ecLookup(id: String) = {
     def hasEnabledAkkaConfiguration(id: String) = {
@@ -140,8 +142,6 @@ class Main(
     }
   }
 
-  override lazy val containerVersion: ContainerVersion = ContainerVersion(versionInfo)
-
   override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
@@ -150,7 +150,8 @@ class Main(
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ecLookup("akka.v1-api"))
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
-  override def webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
+  override lazy val webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
+  lazy val v2ActionContext: V2ActionExecutionContext = V2ActionExecutionContext(ecLookup("akka.v2-actions"))
 
   private def mainAppVersion(): String = {
     val commit = buildInfo.commitHashShort
@@ -183,8 +184,8 @@ class Main(
 
   logger.debug(s"bootstrapping... ${mainAppVersion()}")
 
-  override lazy val controllers: Seq[Controller] = {
-    super.controllers ++
+  lazy val controllers: Seq[Controller] = {
+    v2PlayerControllers ++
       v2ApiControllers ++
       v1ApiControllers ++
       webControllers ++
@@ -201,7 +202,7 @@ class Main(
 
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
-  lazy val itemAssetResolver: ItemAssetResolver = {
+  override lazy val itemAssetResolver: ItemAssetResolver = {
     val config = ItemAssetResolverConfig(configuration, mode)
     if (config.enabled) {
       val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
@@ -209,7 +210,7 @@ class Main(
         val keyPairId = config.keyPairId.getOrElse(throw new RuntimeException("ItemAssetResolver: keyPairId is not set"))
         val privateKey = config.privateKey.getOrElse(throw new RuntimeException("ItemAssetResolver: privateKey is not set"))
         val urlSigner = new CdnUrlSigner(keyPairId, privateKey)
-        new SignedUrlCdnResolver(config.domain, version, urlSigner, config.urlValidInHours, "https:")
+        new SignedUrlCdnResolver(config.domain, version, urlSigner, config.urlExpiresAfterMinutes, config.httpProtocolForSignedUrls)
       } else {
         new CdnResolver(config.domain, version)
       }
@@ -271,9 +272,6 @@ class Main(
   private lazy val playerTokenConfig: PlayerTokenConfig = {
     PlayerTokenConfig(mode == Mode.Dev || mode == Mode.Test)
   }
-
-  /** AC-258 - until we've removed all the old accessTokens that are missing the apiClientId we need this */
-  lazy val updateAccessTokenService: UpdateAccessTokenService = tokenService.asInstanceOf[UpdateAccessTokenService]
 
   private lazy val requestIdentifiers: RequestIdentifiers = wire[RequestIdentifiers]
 
@@ -363,20 +361,26 @@ class Main(
 
   override def s3Service: S3Service = wire[ConcreteS3Service]
 
-  lazy val componentLoader: ComponentLoader = {
+  lazy val componentLoader: ComponentLoader = new ComponentLoader {
     val path = containerConfig.componentsPath
+    val underlying = new FileComponentLoader(Seq(path))
+    underlying.reload
     val showNonReleasedComponents: Boolean = containerConfig.showNonReleasedComponents
-    val out = new FileComponentLoader(Seq(path), showNonReleasedComponents)
-    out.reload
-    out
+    override def all: Seq[Component] = if (showNonReleasedComponents) underlying.all else underlying.all.filter { c =>
+      if (c.isInstanceOf[Interaction]) {
+        c.asInstanceOf[Interaction].released
+      } else {
+        true
+      }
+    }
+
+    override def reload: Unit = underlying.reload
   }
 
   override lazy val standardTree: StandardsTree = {
     val json: JsArray = {
-      resourceAsStream("public/web/standards_tree.json").map { is =>
-        val contents = IOUtils.toString(is, "UTF-8")
-        IOUtils.closeQuietly(is)
-        Json.parse(contents).as[JsArray]
+      resourceLoader.loadPath("public/web/standards_tree.json").map { s =>
+        Json.parse(s).as[JsArray]
       }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
     }
     StandardsTree(json)
@@ -422,10 +426,10 @@ class Main(
 
   override lazy val itemSchema: ItemSchema = {
     val file = "schema/item-schema.json"
-    val inputStream = resourceAsStream("schema/item-schema.json")
+    val schemaString = resourceLoader
+      .loadPath("schema/item-schema.json")
       .getOrElse(throw new IllegalArgumentException(s"File $file not found"))
-    val schema = ItemSchema(IOUtils.toString(inputStream, "UTF-8"))
-    IOUtils.closeQuietly(inputStream)
+    val schema = ItemSchema(schemaString)
     schema
   }
 
@@ -434,5 +438,11 @@ class Main(
   override lazy val assetsLoader: AssetsLoader = new AssetsLoader(playMode, configuration, s3, buildInfo)
 
   initServiceLookup()
+  componentLoader.reload
 
+  lazy val futureAuth = (request: RequestHeader) => Future { getOrgAndOptsFn(request) }(ExecutionContext.global)
+
+  override lazy val versionInfo: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
+
+  override lazy val v2Actions: V2Actions = wire[DefaultV2Actions]
 }

@@ -1,6 +1,6 @@
 package org.corespring.web.common.views.helpers
 
-import java.io.InputStream
+import java.io.{ StringReader, InputStream }
 import java.util.Properties
 
 import com.typesafe.config.{ Config, ConfigFactory }
@@ -17,17 +17,14 @@ case class BuildInfo(commitHashShort: String, pushDate: String, branch: String, 
 
 object BuildInfo {
 
-  def apply(resourceAsStream: String => Option[InputStream]): BuildInfo = {
+  def apply(resourceAsString: String => Option[String]): BuildInfo = {
     val propsFile = "/buildInfo.properties"
 
-    val properties = {
-      resourceAsStream(propsFile).map { is =>
-        val props = new Properties()
-        props.load(is)
-        is.close()
-        props
-      }.getOrElse(new Properties())
-    }
+    val properties = resourceAsString(propsFile).map { s =>
+      val props = new Properties()
+      props.load(new StringReader(s))
+      props
+    }.getOrElse(new Properties())
 
     BuildInfo(
       version = properties.getProperty("version", "?"),

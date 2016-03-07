@@ -1,6 +1,5 @@
 package org.corespring.v2.player.cdn
 
-import org.corespring.container.client.ItemAssetResolver
 import org.corespring.drafts.item.S3Paths
 import org.corespring.platform.data.mongo.models.VersionedId
 

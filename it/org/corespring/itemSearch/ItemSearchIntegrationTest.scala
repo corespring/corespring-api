@@ -1,16 +1,15 @@
 package org.corespring.itemSearch
 
-import global.Global
 import org.bson.types.ObjectId
-import org.corespring.it.helpers.{ StandardHelper, ItemHelper }
+import org.corespring.it.helpers.ItemHelper
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
-import org.corespring.models.item.{ StandardCluster, TaskInfo, Item, PlayerDefinition }
+import org.corespring.models.item.{ Item, StandardCluster, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scalaz.{ Success, Failure }
+import scalaz.{ Failure, Success }
 
 class ItemSearchIntegrationTest extends IntegrationSpecification {
 

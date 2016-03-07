@@ -112,14 +112,34 @@ class ItemDraftHooks(
     } yield CommitJson(result)
   }
 
-  override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = Future {
-    def mkItem(u: OrgAndUser) = {
-      orgCollectionService.getDefaultCollection(u.org.id).toOption.map { c =>
-        ModelItem(
-          collectionId = c.toString,
-          playerDefinition = Some(PlayerDefinition("")))
-      }
+  override def createSingleComponentItemDraft(collectionId: Option[String], componentType: String, key: String, defaultData: JsObject)(implicit r: RequestHeader): R[(String, String)] = {
+    val xhtml = s"""<div><div $componentType="" id="$key"></div></div>"""
+    createItemAndDraft(r) { (u: OrgAndUser) =>
+      mkItem(collectionId, u, PlayerDefinition(xhtml = xhtml, components = Json.obj(key -> defaultData)))
     }
+  }
+
+  override def createItemAndDraft(collectionId: Option[String])(implicit h: RequestHeader): R[(String, String)] = {
+    createItemAndDraft(h) { (u: OrgAndUser) =>
+      mkItem(collectionId, u, PlayerDefinition(""))
+    }
+  }
+
+  private def mkItem(collectionId: Option[String], u: OrgAndUser, playerDefinition: PlayerDefinition) = {
+
+    logger.debug(s"function=mkItem, collectionId=$collectionId")
+
+    lazy val default = orgCollectionService.getDefaultCollection(u.org.id)
+
+    collectionId.orElse(default.toOption.map(_.id.toString)).map { c =>
+      logger.debug(s"function=mkItem, c=$c")
+      ModelItem(
+        collectionId = c,
+        playerDefinition = Some(playerDefinition))
+    }
+  }
+
+  private def createItemAndDraft(h: RequestHeader)(mkItem: OrgAndUser => Option[ModelItem]): R[(String, String)] = Future {
 
     def randomDraftName = scala.util.Random.alphanumeric.take(12).mkString
 
@@ -128,9 +148,7 @@ class ItemDraftHooks(
       item <- mkItem(identity).toSuccess(generalError("Can't make a new item"))
       vid <- itemService.save(item, false).leftMap(e => generalError(e.message))
       draft <- backend.create(DraftId(vid.id, randomDraftName, identity.org.id), identity).v2Error
-    } yield (vid.toString, draft.id.toString)
-
+    } yield (vid.id.toString, draft.id.name)
     result.leftMap { e => (e.statusCode -> e.message) }.toEither
   }
-
 }

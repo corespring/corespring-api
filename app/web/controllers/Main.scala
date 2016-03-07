@@ -2,7 +2,9 @@ package web.controllers
 
 import java.util.Date
 
+import org.bson.types.ObjectId
 import org.corespring.common.url.BaseUrl
+import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.auth.ApiClientService
@@ -10,7 +12,6 @@ import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.services.PlayerTokenService
-import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import org.joda.time.DateTime
@@ -19,7 +20,7 @@ import play.api.Logger
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsObject, Json }
 import play.api.mvc._
-import web.models.{ ContainerVersion, WebExecutionContext }
+import web.models.WebExecutionContext
 
 import scala.concurrent.Future
 import scalaz.Scalaz._
@@ -33,13 +34,12 @@ class Main(
   orgService: OrganizationService,
   itemType: ItemType,
   widgetType: WidgetType,
-  containerVersionInfo: ContainerVersion,
+  containerVersionInfo: VersionInfo,
   webExecutionContext: WebExecutionContext,
   playerTokenService: PlayerTokenService,
-  userSessionOrgIdentity: UserSessionOrgIdentity,
   buildInfo: BuildInfo,
   assetsLoader: AssetsLoader,
-  apiClientService: ApiClientService) extends Controller with securesocial.core.SecureSocial {
+  apiClientService: ApiClientService) extends Controller {
 
   implicit val context = webExecutionContext.context
 
@@ -99,7 +99,8 @@ class Main(
     }).getOrElse(new DateTime())
     val monthString = DateTimeFormat.forPattern("MMMM, yyyy").print(m)
     val apiKey = DateTimeFormat.forPattern("MM-yyyy").print(m)
-    Ok(web.views.html.sessions(monthString = monthString, apiKey = apiKey, organization = request.org.name, orgId = orgId))
+    val organization = orgService.findOneById(new ObjectId(orgId)).map(_.name).getOrElse("--")
+    Ok(web.views.html.sessions(monthString = monthString, apiKey = apiKey, organization = organization, orgId = orgId))
   }
 
   def index = OrgAction {

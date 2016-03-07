@@ -141,10 +141,10 @@ class StandardServiceTest extends ServicesSalatIntegrationTest with NoTimeConver
       stream.length === 0
     }
 
-    "return only standards, that exactly match the dotNotation" in new scope {
+    "return standards that match the dotNotation" in new scope {
       val query = StandardQuery("C.1", None, None, None, None)
       val stream = service.query(query, 0, 0)
-      stream.length === 1
+      stream.length === 3
     }
   }
 

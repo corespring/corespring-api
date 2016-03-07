@@ -1,25 +1,26 @@
 package web
-
 import org.corespring.amazon.s3.S3Service
+import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.itemSearch.ItemIndexService
-import org.corespring.models.appConfig.{ DefaultOrgs, Bucket }
+import org.corespring.models.appConfig.{ Bucket, DefaultOrgs }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrgCollectionService, OrganizationService, UserService }
+import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.services.PlayerTokenService
-import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Mode.Mode
 import web.controllers._
-import web.models.{ ContainerVersion, WebExecutionContext }
+import web.models.WebExecutionContext
 
 case class PublicSiteConfig(url: String)
 
 trait WebModule {
 
+  def v2Actions: V2Actions
   def itemService: ItemService
   def playerTokenService: PlayerTokenService
   def s3Service: S3Service
@@ -29,13 +30,13 @@ trait WebModule {
   def orgService: OrganizationService
   def itemType: ItemType
   def widgetType: WidgetType
-  def containerVersion: ContainerVersion
+  def versionInfo: VersionInfo
+  lazy val containerVersionInfo: VersionInfo = versionInfo
   def webExecutionContext: WebExecutionContext
   def mode: Mode
   def defaultOrgs: DefaultOrgs
   def bucket: Bucket
   def publicSiteConfig: PublicSiteConfig
-  def userSessionOrgIdentity: UserSessionOrgIdentity
   def buildInfo: BuildInfo
   def assetsLoader: AssetsLoader
   def apiClientService: ApiClientService
@@ -44,25 +45,24 @@ trait WebModule {
   def orgCollectionService: OrgCollectionService
 
   lazy val itemSearch: ItemSearch = new ItemSearch(
+    v2Actions,
     itemIndexService,
     orgCollectionService,
-    webExecutionContext,
-    userSessionOrgIdentity.apply _)
+    webExecutionContext)
 
   lazy val showResource = new ShowResource(itemService, s3Service, bucket)
   lazy val partials = new Partials(mode, defaultOrgs)
   lazy val webMain = new Main(
-    defaultOrgs,
+    v2Actions,
     fieldValueService,
     jsonFormatting,
     userService,
     orgService,
     itemType,
     widgetType,
-    containerVersion,
+    containerVersionInfo,
     webExecutionContext,
     playerTokenService,
-    userSessionOrgIdentity,
     buildInfo,
     assetsLoader,
     apiClientService)

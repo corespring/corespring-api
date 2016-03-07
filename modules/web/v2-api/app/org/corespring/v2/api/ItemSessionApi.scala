@@ -25,19 +25,21 @@ import scalaz.{ Failure, Success, Validation }
 case class ItemSessionApiExecutionContext(context: ExecutionContext)
 
 class ItemSessionApi(
-  v2Actions: V2Actions,
+  actions: V2Actions,
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   scoreService: ScoreService,
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
-  apiContext: ItemSessionApiExecutionContext,
-  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)],
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  apiContext: ItemSessionApiExecutionContext) extends V2Api {
 
   override implicit def ec: ExecutionContext = apiContext.context
 
   private lazy val logger = Logger(classOf[ItemSessionApi])
+
+  //  override def getOrgAndOptionsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = r => {
+  //    identifyFn(r).map(_._1)
+  //  }
 
   /**
    * Creates a new v2 ItemSession in the database.
@@ -60,7 +62,7 @@ class ItemSessionApi(
    *      adding `apiClient` and `playerToken` query parameter to the call
    *
    */
-  def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) { implicit request =>
+  def create(itemId: VersionedId[ObjectId]) = actions.OrgAction.async(parse.empty) { implicit request =>
     Future {
       def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) =
         Json.obj("itemId" -> JsString(vid.toString))

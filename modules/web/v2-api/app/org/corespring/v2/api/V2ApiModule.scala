@@ -5,11 +5,12 @@ import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.appConfig.DefaultOrgs
 import org.corespring.models.auth.ApiClient
-import org.corespring.models.item.{ PlayerDefinition, ComponentType }
+import org.corespring.models.item.{ ComponentType, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.drafts.item.ItemDraftsModule
 import org.corespring.v2.api.services.{ PlayerTokenService, ScoreService }
-import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
+import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
@@ -25,6 +26,8 @@ trait V2ApiModule
   with org.corespring.services.bootstrap.Services {
 
   import com.softwaremill.macwire.MacwireMacros._
+
+  def v2Actions: V2Actions
 
   def defaultOrgs: DefaultOrgs
 
