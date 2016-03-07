@@ -9,6 +9,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.v2.player.hooks.{ CatalogAssets, PlayerAssets }
 import org.corespring.v2.sessiondb.SessionServices
+import play.api.libs.MimeTypes
 import play.api.libs.json.JsValue
 import play.api.mvc.{ AnyContent, Request, RequestHeader, SimpleResult }
 
@@ -32,11 +33,11 @@ trait AssetHelper {
   }
 }
 
-class CatalogAssetHelper(itemService: ItemService, val s3Service: S3Service, val bucketConfig: Bucket) extends CatalogAssets with AssetHelper {
+class CatalogAssetHelper(itemService: ItemService, val s3Service: S3Service, val bucketConfig: Bucket) extends CatalogAssets with AssetHelper with ResultHeaders {
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]) =
     versionedIdFromString(itemService, id).map { vid =>
-      getAssetFromItemId(S3Paths.itemFile(vid, path))
+      getAssetFromItemId(S3Paths.itemFile(vid, path)).withContentHeaders(path)
     }.getOrElse(play.api.mvc.Results.BadRequest(s"Invalid versioned id: $id"))
 
   override def bucket: String = bucketConfig.bucket
@@ -45,7 +46,7 @@ class CatalogAssetHelper(itemService: ItemService, val s3Service: S3Service, val
 class PlayerAssetHelper(
   itemService: ItemService,
   sessionServices: SessionServices,
-  val s3Service: S3Service, bucketConfig: Bucket) extends PlayerAssets with AssetHelper {
+  val s3Service: S3Service, bucketConfig: Bucket) extends PlayerAssets with AssetHelper with ResultHeaders {
 
   import play.api.mvc.Results.{ BadRequest, NotFound }
 
@@ -58,7 +59,7 @@ class PlayerAssetHelper(
   override def loadFile(id: String, path: String)(request: Request[AnyContent]) =
     getItemIdForSessionId(id).map { vid =>
       require(vid.version.isDefined, s"The version must be defined: $vid")
-      getAssetFromItemId(S3Paths.itemFile(vid, path))
+      getAssetFromItemId(S3Paths.itemFile(vid, path)).withContentHeaders(path)
     }.getOrElse(NotFound(s"Can't find an item id for session: $id"))
 
   private def getItemIdForSessionId(sessionId: String): Option[VersionedId[ObjectId]] = {
