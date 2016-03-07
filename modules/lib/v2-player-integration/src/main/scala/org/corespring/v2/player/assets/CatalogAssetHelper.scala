@@ -9,7 +9,6 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.v2.player.hooks.{ CatalogAssets, PlayerAssets }
 import org.corespring.v2.sessiondb.SessionServices
-import play.api.libs.MimeTypes
 import play.api.libs.json.JsValue
 import play.api.mvc.{ AnyContent, Request, RequestHeader, SimpleResult }
 
