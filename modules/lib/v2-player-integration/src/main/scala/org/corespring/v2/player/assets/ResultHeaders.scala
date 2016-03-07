@@ -16,8 +16,6 @@ trait ResultHeaders {
 
     def withContentHeaders(path: String): SimpleResult = {
       val extension = path.split("\\.").last
-      println(extension)
-      println(headerMap.get(extension))
       headerMap.get(extension).map(headers => result.withHeaders(headers:_*)).getOrElse(result)
     }
 
