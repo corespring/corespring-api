@@ -23,13 +23,7 @@ class AccessTokenService(
   orgService: interface.OrganizationService,
   config: AccessTokenConfig)
   extends interface.auth.AccessTokenService
-  with interface.auth.UpdateAccessTokenService
   with HasDao[AccessToken, ObjectId] {
-
-  override def update(token: AccessToken): Unit = {
-    logger.trace(s"function=update, token=$token")
-    dao.update(MongoDBObject("tokenId" -> token.tokenId), token, false, false, WriteConcern.Safe)
-  }
 
   private val logger = Logger[AccessTokenService]()
 
@@ -70,7 +64,7 @@ class AccessTokenService(
 
   private def mkToken(apiClient: ApiClient) = {
     val creationTime = DateTime.now()
-    AccessToken(Some(apiClient.clientId), apiClient.orgId, None, ObjectId.get.toString, creationTime, creationTime.plusHours(config.tokenDurationInHours))
+    AccessToken(apiClient.clientId, apiClient.orgId, None, ObjectId.get.toString, creationTime, creationTime.plusHours(config.tokenDurationInHours))
   }
 
   override def createToken(apiClient: ApiClient): Validation[PlatformServiceError, AccessToken] =

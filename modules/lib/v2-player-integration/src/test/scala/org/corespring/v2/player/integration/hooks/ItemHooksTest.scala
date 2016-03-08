@@ -2,10 +2,11 @@ package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.StatusMessage
-import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
-import org.corespring.models.Organization
+import org.corespring.conversion.qti.transformers.{ ItemTransformer, PlayerJsonToItem }
+import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.OrgCollectionService
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -14,13 +15,16 @@ import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.matcher.{ Expectable, Matcher }
 import org.specs2.specification.Scope
+import org.specs2.time.NoTimeConversions
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
 
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
+
 import scalaz.{ Failure, Success, Validation }
 
-class ItemHooksTest extends V2PlayerIntegrationSpec {
+class ItemHooksTest extends V2PlayerIntegrationSpec with NoTimeConversions {
 
   import scala.language.higherKinds
 
@@ -74,6 +78,14 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
     val playerJsonToItem = new PlayerJsonToItem(jsonFormatting)
 
+    val orgDefaultCollectionId = ObjectId.get
+
+    lazy val orgCollectionService = {
+      val m = mock[OrgCollectionService]
+      m.getDefaultCollection(any[ObjectId]) returns Success(ContentCollection("coll", ownerOrgId = ObjectId.get, id = orgDefaultCollectionId))
+      m
+    }
+
     lazy val hooks = new ItemHooks(
       itemTransformer,
       itemAuth,
@@ -81,6 +93,7 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
       jsonFormatting,
       playerJsonToItem,
       getOrgAndOptions,
+      orgCollectionService,
       containerExecutionContext)
   }
 
@@ -106,12 +119,12 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
   }
 
   class createContext(
-    val json: Option[JsValue] = None,
+    val collectionId: Option[String] = None,
     authResult: Validation[V2Error, Item] = Failure(defaultFailure))
 
     extends baseContext[(Int, String), String](authResult = authResult) {
 
-    val result = hooks.createItem(json)
+    val result = hooks.createItem(collectionId)
   }
 
   "load" should {
@@ -137,23 +150,48 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
   "create" should {
 
-    "return no json error" in new createContext(None, Success(mockItem)) {
-      result must returnError(noJson).await
-    }
-
-    "return property not found" in new createContext(Some(Json.obj()), Success(mockItem)) {
-      result must returnError(propertyNotFoundInJson("collectionId")).await
-    }
-
     "return no org id and options" in new createContext(
-      Some(Json.obj("collectionId" -> ObjectId.get.toString))) {
+      Some(ObjectId.get.toString)) {
       result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message).await
     }
 
     "return item id for new item" in new createContext(
-      Some(Json.obj("collectionId" -> ObjectId.get.toString)),
+      Some(ObjectId.get.toString),
       authResult = Success(mockItem)) {
       result.map(_.isRight) must equalTo(true).await
     }
   }
+
+  "createSingleComponentItem" should {
+
+    trait createSingleComponentItem extends baseContext[(Int, String), String] {
+      def collectionId: Option[String] = None
+      override val authResult = Success(mockItem)
+      lazy val captor = capture[Item]
+      val result = Await.result(hooks.createSingleComponentItem(collectionId, "component", "key", Json.obj("a" -> "b")), 1.second)
+      there was one(itemAuth).insert(captor)(any[OrgAndOpts])
+    }
+
+    "call auth.insert with singleComponent xhtml" in new createSingleComponentItem {
+      captor.value.playerDefinition.map(_.xhtml) must_== Some("""<div><div component="" id="key"></div></div>""")
+    }
+
+    "call auth.insert with singleComponent json" in new createSingleComponentItem {
+      captor.value.playerDefinition.map(_.components) must_== Some(Json.obj("key" -> Json.obj("a" -> "b")))
+    }
+
+    "call item service save with the default collectionId" in new createSingleComponentItem {
+      captor.value.collectionId must_== orgDefaultCollectionId.toString
+    }
+
+    "call item service save with collectionId" in new createSingleComponentItem {
+      override def collectionId = Some("id")
+      captor.value.collectionId must_== "id"
+    }
+
+    "return the id" in new createSingleComponentItem {
+      result.right.get must_== itemId.toString
+    }
+  }
+
 }

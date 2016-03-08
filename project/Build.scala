@@ -50,7 +50,7 @@ object Build extends sbt.Build {
   lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
     .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
-  lazy val futureValidation = builders.lib("future-validation", "core")
+  lazy val futureValidation = builders.lib("future-validation", "core", publish = true)
     .settings(libraryDependencies ++= Seq(scalaz, specs2 % "test"))
 
   lazy val coreServices = builders.lib("services", "core", publish = true)
@@ -59,6 +59,8 @@ object Build extends sbt.Build {
     .dependsOn(coreModels, futureValidation)
 
   lazy val coreUtils = builders.lib("utils", "core", publish = true)
+    .settings(
+      libraryDependencies ++= Seq(specs2 % "test"))
 
   lazy val coreLegacy = builders.lib("legacy", "core")
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, securesocial, playFramework, specs2 % "test", playS3))
@@ -260,6 +262,7 @@ object Build extends sbt.Build {
     .settings(CustomRelease.settings: _*)
     .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
+    .settings(AccessToken.cleanupTask)
     .dependsOn(
       apiUtils,
       coreModels,
@@ -287,6 +290,9 @@ object Build extends sbt.Build {
       coreModels,
       coreServices,
       coreServicesSalat,
+      coreSalatConfig,
+      coreUtils,
+      futureValidation,
       coreWeb,
       coreJson,
       apiUtils,
