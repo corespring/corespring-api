@@ -5,6 +5,7 @@ import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.appConfig.{ Bucket, DefaultOrgs }
 import org.corespring.models.json.JsonFormatting
+import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrgCollectionService, OrganizationService, UserService }
 import org.corespring.v2.actions.V2Actions
@@ -17,9 +18,12 @@ import web.models.WebExecutionContext
 
 case class PublicSiteConfig(url: String)
 
+case class WebV2Actions(actions: V2Actions)
+
 trait WebModule {
 
-  def v2Actions: V2Actions
+  def apiClientService: ApiClientService
+  def webV2Actions: WebV2Actions
   def itemService: ItemService
   def playerTokenService: PlayerTokenService
   def s3Service: S3Service
@@ -43,7 +47,7 @@ trait WebModule {
   def orgCollectionService: OrgCollectionService
 
   lazy val itemSearch: ItemSearch = new ItemSearch(
-    v2Actions,
+    webV2Actions.actions,
     itemIndexService,
     orgCollectionService,
     webExecutionContext)
@@ -51,7 +55,8 @@ trait WebModule {
   lazy val showResource = new ShowResource(itemService, s3Service, bucket)
   lazy val partials = new Partials(mode, defaultOrgs)
   lazy val webMain = new Main(
-    v2Actions,
+    webV2Actions.actions,
+    apiClientService,
     fieldValueService,
     jsonFormatting,
     userService,

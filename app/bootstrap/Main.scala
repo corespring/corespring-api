@@ -66,7 +66,7 @@ import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import se.radley.plugin.salat.SalatPlugin
 import web.models.WebExecutionContext
-import web.{ PublicSiteConfig, WebModule }
+import web.{ PublicSiteConfig, WebModule, WebV2Actions }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Validation
@@ -112,7 +112,7 @@ class Main(
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  private lazy val logger = Logger(classOf[Main])
+  private lazy val logger = Logger(this.getClass)
 
   lazy val appConfig = AppConfig(configuration)
 
@@ -440,14 +440,19 @@ class Main(
   initServiceLookup()
   componentLoader.reload
 
-  lazy val futureAuth = (request: RequestHeader) => Future { getOrgAndOptsFn(request) }(ExecutionContext.global)
+  lazy val futureAuth = (request: RequestHeader) => Future { getOrgAndOptsFn(request) }(v2ApiExecutionContext.context)
 
   override lazy val versionInfo: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
 
-  override lazy val v2Actions: V2Actions = wire[DefaultV2Actions]
+  override def webV2Actions: WebV2Actions = WebV2Actions(new DefaultV2Actions(
+    defaultOrgs,
+    rh => Future { userSessionOrgIdentity.apply(rh) }(webExecutionContext.context),
+    apiClientService,
+    v2ActionContext))
 
   override lazy val v2ApiActions: V2ApiActions = V2ApiActions(new DefaultV2Actions(
     defaultOrgs,
-    rh => Future { requestIdentifiers.token(rh) },
+    rh => Future { requestIdentifiers.token(rh) }(v2ApiExecutionContext.context),
+    apiClientService,
     v2ActionContext))
 }

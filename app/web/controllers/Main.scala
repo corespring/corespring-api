@@ -7,6 +7,7 @@ import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.models.json.JsonFormatting
+import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.v2.actions.V2Actions
@@ -27,6 +28,7 @@ import scalaz.{ Failure, Success }
 
 class Main(
   actions: V2Actions,
+  apiClientService: ApiClientService,
   fieldValueService: FieldValueService,
   jsonFormatting: JsonFormatting,
   userService: UserService,

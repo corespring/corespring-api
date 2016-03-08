@@ -1,21 +1,22 @@
 package web.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexSearchResult, ItemIndexQuery, ItemIndexService }
-import org.corespring.models.auth.Permission
+import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexQuery, ItemIndexSearchResult, ItemIndexService }
+import org.corespring.models.auth.{ ApiClient, Permission }
 import org.corespring.services.OrgCollectionService
+import org.corespring.v2.actions.{ OrgAndApiClientRequest, OrgRequest, V2Actions }
 import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.JsValue
-import play.api.mvc.RequestHeader
+import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import web.models.WebExecutionContext
 
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Success, Validation }
 
 class ItemSearchTest extends Specification with Mockito with MockFactory {
@@ -62,15 +63,13 @@ class ItemSearchTest extends Specification with Mockito with MockFactory {
 
     lazy val webExecutionContext = WebExecutionContext(ExecutionContext.Implicits.global)
 
-    def getOrgAndOptsFn(rh: RequestHeader): Validation[V2Error, OrgAndOpts] = {
-      Success(orgAndOpts)
-    }
+    lazy val actions = new TestV2Actions(orgAndOpts, ApiClient(orgAndOpts.org.id, ObjectId.get, "clientSecret")).actions
 
     val controller = new ItemSearch(
+      actions,
       searchService,
       orgCollectionService,
-      webExecutionContext,
-      getOrgAndOptsFn)
+      webExecutionContext)
   }
 
   "search" should {

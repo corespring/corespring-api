@@ -5,13 +5,12 @@ import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys._
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
-import org.corespring.v2.errors.V2Error
 import org.mockito.{ Mockito => OrigMockito }
 import play.api.libs.json.Json
 
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{ Failure, Success }
 
 class ItemApiDeleteTest extends ItemApiSpec {
 
@@ -36,12 +35,6 @@ class ItemApiDeleteTest extends ItemApiSpec {
       else
         Failure(orgCantAccessCollection(dummyOrgId, dummyCollectionId, Permission.Write.name))
     }
-
-    override def orgAndOpts: Validation[V2Error, OrgAndOpts] =
-      if (isLoggedIn)
-        Success(OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None))
-      else
-        Failure(unAuthorized(""))
   }
 
   "V2 - ItemApi" should {
@@ -51,13 +44,6 @@ class ItemApiDeleteTest extends ItemApiSpec {
       s"returns cantParseItemId - if itemId is invalid" in new deleteApiScope() {
         val result = api.delete("123")(FakeJsonRequest(Json.obj()))
         val e = cantParseItemId("123")
-        result must beCodeAndJson(e.statusCode, e.json)
-      }
-
-      s"returns unAuthorised - if not logged in" in new deleteApiScope(
-        isLoggedIn = false) {
-        val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
-        val e = unAuthorized("")
         result must beCodeAndJson(e.statusCode, e.json)
       }
 

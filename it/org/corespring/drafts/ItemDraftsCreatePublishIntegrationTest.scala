@@ -2,12 +2,12 @@ package org.corespring.drafts
 
 import com.novus.salat.Context
 import org.bson.types.ObjectId
-import org.corespring.drafts.item.{ S3Paths, ItemDraftHelper }
+import org.corespring.drafts.item.{ ItemDraftHelper, S3Paths }
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.assets.ImageUtils
 import org.corespring.it.helpers.{ ItemHelper, OrganizationHelper, SecureSocialHelper }
-import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
+import org.corespring.it.scopes.{ SessionRequestBuilder, TokenRequestBuilder, orgWithAccessTokenAndItem, userAndItem }
 import org.corespring.models.item.FieldValue
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -29,7 +29,7 @@ class ItemDraftsCreatePublishIntegrationTest extends IntegrationSpecification {
     override def itemService: ItemService = main.itemService
   }
 
-  trait scope extends Scope with userAndItem with SessionRequestBuilder with SecureSocialHelper {
+  trait scope extends Scope with orgWithAccessTokenAndItem with TokenRequestBuilder {
 
     val expectedFiles = Seq(StoredFile("ervin.png", "image/png", false, "ervin.png"))
 

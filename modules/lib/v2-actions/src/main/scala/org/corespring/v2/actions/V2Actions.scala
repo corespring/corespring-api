@@ -3,65 +3,92 @@ package org.corespring.v2.actions
 import org.corespring.models.appConfig.DefaultOrgs
 import org.corespring.models.auth.ApiClient
 import org.corespring.services.auth.ApiClientService
+import org.corespring.v2.actions.V2Actions.GetOrgAndOpts
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
-import play.api.mvc._
+import play.api.libs.json.Json
 import play.api.mvc.Results._
+import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Future}
-import scalaz.{Failure, Success, Validation}
+import scala.concurrent.{ ExecutionContext, Future }
+import scalaz.{ Failure, Success, Validation }
 
 case class OrgRequest[A](request: Request[A], orgAndOpts: OrgAndOpts) extends WrappedRequest[A](request) {
   def org = orgAndOpts.org
 }
 
-case class OrgAndApiClientRequest[A](request: Request[A], orgAndOpts: OrgAndOpts, apiClient : ApiClient) extends WrappedRequest[A](request) {
+case class OrgAndApiClientRequest[A](request: Request[A], orgAndOpts: OrgAndOpts, apiClient: ApiClient) extends WrappedRequest[A](request) {
   def org = orgAndOpts.org
 }
-
-trait CorespringAction[R <: Request[AnyContent]] {
-  def apply(block: R => SimpleResult): Action[AnyContent]
-  def async(block: R => Future[SimpleResult]): Action[AnyContent]
-}
-
-trait OrgAction extends CorespringAction[OrgRequest[AnyContent]]
-trait RootOrgAction extends CorespringAction[OrgRequest[AnyContent]]
 
 case class V2ActionExecutionContext(context: ExecutionContext)
 
 trait V2Actions {
   val Org: ActionBuilder[OrgRequest]
-  val RootOrg: RootOrgAction
-  val OrgAndApiClient : ActionBuilder[OrgAndApiClientRequest]
+  val RootOrg: ActionBuilder[OrgRequest]
+  val OrgAndApiClient: ActionBuilder[OrgAndApiClientRequest]
 }
 
-class OrgActionBuilder(
+object V2Actions {
+  type GetOrgAndOpts = RequestHeader => Future[Validation[V2Error, OrgAndOpts]]
+}
+
+import scala.language.higherKinds
+
+private[actions] abstract class BaseOrgActionBuilder[R[_]](
   v2ActionContext: V2ActionExecutionContext,
-  getOrgAndOptsFn: RequestHeader => Future[Validation[V2Error, OrgAndOpts]]) extends ActionBuilder[OrgRequest] {
+  getOrgAndOptsFn: RequestHeader => Future[Validation[V2Error, OrgAndOpts]]) extends ActionBuilder[R] {
+
+  def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Option[R[A]]
 
   implicit val ec = v2ActionContext.context
 
-  override protected def invokeBlock[A](request: Request[A], block: (OrgRequest[A]) => Future[SimpleResult]): Future[SimpleResult] = {
+  override protected def invokeBlock[A](request: Request[A], block: (R[A]) => Future[SimpleResult]): Future[SimpleResult] = {
     getOrgAndOptsFn(request).flatMap { v =>
       v match {
-        case Success(identity) => block(OrgRequest(request, identity))
-        case Failure(err) => Future.successful(Status(err.statusCode)(err.message))
+        case Success(identity) => makeWrappedRequest(request, identity).map { r =>
+          block(r)
+        }.getOrElse(Future.successful(BadRequest(Json.obj("error" -> "Failed to make request"))))
+        case Failure(err) => Future.successful(Status(err.statusCode)(err.json))
       }
     }
   }
 }
 
-class OrgAndApiClientActionBuilder(apiClientService:ApiClientService,
-                                   v2ActionContext : V2ActionExecutionContext,
-                                   orgActionBuilder : OrgActionBuilder)
-extends ActionBuilder[OrgAndApiClientRequest] {
-  override protected def invokeBlock[A](request: Request[A], block: (OrgAndApiClientRequest[A]) => Future[SimpleResult]): Future[SimpleResult] = {
+class OrgActionBuilder(
+  v2ActionContext: V2ActionExecutionContext,
+  getOrgAndOptsFn: GetOrgAndOpts)
+  extends BaseOrgActionBuilder[OrgRequest](v2ActionContext, getOrgAndOptsFn) {
+  override def makeWrappedRequest[A](r: Request[A], id: OrgAndOpts): Option[OrgRequest[A]] = Some(OrgRequest(r, id))
+}
 
-    orgActionBuilder.async{ request =>
+class RootOrgActionBuilder(defaultOrgs: DefaultOrgs, v2ActionContext: V2ActionExecutionContext, getOrgAndOptsFn: GetOrgAndOpts)
+  extends BaseOrgActionBuilder[OrgRequest](v2ActionContext, getOrgAndOptsFn) {
+  override def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Option[OrgRequest[A]] = {
+    if (id.org.id == defaultOrgs.root) {
+      Some(OrgRequest(rh, id))
+    } else {
+      None
+    }
+  }
+}
 
-      apiClientService.findByClientId(request.orgAndOpts.apiClientId) match {
-        case None => Future.successful(BadRequest())
-        case Some(?)
+class OrgAndApiClientActionBuilder(apiClientService: ApiClientService,
+  v2ActionContext: V2ActionExecutionContext,
+  getOrgAndOpts: GetOrgAndOpts)
+  extends BaseOrgActionBuilder[OrgAndApiClientRequest](v2ActionContext, getOrgAndOpts) {
+
+  override def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Option[OrgAndApiClientRequest[A]] = {
+    id.apiClientId match {
+      case None => {
+        apiClientService.getOrCreateForOrg(id.org.id).map { c =>
+          OrgAndApiClientRequest(rh, id, c)
+        }.toOption
+      }
+      case Some(clientId) => {
+        apiClientService.findByClientId(clientId).map { c =>
+          OrgAndApiClientRequest(rh, id, c)
+        }
       }
     }
   }
@@ -70,7 +97,7 @@ extends ActionBuilder[OrgAndApiClientRequest] {
 class DefaultV2Actions(
   defaultOrgs: DefaultOrgs,
   getOrgAndOptsFn: RequestHeader => Future[Validation[V2Error, OrgAndOpts]],
-  apiClientService : ApiClientService,
+  apiClientService: ApiClientService,
   v2ActionContext: V2ActionExecutionContext) extends V2Actions {
 
   implicit val ec = v2ActionContext.context
@@ -79,47 +106,16 @@ class DefaultV2Actions(
 
   protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
     def toResult: SimpleResult = Status(error.statusCode)(error.json)
+
     def toResult(statusCode: Int): SimpleResult = Status(statusCode)(error.json)
   }
 
-  override val OrgAndApiClient: ActionBuilder[OrgAndApiClientRequest] = ???
-  lazy val Org = new OrgActionBuilder(v2ActionContext, getOrgAndOptsFn)
-  //  {
-  //
-  //    def apply(block: OrgRequest[AnyContent] => SimpleResult): Action[AnyContent] = async(
-  //      r => Future(block(r))
-  //    )
-  //
-  //
-  //    override def async(block: (OrgRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = {
-  //      Action.async { implicit request : Request[AnyContent] =>
-  //        getOrgAndOptsFn(request).flatMap { v => v match {
-  //          case Success(identity) => block(OrgRequest(request, identity))
-  //          case Failure(e) => Future.successful {
-  //            e.toResult
-  //          }
-  //        }
-  //        }
-  //      }
-  //    }
-  //
-  //  }
+  override lazy val Org = new OrgActionBuilder(v2ActionContext, getOrgAndOptsFn)
 
-  lazy val RootOrg = new RootOrgAction {
-
-    def apply(block: OrgRequest[AnyContent] => SimpleResult) = async {
-      r => Future(block(r))
-    }
-
-    def async(block: OrgRequest[AnyContent] => Future[SimpleResult]) = Action.async { request =>
-      getOrgAndOptsFn(request).flatMap { v =>
-        v match {
-          case Success(orgAndOpts) if (orgAndOpts.org.id == defaultOrgs.root) => block(OrgRequest(request, orgAndOpts))
-          case Success(orgAndOpts) => Future.successful(Unauthorized(s"Org: ${orgAndOpts.org.name} is not the RootOrg"))
-          case Failure(e) => Future.successful(Unauthorized(e.message))
-        }
-      }
-    }
+  override lazy val OrgAndApiClient: ActionBuilder[OrgAndApiClientRequest] = {
+    new OrgAndApiClientActionBuilder(apiClientService, v2ActionContext, getOrgAndOptsFn)
   }
+
+  override lazy val RootOrg = new RootOrgActionBuilder(defaultOrgs, v2ActionContext, getOrgAndOptsFn)
 
 }

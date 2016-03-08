@@ -2,18 +2,17 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ ContentCollection, ContentCollRef, Organization }
-import org.corespring.services.{ ShareItemWithCollectionsService, OrgCollectionService, ContentCollectionUpdate, ContentCollectionService }
+import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.services.item.ItemAggregationService
+import org.corespring.services.{ ContentCollectionService, ContentCollectionUpdate, OrgCollectionService, ShareItemWithCollectionsService }
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
-import org.corespring.v2.errors.V2Error
 import org.specs2.specification.{ Fragments, Scope }
-import play.api.libs.json.{ Json }
+import play.api.libs.json.Json
 import play.api.mvc.{ AnyContent, Request }
 import play.api.test.FakeRequest
 
 import scala.concurrent.Future
-import scalaz.{ Success, Validation }
+import scalaz.Success
 
 class CollectionApiTest extends V2ApiSpec {
 
@@ -30,6 +29,7 @@ class CollectionApiTest extends V2ApiSpec {
       val arr = args.asInstanceOf[Array[Any]]
       (arr(0).asInstanceOf[A], arr(1).asInstanceOf[B])
     }
+
     lazy val orgCollectionService: OrgCollectionService = {
       val m = mock[OrgCollectionService]
 
@@ -59,6 +59,8 @@ class CollectionApiTest extends V2ApiSpec {
       m
     }
 
+    lazy val orgId = TestV2Actions.orgAndOpts.org.id
+
     lazy val contentCollectionService: ContentCollectionService = {
       val m = mock[ContentCollectionService]
 
@@ -69,7 +71,7 @@ class CollectionApiTest extends V2ApiSpec {
         Success(
           ContentCollection(
             id = collectionId,
-            ownerOrgId = orgId,
+            ownerOrgId = TestV2Actions.orgAndOpts.org.id,
             name = update.name.getOrElse("?"),
             isPublic = update.isPublic.getOrElse(false)))
       }
@@ -92,17 +94,15 @@ class CollectionApiTest extends V2ApiSpec {
       stub.copy(org = stub.org.copy(contentcolls = stub.org.contentcolls :+ ContentCollRef(collectionId, Permission.Write.value, true)))
     }
 
-    override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(stubbedOrgAndOpts)
-    protected val orgId = stubbedOrgAndOpts.org.id
-
     val api = new CollectionApi(
+      TestV2Actions.apply,
       shareItemWithCollectionService,
       orgCollectionService,
       contentCollectionService,
       itemAggregationService,
       v2ApiContext,
-      jsonFormatting,
-      getOrgAndOptionsFn)
+      jsonFormatting)
+
   }
 
   "fieldValuesByFrequency" should {

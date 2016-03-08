@@ -2,9 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.models.auth.ApiClient
-import org.corespring.v2.api.V2ApiScope.OrgAndClient
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
-import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, noJson }
 import org.corespring.v2.errors.{ Field, V2Error }
 import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
@@ -17,11 +15,7 @@ import scalaz.{ Failure, Success, Validation }
 
 class ExternalModelLaunchApiTest extends V2ApiSpec {
 
-  lazy val mockedOrgAndOpts = mockOrgAndOpts()
-  lazy val apiClient = ApiClient(mockedOrgAndOpts.org.id, ObjectId.get, "secret")
-
   case class apiScope(
-    override val orgAndOptsAndApiClient: OrgAndClient = Success(mockedOrgAndOpts, apiClient),
     createSession: Option[ObjectId] = Some(ObjectId.get),
     createTokenResult: Validation[V2Error, CreateTokenResult] = Success(CreateTokenResult("apiClient", "token", Json.obj())),
     expectedError: Option[V2Error] = None) extends Scope with V2ApiWithApiClientScope {
@@ -41,11 +35,12 @@ class ExternalModelLaunchApiTest extends V2ApiSpec {
 
     lazy val config = ExternalModelLaunchConfig("/v2/player/player.js")
 
-    lazy val api = new ExternalModelLaunchApi(tokenService,
+    lazy val api = new ExternalModelLaunchApi(
+      TestV2Actions.apply,
+      tokenService,
       sessionServices,
       config,
-      v2ApiContext,
-      getOrgAndOptionsAndApiClientFn)
+      v2ApiContext)
 
     lazy val json = createJson
     lazy val result = api.buildExternalLaunchSession()(fakeRequest(json))

@@ -321,6 +321,15 @@ package object scopes {
       FakeRequest(call.method, mkUrl(call.url), FakeHeaders(), body)
     }
 
+    def makeFormRequest(call: Call, form: MultipartFormData[Files.TemporaryFile]): Request[AnyContentAsMultipartFormData] = {
+      FakeRequest(call.method, mkUrl(call.url)).withMultipartFormDataBody(form)
+    }
+
+    def makeRawRequest(call: Call, bytes: Array[Byte]) = {
+      FakeRequest(call.method, mkUrl(call.url))
+        .withRawBody(bytes)
+    }
+
     def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
       FakeRequest(call.method, mkUrl(call.url)).withJsonBody(json)
     }

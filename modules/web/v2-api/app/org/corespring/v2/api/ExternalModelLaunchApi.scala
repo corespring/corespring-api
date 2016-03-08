@@ -23,8 +23,7 @@ class ExternalModelLaunchApi(
   tokenService: PlayerTokenService,
   sessionServices: SessionServices,
   config: ExternalModelLaunchConfig,
-  v2ApiContext: V2ApiExecutionContext,
-  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)]) extends V2Api {
+  v2ApiContext: V2ApiExecutionContext) extends V2Api {
 
   override implicit def ec: ExecutionContext = v2ApiContext.context
 

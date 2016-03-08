@@ -29,6 +29,7 @@ trait V2ApiModule
 
   import com.softwaremill.macwire.MacwireMacros._
 
+  /** Allow v2 api actions to be separate */
   def v2ApiActions: V2ApiActions
 
   def defaultOrgs: DefaultOrgs
@@ -63,7 +64,7 @@ trait V2ApiModule
 
   def sessionServices: SessionServices
 
-  private lazy val v2Actions = v2ApiActions.actions
+  private lazy val apiV2Actions = v2ApiActions.actions
 
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 
