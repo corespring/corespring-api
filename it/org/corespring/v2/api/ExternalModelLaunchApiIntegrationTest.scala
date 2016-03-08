@@ -19,8 +19,7 @@ class ExternalModelLaunchApiIntegrationTest extends IntegrationSpecification {
       "accessSettings" -> Json.obj(
         "expires" -> 0))
     val launchResult = route(FakeRequest(launchCall.method, s"${launchCall.url}?access_token=$accessToken", FakeHeaders(), AnyContentAsJson(json))).get
-    println("..")
-    println(contentAsString(launchResult))
+
     lazy val launchJson = contentAsJson(launchResult)
     lazy val sessionId = (launchJson \ "sessionId").as[String]
     lazy val playerToken = (launchJson \ "playerToken").as[String]
