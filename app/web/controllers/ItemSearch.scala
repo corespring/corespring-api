@@ -51,7 +51,7 @@ class ItemSearch(
 
   implicit def ec: ExecutionContext = webExecutionContext.context
 
-  def search(query: Option[String]) = actions.OrgAction.async { (request: OrgRequest[AnyContent]) =>
+  def search(query: Option[String]) = actions.Org.async { (request: OrgRequest[AnyContent]) =>
 
     QueryStringParser.scopedSearchQuery(query, request.org.accessibleCollections.map(_.collectionId)) match {
       case Success(q) => {

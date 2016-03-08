@@ -445,4 +445,9 @@ class Main(
   override lazy val versionInfo: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
 
   override lazy val v2Actions: V2Actions = wire[DefaultV2Actions]
+
+  override lazy val v2ApiActions: V2ApiActions = V2ApiActions(new DefaultV2Actions(
+    defaultOrgs,
+    rh => Future { requestIdentifiers.token(rh) },
+    v2ActionContext))
 }

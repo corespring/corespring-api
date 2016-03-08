@@ -1,8 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionResult, EncryptionSuccess }
-import org.corespring.models.auth.ApiClient
+import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionSuccess }
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
@@ -31,15 +30,11 @@ class ItemSessionApi(
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
-  apiContext: ItemSessionApiExecutionContext) extends V2Api {
+  apiContext: ItemSessionApiExecutionContext) extends V2Api with ValidationToResultLike {
 
   override implicit def ec: ExecutionContext = apiContext.context
 
   private lazy val logger = Logger(classOf[ItemSessionApi])
-
-  //  override def getOrgAndOptionsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = r => {
-  //    identifyFn(r).map(_._1)
-  //  }
 
   /**
    * Creates a new v2 ItemSession in the database.
@@ -62,7 +57,7 @@ class ItemSessionApi(
    *      adding `apiClient` and `playerToken` query parameter to the call
    *
    */
-  def create(itemId: VersionedId[ObjectId]) = actions.OrgAction.async(parse.empty) { implicit request =>
+  def create(itemId: VersionedId[ObjectId]) = actions.Org.async(parse.empty) { implicit request =>
     Future {
       def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) =
         Json.obj("itemId" -> JsString(vid.toString))
@@ -70,16 +65,15 @@ class ItemSessionApi(
       sessionCreatedForItem(itemId)
 
       val result: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
-        canCreate <- sessionAuth.canCreate(itemId.toString)(identity)
-        json <- Success(createSessionJson(itemId, identity))
+        canCreate <- sessionAuth.canCreate(itemId.toString)(request.orgAndOpts)
+        json <- Success(createSessionJson(itemId, request.orgAndOpts))
         sessionId <- if (canCreate)
-          sessionAuth.create(json)(identity)
+          sessionAuth.create(json)(request.orgAndOpts)
         else
           Failure(generalError("creation failed"))
       } yield Json.obj("id" -> sessionId.toString)
 
-      validationToResult[JsValue](Ok(_))(result)
+      result.toSimpleResult()
     }
   }
 
@@ -105,14 +99,11 @@ class ItemSessionApi(
    *      adding `apiClient` and `options` query parameter to the call
    *
    */
-  def get(sessionId: String) = Action.async { implicit request =>
+  def get(sessionId: String) = actions.Org.async { implicit request =>
     Future {
-      validationToResult[(SessionAuth.Session, PlayerDefinition)](tuple => Ok(mapSessionJson(tuple._1.as[JsObject]))) {
-        for {
-          identity <- getOrgAndOptions(request)
-          session <- sessionAuth.loadForRead(sessionId)(identity)
-        } yield session
-      }
+      sessionAuth.loadForRead(sessionId)(request.orgAndOpts).map {
+        case (json, _) => mapSessionJson(json.as[JsObject])
+      }.toSimpleResult()
     }
   }
 
@@ -123,7 +114,7 @@ class ItemSessionApi(
    * @param sessionId
    * @return
    */
-  def loadScore(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+  def loadScore(sessionId: String): Action[AnyContent] = actions.Org.async { implicit request =>
 
     logger.debug(s"function=loadScore sessionId=$sessionId")
 
@@ -133,53 +124,40 @@ class ItemSessionApi(
 
     Future {
       val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
-        sessionAndPlayerDef <- sessionAuth.loadForWrite(sessionId)(identity)
+        sessionAndPlayerDef <- sessionAuth.loadForWrite(sessionId)(request.orgAndOpts)
         session <- Success(sessionAndPlayerDef._1)
         playerDef <- Success(sessionAndPlayerDef._2)
         components <- getComponents(session).toSuccess(sessionDoesNotContainResponses(sessionId))
         score <- scoreService.score(playerDef, components)
       } yield score
 
-      validationToResult[JsValue](j => Ok(j))(out)
+      out.toSimpleResult()
     }
   }
 
-  def reopen(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+  def reopen(sessionId: String): Action[AnyContent] = actions.Org.async { implicit request =>
     Future {
-      val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
-        session <- sessionAuth.reopen(sessionId)(identity)
-      } yield session
-      validationToResult[JsValue](Ok(_))(out)
+      sessionAuth.reopen(sessionId)(request.orgAndOpts).toSimpleResult()
     }
   }
 
-  def complete(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+  def complete(sessionId: String): Action[AnyContent] = actions.Org.async { implicit request =>
     Future {
-      val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
-        session <- sessionAuth.complete(sessionId)(identity)
-      } yield session
-      validationToResult[JsValue](Ok(_))(out)
+      sessionAuth.complete(sessionId)(request.orgAndOpts).toSimpleResult()
     }
   }
 
-  import v2Actions._
-
-  def orgCount(orgId: ObjectId, month: String) = RootOrgAction.async { implicit request =>
+  def orgCount(orgId: ObjectId, month: String) = actions.RootOrg.async { implicit request =>
     implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
     val monthDate = DateTimeFormat.forPattern("MM-yyyy").parseDateTime(month)
     Future {
-      val result = sessionAuth.orgCount(orgId, monthDate)(request.orgAndOpts)
-      validationToResult[JsValue](Ok(_))(
-        result.map { m =>
-          JsArray(m.toSeq.sortBy(_._1).map {
-            case (d, v) => Json.obj(
-              "date" -> DateTimeFormat.forPattern("MM/dd").print(d),
-              "count" -> v)
-          })
+      sessionAuth.orgCount(orgId, monthDate)(request.orgAndOpts).map { m =>
+        JsArray(m.toSeq.sortBy(_._1).map {
+          case (d, v) => Json.obj(
+            "date" -> DateTimeFormat.forPattern("MM/dd").print(d),
+            "count" -> v)
         })
+      }.toSimpleResult()
     }
   }
 
@@ -189,46 +167,29 @@ class ItemSessionApi(
    * the owner organization name, and a cloned session id. These returned parameters allow for a fully-executable clone
    * of the original session.
    */
-  def cloneSession(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
-
+  def cloneSession(sessionId: String): Action[AnyContent] = actions.OrgAndApiClient.async { implicit request =>
     Future {
       val out: Validation[V2Error, JsValue] = for {
-        tuple <- identifyFn(request)
-        identity <- Success(tuple._1)
-        apiClient <- Success(tuple._2)
-        sessionId <- sessionAuth.cloneIntoPreview(sessionId)(identity)
+        apiClient <- Success(request.apiClient)
+        sessionId <- sessionAuth.cloneIntoPreview(sessionId)(request.orgAndOpts)
         options <- encryptionService.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
-        session <- sessionAuth.loadWithIdentity(sessionId.toString)(identity)
-          .map { case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
+        session <- sessionAuth.loadWithIdentity(sessionId.toString)(request.orgAndOpts)
+          .map {
+            case (json, _) => {
+              json.asOpt[JsObject].getOrElse(Json.obj()) ++
+                Json.obj(
+                  "apiClient" -> request.apiClient.clientId.toString,
+                  "organization" -> request.org.name) ++
+                  (options match {
+                    case s: EncryptionSuccess => Json.obj("options" -> s.data)
+                    case _ => Json.obj()
+                  })
+            }
+          }
       } yield session
-
-      validationToResult[JsValue](Created(_))(out)
+      out.toSimpleResult(CREATED)
     }
   }
-
-  private def withOrg(jsValue: JsValue) = jsValue match {
-    case jsObject: JsObject => (jsObject \ "identity" \ "orgId").asOpt[String]
-      .map(orgId => orgService.findOneById(new ObjectId(orgId))).flatten match {
-        case Some(org) => jsObject ++ Json.obj("organization" -> org.name)
-        case _ => jsValue
-      }
-    case _ => jsValue
-  }
-
-  private def withOptions(jsValue: JsValue, result: EncryptionResult) = result match {
-    case success: EncryptionSuccess => jsValue match {
-      case jsObject: JsObject => jsObject ++
-        Json.obj("options" -> success.data)
-      case _ => jsValue
-    }
-    case _ => jsValue
-  }
-
-  private def withApiClient(jsValue: JsValue, apiClient: ApiClient) = jsValue match {
-    case jsObject: JsObject => jsObject ++ Json.obj("apiClient" -> apiClient.clientId.toString)
-    case _ => jsValue
-  }
-
 }
 
 object ItemSessionApi {

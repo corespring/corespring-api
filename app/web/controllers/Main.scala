@@ -7,7 +7,6 @@ import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.v2.actions.V2Actions
@@ -27,7 +26,7 @@ import scalaz.Scalaz._
 import scalaz.{ Failure, Success }
 
 class Main(
-  v2Actions: V2Actions,
+  actions: V2Actions,
   fieldValueService: FieldValueService,
   jsonFormatting: JsonFormatting,
   userService: UserService,
@@ -38,8 +37,7 @@ class Main(
   webExecutionContext: WebExecutionContext,
   playerTokenService: PlayerTokenService,
   buildInfo: BuildInfo,
-  assetsLoader: AssetsLoader,
-  apiClientService: ApiClientService) extends Controller {
+  assetsLoader: AssetsLoader) extends Controller {
 
   implicit val context = webExecutionContext.context
 
@@ -68,16 +66,13 @@ class Main(
     }
   }
 
-  import v2Actions._
-
-  def sampleLaunchCode(id: String) = OrgAction.async {
+  def sampleLaunchCode(id: String) = actions.OrgAndApiClient.async {
     request =>
       Future {
 
         val token = for {
           user <- request.orgAndOpts.user.toSuccess("could not find user")
-          apiClient <- apiClientService.getOrCreateForOrg(request.org.id)
-          token <- playerTokenService.createToken(apiClient, Json.obj(
+          token <- playerTokenService.createToken(request.apiClient, Json.obj(
             "expires" -> (new Date().getTime + 60 * 60 * 1000),
             "itemId" -> id))
         } yield token
@@ -92,7 +87,7 @@ class Main(
       }
   }
 
-  def sessions(orgId: String, month: Option[String]) = RootOrgAction { request =>
+  def sessions(orgId: String, month: Option[String]) = actions.RootOrg { request =>
     val m: DateTime = month.map(dateString => {
       val Array(year, month) = dateString.split("-")
       new DateTime().withYear(year.toInt).withMonthOfYear(month.toInt)
@@ -103,7 +98,7 @@ class Main(
     Ok(web.views.html.sessions(monthString = monthString, apiKey = apiKey, organization = organization, orgId = orgId))
   }
 
-  def index = OrgAction {
+  def index = actions.Org {
     implicit request =>
 
       val uri: Option[String] = play.api.Play.current.configuration.getString("mongodb.default.uri")

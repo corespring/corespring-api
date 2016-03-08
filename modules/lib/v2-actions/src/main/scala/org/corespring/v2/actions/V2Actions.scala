@@ -1,17 +1,21 @@
 package org.corespring.v2.actions
 
 import org.corespring.models.appConfig.DefaultOrgs
+import org.corespring.models.auth.ApiClient
+import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
-import play.api.libs.iteratee.Done
-import play.api.libs.iteratee.Input.Empty
 import play.api.mvc._
 import play.api.mvc.Results._
 
-import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.{ Failure, Success, Validation }
+import scala.concurrent.{ExecutionContext, Future}
+import scalaz.{Failure, Success, Validation}
 
 case class OrgRequest[A](request: Request[A], orgAndOpts: OrgAndOpts) extends WrappedRequest[A](request) {
+  def org = orgAndOpts.org
+}
+
+case class OrgAndApiClientRequest[A](request: Request[A], orgAndOpts: OrgAndOpts, apiClient : ApiClient) extends WrappedRequest[A](request) {
   def org = orgAndOpts.org
 }
 
@@ -26,8 +30,9 @@ trait RootOrgAction extends CorespringAction[OrgRequest[AnyContent]]
 case class V2ActionExecutionContext(context: ExecutionContext)
 
 trait V2Actions {
-  val OrgAction: ActionBuilder[OrgRequest]
-  val RootOrgAction: RootOrgAction
+  val Org: ActionBuilder[OrgRequest]
+  val RootOrg: RootOrgAction
+  val OrgAndApiClient : ActionBuilder[OrgAndApiClientRequest]
 }
 
 class OrgActionBuilder(
@@ -44,12 +49,28 @@ class OrgActionBuilder(
       }
     }
   }
+}
 
+class OrgAndApiClientActionBuilder(apiClientService:ApiClientService,
+                                   v2ActionContext : V2ActionExecutionContext,
+                                   orgActionBuilder : OrgActionBuilder)
+extends ActionBuilder[OrgAndApiClientRequest] {
+  override protected def invokeBlock[A](request: Request[A], block: (OrgAndApiClientRequest[A]) => Future[SimpleResult]): Future[SimpleResult] = {
+
+    orgActionBuilder.async{ request =>
+
+      apiClientService.findByClientId(request.orgAndOpts.apiClientId) match {
+        case None => Future.successful(BadRequest())
+        case Some(?)
+      }
+    }
+  }
 }
 
 class DefaultV2Actions(
   defaultOrgs: DefaultOrgs,
   getOrgAndOptsFn: RequestHeader => Future[Validation[V2Error, OrgAndOpts]],
+  apiClientService : ApiClientService,
   v2ActionContext: V2ActionExecutionContext) extends V2Actions {
 
   implicit val ec = v2ActionContext.context
@@ -61,7 +82,8 @@ class DefaultV2Actions(
     def toResult(statusCode: Int): SimpleResult = Status(statusCode)(error.json)
   }
 
-  lazy val OrgAction = new OrgActionBuilder(getOrgAndOptsFn)
+  override val OrgAndApiClient: ActionBuilder[OrgAndApiClientRequest] = ???
+  lazy val Org = new OrgActionBuilder(v2ActionContext, getOrgAndOptsFn)
   //  {
   //
   //    def apply(block: OrgRequest[AnyContent] => SimpleResult): Action[AnyContent] = async(
@@ -83,7 +105,7 @@ class DefaultV2Actions(
   //
   //  }
 
-  lazy val RootOrgAction = new RootOrgAction {
+  lazy val RootOrg = new RootOrgAction {
 
     def apply(block: OrgRequest[AnyContent] => SimpleResult) = async {
       r => Future(block(r))

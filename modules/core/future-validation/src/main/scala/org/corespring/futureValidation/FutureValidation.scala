@@ -26,6 +26,15 @@ case class FutureValidation[+E, +A](future: Future[Validation[E, A]]) {
     FutureValidation(result)
   }
 
+  def leftMap[EE](f: E => EE)(implicit executor: ExecutionContext): FutureValidation[EE, A] = {
+    val result = future.map { validation =>
+      validation.fold(
+        fail => Failure(f(fail)),
+        success => Success(success))
+    }
+    FutureValidation(result)
+  }
+
   def flatMap[EE >: E, B](f: A => FutureValidation[EE, B])(implicit executor: ExecutionContext): FutureValidation[EE, B] = {
     val result = future.flatMap { validation =>
       validation.fold(

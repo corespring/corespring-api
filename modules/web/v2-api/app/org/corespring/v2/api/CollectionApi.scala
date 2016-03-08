@@ -8,6 +8,7 @@ import org.corespring.models.json.{ CollectionInfoWrites, JsonFormatting }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemAggregationService
 import org.corespring.services.{ ContentCollectionService, ContentCollectionUpdate, OrgCollectionService, ShareItemWithCollectionsService }
+import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -21,13 +22,13 @@ import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
 class CollectionApi(
+  actions: V2Actions,
   shareItemWithCollectionService: ShareItemWithCollectionsService,
   orgCollectionService: OrgCollectionService,
   contentCollectionService: ContentCollectionService,
   itemAggregationService: ItemAggregationService,
   v2ApiContext: V2ApiExecutionContext,
-  jsonFormatting: JsonFormatting,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  jsonFormatting: JsonFormatting) extends V2Api {
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
   private lazy val logger = Logger(classOf[CollectionApi])
@@ -55,12 +56,11 @@ class CollectionApi(
     }
   }
 
-  private def canRead(collectionId: ObjectId)(fn: OrgAndOpts => SimpleResult): Action[AnyContent] = Action.async { r =>
+  private def canRead(collectionId: ObjectId)(fn: OrgAndOpts => SimpleResult): Action[AnyContent] = actions.Org.async { r =>
 
     val identity = for {
-      identity <- getOrgAndOptionsFn(r)
-      _ <- if (identity.org.contentcolls.exists(_.collectionId == collectionId)) Success(true) else Failure(generalError("org can't access this collection id"))
-    } yield identity
+      _ <- if (r.org.contentcolls.exists(_.collectionId == collectionId)) Success(true) else Failure(generalError("org can't access this collection id"))
+    } yield r.orgAndOpts
 
     Future(identity match {
       case Success(identity) => fn(identity)
@@ -76,7 +76,7 @@ class CollectionApi(
   def createCollection: Action[AnyContent] = createCollection(CREATED)
 
   //TODO: once v1 collection api is gone we can remove the successfulStatusCode
-  def createCollection(successStatusCode: Int): Action[AnyContent] = futureWithIdentity(BAD_REQUEST) { (identity, request) =>
+  def createCollection(successStatusCode: Int): Action[AnyContent] = actions.Org.async { request =>
     Future {
 
       logger.debug(s"function=createCollection, ${request.body}")
@@ -86,7 +86,7 @@ class CollectionApi(
         _ <- someToFailure((json \ "id").asOpt[String], propertyNotAllowedInJson("id", json))
         name <- (json \ "name").asOpt[String].toSuccess(propertyNotFoundInJson("name"))
         _ <- if (name.isEmpty) generalError("Name is empty").asFailure else Success(true)
-        createResult <- contentCollectionService.create(name, identity.org).v2Error
+        createResult <- contentCollectionService.create(name, request.org).v2Error
       } yield createResult
       v.map(c => Json.toJson(c)).toSimpleResult(successStatusCode)
     }
@@ -99,7 +99,7 @@ class CollectionApi(
    * @param destinationOrgId
    * @return
    */
-  def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = futureWithIdentity { (identity, request) =>
+  def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = actions.Org.async { request =>
     Future {
 
       val permission = (for {
@@ -112,7 +112,7 @@ class CollectionApi(
       logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId, permission=$permission")
 
       val v: Validation[V2Error, ObjectId] = for {
-        _ <- orgCollectionService.ownsCollection(identity.org, collectionId).v2Error
+        _ <- orgCollectionService.ownsCollection(request.org, collectionId).v2Error
         o <- orgCollectionService.grantAccessToCollection(destinationOrgId, collectionId, permission).v2Error
       } yield collectionId
 
@@ -120,7 +120,7 @@ class CollectionApi(
     }
   }
 
-  def setEnabledStatus(collectionId: ObjectId, enabled: Boolean) = futureWithIdentity { (identity, request) =>
+  def setEnabledStatus(collectionId: ObjectId, enabled: Boolean) = actions.Org.async { request =>
     Future {
 
       logger.debug(s"[setEnabledStatus], collectionId=$collectionId, enabled=$enabled")
@@ -131,37 +131,35 @@ class CollectionApi(
         orgCollectionService.disableOrgAccessToCollection
       }
 
-      val r = toggle(identity.org.id, collectionId).v2Error
+      val r = toggle(request.org.id, collectionId).v2Error
       r.map(c => Json.obj("updated" -> c.collectionId.toString)).toSimpleResult()
     }
   }
 
-  def deleteCollection(collectionId: ObjectId) = futureWithIdentity {
+  def deleteCollection(collectionId: ObjectId) = actions.Org.async { request =>
+    Future {
 
-    (identity, request) =>
-      Future {
+      logger.debug(s"[deleteCollection] collectionId=$collectionId")
+      val v: Validation[V2Error, Boolean] = for {
+        _ <- orgCanAccess(request.org, collectionId, Permission.Write)
+        _ <- contentCollectionService.delete(collectionId).v2Error
+      } yield true
 
-        logger.debug(s"[deleteCollection] collectionId=$collectionId")
-        val v: Validation[V2Error, Boolean] = for {
-          _ <- orgCanAccess(identity.org, collectionId, Permission.Write)
-          _ <- contentCollectionService.delete(collectionId).v2Error
-        } yield true
-
-        v.map(ok => Json.obj("id" -> collectionId.toString)).toSimpleResult()
-      }
+      v.map(ok => Json.obj("id" -> collectionId.toString)).toSimpleResult()
+    }
   }
 
   type ShareFunction[Q] = (ObjectId, Q, ObjectId) => Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
 
   private def handleShare[Q](collectionId: ObjectId, shareFn: ShareFunction[Q], buildQuery: Request[AnyContent] => Validation[V2Error, Q]) = {
-    futureWithIdentity { (identity, request) =>
+    actions.Org.async { request =>
 
       logger.debug(s"[handleShare] collectionId=$collectionId")
 
       Future {
         val v: Validation[V2Error, Seq[VersionedId[ObjectId]]] = for {
           q <- buildQuery(request)
-          itemsAdded <- shareFn(identity.org.id, q, collectionId).v2Error
+          itemsAdded <- shareFn(request.org.id, q, collectionId).v2Error
         } yield itemsAdded
 
         v.map(ids => ids.map(_.id.toString)).map(Json.toJson(_)).toSimpleResult()
@@ -208,7 +206,7 @@ class CollectionApi(
     }
   }
 
-  def updateCollection(collectionId: ObjectId) = futureWithIdentity { (identity, request) =>
+  def updateCollection(collectionId: ObjectId) = actions.Org.async { request =>
 
     logger.info(s"function=updateCollection, collectionId=$collectionId, requestBody=${request.body}")
 
@@ -216,7 +214,7 @@ class CollectionApi(
 
     Future {
       val v: Validation[V2Error, JsValue] = for {
-        _ <- orgCanAccess(identity.org, collectionId, Permission.Write)
+        _ <- orgCanAccess(request.org, collectionId, Permission.Write)
         json <- request.body.asJson.toSuccess(noJson)
         _ <- someToFailure((json \ "organizations").asOpt[JsObject], organizationsNotSupported)
         update <- Success(ContentCollectionUpdate((json \ "name").asOpt[String], (json \ "isPublic").asOpt[Boolean]))
@@ -257,15 +255,15 @@ class CollectionApi(
     c: Option[Boolean] = None,
     sk: Int = 0,
     l: Int = 50,
-    sort: Option[String] = None) = futureWithIdentity(BAD_REQUEST) { (identity, _) =>
+    sort: Option[String] = None) = actions.Org.async { request =>
 
     logger.info(s"[list] params: q=$q, f=$f, c=$c, sk=$sk, l=$l, sort=$sort")
-    logger.info(s"[list] orgId: ${identity.org.id}")
+    logger.info(s"[list] orgId: ${request.org.id}")
 
     implicit val writes = CollectionInfoWrites
 
     orgCollectionService
-      .listAllCollectionsAvailableForOrg(identity.org.id, sk, l).map { infoList =>
+      .listAllCollectionsAvailableForOrg(request.org.id, sk, l).map { infoList =>
         Ok(Json.toJson(infoList))
       }
   }

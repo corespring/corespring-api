@@ -5,7 +5,6 @@ import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.appConfig.{ Bucket, DefaultOrgs }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.{ FieldValueService, ItemService }
 import org.corespring.services.{ OrgCollectionService, OrganizationService, UserService }
 import org.corespring.v2.actions.V2Actions
@@ -39,7 +38,6 @@ trait WebModule {
   def publicSiteConfig: PublicSiteConfig
   def buildInfo: BuildInfo
   def assetsLoader: AssetsLoader
-  def apiClientService: ApiClientService
 
   def itemIndexService: ItemIndexService
   def orgCollectionService: OrgCollectionService
@@ -64,8 +62,7 @@ trait WebModule {
     webExecutionContext,
     playerTokenService,
     buildInfo,
-    assetsLoader,
-    apiClientService)
+    assetsLoader)
 
   lazy val publicSite = new PublicSite(publicSiteConfig.url, mode)
 

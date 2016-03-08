@@ -21,13 +21,15 @@ import scalaz.Validation
 
 case class V2ApiExecutionContext(context: ExecutionContext)
 
+case class V2ApiActions(actions: V2Actions)
+
 trait V2ApiModule
   extends ItemDraftsModule
   with org.corespring.services.bootstrap.Services {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  def v2Actions: V2Actions
+  def v2ApiActions: V2ApiActions
 
   def defaultOrgs: DefaultOrgs
 
@@ -60,6 +62,8 @@ trait V2ApiModule
   def externalModelLaunchConfig: ExternalModelLaunchConfig
 
   def sessionServices: SessionServices
+
+  private lazy val v2Actions = v2ApiActions.actions
 
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 
