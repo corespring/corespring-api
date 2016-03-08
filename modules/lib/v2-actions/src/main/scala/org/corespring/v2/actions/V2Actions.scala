@@ -5,6 +5,7 @@ import org.corespring.models.auth.ApiClient
 import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.actions.V2Actions.GetOrgAndOpts
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.errors.Errors.{ generalError, notRootOrg }
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json.Json
 import play.api.mvc.Results._
@@ -39,16 +40,16 @@ private[actions] abstract class BaseOrgActionBuilder[R[_]](
   v2ActionContext: V2ActionExecutionContext,
   getOrgAndOptsFn: RequestHeader => Future[Validation[V2Error, OrgAndOpts]]) extends ActionBuilder[R] {
 
-  def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Option[R[A]]
+  def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Validation[V2Error, R[A]]
 
   implicit val ec = v2ActionContext.context
 
   override protected def invokeBlock[A](request: Request[A], block: (R[A]) => Future[SimpleResult]): Future[SimpleResult] = {
     getOrgAndOptsFn(request).flatMap { v =>
       v match {
-        case Success(identity) => makeWrappedRequest(request, identity).map { r =>
-          block(r)
-        }.getOrElse(Future.successful(BadRequest(Json.obj("error" -> "Failed to make request"))))
+        case Success(identity) => makeWrappedRequest(request, identity).fold(
+          e => Future.successful(Status(e.statusCode)(e.json)),
+          r => block(r))
         case Failure(err) => Future.successful(Status(err.statusCode)(err.json))
       }
     }
@@ -59,16 +60,16 @@ class OrgActionBuilder(
   v2ActionContext: V2ActionExecutionContext,
   getOrgAndOptsFn: GetOrgAndOpts)
   extends BaseOrgActionBuilder[OrgRequest](v2ActionContext, getOrgAndOptsFn) {
-  override def makeWrappedRequest[A](r: Request[A], id: OrgAndOpts): Option[OrgRequest[A]] = Some(OrgRequest(r, id))
+  override def makeWrappedRequest[A](r: Request[A], id: OrgAndOpts): Validation[V2Error, OrgRequest[A]] = Success(OrgRequest(r, id))
 }
 
 class RootOrgActionBuilder(defaultOrgs: DefaultOrgs, v2ActionContext: V2ActionExecutionContext, getOrgAndOptsFn: GetOrgAndOpts)
   extends BaseOrgActionBuilder[OrgRequest](v2ActionContext, getOrgAndOptsFn) {
-  override def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Option[OrgRequest[A]] = {
+  override def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Validation[V2Error, OrgRequest[A]] = {
     if (id.org.id == defaultOrgs.root) {
-      Some(OrgRequest(rh, id))
+      Success(OrgRequest(rh, id))
     } else {
-      None
+      Failure(notRootOrg(id.org))
     }
   }
 }
@@ -78,17 +79,19 @@ class OrgAndApiClientActionBuilder(apiClientService: ApiClientService,
   getOrgAndOpts: GetOrgAndOpts)
   extends BaseOrgActionBuilder[OrgAndApiClientRequest](v2ActionContext, getOrgAndOpts) {
 
-  override def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Option[OrgAndApiClientRequest[A]] = {
+  import scalaz.Scalaz._
+
+  override def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Validation[V2Error, OrgAndApiClientRequest[A]] = {
     id.apiClientId match {
       case None => {
         apiClientService.getOrCreateForOrg(id.org.id).map { c =>
           OrgAndApiClientRequest(rh, id, c)
-        }.toOption
+        }.leftMap(e => generalError(e))
       }
       case Some(clientId) => {
         apiClientService.findByClientId(clientId).map { c =>
           OrgAndApiClientRequest(rh, id, c)
-        }
+        }.toSuccess(generalError(s"Can't find api client with id: $clientId"))
       }
     }
   }

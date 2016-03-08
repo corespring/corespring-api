@@ -156,7 +156,7 @@ object Build extends sbt.Build {
 
   lazy val v2Actions = builders.lib("v2-actions")
     .settings(
-      libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
+      libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth % "compile->compile;test->test")
 
   lazy val apiTracking = builders.lib("api-tracking")
     .settings(
