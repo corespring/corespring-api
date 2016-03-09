@@ -1,4 +1,17 @@
 // Verify arguments
+
+console.log('phantom version: ' +  JSON.stringify(phantom.version));
+
+var version = phantom.version.major + '.' + phantom.version.minor; 
+
+if(version !== "1.9"){
+  throw new Error('Unsupported version of Phantomjs - must be 1.9.x');
+}
+
+if(!phantom.args){
+  throw new Error('no `phantom.args`');
+}
+
 if (phantom.args.length === 0) {
     console.log("Simple JasmineBDD test runner for phantom.js");
     console.log("Usage: phantomjs-testrunner.js url_to_runner.html");
