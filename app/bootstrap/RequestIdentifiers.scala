@@ -3,7 +3,7 @@ package bootstrap
 import com.softwaremill.macwire.MacwireMacros._
 import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.models.auth.ApiClient
-import org.corespring.services.auth.{ UpdateAccessTokenService, AccessTokenService, ApiClientService }
+import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
@@ -24,7 +24,6 @@ class RequestIdentifiers(
   orgService: OrganizationService,
   userService: UserService,
   tokenService: AccessTokenService,
-  updateAccessTokenService: UpdateAccessTokenService,
   apiClientService: ApiClientService,
   apiClientEncryptionService: ApiClientEncryptionService,
   playerTokenConfig: PlayerTokenConfig) {
