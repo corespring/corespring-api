@@ -28,7 +28,7 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
 
       val mockItemAssetResolver = {
         val m = mock[ItemAssetResolver]
-        m.resolve(any[String])(any[String]) returns "//CDN/file"
+        m.resolve("itemId")("FigurePattern.png") returns "//CDN/FigurePattern.png"
         m
       }
 
@@ -37,34 +37,34 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
       def session = Json.obj("id" -> "sessionId", "itemId" -> "itemId")
 
       def playerDefinition = Some(PlayerDefinition(
-        files = Seq(StoredFile("image.jpg", "image/jpeg")),
-        xhtml = "<img src=\"image.jpg\"></img>",
-        components = Json.obj("model" -> Json.obj("answer" -> "<img src=\"image.jpg\"></img>")),
-        summaryFeedback = "this is some text with an image <img src=\"image.jpg\"></img>",
+        files = Seq(StoredFile("FigurePattern.png", "image/png")),
+        xhtml = "<img src=\"FigurePattern.png\"></img>",
+        components = Json.obj("model" -> Json.obj("answer" -> "<img src=\"FigurePattern.png\"></img>")),
+        summaryFeedback = "this is some text with an image <img src=\"FigurePattern.png\"></img>",
         customScoring = None))
 
       def unresolvedPlayerDefinitionJson = Json.parse(
         """{
-        "xhtml":"<img src=\"image.jpg\"></img>",
-        "components":{"model":{"answer":"<img src=\"image.jpg\"></img>"}},
-        "summaryFeedback":"this is some text with an image <img src=\"image.jpg\"></img>"
+        "xhtml":"<img src=\"FigurePattern.png\"></img>",
+        "components":{"model":{"answer":"<img src=\"FigurePattern.png\"></img>"}},
+        "summaryFeedback":"this is some text with an image <img src=\"FigurePattern.png\"></img>"
         }""")
 
     }
 
     "replace url in xhtml" in new scope {
       val json = sut.makePlayerDefinitionJson(session, playerDefinition)
-      (json \ "xhtml").as[String] must_== "<img src=\"//CDN/file\"></img>"
+      (json \ "xhtml").as[String] must_== "<img src=\"//CDN/FigurePattern.png\"></img>"
     }
 
     "replace url in summaryFeedback" in new scope {
       val json = sut.makePlayerDefinitionJson(session, playerDefinition)
-      (json \ "summaryFeedback").as[String] must_== "this is some text with an image <img src=\"//CDN/file\"></img>"
+      (json \ "summaryFeedback").as[String] must_== "this is some text with an image <img src=\"//CDN/FigurePattern.png\"></img>"
     }
 
     "replace url in components" in new scope {
       val json = sut.makePlayerDefinitionJson(session, playerDefinition)
-      (json \ "components" \ "model" \ "answer").as[String] must_== "<img src=\"//CDN/file\"></img>"
+      (json \ "components" \ "model" \ "answer").as[String] must_== "<img src=\"//CDN/FigurePattern.png\"></img>"
     }
 
     "fail if playerDefinition is not defined" in new scope {
