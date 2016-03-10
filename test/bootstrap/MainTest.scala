@@ -97,13 +97,13 @@ class MainTest extends Specification with Mockito {
     "return the unsigned url when signUrl is false" in new scope {
       val config = mkItemAssetResolverConfig(true, false)
       val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
-      main.itemAssetResolver.resolve(itemId)(file) === "//blah/123456789012345678901234/0/data/test.jpeg"
+      main.itemAssetResolver.resolve(itemId)(file) === "//blah/player/item/123456789012345678901234:0/test.jpeg"
     }
 
     "return the signed url when signUrl is true" in new scope {
       val config = mkItemAssetResolverConfig(true, true)
       val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
-      main.itemAssetResolver.resolve(itemId)(file) must startingWith("https://blah/123456789012345678901234/0/data/test.jpeg?Expires=")
+      main.itemAssetResolver.resolve(itemId)(file) must startingWith("https://blah/player/item/123456789012345678901234:0/test.jpeg?Expires=")
     }
   }
 }
