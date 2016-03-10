@@ -20,7 +20,7 @@ class PlayerAssetHelper(
 
   override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = {
     versionedIdFromString(itemService, itemId).map { vid =>
-      getAssetFromItemId(S3Paths.itemFile(vid, file))
+      getAssetFromItemId(S3Paths.itemFile(vid, file)).withContentHeaders(file)
     }.getOrElse(BadRequest(s"Invalid versioned id: $itemId"))
   }
 
