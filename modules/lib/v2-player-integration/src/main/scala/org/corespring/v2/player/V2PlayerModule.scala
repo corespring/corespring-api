@@ -20,7 +20,7 @@ import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.assets.{ PlayerAssetHelper, CatalogAssetHelper }
-import org.corespring.v2.player.cdn.ItemAssetResolver
+import org.corespring.v2.player.cdn.{ CdnPlayerItemProcessor, ItemAssetResolver }
 import org.corespring.v2.player.hooks._
 import org.corespring.container.client
 import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService }

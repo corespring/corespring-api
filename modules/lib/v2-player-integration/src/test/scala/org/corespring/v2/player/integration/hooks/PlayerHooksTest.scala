@@ -12,7 +12,7 @@ import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.cantLoadSession
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.{ PlayerItemProcessor, V2PlayerIntegrationSpec }
+import org.corespring.v2.player.{ V2PlayerIntegrationSpec }
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
