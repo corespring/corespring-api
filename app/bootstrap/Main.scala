@@ -16,14 +16,13 @@ import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.api.tracking.{ ApiTracking, ApiTrackingLogger, NullTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ EncodedKeyS3Client, ItemAssetKeys }
-import org.corespring.common.config.{ ContainerConfig, ItemAssetResolverConfig }
-import org.corespring.container.client.VersionInfo
-import org.corespring.container.client.component.ComponentSetExecutionContext
+import org.corespring.common.config.{ CdnConfig, ItemAssetResolverConfig }
+import org.corespring.container.client.component.{ ComponentSetExecutionContext, ComponentsConfig }
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
-import org.corespring.container.client.integration.{ DefaultIntegration, ContainerExecutionContext }
-import org.corespring.container.client.io.ResourcePath
+import org.corespring.container.client.integration.{ ContainerConfig, ContainerExecutionContext }
+import org.corespring.container.client.{ NewRelicRumConfig, V2PlayerConfig, VersionInfo }
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.container.components.model.{ Component, ComponentInfo, Interaction }
+import org.corespring.container.components.model.Component
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
@@ -65,8 +64,8 @@ import play.api.mvc._
 import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import se.radley.plugin.salat.SalatPlugin
-import web.models.{ WebExecutionContext }
-import web.{ DefaultOrgs, PublicSiteConfig, WebModule }
+import web.models.WebExecutionContext
+import web.{ DefaultOrgs, PublicSiteConfig, WebModule, WebModuleConfig }
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -92,7 +91,7 @@ class Main(
   val db: MongoDB,
   //TODO: rm Configuration (needed for [[HasConfig]]) and use appConfig + containerConfig instead.
   val configuration: Configuration,
-  override val mode: PlayMode,
+  val mode: PlayMode,
   classLoader: ClassLoader,
   resourceAsURL: String => Option[URL])
   extends SalatServices
@@ -116,15 +115,30 @@ class Main(
 
   lazy val appConfig = AppConfig(configuration)
 
-  override def rootOrgId: ObjectId = appConfig.rootOrgId
+  override lazy val containerConfig: ContainerConfig = ContainerConfig(
+    mode = mode,
+    showNonReleasedComponents = configuration.getBoolean("container.components.showNonReleasedComponents").getOrElse(mode == Mode.Dev),
+    editorDebounceInMillis = configuration.getLong("container.editor.autosave.debounceInMillis").getOrElse(5000),
+    components = ComponentsConfig.fromConfig(mode, configuration.getConfig("container.components").getOrElse(Configuration.empty)),
+    player = V2PlayerConfig(
+      rootUrl = configuration.getString("container.rootUrl"),
+      newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic").getOrElse(Configuration.empty))))
 
-  override def accessSettingsCheckConfig: AccessSettingsCheckConfig = AccessSettingsCheckConfig(appConfig.allowAllSessions)
+  logger.info(s"containerConfig: $containerConfig")
 
-  override def developerConfig: DeveloperConfig = DeveloperConfig(appConfig.demoOrgId)
+  override lazy val versionInfo: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
 
-  override def defaultOrgs: DefaultOrgs = DefaultOrgs(appConfig.v2playerOrgIds, appConfig.rootOrgId)
+  logger.info(s"versionInfo: $versionInfo")
 
-  override def publicSiteConfig: PublicSiteConfig = PublicSiteConfig(appConfig.publicSite)
+  override lazy val rootOrgId: ObjectId = appConfig.rootOrgId
+
+  override lazy val accessSettingsCheckConfig: AccessSettingsCheckConfig = AccessSettingsCheckConfig(appConfig.allowAllSessions)
+
+  override lazy val developerConfig: DeveloperConfig = DeveloperConfig(appConfig.demoOrgId)
+
+  override lazy val defaultOrgs: DefaultOrgs = DefaultOrgs(appConfig.v2playerOrgIds, appConfig.rootOrgId)
+
+  override lazy val publicSiteConfig: PublicSiteConfig = PublicSiteConfig(appConfig.publicSite)
 
   override lazy val buildInfo = BuildInfo(resourceLoader.loadPath)
 
@@ -175,7 +189,7 @@ class Main(
 
     override def intercept(path: String) = path.contains("component-sets")
 
-    override val gzipEnabled = containerConfig.componentsGzip
+    override val gzipEnabled = containerConfig.components.gzip
 
     override lazy val futureQueue: FutureQueuer = new BlockingFutureQueuer()
   }
@@ -195,11 +209,13 @@ class Main(
       itemDraftsController
   }
 
-  lazy val containerConfig = ContainerConfig(configuration, mode)
+  private lazy val cdnConfig = CdnConfig(
+    configuration.getString("container.cdn.domain"),
+    configuration.getBoolean("container.cdn.add-version-as-query-param").getOrElse(true))
 
   lazy val cdnResolver = new CdnResolver(
-    containerConfig.cdnDomain,
-    if (containerConfig.cdnAddVersionAsQueryParam) Some(mainAppVersion) else None)
+    cdnConfig.domain,
+    if (cdnConfig.addVersionAsQueryParam) Some(mainAppVersion) else None)
 
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
@@ -224,7 +240,7 @@ class Main(
   override lazy val elasticSearchConfig = ElasticSearchConfig(
     appConfig.elasticSearchUrl,
     appConfig.mongoUri,
-    containerConfig.componentsPath)
+    containerConfig.components.componentsPath)
 
   lazy val transformerItemService = new TransformerItemService(
     itemService,
@@ -362,20 +378,11 @@ class Main(
 
   override def s3Service: S3Service = wire[ConcreteS3Service]
 
-  lazy val componentLoader: ComponentLoader = new ComponentLoader {
-    val path = containerConfig.componentsPath
-    val underlying = new FileComponentLoader(Seq(path))
-    underlying.reload
-    val showNonReleasedComponents: Boolean = containerConfig.showNonReleasedComponents
-    override def all: Seq[Component] = if (showNonReleasedComponents) underlying.all else underlying.all.filter { c =>
-      if (c.isInstanceOf[Interaction]) {
-        c.asInstanceOf[Interaction].released
-      } else {
-        true
-      }
-    }
-
-    override def reload: Unit = underlying.reload
+  lazy val componentLoader: ComponentLoader = {
+    val path = containerConfig.components.componentsPath
+    val loader = new FileComponentLoader(Seq(path))
+    loader.reload
+    loader
   }
 
   override lazy val standardTree: StandardsTree = {
@@ -442,4 +449,7 @@ class Main(
   componentLoader.reload
 
   override lazy val containerVersion: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
+
+  override lazy val webModuleConfig: WebModuleConfig = WebModuleConfig(mode)
+
 }
