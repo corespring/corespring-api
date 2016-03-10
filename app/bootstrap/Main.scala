@@ -130,15 +130,15 @@ class Main(
 
   logger.info(s"versionInfo: $versionInfo")
 
-  override val rootOrgId: ObjectId = appConfig.rootOrgId
+  override lazy val rootOrgId: ObjectId = appConfig.rootOrgId
 
-  override val accessSettingsCheckConfig: AccessSettingsCheckConfig = AccessSettingsCheckConfig(appConfig.allowAllSessions)
+  override lazy val accessSettingsCheckConfig: AccessSettingsCheckConfig = AccessSettingsCheckConfig(appConfig.allowAllSessions)
 
-  override val developerConfig: DeveloperConfig = DeveloperConfig(appConfig.demoOrgId)
+  override lazy val developerConfig: DeveloperConfig = DeveloperConfig(appConfig.demoOrgId)
 
-  override val defaultOrgs: DefaultOrgs = DefaultOrgs(appConfig.v2playerOrgIds, appConfig.rootOrgId)
+  override lazy val defaultOrgs: DefaultOrgs = DefaultOrgs(appConfig.v2playerOrgIds, appConfig.rootOrgId)
 
-  override val publicSiteConfig: PublicSiteConfig = PublicSiteConfig(appConfig.publicSite)
+  override lazy val publicSiteConfig: PublicSiteConfig = PublicSiteConfig(appConfig.publicSite)
 
   override lazy val buildInfo = BuildInfo(resourceLoader.loadPath)
 
