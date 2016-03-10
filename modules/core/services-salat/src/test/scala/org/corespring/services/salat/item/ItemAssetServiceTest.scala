@@ -208,6 +208,27 @@ class ItemAssetServiceTest extends Specification with Mockito {
         there was one(s3).copyAsset("file from supportingMaterials", s"${itemIdToPath(toItem)}/materials/test-resource/test-file")
       }
 
+      "when the item contains same file in playerDefinition & supportingMaterials" should {
+
+        trait sameFileScope extends scope {
+          val fileInSupportingMaterials = mkFile("test-file", "file from supportingMaterials")
+          val supportingMaterials = mkSupportingMaterials(fileInSupportingMaterials)
+          val fileInPlayerDefinition = mkFile("test-file", "file from playerdefinition")
+          val fromItem = mkItem(files = Seq(fileInPlayerDefinition), supportingMaterials = supportingMaterials)
+          val toItem = incVersion(fromItem)
+          service.cloneStoredFiles(fromItem, toItem)
+        }
+
+        "copy file in playerDefinition" in new sameFileScope {
+          there was one(s3).copyAsset(s"${itemIdToPath(fromItem)}/data/test-file", s"${itemIdToPath(toItem)}/data/test-file")
+        }
+
+        "copy file in supportingMaterials" in new sameFileScope {
+          there was one(s3).copyAsset("file from supportingMaterials", s"${itemIdToPath(toItem)}/materials/test-resource/test-file")
+        }
+
+      }
+
       trait missingScope extends scope {
         val missing = mock[AmazonS3Exception]
         missing.getStatusCode().returns(404)
