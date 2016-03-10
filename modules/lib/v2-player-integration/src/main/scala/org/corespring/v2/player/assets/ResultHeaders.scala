@@ -9,14 +9,13 @@ import play.api.mvc.SimpleResult
 trait ResultHeaders {
 
   private val headerMap = Map(
-    "svgx" -> Seq("Content-Type" -> "image/svg+xml", "Content-Encoding" -> "gzip", "Vary" -> "Accept-Encoding")
-  )
+    "svgx" -> Seq("Content-Type" -> "image/svg+xml", "Content-Encoding" -> "gzip", "Vary" -> "Accept-Encoding"))
 
   implicit class ResultWithHeaders(result: SimpleResult) {
 
     def withContentHeaders(path: String): SimpleResult = {
       val extension = path.split("\\.").last
-      headerMap.get(extension).map(headers => result.withHeaders(headers:_*)).getOrElse(result)
+      headerMap.get(extension).map(headers => result.withHeaders(headers: _*)).getOrElse(result)
     }
 
   }
