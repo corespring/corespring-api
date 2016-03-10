@@ -7,7 +7,7 @@ import org.corespring.models.json.item.PlayerDefinitionFormat
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.{ JsString, Json }
 
 class CdnPlayerItemProcessorTest extends Specification with Mockito {
 

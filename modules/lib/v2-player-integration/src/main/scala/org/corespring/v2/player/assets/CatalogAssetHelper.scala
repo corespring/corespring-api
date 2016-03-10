@@ -5,9 +5,7 @@ import org.corespring.drafts.item.S3Paths
 import org.corespring.models.appConfig.Bucket
 import org.corespring.services.item.ItemService
 import org.corespring.v2.player.hooks.CatalogAssets
-import play.api.mvc.{AnyContent, Request}
-
-
+import play.api.mvc.{ AnyContent, Request }
 
 class CatalogAssetHelper(itemService: ItemService, val s3Service: S3Service, val bucketConfig: Bucket) extends CatalogAssets with AssetHelper with ResultHeaders {
 
@@ -18,5 +16,4 @@ class CatalogAssetHelper(itemService: ItemService, val s3Service: S3Service, val
 
   override def bucket: String = bucketConfig.bucket
 }
-
 

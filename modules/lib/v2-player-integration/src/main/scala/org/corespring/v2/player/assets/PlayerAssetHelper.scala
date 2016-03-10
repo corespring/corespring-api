@@ -9,14 +9,14 @@ import org.corespring.services.item.ItemService
 import org.corespring.v2.player.hooks.PlayerAssets
 import org.corespring.v2.sessiondb.SessionServices
 import play.api.libs.json.JsValue
-import play.api.mvc.{AnyContent, Request, RequestHeader, SimpleResult}
+import play.api.mvc.{ AnyContent, Request, RequestHeader, SimpleResult }
 
 class PlayerAssetHelper(
   itemService: ItemService,
   sessionServices: SessionServices,
   val s3Service: S3Service, bucketConfig: Bucket) extends PlayerAssets with AssetHelper with ResultHeaders {
 
-  import play.api.mvc.Results.{BadRequest, NotFound}
+  import play.api.mvc.Results.{ BadRequest, NotFound }
 
   override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = {
     versionedIdFromString(itemService, itemId).map { vid =>

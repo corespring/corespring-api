@@ -9,15 +9,13 @@ import play.api.libs.json._
 
 import scala.util.matching.Regex
 
-
-
 /**
  * Add cdn to all files used in the item
  * Return a reduced json which contains only relevant properties
  */
 class CdnPlayerItemProcessor(
-                              itemAssetResolver: ItemAssetResolver,
-                              jsonFormatting: JsonFormatting) extends PlayerItemProcessor {
+  itemAssetResolver: ItemAssetResolver,
+  jsonFormatting: JsonFormatting) extends PlayerItemProcessor {
 
   import org.corespring.common.json.JsonStringReplace._
 
@@ -54,7 +52,6 @@ class CdnPlayerItemProcessor(
       "components" -> (v2Json \ "components").as[JsValue],
       "summaryFeedback" -> (v2Json \ "summaryFeedback").as[String])
   }
-
 
 }
 
