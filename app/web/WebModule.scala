@@ -18,6 +18,7 @@ import play.api.Mode.Mode
 import web.controllers._
 import web.models.{ WebExecutionContext }
 
+case class WebModuleConfig(mode: Mode)
 case class PublicSiteConfig(url: String)
 case class DefaultOrgs(v2Player: Seq[ObjectId], root: ObjectId)
 
@@ -34,7 +35,7 @@ trait WebModule {
   def widgetType: WidgetType
   def containerVersion: VersionInfo
   def webExecutionContext: WebExecutionContext
-  def mode: Mode
+  def webModuleConfig: WebModuleConfig
   def defaultOrgs: DefaultOrgs
   def bucket: Bucket
   def publicSiteConfig: PublicSiteConfig
@@ -53,7 +54,7 @@ trait WebModule {
     userSessionOrgIdentity.apply _)
 
   lazy val showResource = new ShowResource(itemService, s3Service, bucket)
-  lazy val partials = new Partials(mode, defaultOrgs)
+  lazy val partials = new Partials(webModuleConfig.mode, defaultOrgs)
   lazy val webMain = new Main(
     fieldValueService,
     jsonFormatting,
@@ -69,7 +70,7 @@ trait WebModule {
     assetsLoader,
     apiClientService)
 
-  lazy val publicSite = new PublicSite(publicSiteConfig.url, mode)
+  lazy val publicSite = new PublicSite(publicSiteConfig.url, webModuleConfig.mode)
 
   lazy val webControllers = Seq(showResource, webMain, publicSite, partials, itemSearch)
 }
