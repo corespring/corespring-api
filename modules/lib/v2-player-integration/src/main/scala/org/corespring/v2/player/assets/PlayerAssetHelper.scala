@@ -14,7 +14,8 @@ import play.api.mvc.{ AnyContent, Request, RequestHeader, SimpleResult }
 class PlayerAssetHelper(
   itemService: ItemService,
   sessionServices: SessionServices,
-  val s3Service: S3Service, bucketConfig: Bucket) extends PlayerAssets with AssetHelper with ResultHeaders {
+  val s3Service: S3Service,
+  bucketConfig: Bucket) extends PlayerAssets with AssetHelper with ResultHeaders {
 
   import play.api.mvc.Results.{ BadRequest, NotFound }
 

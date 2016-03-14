@@ -61,6 +61,10 @@ class EncodingHelperTest extends Specification {
       helper.decodeCompletely("++") must_== "++"
     }
 
+    "decode double encoded %2520 to blank" in {
+      helper.decodeCompletely("A%2520B") must_== "A B"
+    }
+
     assertDecodeCompletely(rfc3986Reserved)
     assertDecodeCompletely(rfc3986Reserved, 10)
     assertDecodeCompletely("hi+how are you $/there !/test")
