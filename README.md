@@ -339,5 +339,3 @@ To remove expired tokens from the db run:
 
 To target a specific database set ENV_MONGO_URI.  
 If your db is not running locally you have to pass `-Dallow.remote.cleanup=true`  
-
-  
