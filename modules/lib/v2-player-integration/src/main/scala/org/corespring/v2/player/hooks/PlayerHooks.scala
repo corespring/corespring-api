@@ -12,7 +12,6 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.PlayerItemProcessor
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
@@ -27,6 +26,10 @@ trait PlayerAssets {
   def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult
 
   def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult
+}
+
+trait PlayerItemProcessor {
+  def makePlayerDefinitionJson(session: JsValue, playerDefinition: Option[PlayerDefinition]): JsValue
 }
 
 class PlayerHooks(

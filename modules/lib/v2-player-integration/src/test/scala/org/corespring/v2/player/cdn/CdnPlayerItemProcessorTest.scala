@@ -1,18 +1,13 @@
-package org.corespring.v2.player
+package org.corespring.v2.player.cdn
 
-import org.bson.types.ObjectId
-import org.corespring.models.item.resource.{ StoredFile, BaseFile }
-
-import org.corespring.models.json.item.PlayerDefinitionFormat
-import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.models.item.FieldValue
+import org.corespring.models.item.resource.StoredFile
 import org.corespring.models.json.JsonFormatting
-import org.corespring.v2.player.cdn.ItemAssetResolver
+import org.corespring.models.json.item.PlayerDefinitionFormat
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsString, JsValue, Json}
+import play.api.libs.json.{ JsString, Json }
 
 class CdnPlayerItemProcessorTest extends Specification with Mockito {
 
@@ -28,7 +23,8 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
 
       val mockItemAssetResolver = {
         val m = mock[ItemAssetResolver]
-        m.resolve(any[String])(any[String]) returns "//CDN/file"
+        m.resolve("itemId")("FigurePattern2.png") returns "//CDN/FigurePattern2.png"
+        m.resolve("itemId")("Pattern2.png") returns "//CDN/Pattern2.png"
         m
       }
 
@@ -37,34 +33,34 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
       def session = Json.obj("id" -> "sessionId", "itemId" -> "itemId")
 
       def playerDefinition = Some(PlayerDefinition(
-        files = Seq(StoredFile("image.jpg", "image/jpeg")),
-        xhtml = "<img src=\"image.jpg\"></img>",
-        components = Json.obj("model" -> Json.obj("answer" -> "<img src=\"image.jpg\"></img>")),
-        summaryFeedback = "this is some text with an image <img src=\"image.jpg\"></img>",
+        files = Seq(StoredFile("FigurePattern2.png", "image/png")),
+        xhtml = "<img src=\"FigurePattern2.png\"></img>",
+        components = Json.obj("model" -> Json.obj("answer" -> "<img src=\"FigurePattern2.png\"></img>")),
+        summaryFeedback = "this is some text with an image <img src=\"FigurePattern2.png\"></img>",
         customScoring = None))
 
       def unresolvedPlayerDefinitionJson = Json.parse(
         """{
-        "xhtml":"<img src=\"image.jpg\"></img>",
-        "components":{"model":{"answer":"<img src=\"image.jpg\"></img>"}},
-        "summaryFeedback":"this is some text with an image <img src=\"image.jpg\"></img>"
+        "xhtml":"<img src=\"FigurePattern2.png\"></img>",
+        "components":{"model":{"answer":"<img src=\"FigurePattern2.png\"></img>"}},
+        "summaryFeedback":"this is some text with an image <img src=\"FigurePattern2.png\"></img>"
         }""")
 
     }
 
     "replace url in xhtml" in new scope {
       val json = sut.makePlayerDefinitionJson(session, playerDefinition)
-      (json \ "xhtml").as[String] must_== "<img src=\"//CDN/file\"></img>"
+      (json \ "xhtml").as[String] must_== "<img src=\"//CDN/FigurePattern2.png\"></img>"
     }
 
     "replace url in summaryFeedback" in new scope {
       val json = sut.makePlayerDefinitionJson(session, playerDefinition)
-      (json \ "summaryFeedback").as[String] must_== "this is some text with an image <img src=\"//CDN/file\"></img>"
+      (json \ "summaryFeedback").as[String] must_== "this is some text with an image <img src=\"//CDN/FigurePattern2.png\"></img>"
     }
 
     "replace url in components" in new scope {
       val json = sut.makePlayerDefinitionJson(session, playerDefinition)
-      (json \ "components" \ "model" \ "answer").as[String] must_== "<img src=\"//CDN/file\"></img>"
+      (json \ "components" \ "model" \ "answer").as[String] must_== "<img src=\"//CDN/FigurePattern2.png\"></img>"
     }
 
     "fail if playerDefinition is not defined" in new scope {
@@ -86,5 +82,20 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
         customScoring = pd.customScoring))
       sut.makePlayerDefinitionJson(session, emptyFiles) must_== unresolvedPlayerDefinitionJson
     }
+
+    "not replace an image twice if its name is contained in an already replaced one" in new scope {
+      val pd = playerDefinition.get
+      val files = Seq(StoredFile("FigurePattern2.png", "image/png"), StoredFile("Pattern2.png", "image/png"))
+      val xhtml = "<img src=\"FigurePattern2.png\"></img> <img src=\"Pattern2.png\"></img>"
+      val multipleFiles = Some(PlayerDefinition(
+        files = files,
+        xhtml = xhtml,
+        components = pd.components,
+        summaryFeedback = pd.summaryFeedback,
+        customScoring = pd.customScoring))
+      val jsonResult = sut.makePlayerDefinitionJson(session, multipleFiles)
+      (jsonResult \ "xhtml") must_== JsString("<img src=\"//CDN/FigurePattern2.png\"></img> <img src=\"//CDN/Pattern2.png\"></img>")
+    }
+
   }
 }

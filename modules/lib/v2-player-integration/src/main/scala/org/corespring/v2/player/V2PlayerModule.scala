@@ -1,7 +1,6 @@
 package org.corespring.v2.player
 
 import org.corespring.amazon.s3.S3Service
-import org.corespring.common.config.ContainerConfig
 import org.corespring.container.client.component.ComponentSetExecutionContext
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.{ integration, VersionInfo }
@@ -21,7 +20,7 @@ import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.assets.{ PlayerAssetHelper, CatalogAssetHelper }
-import org.corespring.v2.player.cdn.ItemAssetResolver
+import org.corespring.v2.player.cdn.{ CdnPlayerItemProcessor, ItemAssetResolver }
 import org.corespring.v2.player.hooks._
 import org.corespring.container.client
 import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService }
@@ -44,11 +43,11 @@ trait V2PlayerModule extends DefaultIntegration {
 
   import com.softwaremill.macwire.MacwireMacros._
 
+  def versionInfo: VersionInfo
   def archiveConfig: ArchiveConfig
   def bucket: Bucket
   def componentLoader: ComponentLoader
   def componentSetExecutionContext: ComponentSetExecutionContext
-  def containerConfig: ContainerConfig
   def contentCollectionService: ContentCollectionService
   def draftSupportingMaterialsService: DraftSupportingMaterialsService
   def getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
@@ -101,7 +100,6 @@ trait V2PlayerModule extends DefaultIntegration {
   override lazy val playerHooks: client.hooks.PlayerHooks = wire[PlayerHooks]
   override lazy val playerLauncherHooks: client.hooks.PlayerLauncherHooks = wire[PlayerLauncherHooks]
   override lazy val sessionHooks: client.hooks.SessionHooks = wire[SessionHooks]
-  override lazy val versionInfo: VersionInfo = VersionInfo(containerConfig.config)
 
   lazy val v2PlayerControllers = this.defaultIntegrationControllers
 

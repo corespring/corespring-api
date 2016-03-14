@@ -33,34 +33,34 @@ class SignedUrlCdnResolverTest extends Specification with Mockito {
 
   "resolveDomain" should {
 
-    "ignore domains that do not start with two slashes" in {
-      val cdnResolver = new CdnResolver(Some("blah.com"), None)
+    "ignore domains that do not start with two slashes" in new scope {
+      val cdnResolver = mkResolver(Some("blah.com"), None)
       cdnResolver.resolveDomain("mypath") === "mypath"
     }
 
-    "accept domains that do start with two slashes" in {
-      val cdnResolver = new CdnResolver(Some("//blah.com"), None)
-      cdnResolver.resolveDomain("") === "//blah.com/"
+    "accept domains that do start with two slashes" in new scope {
+      val cdnResolver = mkResolver(Some("//blah.com"), None)
+      cdnResolver.resolveDomain("/path/FigurePattern.png") === "https://blah.com/path/FigurePattern.png"
     }
 
-    "add slash if path doesn't start with a slash" in {
-      val cdnResolver = new CdnResolver(Some("//blah.com"), None)
-      cdnResolver.resolveDomain("path") === "//blah.com/path"
+    "add slash if path doesn't start with a slash" in new scope {
+      val cdnResolver = mkResolver(Some("//blah.com"), None)
+      cdnResolver.resolveDomain("path") === "https://blah.com/path"
     }
 
-    "do not add slash if path does start with a slash" in {
-      val cdnResolver = new CdnResolver(Some("//blah.com"), None)
-      cdnResolver.resolveDomain("/path") === "//blah.com/path"
+    "do not add slash if path does start with a slash" in new scope {
+      val cdnResolver = mkResolver(Some("//blah.com"), None)
+      cdnResolver.resolveDomain("/path") === "https://blah.com/path"
     }
 
-    "add version if defined" in {
-      val cdnResolver = new CdnResolver(Some("//blah.com"), Some("v1234"))
-      cdnResolver.resolveDomain("/path") === "//blah.com/path?version=v1234"
+    "add version if defined" in new scope {
+      val cdnResolver = mkResolver(Some("//blah.com"), Some("v1234"))
+      cdnResolver.resolveDomain("/path") === "https://blah.com/path?version=v1234"
     }
 
-    "should use ampersand if path has query already" in {
-      val cdnResolver = new CdnResolver(Some("//blah.com"), Some("v1234"))
-      cdnResolver.resolveDomain("/path?query") === "//blah.com/path?query&version=v1234"
+    "should use ampersand if path has query already" in new scope {
+      val cdnResolver = mkResolver(Some("//blah.com"), Some("v1234"))
+      cdnResolver.resolveDomain("/path?query") === "https://blah.com/path?query&version=v1234"
     }
 
     "call signUrl" in new scope {
