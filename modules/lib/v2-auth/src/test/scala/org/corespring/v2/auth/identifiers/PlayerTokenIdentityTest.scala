@@ -8,7 +8,7 @@ import org.corespring.services.OrganizationService
 import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.auth.identifiers.PlayerTokenIdentity.Keys
 import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerAccessSettings }
-import org.corespring.v2.errors.Errors.{ noPlayerTokenInQueryString, incorrectJsonFormat, invalidQueryStringParameter }
+import org.corespring.v2.errors.Errors.{ incorrectJsonFormat, invalidQueryStringParameter, missingQueryStringParameter, noPlayerTokenInQueryString }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import org.specs2.execute.Result
@@ -69,6 +69,11 @@ class PlayerTokenIdentityTest extends Specification with Mockito {
 
     s"return a bad param name error" in new scope {
       identifier.apply(FakeRequest("GET", "?apiClientId=blah")) must_== Failure(invalidQueryStringParameter("apiClientId", Keys.apiClient))
+    }
+
+    "return missingQueryStringParameter error for apiClient" in new scope {
+      val req = FakeRequest("GET", "?hi=hi")
+      identifier(req) must_== Failure(missingQueryStringParameter(Keys.apiClient))
     }
 
     "return no apiClientAndPlayerToken error" in new scope {

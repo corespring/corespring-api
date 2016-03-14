@@ -67,7 +67,7 @@ class PlayerTokenIdentity(val orgService: OrganizationService,
       logger.trace(s"function=headerToOrgId ${Keys.apiClient}=${maybeClientId.toString}")
 
       for {
-        apiClientId <- maybeClientId.toSuccess(invalidQueryStringParameter("apiClientId", Keys.apiClient))
+        apiClientId <- maybeClientId.toSuccess(missingQueryStringParameter(Keys.apiClient))
         apiClient <- apiClientService.findByClientId(apiClientId).toSuccess(cantFindApiClientWithId(apiClientId))
         encryptedSettings <- accessSettingsQueryString(rh).toSuccess(noPlayerTokenInQueryString(rh))
         decryptedOptions <- decrypt(apiClient, encryptedSettings._1, rh).toSuccess(generalError(s"Failed to decrypt"))

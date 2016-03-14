@@ -46,6 +46,8 @@ object Errors {
 
   case class invalidQueryStringParameter(badName: String, expectedName: String) extends V2Error("Invalid Query String", "The provided query string was not valid.", s"Bad query string parameter name: $badName - you should be using $expectedName")
 
+  case class missingQueryStringParameter(expectedName: String) extends V2Error("Missing Query String", "The provided query string was missing a parameter.", s"query string parameter name: $expectedName not present.")
+
   case class noPlayerTokenInQueryString(rh: RequestHeader) extends identificationFailed("No Player Token in Query String", "An API client and player token were required in order to perform the operation, but they were not provided in the request.", rh, "No 'playerToken' in queryString")
 
   case class noToken(rh: RequestHeader) extends identificationFailed("No Access Token", "An access token was required to perform the operation, but it was not provided by the request.", rh, "No access token")
