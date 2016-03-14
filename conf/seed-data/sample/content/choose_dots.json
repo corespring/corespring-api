@@ -24,10 +24,10 @@
     "files" : [
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
-        "name" : "dot array.png",
+        "name" : "dot%20array.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "541b11073240f90fb67ce9df/0/data/dot array.png"
+        "storageKey" : "541b11073240f90fb67ce9df/0/data/dot%20array.png"
       }
     ]
   },
@@ -51,13 +51,13 @@
     "files" : [ 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
-        "name" : "dot array.png",
+        "name" : "dot%20array.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "541b11073240f90fb67ce9df/0/data/dot array.png"
+        "storageKey" : "541b11073240f90fb67ce9df/0/data/dot%20array.png"
       }
     ],
-    "xhtml" : "<itemBody>\n\n   \n<div class=\"imagewrapper\">\n    <img src=\"dot array.png\"/>\n  </div>\n  <p>Which of the following are equal to the number of dots in the picture? (Choose all that apply.)</p><corespring-multiple-choice id=\"Q_01\"></corespring-multiple-choice>\n\n\n  </itemBody>",
+    "xhtml" : "<itemBody>\n\n   \n<div class=\"imagewrapper\">\n    <img src=\"dot%20array.png\"/>\n  </div>\n  <p>Which of the following are equal to the number of dots in the picture? (Choose all that apply.)</p><corespring-multiple-choice id=\"Q_01\"></corespring-multiple-choice>\n\n\n  </itemBody>",
     "components" : {
       "Q_01" : {
         "componentType" : "corespring-multiple-choice",
