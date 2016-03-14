@@ -21,8 +21,6 @@ trait AssetHelper {
   }
 
   protected def getAssetFromItemId(s3Path: String): SimpleResult = {
-    val result = s3Service.download(bucket, URIUtil.decode(s3Path))
-    val isOk = result.header.status / 100 == 2
-    if (isOk) result else s3Service.download(bucket, s3Path)
+    s3Service.download(bucket, s3Path)
   }
 }

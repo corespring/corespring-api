@@ -18,6 +18,7 @@ class PlayerAssetHelperIntegrationTest extends IntegrationSpecification {
       lazy val sut = main.playerAssets
 
       def fileName: String
+      def downloadFileName = fileName
 
       val itemId = VersionedId(ObjectId.get, Some(0))
       val filePath = s"/test-images/$fileName"
@@ -25,7 +26,7 @@ class PlayerAssetHelperIntegrationTest extends IntegrationSpecification {
       val imgFile = ImageUtils.resourcePathToFile(filePath)
 
       ImageUtils.upload(imgFile, s3Path)
-      val result = sut.loadItemFile(itemId.toString(), fileName)(FakeRequest())
+      val result = sut.loadItemFile(itemId.toString(), downloadFileName)(FakeRequest())
 
       override def after: Any = {
         ImageUtils.delete(s3Path)
@@ -48,6 +49,41 @@ class PlayerAssetHelperIntegrationTest extends IntegrationSpecification {
       result.header.headers.get("Content-Encoding") === Some("gzip")
       result.header.headers.get("Vary") === Some("Accept-Encoding")
     }
+
+    "load file with blank in name" in new itemImageScope {
+      override def fileName = "pup py.png"
+      result.header.status === 200
+    }
+
+    "load file with blank in name" in new itemImageScope {
+      override def fileName = "pup py.png"
+      override def downloadFileName = "pup%20py.png"
+      result.header.status === 200
+    }
+
+    "load file with blank in name" in new itemImageScope {
+      override def fileName = "pup py.png"
+      override def downloadFileName = "pup%2520py.png"
+      result.header.status === 200
+    }
+
+    "load file with blank in name" in new itemImageScope {
+      override def fileName = "pup%20py.png"
+      result.header.status === 200
+    }
+
+    "load file with blank in name" in new itemImageScope {
+      override def fileName = "pup%20py.png"
+      override def downloadFileName = "pup%20py.png"
+      result.header.status === 200
+    }
+
+    "load file with blank in name" in new itemImageScope {
+      override def fileName = "pup%20py.png"
+      override def downloadFileName = "pup%2520py.png"
+      result.header.status === 200
+    }
+
 
   }
 

@@ -21,7 +21,7 @@ class CdnItemAssetResolverTest extends Specification with Mockito {
     "resolve" should {
 
       "return the file" in new withoutSigning {
-        sut.resolve("123456789012345678901234:0")("FigurePattern.png") === "//blah/player/item/123456789012345678901234:0/FigurePattern.png"
+        sut.resolve("123456789012345678901234:0")("Figure Pattern.png") === "//blah/player/item/123456789012345678901234:0/Figure%20Pattern.png"
       }
     }
 
@@ -51,7 +51,7 @@ class CdnItemAssetResolverTest extends Specification with Mockito {
     "resolve" should {
 
       "return the file" in new withSigning {
-        sut.resolve("123456789012345678901234:0")("FigurePattern.png") === "https://blah/player/item/123456789012345678901234:0/FigurePattern.png"
+        sut.resolve("123456789012345678901234:0")("Figure Pattern.png") === "https://blah/player/item/123456789012345678901234:0/Figure%20Pattern.png"
       }
     }
 
