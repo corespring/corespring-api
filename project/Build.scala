@@ -287,6 +287,7 @@ object Build extends sbt.Build {
       v2SessionDb)
     .aggregate(
       apiUtils,
+      assets,
       coreModels,
       coreServices,
       coreServicesSalat,
