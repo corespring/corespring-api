@@ -38,10 +38,7 @@ class AccessTokenService(
     MongoDBObject("tokenId" -> 1),
     MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)).foreach(dao.collection.ensureIndex(_))
 
-  /**
-   * TODO: See AC-298 - will fail currently on prod/staging cos of duplicate tokenIds.
-   * dao.collection.ensureIndex(MongoDBObject("tokenId" -> 1), MongoDBObject("unique" -> true))
-   */
+  dao.collection.ensureIndex(MongoDBObject("tokenId" -> 1), MongoDBObject("unique" -> true))
 
   override def removeToken(tokenId: String): Validation[PlatformServiceError, Unit] = {
     logger.info(s"function=removeToken tokenId=$tokenId")
