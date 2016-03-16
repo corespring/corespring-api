@@ -2,7 +2,7 @@ package org.corespring.assets
 
 import org.apache.commons.httpclient.util.URIUtil
 
-private[assets] class EncodingHelper {
+class EncodingHelper {
 
   def isUnencoded(s: String) = {
     val decoded = URIUtil.decode(s, "utf-8")

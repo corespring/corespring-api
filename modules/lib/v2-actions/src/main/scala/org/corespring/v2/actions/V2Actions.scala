@@ -10,6 +10,7 @@ import org.corespring.v2.errors.V2Error
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
+import securesocial.core.SecureSocial.SecuredActionBuilder
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
@@ -25,6 +26,7 @@ case class OrgAndApiClientRequest[A](request: Request[A], orgAndOpts: OrgAndOpts
 case class V2ActionExecutionContext(context: ExecutionContext)
 
 trait V2Actions {
+  val Secured: SecuredActionBuilder[AnyContent]
   val Org: ActionBuilder[OrgRequest]
   val RootOrg: ActionBuilder[OrgRequest]
   val OrgAndApiClient: ActionBuilder[OrgAndApiClientRequest]

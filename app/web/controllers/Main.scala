@@ -28,7 +28,6 @@ import scalaz.{ Failure, Success }
 
 class Main(
   actions: V2Actions,
-  apiClientService: ApiClientService,
   fieldValueService: FieldValueService,
   jsonFormatting: JsonFormatting,
   userService: UserService,
