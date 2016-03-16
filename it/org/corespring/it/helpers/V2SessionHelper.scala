@@ -1,7 +1,7 @@
 package org.corespring.it.helpers
 
-import com.amazonaws.services.dynamodbv2.document.{ ScanFilter, DynamoDB, Item }
-import com.amazonaws.services.dynamodbv2.model.{ ScanRequest, AttributeValue, QueryRequest }
+import com.amazonaws.services.dynamodbv2.document.{ DynamoDB, Item }
+import com.amazonaws.services.dynamodbv2.model.{ AttributeValue, QueryRequest }
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
