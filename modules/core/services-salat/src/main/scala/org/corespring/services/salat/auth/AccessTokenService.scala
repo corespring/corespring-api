@@ -23,6 +23,7 @@ class AccessTokenService(
   orgService: interface.OrganizationService,
   config: AccessTokenConfig)
   extends interface.auth.AccessTokenService
+  with interface.auth.UpdateAccessTokenService
   with HasDao[AccessToken, ObjectId] {
 
   private val logger = Logger[AccessTokenService]()
@@ -87,6 +88,19 @@ class AccessTokenService(
 
   private def invalidToken(t: String) = GeneralError(s"Invalid token: $t", None)
   private def expiredToken(t: AccessToken) = GeneralError(s"Expired token: ${t.expirationDate}", None)
+
+  override def update(token: AccessToken): Validation[PlatformServiceError, AccessToken] = {
+    logger.debug(s"function=update, token=$token")
+    implicit val ctx = context
+    val updateDbo = com.novus.salat.grater[AccessToken].asDBObject(token)
+    val result = dao.update(MongoDBObject("tokenId" -> token.tokenId), updateDbo, upsert = false, multi = false)
+    if (result.getLastError.ok) {
+      Success(token)
+    } else {
+      Failure(PlatformServiceError(result.getLastError.getErrorMessage))
+    }
+  }
+
   private def noOrgForToken(t: AccessToken) = GeneralError(s"Expired token: ${t.expirationDate}", None)
 
   override def orgForToken(token: String): Validation[PlatformServiceError, Organization] = for {
