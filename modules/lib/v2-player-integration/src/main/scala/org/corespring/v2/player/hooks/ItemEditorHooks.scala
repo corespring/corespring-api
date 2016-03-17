@@ -92,16 +92,16 @@ class ItemEditorHooks(
   override def deleteFile(id: String, path: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
     logger.trace(s"function=deleteFile id=$id path=$path")
 
-    def canWriteItem(id:String, identity: OrgAndOpts) = {
+    def canWriteItem(id: String, identity: OrgAndOpts) = {
       itemAuth.canWrite(id)(identity) match {
         case Success(false) => Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
         case x => x
       }
     }
 
-    def deleteFromS3(vid:VersionedId[ObjectId], path: String) = {
+    def deleteFromS3(vid: VersionedId[ObjectId], path: String) = {
       val deleteResponse = playS3.delete(bucket, S3Paths.itemFile(vid, path))
-      if(deleteResponse.success){
+      if (deleteResponse.success) {
         Success(true)
       } else {
         Failure(generalError(deleteResponse.msg))
@@ -121,8 +121,8 @@ class ItemEditorHooks(
       identity <- getOrgAndOptions(header)
       canWrite <- canWriteItem(id, identity)
       vid <- getVid(id)
-      deleted <- deleteFromS3(vid,path)
-      removed <- removeFromData(vid,path)
+      deleted <- deleteFromS3(vid, path)
+      removed <- removeFromData(vid, path)
     } yield removed
 
     v match {
@@ -153,7 +153,7 @@ class ItemEditorHooks(
       }
       val vid: VersionedId[ObjectId] = i.id.copy(version = i.id.version.orElse(Some(itemService.currentVersion(i.id))))
       val p = S3Paths.itemFile(vid, path)
-      URIUtil.encodePath(p)
+      URIUtil.encodePath(path)
 
     })(loadItemPredicate).map { f =>
       f.map { tuple =>
@@ -161,7 +161,7 @@ class ItemEditorHooks(
         val key = s3Object.getKey
         addFileToData(item, key)
         IOUtils.closeQuietly(s3Object)
-        UploadResult(key)
+        UploadResult(URIUtil.encodePath(path))
       }
     }
   }

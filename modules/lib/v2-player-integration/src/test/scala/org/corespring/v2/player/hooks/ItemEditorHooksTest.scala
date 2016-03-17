@@ -176,27 +176,29 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
   }
 
   "upload" should {
-    "call itemService.addFileToPlayerDefinition" in new scope {
 
+    trait upload extends scope with BodyParserHelper {
       val mockItem = Item(collectionId = ObjectId.get.toString)
       val mockKey = "some/mock-key.png"
 
       playS3.s3ObjectAndData(any[String], any[Item => String])(any[RequestHeader => Either[SimpleResult, Item]]) returns {
-        BodyParser.apply { rh =>
-          new Iteratee[Array[Byte], Either[SimpleResult, Future[(S3Object, Item)]]] {
-            override def fold[B](folder: (Step[Array[Byte], Either[SimpleResult, Future[(S3Object, Item)]]]) => Future[B])(implicit ec: ExecutionContext): Future[B] = {
-              val s3o = mock[S3Object]
-              s3o.getKey returns mockKey
-              folder(Step.Done(Right(Future((s3o, mockItem))), Input.Empty))
-            }
-          }
-        }
+        val s3o = mock[S3Object]
+        s3o.getKey returns mockKey
+        mkBodyParser(Future.successful(s3o, mockItem))
       }
+      lazy val bp = hooks.upload(vid.toString, mockKey)((rh: RequestHeader) => None)
+      lazy val eitherResult = bp(FakeRequest()).run
+      lazy val out = eitherResult.flatMap { e =>
+        e.fold(_ => Future.successful(None), r => r.map(Some(_)))
+      }
+    }
 
-      val bp: BodyParser[Future[UploadResult]] = hooks.upload(vid.toString, mockKey)((rh: RequestHeader) => None)
-      val i: Iteratee[Array[Byte], Either[SimpleResult, Future[UploadResult]]] = bp(fakeRequest)
-      val result: Either[SimpleResult, Future[UploadResult]] = await(i.run)
-      val uploadResult = await(result.right.get)
+    "returns the path in an UploadResult" in new upload {
+      out must equalTo(Some(UploadResult(mockKey))).await
+    }
+
+    "call itemService.addFileToPlayerDefinition" in new upload {
+      await(out)
       val file = StoredFile(mockKey, BaseFile.getContentType(mockKey), false, grizzled.file.util.basename(mockKey))
       there was one(itemService).addFileToPlayerDefinition(mockItem, file)
     }
