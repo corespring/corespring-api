@@ -153,8 +153,7 @@ class ItemEditorHooks(
       }
       val vid: VersionedId[ObjectId] = i.id.copy(version = i.id.version.orElse(Some(itemService.currentVersion(i.id))))
       val p = S3Paths.itemFile(vid, path)
-      URIUtil.encodePath(path)
-
+      URIUtil.encodePath(p)
     })(loadItemPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, item) = tuple

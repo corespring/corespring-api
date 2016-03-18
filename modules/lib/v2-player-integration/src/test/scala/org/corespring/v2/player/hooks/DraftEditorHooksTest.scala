@@ -1,6 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import com.amazonaws.services.s3.model.S3Object
+import org.apache.commons.httpclient.util.URIUtil
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
@@ -19,13 +20,10 @@ import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.specification.Scope
 import play.api.libs.iteratee.{ Input, Iteratee, Step }
-import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ BodyParser, RequestHeader, SimpleResult }
 import play.api.test.FakeRequest
-import play.api.mvc.Results._
 
-import scala.concurrent.ExecutionContext.Implicits
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
 
 trait BodyParserHelper {
@@ -44,6 +42,12 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
   val item = Item(collectionId = ObjectId.get.toString)
   val orgId = ObjectId.get
 
+  val path = "path.png"
+  val itemDraft: ItemDraft = {
+    val m = mock[ItemDraft]
+    m.id.returns(DraftId(item.id.id, "draft", orgId))
+  }
+
   trait scope extends Scope with BodyParserHelper {
 
     lazy val loadOrCreateResult: Validation[DraftError, ItemDraft] = Failure(DraftTestError("load or create"))
@@ -56,7 +60,7 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
       m.s3ObjectAndData[ItemDraft](any[String], any[ItemDraft => String])(any[RequestHeader => Either[SimpleResult, ItemDraft]]) returns {
         val s3o = mock[S3Object]
         s3o.getKey returns "s3-key.png"
-        mkBodyParser(Future.successful(s3o, mock[ItemDraft]))
+        mkBodyParser(Future.successful(s3o, itemDraft))
       }
       m
     }
@@ -100,7 +104,7 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
     trait upload extends scope {
 
       def predicate(r: RequestHeader): Option[SimpleResult] = None
-      lazy val bp = hooks.upload("id", "path")(predicate)
+      lazy val bp = hooks.upload("id", path)(predicate)
       lazy val eitherResult = bp(FakeRequest()).run
       lazy val out = eitherResult.flatMap { e =>
         e.fold(_ => Future.successful(None), r => r.map(Some(_)))
@@ -108,12 +112,20 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
     }
 
     "returns the path param in an UploadResult" in new upload {
-      out must equalTo(Some(UploadResult("path"))).await
+      out must equalTo(Some(UploadResult(path))).await
     }
 
     "calls drafts.addFileToChangeSet" in new upload {
       await(out)
       there was one(itemDrafts).addFileToChangeSet(any[ItemDraft], any[StoredFile])
+    }
+
+    "makeKey should return the full s3 key" in new upload {
+      val captor = capture[ItemDraft => String]
+      val expectedKey = URIUtil.encodePath(path)
+      out must equalTo(Some(UploadResult(expectedKey))).await
+      there was one(playS3).s3ObjectAndData(any[String], captor)(any[RequestHeader => Either[SimpleResult, ItemDraft]])
+      captor.value.apply(itemDraft) must_== URIUtil.encodePath(S3Paths.draftFile(itemDraft.id, path))
     }
 
   }
