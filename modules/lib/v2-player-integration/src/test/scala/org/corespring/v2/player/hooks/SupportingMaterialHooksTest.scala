@@ -126,10 +126,19 @@ class SupportingMaterialHooksTest extends V2PlayerIntegrationSpec with NoTimeCon
   "create" should {
 
     /**
+     * SupportingMaterialsService[addFile, create] uses call by name for `bytes` (aka => bytes).
+     * This means we can't mock them at the moment.
+     *
      * We need to change the build so that specs2 supports by-name parameters.
      * we'll need to make sure that we have an appropriate specs2 version and that it's before mockito
      * in the classpath.
      * See: http://etorreborre.github.io/specs2/guide/SPECS2-3.0/org.specs2.guide.UseMockito.html
+     * --
+     * > Byname parameters can be verified but this will not work if the specs2 jar is not put first on the classpath,
+     * > before the mockito jar.
+     * > Indeed specs2 redefines a Mockito class for intercepting method calls
+     * > so that byname parameters are properly handled.
+     *
      */
 
     "call service.create" in pending
