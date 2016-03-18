@@ -29,15 +29,5 @@ class ItemDraftSupportingMaterialHooks(auth: ItemAuth[OrgAndOpts],
     val orgAndUser = OrgAndUser(org, user)
     mkDraftId(orgAndUser, id).leftMap(e => generalError(e.msg))
   }
-  //
-  //    override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
-  //
-  //    override def service: SupportingMaterialsService[DraftId] = new DraftSupportingMaterialsService(
-  //      itemDrafts.collection,
-  //      V2PlayerBootstrap.this.bucket,
-  //      new SupportingMaterialsAssets(s3, bucket, DraftAssetKeys))(mongoContext.context)
-  //
-  //    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = identifier(request)
-  //  }
 
 }

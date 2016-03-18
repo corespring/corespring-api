@@ -79,9 +79,9 @@ class DraftEditorHooks(
   override def deleteFile(id: String, path: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
     logger.trace(s"function=deleteFile id=$id path=$path")
 
-    def deleteFromS3(draftId:DraftId, path: String) = {
+    def deleteFromS3(draftId: DraftId, path: String) = {
       val deleteResponse = playS3.delete(awsConfig.bucket, S3Paths.draftFile(draftId, path))
-      if(deleteResponse.success){
+      if (deleteResponse.success) {
         Success(true)
       } else {
         Failure(generalError(deleteResponse.msg))
@@ -91,7 +91,7 @@ class DraftEditorHooks(
     def removeFromData(draftId: DraftId, path: String) = {
       val filename = grizzled.file.util.basename(path)
       val file = StoredFile(path, BaseFile.getContentType(filename), false, filename)
-      if(backend.removeFileFromChangeSet(draftId, file)){
+      if (backend.removeFileFromChangeSet(draftId, file)) {
         Success(true)
       } else {
         Failure(generalError(s"Error removing file $path from draft $draftId"))
@@ -101,9 +101,9 @@ class DraftEditorHooks(
     val v: Validation[V2Error, Boolean] = for {
       identity <- getOrgAndUser(header)
       draftId <- mkDraftId(identity, id).leftMap { e => generalError(e.msg) }
-      owns <- if(backend.owns(identity)(draftId)) Success(true) else Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
-      deletedFromS3 <- deleteFromS3(draftId,path)
-      removedFromData <- removeFromData(draftId,path)
+      owns <- if (backend.owns(identity)(draftId)) Success(true) else Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
+      deletedFromS3 <- deleteFromS3(draftId, path)
+      removedFromData <- removeFromData(draftId, path)
     } yield removedFromData
 
     v match {
@@ -135,7 +135,7 @@ class DraftEditorHooks(
         val key = s3Object.getKey
         addFileToData(draft, key)
         IOUtils.closeQuietly(s3Object)
-        UploadResult(key)
+        UploadResult(URIUtil.encodePath(path))
       }
     }
   }
