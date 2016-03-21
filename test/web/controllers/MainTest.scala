@@ -95,6 +95,7 @@ class MainTest extends Specification with Mockito with PlaySpecification with Mo
 
     val main = new Main(
       actions,
+      apiClientService,
       fieldValueService,
       jsonFormatting,
       userService,
