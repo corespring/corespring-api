@@ -111,7 +111,8 @@ class ItemDrafts(
         toApiResult,
         itemId => Json.obj(
           "itemId" -> draftId.itemId.toString,
-          "id" -> draftId.toIdString))
+          "id" -> draftId.toIdString,
+          "deprecated" -> "use DELETE /items/drafts/:draftId/delete-all instead of this route."))
     } else {
       drafts.remove(user)(draftId, succeedIfDraftDoesNotExist.getOrElse(false))
         .bimap(

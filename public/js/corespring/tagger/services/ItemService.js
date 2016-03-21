@@ -123,11 +123,15 @@ angular.module('tagger.services')
           .error(onError);
       };
 
-      this.deleteDraft = function(id, onSuccess, onError, all){
+      this.deleteDraft = function(id, onSuccess, onError, all, succeedIfDraftDoesNotExist){
         var url = '/api/v2/items/drafts/' + id;
 
         if(all){
           url += '?all=true';
+        }
+
+        if(succeedIfDraftDoesNotExist){
+          url += '?succeedIfDraftDoesNotExist=true';
         }
 
         $http['delete'](url)
