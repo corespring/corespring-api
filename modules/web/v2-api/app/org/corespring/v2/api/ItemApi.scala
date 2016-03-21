@@ -102,7 +102,7 @@ class ItemApi(
 
   def searchByCollectionId(
     collectionId: ObjectId,
-    q: Option[String] = None) = actions.Org.async { _ =>
+    q: Option[String] = None) = actions.OrgWithStatusCode(BAD_REQUEST).async { _ =>
     searchWithQueryAndCollections(q, collectionId) { searchResult =>
       implicit val f = ItemIndexHit.Format
       toJson(searchResult.hits)

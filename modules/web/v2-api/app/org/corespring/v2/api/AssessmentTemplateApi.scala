@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.assessment.AssessmentTemplate
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.assessment.AssessmentTemplateService
-import org.corespring.v2.actions.V2Actions
+import org.corespring.v2.actions.{ OrgRequest, V2Actions }
 import org.corespring.v2.errors.Errors.{ cantFindAssessmentTemplateWithId, incorrectJsonFormat }
 import play.api.libs.json.{ JsError, JsObject, JsSuccess, Json }
 import play.api.mvc.{ AnyContent, Request }
@@ -22,12 +22,12 @@ class AssessmentTemplateApi(
 
   implicit val AssessmentTemplateFormat = jsonFormatting.formatAssessmentTemplate
 
-  def get = actions.Org { request =>
+  def get = actions.Org { request: OrgRequest[AnyContent] =>
     val t = assessmentTemplateService.findByOrg(request.org.id)
     Ok(Json.toJson(t))
   }
 
-  def getById(assessmentTemplateId: ObjectId) = actions.Org { request =>
+  def getById(assessmentTemplateId: ObjectId) = actions.Org { request: OrgRequest[AnyContent] =>
     val t = assessmentTemplateService.findOneByIdAndOrg(assessmentTemplateId, request.org.id)
 
     t match {
@@ -36,7 +36,7 @@ class AssessmentTemplateApi(
     }
   }
 
-  def create() = actions.Org { request =>
+  def create() = actions.Org { request: OrgRequest[AnyContent] =>
     val json = getJson(request.org.id, request)
     Json.fromJson[AssessmentTemplate](json) match {
       case JsSuccess(jsonAssessment, _) => {
@@ -48,7 +48,7 @@ class AssessmentTemplateApi(
     }
   }
 
-  def update(assessmentTemplateId: ObjectId) = actions.Org { request =>
+  def update(assessmentTemplateId: ObjectId) = actions.Org { request: OrgRequest[AnyContent] =>
     val json = getJson(request.org.id, request)
     Json.fromJson[AssessmentTemplate](json) match {
       case JsSuccess(jsonAssessment, _) => {

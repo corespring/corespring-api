@@ -23,7 +23,7 @@ class AssessmentApi(
 
   import jsonFormatting._
 
-  def create() = actions.Org.apply { request =>
+  def create() = actions.Org { request: OrgRequest[AnyContent] =>
     val json = getAssessmentJson(request.org.id, request)
     Json.fromJson[Assessment](json)(jsonFormatting.formatAssessment) match {
       case JsSuccess(jsonAssessment, _) => {
@@ -35,7 +35,7 @@ class AssessmentApi(
     }
   }
 
-  def getByIds(assessmentIds: String) = actions.Org { request =>
+  def getByIds(assessmentIds: String) = actions.Org { request: OrgRequest[AnyContent] =>
     val ids = assessmentIds.split(",").map(id => new ObjectId(id.trim)).toList
     val assessments = assessmentService.findByIds(ids, request.org.id)
     ids.length match {
@@ -47,7 +47,7 @@ class AssessmentApi(
     }
   }
 
-  def get(authorId: Option[String]) = actions.Org { request =>
+  def get(authorId: Option[String]) = actions.Org { request: OrgRequest[AnyContent] =>
     authorId match {
       case Some(authorId) => getByAuthorId(authorId, request.org.id)
       case _ => Ok(toJson(assessmentService.findAllByOrgId(request.org.id)))
@@ -121,7 +121,7 @@ class AssessmentApi(
   }).getOrElse(Json.obj()) ++ Json.obj("orgId" -> orgId.toString)
 
   private def withAssessment(assessmentId: ObjectId, block: ((Assessment, OrgRequest[AnyContent]) => SimpleResult)) =
-    actions.Org { request =>
+    actions.Org { request: OrgRequest[AnyContent] =>
       assessmentService.findByIdAndOrg(assessmentId, request.org.id) match {
         case Some(assessment) => block(assessment, request)
         case _ => cantFindAssessmentWithId(assessmentId).toResult

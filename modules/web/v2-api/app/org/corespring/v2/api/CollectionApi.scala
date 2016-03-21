@@ -255,7 +255,7 @@ class CollectionApi(
     c: Option[Boolean] = None,
     sk: Int = 0,
     l: Int = 50,
-    sort: Option[String] = None) = actions.Org.async { request =>
+    sort: Option[String] = None) = actions.OrgWithStatusCode(BAD_REQUEST).async { request =>
 
     logger.info(s"[list] params: q=$q, f=$f, c=$c, sk=$sk, l=$l, sort=$sort")
     logger.info(s"[list] orgId: ${request.org.id}")
