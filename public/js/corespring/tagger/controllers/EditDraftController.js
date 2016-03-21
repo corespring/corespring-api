@@ -70,9 +70,10 @@
     //---------------------------------------------
 
     function initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem() {
+      var avoid400ErrorWhenDraftDoesNotExist = true;
       $scope.discardDraft(function () {
         $scope.loadDraftItem();
-      });
+      }, avoid400ErrorWhenDraftDoesNotExist);
     }
 
     function jqueryBeforeUnload() {
@@ -121,7 +122,7 @@
       return $window.confirm('There are updates to this item that have not been saved. Would you like to save them before you leave?');
     }
 
-    function discardDraft(done) {
+    function discardDraft(done, succeedIfDraftDoesNotExist) {
       done = done || function() {};
       ItemDraftService.deleteDraft($scope.itemId, function(data) {
         Logger.debug('draft ' + $scope.itemId + ' deleted');
@@ -129,7 +130,7 @@
       }, function(err) {
         Logger.warn('draft ' + $scope.itemId + ' not deleted');
         done(err);
-      });
+      }, false, succeedIfDraftDoesNotExist);
     }
 
     function discardAndLoadFreshCopy() {
