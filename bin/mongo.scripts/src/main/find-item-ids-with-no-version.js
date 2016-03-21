@@ -1,3 +1,5 @@
+/* global db */
+
 /**
 - Find any v2 item session that has an item id that is missing the version number.
 - Aggregate the item ids to see which items are affected.
