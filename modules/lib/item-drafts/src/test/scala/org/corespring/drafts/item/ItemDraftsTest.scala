@@ -71,7 +71,7 @@ class ItemDraftsTest extends Specification with Mockito {
       val m = mock[ItemDraftService]
       m.save(any[ItemDraft]) returns mockWriteResult()
       m.owns(any[OrgAndUser], any[DraftId]) returns true
-      m.removeByItemId(any[ObjectId]) returns true
+      m.removeByItemId(any[ObjectId]) returns 1
       m
     }
 
@@ -163,7 +163,7 @@ class ItemDraftsTest extends Specification with Mockito {
       }
 
       "return the id when successful" in new removeByItemId {
-        itemDrafts.removeByItemId(ed)(itemId.id) must_== Success(itemId.id)
+        itemDrafts.removeByItemId(ed)(itemId.id) must_== Success(1)
       }
 
     }

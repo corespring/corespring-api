@@ -7,6 +7,7 @@ PUT     /items/drafts/:draftId/conflict    @org.corespring.v2.api.drafts.item.It
 GET     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.get(draftId:String, ignoreConflicts: Option[Boolean] ?= None)
 PUT     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.save(draftId:String)
 DELETE  /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.delete(draftId:String, all: Option[Boolean] ?= None, succeedIfDraftDoesNotExist: Option[Boolean] ?= None)
+DELETE  /items/drafts/:draftId/delete-all  @org.corespring.v2.api.drafts.item.ItemDrafts.deleteAll(draftId:String)
 GET     /items/drafts                      @org.corespring.v2.api.drafts.item.ItemDrafts.getDraftsForOrg()
 
 GET     /sessions/:sessionId               @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)

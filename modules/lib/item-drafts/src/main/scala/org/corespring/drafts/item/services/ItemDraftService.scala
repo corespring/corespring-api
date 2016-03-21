@@ -69,13 +69,13 @@ trait ItemDraftService extends ItemDraftDbUtils {
     result.getN
   }
 
-  def removeByItemId(itemId: ObjectId): Boolean = {
+  def remove(d: ItemDraft): Int = remove(d.id)
+
+  def removeByItemId(itemId: ObjectId): Int = {
     val query = MongoDBObject(IdKeys.itemId -> itemId)
     val result = collection.remove(query)
-    result.getLastError.ok
+    result.getN
   }
-
-  def remove(d: ItemDraft): Int = remove(d.id)
 
   def listByOrgAndVid(orgId: ObjectId, vid: VersionedId[ObjectId]) = {
     val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> vid.id)

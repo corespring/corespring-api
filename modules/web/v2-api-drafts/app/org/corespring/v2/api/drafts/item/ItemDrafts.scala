@@ -104,13 +104,13 @@ class ItemDrafts(
     }
   }
 
+  @deprecated("use deleteAll instead of delete with the all parameter", "AC-322")
   def delete(id: String, all: Option[Boolean], succeedIfDraftDoesNotExist: Option[Boolean]) = draftsAction(id) { (user, draftId, _) =>
-
     if (all.getOrElse(false)) {
       drafts.removeByItemId(user)(draftId.itemId).bimap(
         toApiResult,
         itemId => Json.obj(
-          "itemId" -> itemId.toString,
+          "itemId" -> draftId.itemId.toString,
           "id" -> draftId.toIdString))
     } else {
       drafts.remove(user)(draftId, succeedIfDraftDoesNotExist.getOrElse(false))
@@ -118,6 +118,15 @@ class ItemDrafts(
           e => generalDraftApiError(e.msg),
           _ => Json.obj("id" -> draftId.toIdString))
     }
+  }
+
+  def deleteAll(id: String) = draftsAction(id) { (user, draftId, _) =>
+    drafts.removeByItemId(user)(draftId.itemId).bimap(
+      toApiResult,
+      count => Json.obj(
+        "itemId" -> draftId.itemId.toString,
+        "id" -> draftId.toIdString,
+        "count" -> count))
   }
 
   def getDraftsForOrg = Action.async { request =>
