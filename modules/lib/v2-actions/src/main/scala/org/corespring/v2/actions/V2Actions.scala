@@ -7,10 +7,9 @@ import org.corespring.v2.actions.V2Actions.GetOrgAndOpts
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ generalError, notRootOrg }
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
-import securesocial.core.SecureSocial.SecuredActionBuilder
+import securesocial.core.SecureSocial
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
@@ -26,8 +25,8 @@ case class OrgAndApiClientRequest[A](request: Request[A], orgAndOpts: OrgAndOpts
 case class V2ActionExecutionContext(context: ExecutionContext)
 
 trait V2Actions {
-  val Secured: SecuredActionBuilder[AnyContent]
-  val Org: ActionBuilder[OrgRequest]
+  def SecuredAction = new SecureSocial {}.SecuredAction
+  def Org: OrgActionBuilder
   val RootOrg: ActionBuilder[OrgRequest]
   val OrgAndApiClient: ActionBuilder[OrgAndApiClientRequest]
 }
@@ -44,15 +43,17 @@ private[actions] abstract class BaseOrgActionBuilder[R[_]](
 
   def makeWrappedRequest[A](rh: Request[A], id: OrgAndOpts): Validation[V2Error, R[A]]
 
+  def onAuthFailed(err: V2Error): SimpleResult = Status(err.statusCode)(err.json)
+
   implicit val ec = v2ActionContext.context
 
   override protected def invokeBlock[A](request: Request[A], block: (R[A]) => Future[SimpleResult]): Future[SimpleResult] = {
     getOrgAndOptsFn(request).flatMap { v =>
       v match {
         case Success(identity) => makeWrappedRequest(request, identity).fold(
-          e => Future.successful(Status(e.statusCode)(e.json)),
+          e => Future.successful(onAuthFailed(e)),
           r => block(r))
-        case Failure(err) => Future.successful(Status(err.statusCode)(err.json))
+        case Failure(err) => Future.successful(onAuthFailed(err))
       }
     }
   }
@@ -115,7 +116,9 @@ class DefaultV2Actions(
     def toResult(statusCode: Int): SimpleResult = Status(statusCode)(error.json)
   }
 
-  override lazy val Org = new OrgActionBuilder(v2ActionContext, getOrgAndOptsFn)
+  override lazy val Org = {
+    new OrgActionBuilder(v2ActionContext, getOrgAndOptsFn)
+  }
 
   override lazy val OrgAndApiClient: ActionBuilder[OrgAndApiClientRequest] = {
     new OrgAndApiClientActionBuilder(apiClientService, v2ActionContext, getOrgAndOptsFn)
