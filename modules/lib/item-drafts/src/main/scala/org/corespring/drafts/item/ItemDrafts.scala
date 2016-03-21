@@ -76,7 +76,7 @@ class ItemDrafts(
     } yield itemId
   }
 
-  def remove(user: OrgAndUser)(id: DraftId) = {
+  def remove(user: OrgAndUser)(id: DraftId, succeedIfDraftDoesNotExist: Boolean = false) = {
     logger.debug(s"function=remove, id=$id")
     for {
       _ <- if (owns(user)(id)) {
@@ -85,8 +85,9 @@ class ItemDrafts(
         Failure(UserCantRemove(user, id))
       }
       _ <- draftService.remove(id) match {
-        case true => Success()
-        case false => Failure(DeleteDraftFailed(id))
+        case 0 if succeedIfDraftDoesNotExist => Success()
+        case 0 => Failure(DeleteDraftFailed(id))
+        case _ => Success()
       }
       _ <- assets.deleteDraft(id)
     } yield id

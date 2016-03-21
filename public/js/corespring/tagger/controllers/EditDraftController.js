@@ -70,6 +70,13 @@
     //---------------------------------------------
 
     function initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem() {
+      ItemDraftService.deleteDraft($scope.itemId, function(data) {
+        Logger.debug('draft ' + $scope.itemId + ' deleted');
+        done();
+      }, function(err) {
+        Logger.warn('draft ' + $scope.itemId + ' not deleted');
+        done(err);
+      });
       $scope.discardDraft(function () {
         $scope.loadDraftItem();
       });

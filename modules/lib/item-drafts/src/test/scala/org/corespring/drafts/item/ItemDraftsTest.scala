@@ -170,7 +170,7 @@ class ItemDraftsTest extends Specification with Mockito {
     "remove" should {
 
       class remove(removeSuccessful: Boolean, owns: Boolean, assetsSuccessful: Boolean) extends scope {
-        draftService.remove(any[DraftId]) returns removeSuccessful
+        draftService.remove(any[DraftId]) returns {if(removeSuccessful) 1 else 0}
         draftService.owns(any[OrgAndUser], any[DraftId]) returns owns
         assets.deleteDraft(any[DraftId]) returns {
           if (assetsSuccessful) Success(Unit) else Failure(TestError("deleteDraft"))
@@ -188,8 +188,13 @@ class ItemDraftsTest extends Specification with Mockito {
       "fail if assets.deleteDraft failed" in new remove(true, true, false) {
         itemDrafts.remove(ed)(oid) must_== Failure(TestError("deleteDraft"))
       }
+
       "succeed" in new remove(true, true, true) {
         itemDrafts.remove(ed)(oid) must_== Success(oid)
+      }
+
+      "succeed if remove fails but succeedIfItemDoesNotExist is true" in new remove(false, true, true) {
+        itemDrafts.remove(ed)(oid, true) must_== Success(oid)
       }
     }
 

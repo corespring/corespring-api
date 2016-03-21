@@ -64,9 +64,9 @@ trait ItemDraftService extends ItemDraftDbUtils {
     orgMatches && userMatches.getOrElse(true)
   }
 
-  def remove(id: DraftId): Boolean = {
+  def remove(id: DraftId): Int = {
     val result = collection.remove(idToDbo(id))
-    result.getN == 1
+    result.getN
   }
 
   def removeByItemId(itemId: ObjectId): Boolean = {
@@ -75,7 +75,7 @@ trait ItemDraftService extends ItemDraftDbUtils {
     result.getLastError.ok
   }
 
-  def remove(d: ItemDraft): Boolean = remove(d.id)
+  def remove(d: ItemDraft): Int = remove(d.id)
 
   def listByOrgAndVid(orgId: ObjectId, vid: VersionedId[ObjectId]) = {
     val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> vid.id)

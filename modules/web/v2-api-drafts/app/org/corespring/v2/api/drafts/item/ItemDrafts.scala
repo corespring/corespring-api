@@ -104,7 +104,7 @@ class ItemDrafts(
     }
   }
 
-  def delete(id: String, all: Option[Boolean]) = draftsAction(id) { (user, draftId, _) =>
+  def delete(id: String, all: Option[Boolean], succeedIfDraftDoesNotExist: Option[Boolean]) = draftsAction(id) { (user, draftId, _) =>
 
     if (all.getOrElse(false)) {
       drafts.removeByItemId(user)(draftId.itemId).bimap(
@@ -113,7 +113,7 @@ class ItemDrafts(
           "itemId" -> itemId.toString,
           "id" -> draftId.toIdString))
     } else {
-      drafts.remove(user)(draftId)
+      drafts.remove(user)(draftId, succeedIfDraftDoesNotExist.getOrElse(false))
         .bimap(
           e => generalDraftApiError(e.msg),
           _ => Json.obj("id" -> draftId.toIdString))
