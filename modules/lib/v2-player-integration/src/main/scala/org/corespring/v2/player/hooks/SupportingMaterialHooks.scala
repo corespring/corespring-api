@@ -1,27 +1,27 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.container.client.hooks.Hooks.{R, StatusMessage}
-import org.corespring.container.client.hooks.{SupportingMaterialHooks => ContainerHooks, _}
+import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
+import org.corespring.container.client.hooks.{ SupportingMaterialHooks => ContainerHooks, _ }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.models.item.resource.Resource
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.SupportingMaterialsService
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{ItemAuth, LoadOrgAndOptions}
+import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerExecutionContext
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
 import scalaz.Validation
 
 abstract class SupportingMaterialHooks[ID](
-                                 auth:ItemAuth[OrgAndOpts],
-                                 getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-                                 jsonFormatting : JsonFormatting,
-                                 implicit val ec: V2PlayerExecutionContext)
+  auth: ItemAuth[OrgAndOpts],
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  jsonFormatting: JsonFormatting,
+  implicit val ec: V2PlayerExecutionContext)
   extends ContainerHooks
   with LoadOrgAndOptions
   with MaterialToResource
@@ -29,9 +29,9 @@ abstract class SupportingMaterialHooks[ID](
 
   import jsonFormatting._
 
-  def parseId(id:String, identity:OrgAndOpts) : Validation[V2Error,ID]
+  def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, ID]
 
-  def service:SupportingMaterialsService[ID]
+  def service: SupportingMaterialsService[ID]
 
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
@@ -65,9 +65,9 @@ abstract class SupportingMaterialHooks[ID](
     service.removeFile(vid, name, filename)
   }
 
-  override def addAsset(id: String, name: String, binary: Binary)(implicit h: RequestHeader): R[JsValue] = writeForResource(id, h) { (vid) =>
+  override def addAsset(id: String, name: String, binary: Binary)(implicit h: RequestHeader): R[UploadResult] = writeForResource(id, h) { (vid) =>
     service.addFile(vid, name, binaryToFile(binary), binary.data)
-  }
+  }.map { e => e.fold(e => Left(e), _ => Right(UploadResult(binary.name))) }
 
   private def vToE[A](v: Validation[V2Error, A]) = {
     v.leftMap(e => e.statusCode -> e.message).toEither

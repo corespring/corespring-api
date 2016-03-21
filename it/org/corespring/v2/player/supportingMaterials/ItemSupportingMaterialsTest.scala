@@ -78,7 +78,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
           }
         }
 
-        ImageUtils.list(key) === Seq(key)
+        ImageUtils.list(key.replace(filename, ""))(0).contains(filename) must_== true
       }.getOrElse(failure("no result returned"))
     }
   }
@@ -151,10 +151,11 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
       assertHeadResource { r =>
         r.files.length === 2
-        r.files.exists(_.name == filename) === true
+        r.files.exists(_.name.contains(filename)) === true
       }
 
-      ImageUtils.list(s3Key) === Seq(s3Key)
+      val list = ImageUtils.list(s3Key.replace(filename, ""))
+      list(0).contains(filename) must_== true
 
     }
   }
@@ -167,8 +168,8 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
       override def addFileCall: Call = ItemRoutes.addAssetToSupportingMaterial(itemId.toString, materialName)
 
-      def removeFile = {
-        val call = ItemRoutes.deleteAssetFromSupportingMaterial(itemId.toString, materialName, filename)
+      def removeFile(name: String) = {
+        val call = ItemRoutes.deleteAssetFromSupportingMaterial(itemId.toString, materialName, name)
         val req = makeRequest(call)
         futureResult(req)
       }
@@ -183,8 +184,8 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
       val result = for {
         _ <- createHtmlMaterial
-        _ <- addFile
-        r <- removeFile
+        json <- Future.successful(contentAsJson(addFile))
+        r <- removeFile((json \ "path").as[String])
       } yield r
 
       logger.debug(contentAsString(result))
@@ -192,7 +193,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
       assertHeadResource { r =>
         r.files.length === 1
-        r.files.exists(_.name == filename) === false
+        r.files.exists(_.name.contains(filename)) === false
       }
 
       ImageUtils.list(s3Key) === Nil

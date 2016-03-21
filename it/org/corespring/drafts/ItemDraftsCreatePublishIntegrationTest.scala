@@ -9,7 +9,7 @@ import org.corespring.it.assets.ImageUtils
 import org.corespring.it.helpers.{ ItemHelper, OrganizationHelper, SecureSocialHelper }
 import org.corespring.it.scopes.{ SessionRequestBuilder, TokenRequestBuilder, orgWithAccessTokenAndItem, userAndItem }
 import org.corespring.models.item.FieldValue
-import org.corespring.models.item.resource.StoredFile
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.specs2.specification.Scope
@@ -89,19 +89,25 @@ class ItemDraftsCreatePublishIntegrationTest extends IntegrationSpecification {
 
     val commitResult = commitDraft()
     require(status(commitResult) === OK)
+
+    def trimTimestamp(f: BaseFile): BaseFile = {
+      f match {
+        case sf: StoredFile => sf.copy(name = sf.name.substring(14), storageKey = sf.storageKey.substring(14))
+      }
+    }
   }
 
   "when uploading an asset, updating the whole draft and then committing a draft" should {
     "add the asset data to the model" in new scope {
       lazy val item = ItemHelper.get(itemId).get
-      item.playerDefinition.get.files must_== expectedFiles
+      item.playerDefinition.get.files.map(trimTimestamp) must_== expectedFiles
     }
 
     "copy the assets from the draft over to the item" in new scope {
       lazy val item = ItemHelper.get(itemId).get
       val keys = ImageUtils.list(S3Paths.itemFolder(itemId))
       logger.debug(s"keys: $keys")
-      keys(0) must_== S3Paths.itemFile(itemId, "ervin.png")
+      keys(0).matches(S3Paths.itemFile(itemId, ".*?-ervin.png")) must_== true
     }
   }
 
@@ -136,24 +142,24 @@ class ItemDraftsCreatePublishIntegrationTest extends IntegrationSpecification {
 
     "have the item assets in the model of latest version of the item" in new published {
       val newItem = ItemHelper.get(newId).get
-      newItem.playerDefinition.get.files must_== Seq(StoredFile("ervin.png", "image/png", false, "ervin.png"))
+      newItem.playerDefinition.get.files.map(trimTimestamp) must_== Seq(StoredFile("ervin.png", "image/png", false, "ervin.png"))
     }
 
     "have the item assets stored on s3 for latest version of the item" in new published {
       val keys = ImageUtils.list(S3Paths.itemFolder(newId))
       logger.debug(s"keys: $keys")
-      keys(0) must_== S3Paths.itemFile(newId, "ervin.png")
+      keys(0).matches(S3Paths.itemFile(newId, ".*?-ervin.png")) must_== true
     }
 
     "have the item assets in the model of the new draft" in new published {
       val draft = itemDraftHelper.get(draftId).get
-      draft.change.data.playerDefinition.get.files must_== expectedFiles
+      draft.change.data.playerDefinition.get.files.map(trimTimestamp) must_== expectedFiles
     }
 
     "have the item assets stored on s3 for the new draft" in new published {
       val keys = ImageUtils.list(S3Paths.draftFolder(draftId))
       logger.debug(s"keys: $keys")
-      keys(0) must_== S3Paths.draftFile(draftId, "ervin.png")
+      keys(0).matches(S3Paths.draftFile(draftId, ".*?-ervin.png")) must_== true
     }
   }
 }

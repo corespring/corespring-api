@@ -25,8 +25,8 @@ class UploadImageTest extends IntegrationSpecification {
         route(request)
       }
 
-      def loadImage = {
-        val call = org.corespring.container.client.controllers.apps.routes.ItemEditor.getFile(itemId.toString, encoded)
+      def loadImage(path: String) = {
+        val call = org.corespring.container.client.controllers.apps.routes.ItemEditor.getFile(itemId.toString, path)
         val request = FakeRequest(call.method, s"${call.url}?access_token=$accessToken", FakeHeaders(), AnyContentAsEmpty)
         route(request)
       }
@@ -36,7 +36,7 @@ class UploadImageTest extends IntegrationSpecification {
         val list = ImageUtils.list(s"${itemId.id}")
         list.length === 1
         list(0).endsWith(encoded)
-        loadImage.map { loadResult =>
+        loadImage(contentAsString(result)).map { loadResult =>
           status(loadResult) === OK
         }
       }

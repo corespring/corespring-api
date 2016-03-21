@@ -1,6 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import com.amazonaws.services.s3.model.S3Object
+import org.apache.commons.httpclient.util.URIUtil
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
@@ -25,7 +26,6 @@ import play.api.test.FakeRequest
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
-
 import scala.concurrent.duration._
 
 class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
@@ -36,9 +36,15 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
   private class scope(
     val transformResult: JsValue = Json.obj(),
-    val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOptsForSpecs)) extends Scope {
+    val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOptsForSpecs)) extends Scope with BodyParserHelper {
 
     lazy val itemService = mock[ItemService]
+
+    val s3o = mock[S3Object]
+    s3o.getKey returns "some/path.png"
+
+    val item = Item(collectionId = ObjectId.get.toString)
+
     lazy val playS3 = {
       val m = mock[S3Service]
       m.download(any[String], any[String], any[Option[Headers]]) returns Results.Ok("ok")
@@ -49,18 +55,7 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       }
 
       m.s3ObjectAndData(any[String], any[Item => String])(any[RequestHeader => Either[SimpleResult, Item]]) returns {
-        val out: BodyParser[Future[(S3Object, Item)]] = BodyParser.apply { rh =>
-          val o: Iteratee[Array[Byte], Either[SimpleResult, Future[(S3Object, Item)]]] = new Iteratee[Array[Byte], Either[SimpleResult, Future[(S3Object, Item)]]] {
-            override def fold[B](folder: (Step[Array[Byte], Either[SimpleResult, Future[(S3Object, Item)]]]) => Future[B])(implicit ec: ExecutionContext): Future[B] = {
-              val s3o = mock[S3Object]
-              s3o.getKey returns "some/path.png"
-              val item = Item(collectionId = ObjectId.get.toString)
-              folder(Step.Done(Right(Future((s3o, item))), Input.Empty))
-            }
-          }
-          o
-        }
-        out
+        mkBodyParser(Future.successful(s3o, item))
       }
       m
     }
@@ -176,27 +171,37 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
   }
 
   "upload" should {
-    "call itemService.addFileToPlayerDefinition" in new scope {
 
+    trait upload extends scope with BodyParserHelper {
       val mockItem = Item(collectionId = ObjectId.get.toString)
-      val mockKey = "some/mock-key.png"
+      val mockKey = "some/mock-key with a space.png"
 
       playS3.s3ObjectAndData(any[String], any[Item => String])(any[RequestHeader => Either[SimpleResult, Item]]) returns {
-        BodyParser.apply { rh =>
-          new Iteratee[Array[Byte], Either[SimpleResult, Future[(S3Object, Item)]]] {
-            override def fold[B](folder: (Step[Array[Byte], Either[SimpleResult, Future[(S3Object, Item)]]]) => Future[B])(implicit ec: ExecutionContext): Future[B] = {
-              val s3o = mock[S3Object]
-              s3o.getKey returns mockKey
-              folder(Step.Done(Right(Future((s3o, mockItem))), Input.Empty))
-            }
-          }
-        }
+        val s3o = mock[S3Object]
+        s3o.getKey returns mockKey
+        mkBodyParser(Future.successful(s3o, mockItem))
       }
+      lazy val bp = hooks.upload(vid.toString, mockKey)((rh: RequestHeader) => None)
+      lazy val eitherResult = bp(FakeRequest()).run
+      lazy val out = eitherResult.flatMap { e =>
+        e.fold(_ => Future.successful(None), r => r.map(Some(_)))
+      }
+    }
 
-      val bp: BodyParser[Future[UploadResult]] = hooks.upload(vid.toString, mockKey)((rh: RequestHeader) => None)
-      val i: Iteratee[Array[Byte], Either[SimpleResult, Future[UploadResult]]] = bp(fakeRequest)
-      val result: Either[SimpleResult, Future[UploadResult]] = await(i.run)
-      val uploadResult = await(result.right.get)
+    "returns the path in an UploadResult" in new upload {
+      out must equalTo(Some(UploadResult(URIUtil.encodePath(mockKey)))).await
+    }
+
+    "makeKey should return the full s3 key" in new upload {
+      val captor = capture[Item => String]
+      val expectedKey = URIUtil.encodePath(mockKey)
+      out must equalTo(Some(UploadResult(expectedKey))).await
+      there was one(playS3).s3ObjectAndData(any[String], captor)(any[RequestHeader => Either[SimpleResult, Item]])
+      captor.value.apply(item) must_== URIUtil.encodePath(S3Paths.itemFile(item.id, mockKey))
+    }
+
+    "call itemService.addFileToPlayerDefinition" in new upload {
+      await(out)
       val file = StoredFile(mockKey, BaseFile.getContentType(mockKey), false, grizzled.file.util.basename(mockKey))
       there was one(itemService).addFileToPlayerDefinition(mockItem, file)
     }

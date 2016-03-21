@@ -79,11 +79,15 @@ class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpec
         logger.debug(s"clone result: ${contentAsJson(result)}")
         status(result) must_== OK
         val keys = ImageUtils.list(ItemAssetKeys.folder(clonedItemId))
-        keys must_== Seq(
-          ItemAssetKeys.supportingMaterialFile(clonedItemId, "binary-material", "puppy.small.jpg"))
+        keys(0).matches(ItemAssetKeys.supportingMaterialFile(clonedItemId, "binary-material", ".*?-puppy.small.jpg")) must_== true
 
         val material = ItemHelper.get(clonedItemId).get.supportingMaterials.find(_.name == "binary-material").get
-        material.files.find(_.name == "puppy.small.jpg") must_== Some(StoredFile(name = "puppy.small.jpg", contentType = "image/jpeg", isMain = true, storageKey = ""))
+
+        val foundFile = material.files.find {
+          case StoredFile(_, "image/jpeg", true, "") => true
+        }
+
+        foundFile.map(_.name.contains("puppy.small.jpg")) must_== Some(true)
       }
 
       "return an error if an invalid collection id is passed in" in new clone {
