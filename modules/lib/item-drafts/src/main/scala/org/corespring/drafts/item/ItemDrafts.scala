@@ -59,7 +59,7 @@ class ItemDrafts(
 
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 
-  def removeByItemId(user: OrgAndUser)(itemId: ObjectId): Validation[DraftError, ObjectId] = {
+  def removeByItemId(user: OrgAndUser)(itemId: ObjectId): Validation[DraftError, Int] = {
     logger.debug(s"function=removeByItemId, itemId=$itemId")
     for {
       _ <- if (userCanDeleteDrafts(itemId, user)) {
@@ -67,16 +67,12 @@ class ItemDrafts(
       } else {
         Failure(UserCantDeleteMultipleDrafts(user, itemId))
       }
-      _ <- if (draftService.removeByItemId(itemId)) {
-        Success(true)
-      } else {
-        Failure(GeneralError(s"error removing by item id: $itemId"))
-      }
+      numberOfRemovals <- Success(draftService.removeByItemId(itemId))
       _ <- assets.deleteDraftsByItemId(itemId)
-    } yield itemId
+    } yield numberOfRemovals
   }
 
-  def remove(user: OrgAndUser)(id: DraftId) = {
+  def remove(user: OrgAndUser)(id: DraftId, succeedIfDraftDoesNotExist: Boolean = false) = {
     logger.debug(s"function=remove, id=$id")
     for {
       _ <- if (owns(user)(id)) {
@@ -85,8 +81,9 @@ class ItemDrafts(
         Failure(UserCantRemove(user, id))
       }
       _ <- draftService.remove(id) match {
-        case true => Success()
-        case false => Failure(DeleteDraftFailed(id))
+        case 0 if succeedIfDraftDoesNotExist => Success()
+        case 0 => Failure(DeleteDraftFailed(id))
+        case _ => Success()
       }
       _ <- assets.deleteDraft(id)
     } yield id
