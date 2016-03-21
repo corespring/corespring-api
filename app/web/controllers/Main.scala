@@ -6,6 +6,7 @@ import org.bson.types.ObjectId
 import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
+import org.corespring.models.User
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.FieldValueService
@@ -100,7 +101,7 @@ class Main(
     Ok(web.views.html.sessions(monthString = monthString, apiKey = apiKey, organization = organization, orgId = orgId))
   }
 
-  def index = actions.Org {
+  def index = actions.SecuredAction {
     implicit request =>
 
       val uri: Option[String] = play.api.Play.current.configuration.getString("mongodb.default.uri")
@@ -110,15 +111,16 @@ class Main(
 
       defaultValues.map { fv =>
         //Add old 'collections' field
-        val org = request.org
-        val user = request.orgAndOpts.user
+        val user: User = userService.getUser(request.user.identityId.userId, request.user.identityId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
+        val org = orgService.findOneById(user.org.orgId).get
         val legacyJson = Json.obj("collections" -> toJson(org.contentcolls)) ++ toJson(org).as[JsObject]
         val userOrgString = stringify(legacyJson)
-        val html = web.views.html.index(dbServer, dbName, user.get, userOrgString, fv, assetsLoader)
+        val html = web.views.html.index(dbServer, dbName, user, userOrgString, fv, assetsLoader)
         Ok(html)
       }.getOrElse {
         InternalServerError("could not find organization of user")
       }
+
   }
 
   private def getDbName(uri: Option[String]): (String, String) = uri match {

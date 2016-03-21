@@ -23,7 +23,7 @@ class AssessmentApi(
 
   import jsonFormatting._
 
-  def create() = actions.Org { request =>
+  def create() = actions.Org.apply { request =>
     val json = getAssessmentJson(request.org.id, request)
     Json.fromJson[Assessment](json)(jsonFormatting.formatAssessment) match {
       case JsSuccess(jsonAssessment, _) => {

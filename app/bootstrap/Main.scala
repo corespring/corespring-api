@@ -452,7 +452,12 @@ class Main(
 
   override lazy val v2ApiActions: V2ApiActions = V2ApiActions(new DefaultV2Actions(
     defaultOrgs,
-    rh => Future { requestIdentifiers.token(rh) }(v2ApiExecutionContext.context),
+
+    /**
+     * TODO: We have to support userSession here because legacy v1 api endpoints are used in the cms
+     * These are routed to v2.
+     */
+    rh => Future { requestIdentifiers.allIdentifiers(rh) }(v2ApiExecutionContext.context),
     apiClientService,
     v2ActionContext))
 }
