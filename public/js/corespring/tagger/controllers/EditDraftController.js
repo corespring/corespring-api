@@ -130,7 +130,7 @@
       }, function(err) {
         Logger.warn('draft ' + $scope.itemId + ' not deleted');
         done(err);
-      }, false, succeedIfDraftDoesNotExist);
+      }, false, succeedIfDraftDoesNotExist === true);
     }
 
     function discardAndLoadFreshCopy() {
