@@ -193,7 +193,7 @@ object Build extends sbt.Build {
       qtiToV2,
       draftsApi,
       futureValidation,
-      v2Actions)
+      v2Actions % "test->test;compile->compile")
     .aggregate(draftsApi)
 
   lazy val v1Api = builders.web("v1-api")
@@ -285,7 +285,7 @@ object Build extends sbt.Build {
       commonViews,
       testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
-      v2Actions,
+      v2Actions % "test->test;compile->compile",
       v1Api,
       v2Api,
       v2SessionDb,

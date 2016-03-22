@@ -2,6 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.models.auth.ApiClient
+import org.corespring.v2.actions.V2ActionsFactory
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
 import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, noJson }
 import org.corespring.v2.errors.{ Field, V2Error }
@@ -36,7 +37,7 @@ class ExternalModelLaunchApiTest extends V2ApiSpec {
     lazy val config = ExternalModelLaunchConfig("/v2/player/player.js")
 
     lazy val api = new ExternalModelLaunchApi(
-      TestV2Actions.apply,
+      V2ActionsFactory.apply,
       tokenService,
       sessionServices,
       config,

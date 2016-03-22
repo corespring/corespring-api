@@ -6,6 +6,7 @@ import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
+import org.corespring.v2.actions.V2ActionsFactory
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
@@ -71,7 +72,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
     val apiContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
 
     val api = new ItemSessionApi(
-      TestV2Actions.apply,
+      V2ActionsFactory.apply,
       mockSessionAuth,
       mockScoreService,
       mockOrgService,
@@ -102,7 +103,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       "return apiClient" in new apiScope(clonedSession = Success(new ObjectId()),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
-        (contentAsJson(result) \ "apiClient").asOpt[String] === Some(TestV2Actions.apiClient.clientId.toString)
+        (contentAsJson(result) \ "apiClient").asOpt[String] === Some(V2ActionsFactory.apiClient.clientId.toString)
       }
 
       "return cloned session options decryptable by apiClient" in new apiScope(

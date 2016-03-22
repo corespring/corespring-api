@@ -2,6 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.models.auth.ApiClient
+import org.corespring.v2.actions.V2ActionsFactory
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
 import org.corespring.v2.auth.models.{ AuthMode, MockFactory }
 import org.corespring.v2.errors.Errors.{ generalError, noJson }
@@ -35,7 +36,7 @@ class PlayerTokenApiTest extends Specification
       m
     }
 
-    val api = new PlayerTokenApi(TestV2Actions.apply, tokenService, V2ApiExecutionContext(ExecutionContext.global))
+    val api = new PlayerTokenApi(V2ActionsFactory.apply, tokenService, V2ApiExecutionContext(ExecutionContext.global))
   }
 
   "PlayerTokenApi" should {

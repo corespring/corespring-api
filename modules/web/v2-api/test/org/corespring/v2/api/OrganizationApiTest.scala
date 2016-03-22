@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, Organization }
 import org.corespring.services.OrgCollectionService
+import org.corespring.v2.actions.V2ActionsFactory
 import org.corespring.v2.auth.models.MockFactory
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -35,7 +36,7 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
     val v2ApiContext = V2ApiExecutionContext(ExecutionContext.Implicits.global)
 
     val api = new OrganizationApi(
-      TestV2Actions.apply,
+      V2ActionsFactory.apply,
       orgCollectionService,
       v2ApiContext)
 
@@ -50,7 +51,7 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
 
     trait withTwoOrgs extends scope {
       val orgWithWrite = mkOrg(collectionId, Permission.Write)
-      orgCollectionService.getOrgsWithAccessTo(any[ObjectId]) returns Stream(orgWithWrite, TestV2Actions.orgAndOpts.org)
+      orgCollectionService.getOrgsWithAccessTo(any[ObjectId]) returns Stream(orgWithWrite, V2ActionsFactory.orgAndOpts.org)
       val result = api.getOrgsWithSharedCollection(collectionId)(FakeRequest())
       val json = contentAsJson(result)
     }

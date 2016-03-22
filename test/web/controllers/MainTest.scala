@@ -10,6 +10,7 @@ import org.corespring.models.{ Standard, Subject }
 import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.v2.actions.V2ActionsFactory
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.MockFactory
@@ -90,12 +91,11 @@ class MainTest extends Specification with Mockito with PlaySpecification with Mo
 
     val assetsLoader = mock[AssetsLoader]
 
-    lazy val orgAndOpts = mockOrgAndOpts()
-    lazy val actions = new TestV2Actions(orgAndOpts, ApiClient(orgAndOpts.org.id, ObjectId.get, "clientSecret")).actions
+    lazy val orgAndOpts = V2ActionsFactory.orgAndOpts
+    lazy val actions = V2ActionsFactory.apply
 
     val main = new Main(
       actions,
-      apiClientService,
       fieldValueService,
       jsonFormatting,
       userService,

@@ -3,6 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.{ Answer, Assessment, Participant }
 import org.corespring.services.assessment.AssessmentService
+import org.corespring.v2.actions.V2ActionsFactory
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsObject, Json }
 import play.api.test.FakeRequest
@@ -20,7 +21,8 @@ class AssessmentApiTest extends V2ApiSpec {
     authorId: Option[String] = None,
     participants: Seq[String] = Seq.empty[String]) extends Scope with V2ApiScope {
 
-    lazy val orgAndOpts = TestV2Actions.orgAndOpts
+    lazy val v2Actions = V2ActionsFactory.apply
+    lazy val orgAndOpts = V2ActionsFactory.orgAndOpts
 
     val orgId = Some(orgAndOpts.org.id)
 
@@ -83,7 +85,7 @@ class AssessmentApiTest extends V2ApiSpec {
     }
 
     val assessmentApi = new AssessmentApi(
-      TestV2Actions.apply,
+      v2Actions,
       assessmentService,
       jsonFormatting,
       v2ApiContext)

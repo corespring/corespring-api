@@ -3,6 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexQuery, ItemIndexSearchResult }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.actions.V2ActionsFactory
 import play.api.libs.json._
 
 import scala.concurrent._
@@ -25,7 +26,7 @@ class ItemApiSearchTest extends ItemApiSpec {
   "search" should {
 
     implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
-    val allowableCollections = TestV2Actions.orgCollections
+    val allowableCollections = V2ActionsFactory.orgCollections
     val restrictedCollection = new ObjectId()
 
     "call itemIndexService#search" in new searchApiScope {
@@ -41,7 +42,7 @@ class ItemApiSearchTest extends ItemApiSpec {
           val query = Json.obj("collections" -> Seq()).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
           waitFor(result)
-          there was one(itemIndexService).search(ItemIndexQuery(collections = TestV2Actions.orgCollections.map(_.toString)))
+          there was one(itemIndexService).search(ItemIndexQuery(collections = V2ActionsFactory.orgCollections.map(_.toString)))
         }
     }
 

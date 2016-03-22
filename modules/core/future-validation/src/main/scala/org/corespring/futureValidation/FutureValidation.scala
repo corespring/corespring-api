@@ -9,7 +9,7 @@ import scalaz.{ Success, Failure, Validation }
 
 object FutureValidation {
   def apply[E, A](validation: => Validation[E, A])(implicit executor: ExecutionContext): FutureValidation[E, A] = {
-    apply(Future(validation))
+    apply(Future.successful(validation))
   }
 
   def fv[E, A](v: Validation[E, A])(implicit ec: ExecutionContext): FutureValidation[E, A] = FutureValidation(v)

@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.metadata.{ Metadata, MetadataSet, SchemaMetadata }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
+import org.corespring.v2.actions.V2ActionsFactory
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.test.FakeRequest
@@ -61,7 +62,7 @@ class MetadataApiTest extends V2ApiSpec {
     }
 
     val v2ApiContext = V2ApiExecutionContext(ExecutionContext.global)
-    val metadataApi = new MetadataApi(TestV2Actions.apply, metadataSetService, metadataService, v2ApiContext)
+    val metadataApi = new MetadataApi(V2ActionsFactory.apply, metadataSetService, metadataService, v2ApiContext)
   }
 
   val metadata = Map("this" -> Map("is" -> "the"), "form" -> Map("of" -> "metadata"))

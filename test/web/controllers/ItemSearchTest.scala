@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexQuery, ItemIndexSearchResult, ItemIndexService }
 import org.corespring.models.auth.{ ApiClient, Permission }
 import org.corespring.services.OrgCollectionService
-import org.corespring.v2.actions.{ OrgAndApiClientRequest, OrgRequest, V2Actions }
+import org.corespring.v2.actions.{ OrgAndApiClientRequest, OrgRequest, V2Actions, V2ActionsFactory }
 import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
@@ -63,7 +63,7 @@ class ItemSearchTest extends Specification with Mockito with MockFactory {
 
     lazy val webExecutionContext = WebExecutionContext(ExecutionContext.Implicits.global)
 
-    lazy val actions = new TestV2Actions(orgAndOpts, ApiClient(orgAndOpts.org.id, ObjectId.get, "clientSecret")).actions
+    lazy val actions = V2ActionsFactory.apply
 
     val controller = new ItemSearch(
       actions,

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.services.{ StandardQuery, StandardService, SubjectQuery, SubjectService }
+import org.corespring.v2.actions.V2ActionsFactory
 import org.mockito.Matchers
 import org.specs2.specification.{ Fragment, Scope }
 import play.api.libs.json.Json
@@ -44,7 +45,7 @@ class FieldValuesApiTest extends V2ApiSpec {
     }
 
     val api = new FieldValuesApi(
-      TestV2Actions.apply,
+      V2ActionsFactory.apply,
       itemIndexService,
       v2ApiContext,
       standardService,

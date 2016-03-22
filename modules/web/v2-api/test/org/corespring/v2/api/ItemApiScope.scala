@@ -8,6 +8,7 @@ import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.services.{ CloneItemService, OrgCollectionService, OrganizationService }
+import org.corespring.v2.actions.V2ActionsFactory
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
@@ -121,7 +122,7 @@ private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory w
   lazy val apiContext = ItemApiExecutionContext(ExecutionContext.Implicits.global)
 
   lazy val api = new ItemApi(
-    TestV2Actions.apply,
+    V2ActionsFactory.apply,
     itemService,
     orgService,
     orgCollectionService,

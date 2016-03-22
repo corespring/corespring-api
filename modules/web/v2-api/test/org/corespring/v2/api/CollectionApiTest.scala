@@ -5,6 +5,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.services.item.ItemAggregationService
 import org.corespring.services.{ ContentCollectionService, ContentCollectionUpdate, OrgCollectionService, ShareItemWithCollectionsService }
+import org.corespring.v2.actions.V2ActionsFactory
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.specs2.specification.{ Fragments, Scope }
 import play.api.libs.json.Json
@@ -59,7 +60,7 @@ class CollectionApiTest extends V2ApiSpec {
       m
     }
 
-    lazy val orgId = TestV2Actions.orgAndOpts.org.id
+    lazy val orgId = V2ActionsFactory.orgAndOpts.org.id
 
     lazy val contentCollectionService: ContentCollectionService = {
       val m = mock[ContentCollectionService]
@@ -71,7 +72,7 @@ class CollectionApiTest extends V2ApiSpec {
         Success(
           ContentCollection(
             id = collectionId,
-            ownerOrgId = TestV2Actions.orgAndOpts.org.id,
+            ownerOrgId = orgId,
             name = update.name.getOrElse("?"),
             isPublic = update.isPublic.getOrElse(false)))
       }
@@ -95,7 +96,7 @@ class CollectionApiTest extends V2ApiSpec {
     }
 
     val api = new CollectionApi(
-      TestV2Actions.apply,
+      V2ActionsFactory.apply,
       shareItemWithCollectionService,
       orgCollectionService,
       contentCollectionService,
