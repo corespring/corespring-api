@@ -3,8 +3,8 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.assets.ItemAssetKeys
 import org.corespring.it.assets.ImageUtils
-import org.corespring.it.helpers.{ CollectionHelper, ItemHelper, OrganizationHelper }
-import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessTokenAndItem }
+import org.corespring.it.helpers.{ CollectionHelper, ItemHelper, OrganizationHelper, SecureSocialHelper }
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.it.{ IntegrationSpecification, MultipartFormDataWriteable }
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -19,7 +19,7 @@ class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpec
   "ItemApi" should {
     "when calling clone" should {
 
-      trait clone extends orgWithAccessTokenAndItem with TokenRequestBuilder {
+      trait clone extends userAndItem with SessionRequestBuilder with SecureSocialHelper {
 
         def json = Json.obj()
 
