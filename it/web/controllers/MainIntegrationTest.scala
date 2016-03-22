@@ -38,7 +38,6 @@ class MainIntegrationTest extends IntegrationSpecification {
 
       result.map { r =>
         val content = contentAsString(r)
-        println(content)
         status(r) must_== OK
         content must contain(client.clientId.toString)
         content must contain(itemId.toString)
