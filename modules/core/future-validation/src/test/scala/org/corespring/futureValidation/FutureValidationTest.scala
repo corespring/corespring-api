@@ -46,11 +46,11 @@ class FutureValidationTest extends Specification {
 
   "leftMap" should {
     "return a FutureValidation[EE,B] Success" in {
-      FutureValidation(suc).leftMap { gotWhatLeftMap }.future must equalTo(suc).await
+      FutureValidation(suc).leftMap(gotWhatLeftMap).future must equalTo(suc).await
     }
 
     "return a FutureValidation[EE,B] Failure" in {
-      FutureValidation(fai).leftMap { gotWhatLeftMap }.future must equalTo(Failure(gotWhatLeftMap("failure"))).await
+      FutureValidation(fai).leftMap(gotWhatLeftMap).future must equalTo(Failure(gotWhatLeftMap("failure"))).await
     }
   }
 }
