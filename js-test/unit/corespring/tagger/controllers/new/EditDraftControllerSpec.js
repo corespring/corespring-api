@@ -155,9 +155,15 @@ describe('tagger.controllers.new.EditDraftController', function() {
       //there is no straightforward way to spy
       //on the scope itself, so we have to duplicate the tests
       //for initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem here
-      it('discards a draft', function(){
+      it('discards a draft with succeedIfDraftDoesNotExist=true', function(){
         mkController();
-        expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalled();
+        expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalledWith(
+          mocks.routeParams.itemId,
+          jasmine.any(Function),
+          jasmine.any(Function),
+          false,
+          true
+        );();
       });
 
       it('loads a draft', function(){
@@ -266,12 +272,15 @@ describe('tagger.controllers.new.EditDraftController', function() {
   describe('discardDraft', function() {
 
     it('calls ItemDraftService.deleteDraft', function() {
+      mocks.itemDraftService.deleteDraft.reset();
       scope.discardDraft();
       expect(mocks.itemDraftService.deleteDraft)
         .toHaveBeenCalledWith(
           mocks.routeParams.itemId,
           jasmine.any(Function),
-          jasmine.any(Function)
+          jasmine.any(Function),
+          false,
+          false
         );
     });
   });
