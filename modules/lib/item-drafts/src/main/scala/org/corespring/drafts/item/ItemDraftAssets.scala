@@ -27,6 +27,8 @@ object DraftAssetKeys extends AssetKeys[DraftId] {
   }
 
   def draftItemIdFolder(itemId: ObjectId) = s"item-drafts/item-${itemId}"
+
+  def draftWildcard(itemId: ObjectId, wildcard: String): String = s"${draftItemIdFolder(itemId)}/$wildcard"
 }
 
 object S3Paths {
@@ -40,6 +42,8 @@ object S3Paths {
   def draftFolder(id: DraftId): String = DraftAssetKeys.folder(id)
 
   def draftFile(id: DraftId, path: String): String = DraftAssetKeys.file(id, path)
+
+  def draftWildcard(itemId: ObjectId, wildcard: String): String = DraftAssetKeys.draftWildcard(itemId, wildcard)
 }
 
 class S3ItemDraftAssets(s3: AmazonS3, bucket: Bucket) extends ItemDraftAssets {
