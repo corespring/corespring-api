@@ -1,9 +1,10 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.models.{ ContentCollRef, Organization }
+import org.corespring.models.{ColorPalette, ContentCollRef, Organization}
 import org.corespring.models.auth.Permission
-import org.corespring.services.OrgCollectionService
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.{OrganizationService, OrgCollectionService}
 import org.corespring.v2.auth.models.{ AuthMode, MockFactory }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -22,11 +23,14 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
 
     val collectionId = ObjectId.get
 
-    lazy val mockedOrgAndOpts = mockOrgAndOpts(AuthMode.UserSession)
+    val colorPalette = ColorPalette(correctColor = "#FFDDAA", correctColorLight = "#334253")
+
+    lazy val mockedOrgAndOpts = mockOrgAndOpts(AuthMode.UserSession, colorPalette = colorPalette)
     lazy val orgAndOptsResult = Success(mockedOrgAndOpts)
 
+
     protected def mkOrg(id: ObjectId, p: Permission) = {
-      Organization("test-org", contentcolls = Seq(ContentCollRef(id, p.value, true)))
+      Organization("test-org", contentcolls = Seq(ContentCollRef(id, p.value, true)), colorPalette = colorPalette)
     }
 
     lazy val orgCollectionService = {
@@ -36,6 +40,8 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
       m
     }
 
+    val orgService = mock[OrganizationService]
+
     val v2ApiContext = V2ApiExecutionContext(ExecutionContext.Implicits.global)
 
     val getOrgAndOptsFn = (rh: RequestHeader) => {
@@ -43,6 +49,7 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
     }
 
     val api = new OrganizationApi(
+      orgService,
       orgCollectionService,
       v2ApiContext,
       getOrgAndOptsFn)
@@ -74,4 +81,37 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
           "permission" -> Permission.Write.name))
     }
   }
+
+  "getColorPalette" should {
+
+    implicit val reads = new ColorPalette.Reads(ColorPalette.default)
+
+    "return colorPalette from current org" in new scope {
+      val result = api.getColorPalette(FakeRequest())
+      val palette = Json.fromJson[ColorPalette](contentAsJson(result))
+        .getOrElse(throw new Exception("Could not deserialize result"))
+      palette must be equalTo(colorPalette)
+    }
+
+  }
+
+  "setColorPalette" should {
+
+    implicit val writes = ColorPalette.Writes
+
+    val updatedColorPalette = ColorPalette(correctColor = "#FA46BA", correctColorLight = "#666724")
+    val json = Json.toJson(updatedColorPalette)
+
+    "return updated colorPalette" in new scope {
+      orgService.save(any[Organization]) answers { (obj, mock) =>
+        val arr = obj.asInstanceOf[Array[Any]]
+        val d = arr(0).asInstanceOf[Organization]
+        Success(d)
+      }
+      val result = api.updateColorPalette(FakeRequest().withJsonBody(json))
+      contentAsJson(result) must be equalTo(json)
+    }
+
+  }
+
 }
