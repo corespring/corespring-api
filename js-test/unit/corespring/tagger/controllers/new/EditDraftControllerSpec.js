@@ -163,7 +163,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
           jasmine.any(Function),
           false,
           true
-        );();
+        );
       });
 
       it('loads a draft', function(){
