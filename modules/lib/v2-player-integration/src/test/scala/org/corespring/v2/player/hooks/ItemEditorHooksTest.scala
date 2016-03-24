@@ -121,12 +121,6 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       contentAsString(Future(result)) === err.message
     }
 
-    "return the org error" in new scope(orgAndOpts = Failure(TestError("org and opts"))) {
-      val result = hooks.loadFile(vid.toString, "path")(fakeRequest)
-      status(Future(result)) === orgAndOpts.toEither.left.get.statusCode
-      contentAsString(Future(result)) === orgAndOpts.toEither.left.get.message
-    }
-
     "default to latest version when itemid has no version" in new scope() {
       val result = hooks.loadFile(vidNoVersion.toString, "path")(fakeRequest)
       there was one(playS3).download("bucket", S3Paths.itemFile(vid, "path"), null)
