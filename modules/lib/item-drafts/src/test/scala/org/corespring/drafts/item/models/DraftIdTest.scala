@@ -25,6 +25,10 @@ class DraftIdTest extends Specification {
       DraftId.fromIdString(s"$itemId~name", orgId) must_== Some(DraftId(itemId, "name", orgId))
     }
 
+    "read a versioned id string" in {
+      DraftId.fromIdString(s"$itemId:0~name", orgId) must_== Some(DraftId(itemId, "name", orgId))
+    }
+
     "url decode the name id string" in {
       DraftId.fromIdString(s"$itemId~name+how+are+you", orgId) must_== Some(DraftId(itemId, "name how are you", orgId))
     }
