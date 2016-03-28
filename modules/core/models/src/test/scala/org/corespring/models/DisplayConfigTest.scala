@@ -6,12 +6,28 @@ class DisplayConfigTest extends Specification {
 
   "DisplayConfig" should {
 
-    "with invalid iconSet value" should {
+    "iconSet" should {
 
-      "sets iconSet value to default" in {
-        DisplayConfig(iconSet = "invalid", colors = ColorPalette.default)
-          .iconSet must be equalTo(DisplayConfig.Defaults.iconSet)
+      "with invalid value" should {
+
+        "sets value to default" in {
+          DisplayConfig(iconSet = "invalid", colors = ColorPalette.default)
+            .iconSet must be equalTo(DisplayConfig.Defaults.iconSet)
+        }
+
       }
+
+      "with valid value" should {
+
+        "set value" in {
+          DisplayConfig.IconSets.sets.map{ iconSet => {
+            DisplayConfig(iconSet = iconSet, colors = ColorPalette.default)
+              .iconSet must be equalTo(iconSet)
+          }}.tail
+        }
+
+      }
+
 
     }
 
