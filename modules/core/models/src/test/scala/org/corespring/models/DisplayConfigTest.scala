@@ -1,6 +1,7 @@
 package org.corespring.models
 
 import org.specs2.mutable.Specification
+import play.api.libs.json.{JsError, Json}
 
 class DisplayConfigTest extends Specification {
 
@@ -10,9 +11,8 @@ class DisplayConfigTest extends Specification {
 
       "with invalid value" should {
 
-        "sets value to default" in {
-          DisplayConfig(iconSet = "invalid", colors = ColorPalette.default)
-            .iconSet must be equalTo(DisplayConfig.Defaults.iconSet)
+        "throws an exception" in {
+           { DisplayConfig(iconSet = "invalid", colors = ColorPalette.default) } must throwAn[Exception]
         }
 
       }
@@ -28,6 +28,21 @@ class DisplayConfigTest extends Specification {
 
       }
 
+    }
+
+    "Reads" should {
+
+      implicit val Reads = new DisplayConfig.Reads(DisplayConfig.default)
+
+      "invalid iconSet" should {
+
+        val json = Json.obj("iconSet" -> "invalid")
+
+        "return JsError" in {
+          Json.fromJson[DisplayConfig](json) must haveClass[JsError]
+        }
+
+      }
 
     }
 

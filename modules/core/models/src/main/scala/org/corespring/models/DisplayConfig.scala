@@ -2,7 +2,9 @@ package org.corespring.models
 
 import play.api.libs.json._
 
-class DisplayConfig private (val iconSet: String, val colors: ColorPalette)
+case class DisplayConfig(iconSet: String, colors: ColorPalette) {
+  if (!DisplayConfig.IconSets.valid(iconSet)) throw new IllegalStateException(s"Invalid iconSet value '$iconSet'")
+}
 
 object DisplayConfig {
 
@@ -21,21 +23,22 @@ object DisplayConfig {
     def valid(iconSet: String) = sets.contains(iconSet)
   }
 
-  def apply(iconSet: String, colors: ColorPalette) = IconSets.valid(iconSet) match {
-    case true => new DisplayConfig(iconSet, colors)
-    case _ => new DisplayConfig(Defaults.iconSet, colors)
-  }
-
   val default = DisplayConfig(iconSet = Defaults.iconSet, colors = Defaults.colors)
 
   class Reads(prior: DisplayConfig) extends play.api.libs.json.Reads[DisplayConfig] {
-    import Fields._
     implicit val ColorPaletteReads = new ColorPalette.Reads(prior.colors)
 
-    override def reads(json: JsValue): JsResult[DisplayConfig] = Json.fromJson[ColorPalette](json \ colors) match {
-      case JsSuccess(colors, _) =>
-        JsSuccess(DisplayConfig(iconSet = (json \ iconSet).asOpt[String].getOrElse(Defaults.iconSet), colors = colors))
-      case error: JsError => error
+    override def reads(json: JsValue): JsResult[DisplayConfig] = {
+      val iconSet = (json \ Fields.iconSet).asOpt[String].getOrElse(Defaults.iconSet)
+      DisplayConfig.IconSets.valid(iconSet) match {
+        case true => Json.fromJson[ColorPalette](json \ Fields.colors) match {
+          case JsSuccess(colors, _) =>
+            JsSuccess(DisplayConfig(
+              iconSet = (json \ Fields.iconSet).asOpt[String].getOrElse(Defaults.iconSet), colors = colors))
+          case error: JsError => error
+        }
+        case _ => JsError(s"Invalid iconSet value '$iconSet'")
+      }
     }
 
   }
