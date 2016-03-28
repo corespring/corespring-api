@@ -7,7 +7,7 @@ case class Organization(name: String,
   path: Seq[ObjectId] = Seq(),
   contentcolls: Seq[ContentCollRef] = Seq(),
   metadataSets: Seq[MetadataSetRef] = Seq(),
-  colorPalette: ColorPalette = ColorPalette.default,
+  displayConfig: DisplayConfig = DisplayConfig.default,
   id: ObjectId = new ObjectId()) {
 
   def accessibleCollections = contentcolls.filter(_.enabled).flatMap { r =>

@@ -5,14 +5,6 @@ import play.api.libs.json.Json
 
 class ColorPaletteTest extends Specification {
 
-  "lighten" should {
-
-    "convert to lighter color" in {
-      ColorPalette.lighten("#84A783", 0.45) must be equalTo("#C7D7C7")
-    }
-
-  }
-
   "Reads" should {
 
     import ColorPalette._

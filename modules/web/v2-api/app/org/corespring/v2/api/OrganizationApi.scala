@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.models.{ColorPalette, Organization}
+import org.corespring.models.{DisplayConfig, ColorPalette, Organization}
 import org.corespring.models.auth.Permission
 import org.corespring.services.{OrganizationService, OrgCollectionService}
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -46,20 +46,20 @@ class OrganizationApi(
     }
   }
 
-  def getColorPalette = futureWithIdentity { (identity, request) =>
-    implicit val Writes = ColorPalette.Writes
-    Future.successful(Ok(Json.toJson(identity.org.colorPalette)))
+  def getDisplayConfig = futureWithIdentity { (identity, request) =>
+    implicit val Writes = DisplayConfig.Writes
+    Future.successful(Ok(Json.toJson(identity.org.displayConfig)))
   }
 
-  def updateColorPalette = futureWithIdentity { (identity, request) =>
-    implicit val Writes = ColorPalette.Writes
-    implicit val Reads = new ColorPalette.Reads(identity.org.colorPalette)
+  def updateDisplayConfig = futureWithIdentity { (identity, request) =>
+    implicit val Writes = DisplayConfig.Writes
+    implicit val Reads = new DisplayConfig.Reads(identity.org.displayConfig)
 
     Future.successful(request.body.asJson match {
-      case Some(json) => Json.fromJson[ColorPalette](json) match {
-        case JsSuccess(palette, _) =>
-          organizationService.save(identity.org.copy(colorPalette = palette)).v2Error.map(org =>
-            Json.toJson(org.colorPalette)).toSimpleResult()
+      case Some(json) => Json.fromJson[DisplayConfig](json) match {
+        case JsSuccess(displayConfig, _) =>
+          organizationService.save(identity.org.copy(displayConfig = displayConfig)).v2Error.map(org =>
+            Json.toJson(org.displayConfig)).toSimpleResult()
       }
       case _ => BadRequest("Nope nope nope")
     })

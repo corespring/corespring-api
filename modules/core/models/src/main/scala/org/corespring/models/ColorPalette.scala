@@ -74,24 +74,4 @@ object ColorPalette {
     nothingSubmittedAccent = Defaults.nothingSubmittedAccent, partiallyCorrectDark = Defaults.partiallyCorrectDark,
     partiallyCorrectLight = Defaults.partiallyCorrectLight)
 
-  /**
-   * Note that these are probably unnecessary; we can handle this on the client end.
-   */
-  def lighten(hex: String, alpha: Double): String = {
-    val (r,g,b) = rgb(hex)
-    toHex(((1 - alpha) * 255 + alpha * r).toInt,
-      ((1 - alpha) * 255 + alpha * g).toInt,
-      ((1 - alpha) * 255 + alpha * b).toInt)
-  }
-
-  private def rgb(hex: String): (Int, Int, Int) = {
-    val hexregex = "^#?([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$".r
-    hex match {
-      case hexregex(r,g,b) => (Integer.parseInt(r, 16), Integer.parseInt(g, 16), Integer.parseInt(b, 16))
-      case _ => (0,0,0)
-    }
-  }
-
-  private def toHex(r: Int, g: Int, b: Int): String = s"#${r.toHexString}${g.toHexString}${b.toHexString}".toUpperCase
-
 }
