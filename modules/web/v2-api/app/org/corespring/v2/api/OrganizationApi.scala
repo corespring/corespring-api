@@ -5,7 +5,7 @@ import org.corespring.models.{DisplayConfig, ColorPalette, Organization}
 import org.corespring.models.auth.Permission
 import org.corespring.services.{OrganizationService, OrgCollectionService}
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.generalError
+import org.corespring.v2.errors.Errors.{invalidJson, generalError}
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{JsSuccess, JsArray, JsValue, Json}
 import play.api.mvc.RequestHeader
@@ -48,7 +48,7 @@ class OrganizationApi(
 
   def getDisplayConfig = futureWithIdentity { (identity, request) =>
     implicit val Writes = DisplayConfig.Writes
-    Future.successful(Ok(Json.toJson(identity.org.displayConfig)))
+    Future.successful(Ok(Json.prettyPrint(Json.toJson(identity.org.displayConfig))))
   }
 
   def updateDisplayConfig = futureWithIdentity { (identity, request) =>
@@ -61,7 +61,7 @@ class OrganizationApi(
           organizationService.save(identity.org.copy(displayConfig = displayConfig)).v2Error.map(org =>
             Json.toJson(org.displayConfig)).toSimpleResult()
       }
-      case _ => BadRequest("Nope nope nope")
+      case _ => invalidJson(request.body.asText.getOrElse("")).toResult
     })
   }
 
