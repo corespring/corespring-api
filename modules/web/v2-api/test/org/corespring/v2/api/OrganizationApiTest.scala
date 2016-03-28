@@ -23,7 +23,8 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
 
     val collectionId = ObjectId.get
 
-    val colorPalette = ColorPalette(correctColor = "#FFDDAA", correctColorLight = "#334253")
+    val colorPalette =
+      ColorPalette("#AAAAAA", "#BBBBBB", "#CCCCCC", "#DDDDDD", "#EEEEEE", "#111111", "#222222", "#333333", "#444444")
 
     lazy val mockedOrgAndOpts = mockOrgAndOpts(AuthMode.UserSession, colorPalette = colorPalette)
     lazy val orgAndOptsResult = Success(mockedOrgAndOpts)
@@ -99,7 +100,8 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
 
     implicit val writes = ColorPalette.Writes
 
-    val updatedColorPalette = ColorPalette(correctColor = "#FA46BA", correctColorLight = "#666724")
+    val updatedColorPalette =
+      ColorPalette("#444444", "#333333", "#222222", "#111111", "#EEEEEE", "#DDDDDD", "#CCCCCC", "#BBBBBB", "#AAAAAA")
     val json = Json.toJson(updatedColorPalette)
 
     "return updated colorPalette" in new scope {

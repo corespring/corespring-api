@@ -2,18 +2,34 @@ package org.corespring.models
 
 import play.api.libs.json._
 
-case class ColorPalette(correctColor: String, correctColorLight: String)
+case class ColorPalette(correctDark: String, correctLight: String, incorrectDark: String, incorrectLight: String,
+                         nothingSubmittedDark: String, nothingSubmittedLight: String, nothingSubmittedAccent: String,
+                         partiallyCorrectDark: String, partiallyCorrectLight: String)
 
 object ColorPalette {
 
   object Defaults {
-    val correctColor = "#84A783"
-    def correctColorLight(correctColor: String) = lighten(correctColor, 0.45)
+    val correctDark = "#8fa783"
+    val correctLight = "#c7e2c7"
+    val incorrectDark = "#eea236"
+    val incorrectLight = "#fbe7b7"
+    val nothingSubmittedDark = "#464146"
+    val nothingSubmittedLight = "#ffffff"
+    val nothingSubmittedAccent = "#e0dee0"
+    val partiallyCorrectDark = "#3a86ad"
+    val partiallyCorrectLight = "#c8e3e8"
   }
 
   object Fields {
-    val correctColor = "correctColor"
-    val correctColorLight = "correctColorLight"
+    val correctDark = "correctDark"
+    val correctLight = "correctLight"
+    val incorrectDark = "incorrectDark"
+    val incorrectLight = "incorrectLight"
+    val nothingSubmittedDark = "nothingSubmittedDark"
+    val nothingSubmittedLight = "nothingSubmittedLight"
+    val nothingSubmittedAccent = "nothingSubmittedAccent"
+    val partiallyCorrectDark = "partiallyCorrectDark"
+    val partiallyCorrectLight = "partiallyCorrectLight"
   }
 
   object Writes extends Writes[ColorPalette] {
@@ -21,8 +37,15 @@ object ColorPalette {
     import Fields._
 
     override def writes(colorPalette: ColorPalette): JsValue = Json.obj(
-      correctColor -> colorPalette.correctColor,
-      correctColorLight -> colorPalette.correctColorLight
+      correctDark -> colorPalette.correctDark,
+      correctLight -> colorPalette.correctLight,
+      incorrectDark -> colorPalette.incorrectDark,
+      incorrectLight -> colorPalette.incorrectLight,
+      nothingSubmittedDark -> colorPalette.nothingSubmittedDark,
+      nothingSubmittedLight -> colorPalette.nothingSubmittedLight,
+      nothingSubmittedAccent -> colorPalette.nothingSubmittedAccent,
+      partiallyCorrectDark -> colorPalette.partiallyCorrectDark,
+      partiallyCorrectLight -> colorPalette.partiallyCorrectLight
     )
 
   }
@@ -31,20 +54,29 @@ object ColorPalette {
 
     import Fields._
 
-    override def reads(json: JsValue): JsResult[ColorPalette] = (json \ correctColor).asOpt[String] match {
-      case Some(correctColor) => (json \ correctColorLight).asOpt[String] match {
-        case Some(correctColorLight) => JsSuccess(ColorPalette(correctColor, correctColorLight))
-        case _ => JsSuccess(ColorPalette(correctColor, Defaults.correctColorLight(correctColor)))
-      }
-      case None => JsSuccess(prior)
-    }
+    override def reads(json: JsValue): JsResult[ColorPalette] = JsSuccess(ColorPalette(
+      correctDark = (json \ correctDark).asOpt[String].getOrElse(prior.correctDark),
+      correctLight = (json \ correctLight).asOpt[String].getOrElse(prior.correctLight),
+      incorrectDark = (json \ incorrectDark).asOpt[String].getOrElse(prior.incorrectDark),
+      incorrectLight = (json \ incorrectLight).asOpt[String].getOrElse(prior.incorrectLight),
+      nothingSubmittedDark = (json \ nothingSubmittedDark).asOpt[String].getOrElse(prior.nothingSubmittedDark),
+      nothingSubmittedLight = (json \ nothingSubmittedLight).asOpt[String].getOrElse(prior.nothingSubmittedLight),
+      nothingSubmittedAccent = (json \ nothingSubmittedAccent).asOpt[String].getOrElse(prior.nothingSubmittedAccent),
+      partiallyCorrectDark = (json \ partiallyCorrectDark).asOpt[String].getOrElse(prior.partiallyCorrectDark),
+      partiallyCorrectLight = (json \ partiallyCorrectLight).asOpt[String].getOrElse(prior.partiallyCorrectLight)
+    ))
   }
 
-  val default = ColorPalette(correctColor = Defaults.correctColor)
+  val default = ColorPalette(
+    correctDark = Defaults.correctDark, correctLight = Defaults.correctLight,
+    incorrectDark = Defaults.incorrectDark, incorrectLight = Defaults.incorrectLight,
+    nothingSubmittedDark = Defaults.nothingSubmittedDark, nothingSubmittedLight = Defaults.nothingSubmittedLight,
+    nothingSubmittedAccent = Defaults.nothingSubmittedAccent, partiallyCorrectDark = Defaults.partiallyCorrectDark,
+    partiallyCorrectLight = Defaults.partiallyCorrectLight)
 
-  def apply(correctColor: String = Defaults.correctColor, correctColorLight: Option[String] = None): ColorPalette =
-    ColorPalette(correctColor, correctColorLight.getOrElse(Defaults.correctColorLight(Defaults.correctColor)))
-
+  /**
+   * Note that these are probably unnecessary; we can handle this on the client end.
+   */
   def lighten(hex: String, alpha: Double): String = {
     val (r,g,b) = rgb(hex)
     toHex(((1 - alpha) * 255 + alpha * r).toInt,
