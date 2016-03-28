@@ -5,7 +5,7 @@ import org.corespring.models.{DisplayConfig, ColorPalette, Organization}
 import org.corespring.models.auth.Permission
 import org.corespring.services.{OrganizationService, OrgCollectionService}
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{invalidJson, generalError}
+import org.corespring.v2.errors.Errors.{noJson, invalidJson, generalError}
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{JsSuccess, JsArray, JsValue, Json}
 import play.api.mvc.RequestHeader
@@ -60,8 +60,9 @@ class OrganizationApi(
         case JsSuccess(displayConfig, _) =>
           organizationService.save(identity.org.copy(displayConfig = displayConfig)).v2Error.map(org =>
             Json.toJson(org.displayConfig)).toSimpleResult()
+        case _ => invalidJson(request.body.asText.getOrElse("")).toResult
       }
-      case _ => invalidJson(request.body.asText.getOrElse("")).toResult
+      case _ => noJson.toResult
     })
   }
 

@@ -2,7 +2,7 @@ package org.corespring.models
 
 import play.api.libs.json._
 
-case class DisplayConfig(iconSet: String, colors: ColorPalette)
+class DisplayConfig private (val iconSet: String, val colors: ColorPalette)
 
 object DisplayConfig {
 
@@ -14,6 +14,16 @@ object DisplayConfig {
   object Defaults {
     val iconSet = "emoji"
     val colors = ColorPalette.default
+  }
+
+  object IconSets {
+    val sets = Seq("emoji", "check")
+    def valid(iconSet: String) = sets.contains(iconSet)
+  }
+
+  def apply(iconSet: String, colors: ColorPalette) = IconSets.valid(iconSet) match {
+    case true => new DisplayConfig(iconSet, colors)
+    case _ => new DisplayConfig(Defaults.iconSet, colors)
   }
 
   val default = DisplayConfig(iconSet = Defaults.iconSet, colors = Defaults.colors)
