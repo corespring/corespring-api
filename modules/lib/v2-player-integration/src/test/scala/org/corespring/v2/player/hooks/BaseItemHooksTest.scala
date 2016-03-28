@@ -55,6 +55,22 @@ class BaseItemHooksTest extends V2PlayerIntegrationSpec {
     }
   }
 
+  "saveXhtmlAndComponents" should {
+
+    trait saveXhtmlAndComponents extends scope {
+      val comps = Json.obj("1" -> Json.obj("componentType" -> "comp"))
+      saveXhtmlAndComponents("id", "<div>hi</div>", Json.obj("1" -> Json.obj("componentType" -> "comp")))
+    }
+
+    "update the xhtml" in new saveXhtmlAndComponents {
+      updatedItem.playerDefinition.get.xhtml must_== "<div>hi</div>"
+    }
+
+    "update the components" in new saveXhtmlAndComponents {
+      updatedItem.playerDefinition.get.components must_== comps
+    }
+  }
+
   "saveSupportingMaterials" should {
     "update the supporting materials" in new scope {
       val materials = Seq(Resource(id = Some(ObjectId.get),

@@ -1,13 +1,14 @@
 package org.corespring.v2.player
 
+import com.amazonaws.services.s3.AmazonS3
 import org.corespring.amazon.s3.S3Service
 import org.corespring.container.client.component.ComponentSetExecutionContext
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
-import org.corespring.container.client.{ integration, VersionInfo }
-import org.corespring.container.client.integration.{ DefaultIntegration }
+import org.corespring.container.client.{ VersionInfo, integration }
+import org.corespring.container.client.integration.DefaultIntegration
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
-import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
+import org.corespring.conversion.qti.transformers.{ ItemTransformer, PlayerJsonToItem }
 import org.corespring.drafts.item.ItemDrafts
 import org.corespring.models.appConfig.{ ArchiveConfig, Bucket }
 import org.corespring.models.item.PlayerDefinition
@@ -16,10 +17,10 @@ import org.corespring.services._
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.MetadataService
 import org.corespring.services.metadata.MetadataSetService
-import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
+import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.assets.{ PlayerAssetHelper, CatalogAssetHelper }
+import org.corespring.v2.player.assets.{ CatalogAssetHelper, DefaultS3PathResolver, PlayerAssetHelper, S3PathResolver }
 import org.corespring.v2.player.cdn.{ CdnPlayerItemProcessor, ItemAssetResolver }
 import org.corespring.v2.player.hooks._
 import org.corespring.container.client
@@ -64,7 +65,7 @@ trait V2PlayerModule extends DefaultIntegration {
   def orgService: OrganizationService
   def playerJsonToItem: PlayerJsonToItem
   def playMode: Mode
-
+  def s3: AmazonS3
   def s3Service: S3Service
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
   def sessionExecutionContext: SessionExecutionContext
@@ -74,6 +75,8 @@ trait V2PlayerModule extends DefaultIntegration {
   def subjectService: SubjectService
   def userService: UserService
   def v2PlayerExecutionContext: V2PlayerExecutionContext
+
+  lazy val s3PathResolver: S3PathResolver = wire[DefaultS3PathResolver]
 
   lazy val catalogAssets: CatalogAssets = wire[CatalogAssetHelper]
   lazy val playerAssets: PlayerAssets = wire[PlayerAssetHelper]
