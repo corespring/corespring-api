@@ -10,16 +10,19 @@ class ColorPaletteTest extends Specification {
     import ColorPalette._
 
     val prior =
-      ColorPalette("#FFFFFF", "#000000", "#FF00FF", "#00FF00", "#F0F0F0", "#FF0000", "#00FFFF", "#FFFF00", "#0000FF")
-    val correctDark = "#AAAAAA"
-    val correctLight = "#BBBBBB"
-    val incorrectDark = "#CCCCCC"
-    val incorrectLight = "#DDDDDD"
-    val nothingSubmittedDark = "#EEEEEE"
-    val nothingSubmittedLight = "#111111"
-    val nothingSubmittedAccent = "#222222"
-    val partiallyCorrectDark = "#333333"
-    val partiallyCorrectLight = "#444444"
+      ColorPalette("#FFFFFF", "#000000", "#FF00FF", "#00FF00", "#F0F0F0", "#FF0000", "#00FFFF", "#FFFF00", "#0000FF",
+        "#111222", "#222111")
+    val correctBackground = "#AAAAAA"
+    val correctForeground = "#BBBBBB"
+    val partiallyCorrectBackground = "#CCCCCC"
+    val incorrectBackground = "#DDDDDD"
+    val incorrectForeground = "#EEEEEE"
+    val hideShowBackground = "#111111"
+    val hideShowForeground = "#222222"
+    val warningBackground = "#333333"
+    val warningForeground = "#444444"
+    val warningBlockBackground = "#555555"
+    val warningBlockForeground ="#666666"
 
     implicit val Reads = new ColorPalette.Reads(prior)
 
@@ -29,114 +32,138 @@ class ColorPaletteTest extends Specification {
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
       "retain prior values" in {
-        result.correctDark must be equalTo (prior.correctDark)
-        result.correctLight must be equalTo (prior.correctLight)
-        result.incorrectDark must be equalTo (prior.incorrectDark)
-        result.incorrectLight must be equalTo (prior.incorrectLight)
-        result.nothingSubmittedDark must be equalTo (prior.nothingSubmittedDark)
-        result.nothingSubmittedLight must be equalTo (prior.nothingSubmittedLight)
-        result.nothingSubmittedAccent must be equalTo (prior.nothingSubmittedAccent)
-        result.partiallyCorrectDark must be equalTo (prior.partiallyCorrectDark)
-        result.partiallyCorrectLight must be equalTo (prior.partiallyCorrectLight)
+        result.correctBackground must be equalTo (prior.correctBackground)
+        result.correctForeground must be equalTo (prior.correctForeground)
+        result.partiallyCorrectBackground must be equalTo (prior.partiallyCorrectBackground)
+        result.incorrectBackground must be equalTo (prior.incorrectBackground)
+        result.incorrectForeground must be equalTo (prior.incorrectForeground)
+        result.hideShowBackground must be equalTo (prior.hideShowBackground)
+        result.hideShowForeground must be equalTo (prior.hideShowForeground)
+        result.warningBackground must be equalTo (prior.warningBackground)
+        result.warningForeground must be equalTo (prior.warningForeground)
+        result.warningBlockBackground must be equalTo(prior.warningBlockBackground)
+        result.warningBlockForeground must be equalTo(prior.warningBlockForeground)
       }
 
     }
 
-    "JSON containing correctDark" should {
+    "JSON containing correctBackground" should {
 
-      val json = Json.obj(Fields.correctDark -> correctDark)
+      val json = Json.obj(Fields.correctBackground -> correctBackground)
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
-      "update correctDark" in {
-        result.correctDark must be equalTo (correctDark)
+      "update correctBackground" in {
+        result.correctBackground must be equalTo (correctBackground)
       }
 
     }
 
-    "JSON containing correctLight" should {
+    "JSON containing correctForeground" should {
 
-      val json = Json.obj(Fields.correctLight -> correctLight)
+      val json = Json.obj(Fields.correctForeground -> correctForeground)
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
-      "update correctLight" in {
-        result.correctLight must be equalTo (correctLight)
+      "update correctForeground" in {
+        result.correctForeground must be equalTo (correctForeground)
       }
 
     }
 
-    "JSON containing incorrectDark" should {
+    "JSON containing partiallyCorrectBackground" should {
 
-      val json = Json.obj(Fields.incorrectDark -> incorrectDark)
+      val json = Json.obj(Fields.partiallyCorrectBackground -> partiallyCorrectBackground)
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
-      "update incorrectDark" in {
-        result.incorrectDark must be equalTo (incorrectDark)
+      "update partiallyCorrectBackground" in {
+        result.partiallyCorrectBackground must be equalTo (partiallyCorrectBackground)
       }
 
     }
 
-    "JSON containing incorrectLight" should {
+    "JSON containing incorrectBackground" should {
 
-      val json = Json.obj(Fields.incorrectLight -> incorrectLight)
+      val json = Json.obj(Fields.incorrectBackground -> incorrectBackground)
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
-      "update incorrectLight" in {
-        result.incorrectLight must be equalTo (incorrectLight)
+      "update incorrectBackground" in {
+        result.incorrectBackground must be equalTo (incorrectBackground)
       }
 
     }
 
-    "JSON containing nothingSubmittedDark" should {
+    "JSON containing incorrectForeground" should {
 
-      val json = Json.obj(Fields.nothingSubmittedDark -> nothingSubmittedDark)
+      val json = Json.obj(Fields.incorrectForeground -> incorrectForeground)
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
-      "update nothingSubmittedDark" in {
-        result.nothingSubmittedDark must be equalTo (nothingSubmittedDark)
+      "update incorrectForeground" in {
+        result.incorrectForeground must be equalTo (incorrectForeground)
       }
 
     }
 
-    "JSON containing nothingSubmittedLight" should {
+    "JSON containing hideShowBackground" should {
 
-      val json = Json.obj(Fields.nothingSubmittedLight -> nothingSubmittedLight)
+      val json = Json.obj(Fields.hideShowBackground -> hideShowBackground)
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
-      "update nothingSubmittedLight" in {
-        result.nothingSubmittedLight must be equalTo (nothingSubmittedLight)
+      "update hideShowBackground" in {
+        result.hideShowBackground must be equalTo (hideShowBackground)
       }
 
     }
 
-    "JSON containing nothingSubmittedAccent" should {
+    "JSON containing hideShowForeground" should {
 
-      val json = Json.obj(Fields.nothingSubmittedAccent -> nothingSubmittedAccent)
+      val json = Json.obj(Fields.hideShowForeground -> hideShowForeground)
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
-      "update nothingSubmittedAccent" in {
-        result.nothingSubmittedAccent must be equalTo (nothingSubmittedAccent)
+      "update hideShowForeground" in {
+        result.hideShowForeground must be equalTo (hideShowForeground)
       }
 
     }
 
-    "JSON containing partiallyCorrectDark" should {
+    "JSON containing warningBackground" should {
 
-      val json = Json.obj(Fields.partiallyCorrectDark -> partiallyCorrectDark)
+      val json = Json.obj(Fields.warningBackground -> warningBackground)
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
-      "update partiallyCorrectDark" in {
-        result.partiallyCorrectDark must be equalTo (partiallyCorrectDark)
+      "update warningBackground" in {
+        result.warningBackground must be equalTo (warningBackground)
       }
 
     }
 
-    "JSON containing partiallyCorrectLight" should {
+    "JSON containing warningForeground" should {
 
-      val json = Json.obj(Fields.partiallyCorrectLight -> partiallyCorrectLight)
+      val json = Json.obj(Fields.warningForeground -> warningForeground)
       val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
 
-      "update partiallyCorrectLight" in {
-        result.partiallyCorrectLight must be equalTo (partiallyCorrectLight)
+      "update warningForeground" in {
+        result.warningForeground must be equalTo (warningForeground)
+      }
+
+    }
+
+    "JSON containing warningBlockBackground" should {
+
+      val json = Json.obj(Fields.warningBlockBackground -> warningBlockBackground)
+      val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
+
+      "update warningBlockBackground" in {
+        result.warningBlockBackground must be equalTo (warningBlockBackground)
+      }
+
+    }
+
+    "JSON containing warningBlockForeground" should {
+
+      val json = Json.obj(Fields.warningBlockForeground -> warningBlockForeground)
+      val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
+
+      "update warningBlockForeground" in {
+        result.warningBlockForeground must be equalTo (warningBlockForeground)
       }
 
     }

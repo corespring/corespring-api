@@ -2,34 +2,39 @@ package org.corespring.models
 
 import play.api.libs.json._
 
-case class ColorPalette(correctDark: String, correctLight: String, incorrectDark: String, incorrectLight: String,
-                         nothingSubmittedDark: String, nothingSubmittedLight: String, nothingSubmittedAccent: String,
-                         partiallyCorrectDark: String, partiallyCorrectLight: String)
+case class ColorPalette(correctBackground: String, correctForeground: String, partiallyCorrectBackground: String,
+                        incorrectBackground: String, incorrectForeground: String, hideShowBackground: String,
+                        hideShowForeground: String, warningBackground: String, warningForeground: String,
+                        warningBlockBackground: String, warningBlockForeground: String)
 
 object ColorPalette {
 
   object Defaults {
-    val correctDark = "#8fa783"
-    val correctLight = "#c7e2c7"
-    val incorrectDark = "#eea236"
-    val incorrectLight = "#fbe7b7"
-    val nothingSubmittedDark = "#464146"
-    val nothingSubmittedLight = "#ffffff"
-    val nothingSubmittedAccent = "#e0dee0"
-    val partiallyCorrectDark = "#3a86ad"
-    val partiallyCorrectLight = "#c8e3e8"
+    val correctBackground = "#4aaf46"
+    val correctForeground = "#f8ffe2"
+    val partiallyCorrectBackground = "#c1e1ac"
+    val incorrectBackground = "#fcb733"
+    val incorrectForeground = "#fbf2e3"
+    val hideShowBackground = "#bce2ff"
+    val hideShowForeground = "#1a9cff"
+    val warningBackground = "#464146"
+    val warningForeground = "#ffffff"
+    val warningBlockBackground = "#e0dee0"
+    val warningBlockForeground = "#f8f6f6"
   }
 
   object Fields {
-    val correctDark = "correctDark"
-    val correctLight = "correctLight"
-    val incorrectDark = "incorrectDark"
-    val incorrectLight = "incorrectLight"
-    val nothingSubmittedDark = "nothingSubmittedDark"
-    val nothingSubmittedLight = "nothingSubmittedLight"
-    val nothingSubmittedAccent = "nothingSubmittedAccent"
-    val partiallyCorrectDark = "partiallyCorrectDark"
-    val partiallyCorrectLight = "partiallyCorrectLight"
+    val correctBackground = "correct-background"
+    val correctForeground = "correct-foreground"
+    val partiallyCorrectBackground = "partially-correct-background"
+    val incorrectBackground = "incorrect-background"
+    val incorrectForeground = "incorrect-foreground"
+    val hideShowBackground = "hide-show-background"
+    val hideShowForeground = "hide-show-foreground"
+    val warningBackground = "warning-background"
+    val warningForeground = "warning-foreground"
+    val warningBlockBackground = "warning-block-background"
+    val warningBlockForeground = "warning-block-foreground"
   }
 
   object Writes extends Writes[ColorPalette] {
@@ -37,15 +42,17 @@ object ColorPalette {
     import Fields._
 
     override def writes(colorPalette: ColorPalette): JsValue = Json.obj(
-      correctDark -> colorPalette.correctDark,
-      correctLight -> colorPalette.correctLight,
-      incorrectDark -> colorPalette.incorrectDark,
-      incorrectLight -> colorPalette.incorrectLight,
-      nothingSubmittedDark -> colorPalette.nothingSubmittedDark,
-      nothingSubmittedLight -> colorPalette.nothingSubmittedLight,
-      nothingSubmittedAccent -> colorPalette.nothingSubmittedAccent,
-      partiallyCorrectDark -> colorPalette.partiallyCorrectDark,
-      partiallyCorrectLight -> colorPalette.partiallyCorrectLight
+      correctBackground -> colorPalette.correctBackground,
+      correctForeground -> colorPalette.correctForeground,
+      partiallyCorrectBackground -> colorPalette.partiallyCorrectBackground,
+      incorrectBackground -> colorPalette.incorrectBackground,
+      incorrectForeground -> colorPalette.incorrectForeground,
+      hideShowBackground -> colorPalette.hideShowBackground,
+      hideShowForeground -> colorPalette.hideShowForeground,
+      warningBackground -> colorPalette.warningBackground,
+      warningForeground -> colorPalette.warningForeground,
+      warningBlockBackground -> colorPalette.warningBlockBackground,
+      warningBlockForeground -> colorPalette.warningBlockForeground
     )
 
   }
@@ -55,23 +62,26 @@ object ColorPalette {
     import Fields._
 
     override def reads(json: JsValue): JsResult[ColorPalette] = JsSuccess(ColorPalette(
-      correctDark = (json \ correctDark).asOpt[String].getOrElse(prior.correctDark),
-      correctLight = (json \ correctLight).asOpt[String].getOrElse(prior.correctLight),
-      incorrectDark = (json \ incorrectDark).asOpt[String].getOrElse(prior.incorrectDark),
-      incorrectLight = (json \ incorrectLight).asOpt[String].getOrElse(prior.incorrectLight),
-      nothingSubmittedDark = (json \ nothingSubmittedDark).asOpt[String].getOrElse(prior.nothingSubmittedDark),
-      nothingSubmittedLight = (json \ nothingSubmittedLight).asOpt[String].getOrElse(prior.nothingSubmittedLight),
-      nothingSubmittedAccent = (json \ nothingSubmittedAccent).asOpt[String].getOrElse(prior.nothingSubmittedAccent),
-      partiallyCorrectDark = (json \ partiallyCorrectDark).asOpt[String].getOrElse(prior.partiallyCorrectDark),
-      partiallyCorrectLight = (json \ partiallyCorrectLight).asOpt[String].getOrElse(prior.partiallyCorrectLight)
+      correctBackground = (json \ correctBackground).asOpt[String].getOrElse(prior.correctBackground),
+      correctForeground = (json \ correctForeground).asOpt[String].getOrElse(prior.correctForeground),
+      partiallyCorrectBackground = (json \ partiallyCorrectBackground).asOpt[String].getOrElse(prior.partiallyCorrectBackground),
+      incorrectBackground = (json \ incorrectBackground).asOpt[String].getOrElse(prior.incorrectBackground),
+      incorrectForeground = (json \ incorrectForeground).asOpt[String].getOrElse(prior.incorrectForeground),
+      hideShowBackground = (json \ hideShowBackground).asOpt[String].getOrElse(prior.hideShowBackground),
+      hideShowForeground = (json \ hideShowForeground).asOpt[String].getOrElse(prior.hideShowForeground),
+      warningBackground = (json \ warningBackground).asOpt[String].getOrElse(prior.warningBackground),
+      warningForeground = (json \ warningForeground).asOpt[String].getOrElse(prior.warningForeground),
+      warningBlockBackground = (json \ warningBlockBackground).asOpt[String].getOrElse(prior.warningBlockBackground),
+      warningBlockForeground = (json \ warningBlockForeground).asOpt[String].getOrElse(prior.warningBlockForeground)
     ))
   }
 
   val default = ColorPalette(
-    correctDark = Defaults.correctDark, correctLight = Defaults.correctLight,
-    incorrectDark = Defaults.incorrectDark, incorrectLight = Defaults.incorrectLight,
-    nothingSubmittedDark = Defaults.nothingSubmittedDark, nothingSubmittedLight = Defaults.nothingSubmittedLight,
-    nothingSubmittedAccent = Defaults.nothingSubmittedAccent, partiallyCorrectDark = Defaults.partiallyCorrectDark,
-    partiallyCorrectLight = Defaults.partiallyCorrectLight)
+    correctBackground = Defaults.correctBackground, correctForeground = Defaults.correctForeground,
+    partiallyCorrectBackground = Defaults.partiallyCorrectBackground, incorrectBackground = Defaults.incorrectBackground,
+    incorrectForeground = Defaults.incorrectForeground, hideShowBackground = Defaults.hideShowBackground,
+    hideShowForeground = Defaults.hideShowForeground, warningBackground = Defaults.warningBackground,
+    warningForeground = Defaults.warningForeground, warningBlockBackground = Defaults.warningBlockBackground,
+    warningBlockForeground = Defaults.warningBlockForeground)
 
 }

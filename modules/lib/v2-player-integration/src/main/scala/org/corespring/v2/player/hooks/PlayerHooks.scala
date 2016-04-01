@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.models.DisplayConfig
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -47,7 +48,12 @@ class PlayerHooks(
 
   lazy val logger = Logger(classOf[PlayerHooks])
 
-  override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
+  private def displayConfig(identity: OrgAndOpts): JsObject = {
+    implicit val displayConfigWrites = DisplayConfig.Writes
+    Json.toJson(identity.org.displayConfig).as[JsObject]
+  }
+
+  override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue, JsValue)]] = Future {
 
     logger.debug(s"itemId=$itemId function=createSessionForItem")
 
@@ -73,26 +79,26 @@ class PlayerHooks(
       session <- Success(createSessionJson(item))
       sessionId <- sessionAuth.create(session)(identity)
       playerDefinitionJson <- Success(playerItemProcessor.makePlayerDefinitionJson(session, item.playerDefinition))
-    } yield (Json.obj("id" -> sessionId.toString) ++ session, playerDefinitionJson)
+    } yield (Json.obj("id" -> sessionId.toString) ++ session, playerDefinitionJson, displayConfig(identity))
 
     result
       .leftMap(s => UNAUTHORIZED -> s.message)
       .toEither
   }
 
-  override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
+  override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue, JsValue)]] = Future {
     logger.debug(s"sessionId=$sessionId function=loadSessionAndItem")
 
-    val o = for {
+    val o: Validation[V2Error, (OrgAndOpts, (SessionAuth.Session, PlayerDefinition))] = for {
       identity <- getOrgAndOptions(header)
       models <- sessionAuth.loadForRead(sessionId)(identity)
-    } yield models
+    } yield (identity, models)
 
-    o.leftMap(s => s.statusCode -> s.message).rightMap { (models) =>
-      val (session, playerDefinition) = models
+    o.leftMap(s => s.statusCode -> s.message).rightMap { (result) =>
+      val (identity, (session, playerDefinition)) = result
       val playerDefinitionJson = playerItemProcessor.makePlayerDefinitionJson(session, Some(playerDefinition))
       val withId: JsValue = Json.obj("id" -> sessionId) ++ session.as[JsObject]
-      (withId, playerDefinitionJson)
+      (withId, playerDefinitionJson, displayConfig(identity))
     }.toEither
   }
 
