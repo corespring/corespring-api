@@ -185,12 +185,12 @@
                           <div ng-repeat="c in o.collections">
                               
                               <span ng-show="c.enabled">
-                                  <input 
-                                    type="checkbox" 
-                                    ng-model="selectedArr[c.${uidKey}]" 
-                                    id="{{ 'collections-' + $index }}" 
-                                    ng-click="toggleItem(c)"/>
-                                  <label for="{{ 'collections-' + $index }}"> 
+                                  <label>
+                                    <input 
+                                      type="checkbox" 
+                                      ng-model="selectedArr[c.${uidKey}]" 
+                                      id="{{ 'collections-' + $index }}" 
+                                      ng-click="toggleItem(c)"/>
                                     {{c.name}}
                                     <span ng-show="c.isPublic">(public)</span>
                                   </label>
