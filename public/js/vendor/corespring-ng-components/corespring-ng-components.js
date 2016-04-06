@@ -1,7 +1,7 @@
 (function() {
   var version;
 
-  version = '0.0.13';
+  version = '0.0.18';
 
   angular.module('cs.services', []);
 
@@ -405,6 +405,30 @@
 
   com.ee || (com.ee = {});
 
+  com.ee.v2 || (com.ee.v2 = {});
+
+  /* 
+      Prevents a RangeError from occuring for large images.
+      see:  http://stackoverflow.com/questions/12710001/how-to-convert-uint8-array-to-base64-encoded-string/12713326#12713326
+  */
+
+
+  com.ee.v2.binaryArrayToString = function(buffer) {
+    var CHUNK_SIZE, arr, index, length, result, slice;
+    arr = new Uint8Array(buffer);
+    CHUNK_SIZE = 0x8000;
+    index = 0;
+    length = arr.length;
+    result = '';
+    slice = null;
+    while (index < length) {
+      slice = arr.subarray(index, Math.min(index + CHUNK_SIZE, length));
+      result += String.fromCharCode.apply(null, slice);
+      index += CHUNK_SIZE;
+    }
+    return result;
+  };
+
   /*
   Simplifies the xhr upload api
   */
@@ -412,16 +436,19 @@
 
   this.com.ee.XHRWrapper = (function() {
     function XHRWrapper(file, formBody, url, name, options) {
-      var now,
+      var now, withCredentials,
         _this = this;
       this.file = file;
       this.formBody = formBody;
       this.url = url;
       this.name = name;
       this.options = options;
+      this.options = this.options || {};
       now = new Date().getTime();
       this.request = new XMLHttpRequest();
       this.request.upload.index = 0;
+      withCredentials = this.options.withCredentials != null ? this.options.withCredentials : true;
+      this.request.withCredentials = withCredentials;
       this.request.upload.file = this.file;
       this.request.upload.downloadStartTime = now;
       this.request.upload.currentStart = now;
@@ -438,7 +465,6 @@
       }
       this.request.open("POST", this.url, true);
       this.request.setRequestHeader("Accept", "application/json");
-      this.request.setRequestHeader("Content-Type", "application/octet-stream");
       this.request.onload = function() {
         if ([200, 201, 202, 203, 204].indexOf(_this.request.status) === -1) {
           if (_this.options.onUploadFailed != null) {
@@ -461,11 +487,88 @@
       if (this.options.onLoadStart != null) {
         this.options.onLoadStart();
       }
-      this.request.sendAsBinary(this.formBody);
+      if (typeof this.formBody === 'string') {
+        this.request.sendAsBinary(this.formBody);
+      } else {
+        this.request.send(this.formBody);
+      }
       return null;
     };
 
     return XHRWrapper;
+
+  })();
+
+  this.com.ee.v2.RawFileUploader = (function() {
+    function RawFileUploader(file, url, name, options) {
+      var reader,
+        _this = this;
+      this.file = file;
+      this.url = url;
+      this.name = name;
+      this.options = options;
+      reader = new FileReader();
+      reader.onload = function(e) {
+        _this.binaryData = e.target.result;
+        _this.xhr = new com.ee.XHRWrapper(_this.file, _this.binaryData, _this.url, _this.name, _this.options);
+        _this.xhr.setRequestHeader("Accept", "application/json");
+        _this.xhr.setRequestHeader("Content-Type", "application/octet-stream");
+        return _this.xhr.beginUpload();
+      };
+      reader.readAsArrayBuffer(this.file);
+    }
+
+    return RawFileUploader;
+
+  })();
+
+  /*
+  Build up a multipart form data request body
+  */
+
+
+  this.com.ee.v2.MultipartFileUploader = (function() {
+    function MultipartFileUploader(file, url, name, options) {
+      var reader,
+        _this = this;
+      this.file = file;
+      this.url = url;
+      this.name = name;
+      this.options = options;
+      reader = new FileReader();
+      reader.onload = function(e) {
+        var boundary, formBody;
+        _this.binaryData = e.target.result;
+        boundary = "------multipartformboundary-com-ee-mpfu";
+        _this.rawData = _this.mkBinaryString(_this.binaryData);
+        formBody = _this._buildMultipartFormBody(_this.file, _this.rawData, boundary);
+        _this.xhr = new com.ee.XHRWrapper(_this.file, formBody, _this.url, _this.name, _this.options);
+        _this.xhr.setRequestHeader('content-type', "multipart/form-data; boundary=" + boundary);
+        _this.xhr.setRequestHeader("Accept", "application/json");
+        return _this.xhr.beginUpload();
+      };
+      reader.readAsArrayBuffer(this.file);
+    }
+
+    MultipartFileUploader.prototype.mkBinaryString = function(buffer) {
+      return com.ee.v2.binaryArrayToString(buffer);
+    };
+
+    MultipartFileUploader.prototype._buildMultipartFormBody = function(file, fileBinaryData, boundary) {
+      var fileParams, formBuilder, params;
+      formBuilder = new com.ee.MultipartFormBuilder(boundary);
+      params = this.options.additionalData;
+      fileParams = [
+        {
+          file: file,
+          data: fileBinaryData,
+          paramName: this.name
+        }
+      ];
+      return formBuilder.buildMultipartFormBody(params, fileParams, boundary);
+    };
+
+    return MultipartFileUploader;
 
   })();
 
@@ -483,6 +586,7 @@
       this.options = options;
       this.xhr = new com.ee.XHRWrapper(this.file, this.binaryData, this.url, this.name, this.options);
       this.xhr.setRequestHeader("Accept", "application/json");
+      this.xhr.setRequestHeader("Content-Type", "application/octet-stream");
     }
 
     RawFileUploader.prototype.beginUpload = function() {
@@ -823,7 +927,7 @@
   angular.module('cs.directives').directive('multiSelect', [
     '$timeout', 'Utils', function($timeout, Utils) {
       var compile, defaultRepeater, definition, link, template;
-      defaultRepeater = "<ul>\n  <li ng-repeat=\"o in options\" >\n    <label>\n    <input type=\"checkbox\" ng-model=\"selectedArr[o.${uidKey}]\" ng-click=\"toggleItem(o)\"></input>\n    {{multiGetTitle(o)}}\n    </label>\n  </li>\n</ul>";
+      defaultRepeater = "<ul>\n  <li ng-repeat=\"o in options\">\n    <input type=\"checkbox\" id=\"{{ '${inputId}-' + $index}}\" ng-model=\"selectedArr[o.${uidKey}]\" ng-click=\"toggleItem(o)\">\n    <label for=\"{{ '${inputId}-' + $index}}\">{{multiGetTitle(o)}}</label>\n  </li>\n</ul>";
       template = "<span class=\"multi-select\">\n ${summaryHtml}\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   ${repeater}\n  </div>\n</span>";
       /*
       Linking function
@@ -923,7 +1027,8 @@
       */
 
       compile = function(element, attrs, transclude) {
-        var outer, prepped, repeater, summaryHtml, uidKey;
+        var instanceUid, outer, prepped, repeater, summaryHtml, uidKey;
+        instanceUid = "" + (Math.floor(Math.random() * 10000));
         uidKey = attrs['multiUid'] || "key";
         outer = null;
         element.find(".summary").each(function() {
@@ -941,7 +1046,7 @@
           throw "You need to add a summary node to the multi-select: eg: <div id='summary'>...</div>";
         }
         summaryHtml = summaryHtml.replace(/(<.*?)(>)/, "$1 ng-click='showChooser=!showChooser' $2");
-        prepped = template.replace("${repeater}", repeater).replace("${uidKey}", uidKey).replace("${summaryHtml}", summaryHtml);
+        prepped = template.replace("${repeater}", repeater).replace(/\$\{uidKey\}/g, uidKey).replace(/\$\{inputId\}/g, "" + instanceUid + "-" + uidKey).replace("${summaryHtml}", summaryHtml);
         element.html(prepped);
         return link;
       };
