@@ -78,7 +78,6 @@ class ItemEditorHooks(
     logger.trace(s"function=loadFile id=$id path=$path")
     val result = for {
       _ <- Success(logger.trace(s"function=loadFile id=$id"))
-      //Note: removing auth for the moment 5.12.4
       vid <- getVid(id)
     } yield playS3.download(bucket, S3Paths.itemFile(vid, path))
 

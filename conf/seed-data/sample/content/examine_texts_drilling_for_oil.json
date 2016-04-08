@@ -24,10 +24,10 @@
     "files" : [
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
-        "name" : "Deepwater drilling rig.png",
+        "name" : "Deepwater%20drilling%20rig.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "541b21498d0412f06fa2f35d/0/data/Deepwater drilling rig.png"
+        "storageKey" : "541b21498d0412f06fa2f35d/0/data/Deepwater%20drilling%20rig.png"
       }
     ]
   },
@@ -49,10 +49,10 @@
     "files" : [ 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
-        "name" : "Deepwater drilling rig.png",
+        "name" : "Deepwater%20drilling%20rig.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "541b21498d0412f06fa2f35d/0/data/Deepwater drilling rig.png"
+        "storageKey" : "541b21498d0412f06fa2f35d/0/data/Deepwater%20drilling%20rig.png"
       }
     ],
     "xhtml" : "<itemBody>\n\n    \n\n    <corespring-tabs>\n      <corespring-tab title=\"Passage\">\n\n        <resource url=\"http://education.ky.gov/AA/items/Documents/K-PREP%20Sampler%202012%20RD%20gr5%20Annotation.pdf\" licenseType=\"CC BY/CC BY-NC/CC BY-ND/CC BY NC-SA\" cost=\"$xx.xx\" copyrightExpires=\"yyyy\" copyrightYear=\"2012\" copyrightOwner=\"Kentucky Department of Education\" title=\"Disaster at the Deepwater Horizon\" type=\"passage\"/>\n\n        <h1 class=\"text-centered\">Disaster at the Deepwater Horizon</h1>\n\n        <corespring-numbered-lines id=\"numbered_lines_1\"></corespring-numbered-lines>\n\n        <div class=\"note-tip\">Copyright © 2012 Kentucky Department of Education</div>\n\n      </corespring-tab>\n      \n    </corespring-tabs>\n\n   <p>1.  What does <i>extracting</i> mean as used in paragraph 2?</p><corespring-multiple-choice id=\"Q_01\"></corespring-multiple-choice>\n\n    <p>2.  The author compares deepwater drilling rigs to “small floating villages” because the rigs are</p><corespring-multiple-choice id=\"Q_02\"></corespring-multiple-choice>\n    \n    <p>3.  Read the following list of actions performed by the crew aboard a deepwater drilling rig and use your mouse to put them in the order in which these actions are performed.</p><corespring-ordering id=\"Q_03\"></corespring-ordering>\n\n    <p>4.  What is the <i>most likely</i> reason that the author includes the information in paragraph 9?</p><corespring-multiple-choice id=\"Q_04\"></corespring-multiple-choice>\n    \n    <p>5.  With which of these statements would the author most likely agree?</p><corespring-multiple-choice id=\"Q_05\"></corespring-multiple-choice> \n    \n    <p>6.  Which statement <i>best</i> describes the structure of the passage?</p><corespring-multiple-choice id=\"Q_06\"></corespring-multiple-choice>    \n    \n    <p class=\"prompt\">7.  Using specific details from the passage, explain how an oil spill can affect the\nfood chain in the ocean.</p>\n    <corespring-extended-text-entry id=\"Q_07\"></corespring-extended-text-entry>\n    \n    <p class=\"prompt\">8.  Explain how humans and bacteria worked together to clean up the oil spill. Use\nspecific details from the passage to support your answer.</p>\n    <corespring-extended-text-entry id=\"Q_08\"></corespring-extended-text-entry>\n  </itemBody>",

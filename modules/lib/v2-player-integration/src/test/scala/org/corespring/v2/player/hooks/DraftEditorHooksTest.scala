@@ -9,15 +9,17 @@ import org.corespring.container.client.hooks.UploadResult
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.{ ItemDrafts, S3Paths }
+import org.corespring.drafts.item.{ DraftAssetKeys, ItemDrafts, S3Paths }
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.models.{ User, UserOrg }
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
+import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec
+import org.corespring.v2.player.assets.S3PathResolver
 import org.specs2.specification.Scope
 import play.api.libs.iteratee.{ Input, Iteratee, Step }
 import play.api.mvc.{ BodyParser, RequestHeader, SimpleResult }
@@ -54,6 +56,8 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
 
     val itemId = ObjectId.get
 
+    def testError(msg: String) = generalError(msg)
+
     val playS3 = {
       val m = mock[S3Service]
 
@@ -62,6 +66,12 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
         s3o.getKey returns "s3-key.png"
         mkBodyParser(Future.successful(s3o, itemDraft))
       }
+      m
+    }
+
+    lazy val s3PathResolver = {
+      val m = mock[S3PathResolver]
+      m.resolve(any[String], any[String]) returns Seq("path")
       m
     }
 
@@ -88,6 +98,7 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
     val hooks = new DraftEditorHooks(
       itemTransformer,
       playS3,
+      s3PathResolver,
       Bucket("bucket"),
       itemDrafts,
       getOrgAndOptions,
@@ -149,6 +160,13 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
       val draftId = hooks.mkDraftId(ou, s"$itemId:0").toOption.get
       hooks.loadFile(s"$itemId:0", "file")(FakeRequest("", ""))
       there was one(playS3).download("bucket", S3Paths.draftFile(draftId, "file"))
+    }
+
+    "call s3PathResolver.resolve if no identity is found" in new scope {
+      override val orgAndOpts = Failure(testError("error"))
+      s3PathResolver.resolve(any[String], any[String]) returns Seq("resolved-file.png")
+      hooks.loadFile(s"$itemId:0~name", "file")(FakeRequest("", ""))
+      there was one(s3PathResolver).resolve(DraftAssetKeys.draftItemIdFolder(itemId), s".*/name/.*?/file")
     }
   }
 

@@ -200,7 +200,17 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(casbah, playS3),
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
-    .dependsOn(v2Api, coreWeb, coreModels, coreServices, coreJson, coreLegacy, qtiToV2, assets, v2SessionDb)
+    .dependsOn(
+      assets,
+      coreJson,
+      coreLegacy,
+      coreModels,
+      coreServices,
+      coreWeb,
+      qtiToV2,
+      v2Api,
+      v2SessionDb
+    )
 
   object TemplateImports {
     lazy val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -286,27 +296,28 @@ object Build extends sbt.Build {
       itemDrafts % "compile->compile;test->test;it->test",
       v2SessionDb)
     .aggregate(
+      apiTracking,
       apiUtils,
+      assets,
+      commonViews,
+      coreJson,
       coreModels,
+      coreSalatConfig,
       coreServices,
       coreServicesSalat,
-      coreSalatConfig,
       coreUtils,
-      futureValidation,
       coreWeb,
-      coreJson,
-      apiUtils,
-      commonViews,
+      futureValidation,
+      itemDrafts,
+      itemImport,
+      qtiToV2,
       testLib,
-      v2PlayerIntegration,
       v1Api,
       v2Api,
-      apiTracking,
       v2Auth,
-      v2SessionDb,
-      qtiToV2,
-      itemImport,
-      itemDrafts)
+      v2PlayerIntegration,
+      v2SessionDb
+    )
 
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

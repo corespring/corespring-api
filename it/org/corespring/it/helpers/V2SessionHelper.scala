@@ -16,6 +16,9 @@ trait V2SessionHelper {
   def findSessionForItemId(itemId: VersionedId[ObjectId]): ObjectId
   def findSession(sessionId: String): Option[JsObject]
   def delete(sessionId: ObjectId): Unit
+  def deleteAll: Unit
+  def count: Int
+  def count(itemId: VersionedId[ObjectId]): Int
 }
 
 object V2SessionHelper {
@@ -96,6 +99,18 @@ private class V2DynamoSessionHelper(tableName: String) extends V2SessionHelper {
     db.getTable(tableName).deleteItem("id", sessionId.toString)
   }
 
+  override def deleteAll: Unit = {
+    //TODO - are we going to be running against test dynamo tables where we can safely implement this?
+    throw new NotImplementedError("deleteAll to be implemented")
+  }
+
+  override def count: Int = {
+    throw new NotImplementedError("count to be implemented")
+  }
+
+  override def count(itemId: VersionedId[ObjectId]): Int = {
+    throw new NotImplementedError("count by itemId to be implemented")
+  }
 }
 
 private class V2MongoSessionHelper(tableName: String) extends V2SessionHelper {
@@ -144,5 +159,13 @@ private class V2MongoSessionHelper(tableName: String) extends V2SessionHelper {
   }
 
   private def idQuery(id: ObjectId) = MongoDBObject("_id" -> id)
+
+  override def deleteAll: Unit = db(tableName).remove(MongoDBObject.empty)
+
+  override def count: Int = db(tableName).count().toInt
+
+  override def count(itemId: VersionedId[ObjectId]): Int = {
+    db(tableName).count(MongoDBObject("itemId" -> itemId.toString)).toInt
+  }
 }
 

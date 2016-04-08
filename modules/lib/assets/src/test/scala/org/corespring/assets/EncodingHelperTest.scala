@@ -41,6 +41,9 @@ class EncodingHelperTest extends Specification {
     assertEncodedOnce("/a/b/c.png", 2)
     assertEncodedOnce("/a~tilde/b/c.png", 2)
 
+    "retain the path" in {
+      helper.encodedOnce("a/b/c") must_== "a/b/c"
+    }
   }
 
   "decodeCompletely" should {
@@ -59,6 +62,10 @@ class EncodingHelperTest extends Specification {
 
     "decode retains ++" in {
       helper.decodeCompletely("++") must_== "++"
+    }
+
+    "decode double encoded %2520 to blank" in {
+      helper.decodeCompletely("A%2520B") must_== "A B"
     }
 
     assertDecodeCompletely(rfc3986Reserved)

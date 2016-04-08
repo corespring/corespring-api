@@ -34,8 +34,9 @@ object DraftId {
   def idStringToObjectIdAndUserName(s: String): Option[(ObjectId, String)] = {
     try {
       val regex(id, name) = s
-      if (ObjectId.isValid(id)) {
-        Some(new ObjectId(id) -> URLDecoder.decode(name, "UTF-8"))
+      val withoutVersion = id.split(":")(0)
+      if (ObjectId.isValid(withoutVersion)) {
+        Some(new ObjectId(withoutVersion) -> URLDecoder.decode(name, "UTF-8"))
       } else {
         None
       }

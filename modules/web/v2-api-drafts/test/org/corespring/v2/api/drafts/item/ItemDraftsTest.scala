@@ -53,7 +53,8 @@ class ItemDraftsTest
       m.load(any[OrgAndUser])(any[DraftId]) returns Success(itemDraft)
       m.loadOrCreate(any[OrgAndUser])(any[DraftId], any[Boolean]) returns Success(itemDraft)
       m.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]) returns Success(itemCommit)
-      m.remove(any[OrgAndUser])(any[DraftId]) returns Success(draftId)
+      m.remove(any[OrgAndUser])(any[DraftId], any[Boolean]) returns Success(draftId)
+      m.removeByItemId(any[OrgAndUser])(any[ObjectId]) returns Success(1)
       m
     }
 
@@ -161,17 +162,35 @@ class ItemDraftsTest
 
     "fail if no user is found" in new scope {
       override lazy val userResult = None
-      contentAsJson(itemDrafts.delete(draftId.toIdString, None)(req)) must_== AuthenticationFailed.json
+      contentAsJson(itemDrafts.delete(draftId.toIdString, None, None)(req)) must_== AuthenticationFailed.json
     }
 
-    "fail if delete fails" in new scope {
-      drafts.remove(any[OrgAndUser])(any[DraftId]) returns e("delete")
-      val result = itemDrafts.delete(draftId.toIdString, None)(req)
+    "fail if remove fails" in new scope {
+      drafts.remove(any[OrgAndUser])(any[DraftId], any[Boolean]) returns e("delete")
+      val result = itemDrafts.delete(draftId.toIdString, None, None)(req)
       (contentAsJson(result) \ "error").as[String] must_== "delete"
     }
 
     s"return $OK" in new scope {
-      status(itemDrafts.delete(draftId.toIdString, None)(req)) must_== OK
+      status(itemDrafts.delete(draftId.toIdString, None, None)(req)) must_== OK
+    }
+  }
+
+  "deleteAll" should {
+
+    "fail if no user is found" in new scope {
+      override lazy val userResult = None
+      contentAsJson(itemDrafts.deleteAll(draftId.toIdString)(req)) must_== AuthenticationFailed.json
+    }
+
+    "fail if removeByItemId fails" in new scope {
+      drafts.removeByItemId(any[OrgAndUser])(any[ObjectId]) returns e("delete")
+      val result = itemDrafts.deleteAll(draftId.toIdString)(req)
+      (contentAsJson(result) \ "error").as[String] must_== "delete"
+    }
+
+    s"return $OK" in new scope {
+      status(itemDrafts.deleteAll(draftId.toIdString)(req)) must_== OK
     }
   }
 

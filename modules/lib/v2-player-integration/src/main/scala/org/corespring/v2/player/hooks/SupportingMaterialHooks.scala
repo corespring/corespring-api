@@ -65,9 +65,9 @@ abstract class SupportingMaterialHooks[ID](
     service.removeFile(vid, name, filename)
   }
 
-  override def addAsset(id: String, name: String, binary: Binary)(implicit h: RequestHeader): R[JsValue] = writeForResource(id, h) { (vid) =>
+  override def addAsset(id: String, name: String, binary: Binary)(implicit h: RequestHeader): R[UploadResult] = writeForResource(id, h) { (vid) =>
     service.addFile(vid, name, binaryToFile(binary), binary.data)
-  }.map { e => e.fold(e => Left(e), _ => Right(Json.obj("path" -> binary.name))) }
+  }.map { e => e.fold(e => Left(e), _ => Right(UploadResult(binary.name))) }
 
   private def vToE[A](v: Validation[V2Error, A]) = {
     v.leftMap(e => e.statusCode -> e.message).toEither

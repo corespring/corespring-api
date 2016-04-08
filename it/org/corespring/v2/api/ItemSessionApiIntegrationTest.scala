@@ -45,8 +45,18 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
         contentAsJson(result) === e.json
       }
 
+      s"only creates 1 session" in new orgWithAccessTokenAndItem with TokenRequestBuilder {
+        val count = v2SessionHelper.count(itemId)
+        count must_== 0
+        val Routes = org.corespring.v2.api.routes.ItemSessionApi
+        val req = makeRequest(Routes.create(itemId))
+        val result = route(req).get
+        status(result) must_== OK
+        val newCount = v2SessionHelper.count(itemId)
+        newCount must_== 1
+      }
+
       s"return $OK for token" in new token_createSession {
-        val e = noOrgIdAndOptions(req)
         (contentAsJson(result) \ "id").asOpt[String].isDefined === true
         status(result) === OK
       }

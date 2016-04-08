@@ -40,10 +40,16 @@ class TokenOrgIdentity(
   override def toInput(rh: RequestHeader): Validation[V2Error, Input[AccessToken]] = {
     def onToken(token: String) = for {
       t <- tokenService.findByTokenId(token).toSuccess(generalError(s"can't find token with id: $token"))
-    } yield TokenIdentityInput(t)
+      _ <- Success(logger.debug(s"function=toInput, token=$t, expired=${t.isExpired}"))
+
+    } yield {
+      if (t.isExpired) {
+        logger.error(s"function=toInput, accessToken=$t - token is expired [AC-320]")
+      }
+      TokenIdentityInput(t)
+    }
 
     def onError(e: String) = Failure(if (e == "Invalid token") invalidToken(rh) else noToken(rh))
-    logger.trace(s"getToken from request")
     getToken[String](rh, "Invalid token", "No token").fold(onError, onToken)
   }
 

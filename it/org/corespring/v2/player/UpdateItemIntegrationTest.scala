@@ -1,6 +1,6 @@
 package org.corespring.v2.player.item
 
-import org.corespring.it.{FieldValuesIniter, IntegrationSpecification}
+import org.corespring.it.{ FieldValuesIniter, IntegrationSpecification }
 import org.corespring.models.item.TaskInfo
 import org.corespring.it.helpers.SecureSocialHelper
 import org.corespring.it.helpers.ItemHelper
@@ -33,6 +33,29 @@ class UpdateItemIntegrationTest extends IntegrationSpecification {
       logger.debug(s"result: ${contentAsString(result)}")
       status(result) must_== OK
       ItemHelper.get(itemId).get.taskInfo.flatMap(_.title) must_== Some("new title")
+    }
+  }
+
+  "saveXhtmlAndComponents" should {
+
+    trait saveXhtmlAndComponents extends scope {
+      lazy val call = org.corespring.container.client.controllers.resources.routes.Item.saveXhtmlAndComponents(itemId.toString)
+      val components = Json.obj("1" -> Json.obj("componentType" -> "my-comp"))
+      val xhtml = "<div>hi there</div>"
+      lazy val request: Request[AnyContentAsJson] = makeJsonRequest(call, Json.obj("xhtml" -> xhtml, "components" -> components))
+      logger.debug(s"request: $request")
+      logger.debug(s"body: ${request.body.json}")
+      lazy val result = route(request)(writeableOf_AnyContentAsJson).get
+      logger.debug(s"result: ${contentAsString(result)}")
+      status(result) must_== OK
+    }
+
+    "update the xhtml" in new saveXhtmlAndComponents {
+      ItemHelper.get(itemId).get.playerDefinition.map(_.xhtml) must_== Some(xhtml)
+    }
+
+    "update the components" in new saveXhtmlAndComponents {
+      ItemHelper.get(itemId).get.playerDefinition.map(_.components) must_== Some(components)
     }
   }
 }
