@@ -16,7 +16,7 @@ import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.assets.S3PathResolver
 import play.api.Logger
-import play.api.libs.json.JsValue
+import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -55,12 +55,12 @@ class DraftEditorHooks(
     d <- backend.loadOrCreate(identity)(draftId, ignoreConflict = true).leftMap(e => generalError(e.msg))
   } yield d
 
-  override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
     logger.trace(s"function=load id=$id")
     for {
       d <- loadDraft(id)
       item <- Success(d.change.data)
-    } yield transformer.transformToV2Json(item)
+    } yield (transformer.transformToV2Json(item), Json.obj())
   }
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {

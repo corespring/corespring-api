@@ -47,12 +47,12 @@ class ItemHooks(
 
   lazy val logger = Logger(classOf[ItemHooks])
 
-  override def load(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
-    val item: Validation[V2Error, JsValue] = for {
+  override def load(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, (JsValue, JsValue)]] = Future {
+    val item: Validation[V2Error, (JsValue, JsValue)] = for {
       identity <- getOrgAndOptions(header)
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- auth.loadForRead(itemId)(identity)
-    } yield transformer.transformToV2Json(item)
+    } yield (transformer.transformToV2Json(item), Json.obj())
 
     item.leftMap(e => e.statusCode -> e.message).toEither
   }

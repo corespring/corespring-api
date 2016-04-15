@@ -47,7 +47,7 @@ class PlayerHooks(
 
   lazy val logger = Logger(classOf[PlayerHooks])
 
-  override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
+  override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue, JsValue)]] = Future {
 
     logger.debug(s"itemId=$itemId function=createSessionForItem")
 
@@ -73,14 +73,14 @@ class PlayerHooks(
       session <- Success(createSessionJson(item))
       sessionId <- sessionAuth.create(session)(identity)
       playerDefinitionJson <- Success(playerItemProcessor.makePlayerDefinitionJson(session, item.playerDefinition))
-    } yield (Json.obj("id" -> sessionId.toString) ++ session, playerDefinitionJson)
+    } yield (Json.obj("id" -> sessionId.toString) ++ session, playerDefinitionJson, Json.obj())
 
     result
       .leftMap(s => UNAUTHORIZED -> s.message)
       .toEither
   }
 
-  override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
+  override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue, JsValue)]] = Future {
     logger.debug(s"sessionId=$sessionId function=loadSessionAndItem")
 
     val o = for {
@@ -92,7 +92,7 @@ class PlayerHooks(
       val (session, playerDefinition) = models
       val playerDefinitionJson = playerItemProcessor.makePlayerDefinitionJson(session, Some(playerDefinition))
       val withId: JsValue = Json.obj("id" -> sessionId) ++ session.as[JsObject]
-      (withId, playerDefinitionJson)
+      (withId, playerDefinitionJson, Json.obj())
     }.toEither
   }
 

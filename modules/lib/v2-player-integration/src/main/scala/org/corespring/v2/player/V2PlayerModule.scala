@@ -93,6 +93,7 @@ trait V2PlayerModule extends DefaultIntegration {
   }
 
   override lazy val catalogHooks: client.hooks.CatalogHooks = wire[CatalogHooks]
+  override lazy val componentEditorHooks: client.hooks.ComponentEditorHooks = wire[ComponentEditorHooks]
   override lazy val collectionHooks: client.hooks.CollectionHooks = wire[CollectionHooks]
   override lazy val dataQueryHooks: client.hooks.DataQueryHooks = wire[DataQueryHooks]
   override lazy val draftEditorHooks: client.hooks.DraftEditorHooks = wire[DraftEditorHooks]
