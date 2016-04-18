@@ -54,7 +54,7 @@ class CatalogHooks(
     } yield item
 
     result match {
-      case Success(item) => Right(Json.obj())
+      case Success(item) => Right(DefaultPlayerSkin.defaultPlayerSkin)
       case Failure(e) => Left((UNAUTHORIZED, e.message))
     }
   }

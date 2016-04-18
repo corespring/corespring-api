@@ -57,7 +57,7 @@ class ItemDraftHooks(
       json <- Success(transformer.transformToV2Json(draft.change.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
-      (json, Json.obj())
+      (json, DefaultPlayerSkin.defaultPlayerSkin)
     }
   }
 

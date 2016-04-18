@@ -52,7 +52,7 @@ class ItemHooks(
       identity <- getOrgAndOptions(header)
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- auth.loadForRead(itemId)(identity)
-    } yield (transformer.transformToV2Json(item), Json.obj())
+    } yield (transformer.transformToV2Json(item), DefaultPlayerSkin.defaultPlayerSkin)
 
     item.leftMap(e => e.statusCode -> e.message).toEither
   }

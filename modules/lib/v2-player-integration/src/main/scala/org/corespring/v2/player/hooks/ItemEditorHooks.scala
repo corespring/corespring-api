@@ -57,7 +57,7 @@ class ItemEditorHooks(
     logger.trace(s"function=load id=$id")
     for {
       item <- loadItem(id)
-    } yield (transformer.transformToV2Json(item), Json.obj())
+    } yield (transformer.transformToV2Json(item), DefaultPlayerSkin.defaultPlayerSkin)
   }
 
   private def getVid(id: String): Validation[V2Error, VersionedId[ObjectId]] = {

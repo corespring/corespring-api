@@ -92,7 +92,7 @@ class PlayerHooks(
       val (session, playerDefinition) = models
       val playerDefinitionJson = playerItemProcessor.makePlayerDefinitionJson(session, Some(playerDefinition))
       val withId: JsValue = Json.obj("id" -> sessionId) ++ session.as[JsObject]
-      (withId, playerDefinitionJson, Json.obj())
+      (withId, playerDefinitionJson, DefaultPlayerSkin.defaultPlayerSkin)
     }.toEither
   }
 
