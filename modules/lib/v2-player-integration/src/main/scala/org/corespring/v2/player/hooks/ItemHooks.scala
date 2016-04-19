@@ -1,17 +1,17 @@
 package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
-import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
+import org.corespring.container.client.hooks.Hooks.{R, StatusMessage}
 import org.corespring.container.client.integration.ContainerExecutionContext
-import org.corespring.container.client.{ hooks => containerHooks }
-import org.corespring.conversion.qti.transformers.{ ItemTransformer, PlayerJsonToItem }
-import org.corespring.models.item.{ PlayerDefinition, Item => ModelItem }
+import org.corespring.container.client.{hooks => containerHooks}
+import org.corespring.conversion.qti.transformers.{ItemTransformer, PlayerJsonToItem}
+import org.corespring.models.item.{PlayerDefinition, Item => ModelItem}
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrgCollectionService
 import org.corespring.services.item.ItemService
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
+import org.corespring.v2.auth.models.{DisplayConfigJson, OrgAndOpts}
+import org.corespring.v2.auth.{ItemAuth, LoadOrgAndOptions}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
@@ -20,7 +20,7 @@ import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
 import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{Failure, Success, Validation}
 
 object V2ErrorToTuple {
   import scala.language.implicitConversions
@@ -52,7 +52,7 @@ class ItemHooks(
       identity <- getOrgAndOptions(header)
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- auth.loadForRead(itemId)(identity)
-    } yield (transformer.transformToV2Json(item), DefaultPlayerSkin.defaultPlayerSkin)
+    } yield (transformer.transformToV2Json(item), DisplayConfigJson(identity))
 
     item.leftMap(e => e.statusCode -> e.message).toEither
   }

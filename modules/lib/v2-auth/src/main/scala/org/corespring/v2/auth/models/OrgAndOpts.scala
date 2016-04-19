@@ -1,9 +1,9 @@
 package org.corespring.v2.auth.models
 
-import org.corespring.models.{ User, Organization }
+import org.corespring.models.{DisplayConfig, Organization, User}
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.warnings.V2Warning
-import play.api.libs.json.{ JsString, Json, JsValue }
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 
 object AuthMode {
   sealed trait AuthMode { val id: Int }
@@ -18,6 +18,13 @@ object IdentityJson {
       "orgId" -> orgAndOpts.org.id.toString,
       "authMode" -> orgAndOpts.authMode.id,
       "apiClient" -> JsString(orgAndOpts.apiClientId.getOrElse("unknown")))
+  }
+}
+
+object DisplayConfigJson {
+  def apply(orgAndOpts: OrgAndOpts): JsValue = {
+    implicit val displayConfigWrites = DisplayConfig.Writes
+    Json.toJson(orgAndOpts.org.displayConfig).as[JsObject]
   }
 }
 
