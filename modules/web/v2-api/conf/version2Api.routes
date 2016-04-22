@@ -20,7 +20,10 @@ GET     /sessions/org/:orgId/count/:month  @org.corespring.v2.api.ItemSessionApi
 
 ## V1 Port to v2 (cms support)
 GET /organizations/with-shared-collection/:collId @org.corespring.v2.api.OrganizationApi.getOrgsWithSharedCollection(collId: ObjectId)
+
+# Display Config
 GET /organizations/display-config          @org.corespring.v2.api.OrganizationApi.getDisplayConfig()
+GET /organizations/display-config/default  @org.corespring.v2.api.OrganizationApi.displayConfigDefault()
 PUT /organizations/display-config          @org.corespring.v2.api.OrganizationApi.updateDisplayConfig()
 
 ## Check a score

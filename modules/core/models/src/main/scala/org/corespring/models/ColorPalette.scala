@@ -5,7 +5,8 @@ import play.api.libs.json._
 case class ColorPalette(correctBackground: String, correctForeground: String, partiallyCorrectBackground: String,
                         incorrectBackground: String, incorrectForeground: String, hideShowBackground: String,
                         hideShowForeground: String, warningBackground: String, warningForeground: String,
-                        warningBlockBackground: String, warningBlockForeground: String)
+                        warningBlockBackground: String, warningBlockForeground: String, mutedBackground: String,
+                        mutedForeground: String)
 
 object ColorPalette {
 
@@ -21,6 +22,8 @@ object ColorPalette {
     val warningForeground = "#ffffff"
     val warningBlockBackground = "#e0dee0"
     val warningBlockForeground = "#f8f6f6"
+    val mutedBackground = "#e0dee0"
+    val mutedForeground = "#f8f6f6"
   }
 
   object Fields {
@@ -35,6 +38,8 @@ object ColorPalette {
     val warningForeground = "warning-foreground"
     val warningBlockBackground = "warning-block-background"
     val warningBlockForeground = "warning-block-foreground"
+    val mutedForeground = "muted-foreground"
+    val mutedBackground = "muted-background"
   }
 
   object Writes extends Writes[ColorPalette] {
@@ -52,7 +57,9 @@ object ColorPalette {
       warningBackground -> colorPalette.warningBackground,
       warningForeground -> colorPalette.warningForeground,
       warningBlockBackground -> colorPalette.warningBlockBackground,
-      warningBlockForeground -> colorPalette.warningBlockForeground
+      warningBlockForeground -> colorPalette.warningBlockForeground,
+      mutedBackground -> colorPalette.mutedBackground,
+      mutedForeground -> colorPalette.mutedForeground
     )
 
   }
@@ -72,7 +79,9 @@ object ColorPalette {
       warningBackground = (json \ warningBackground).asOpt[String].getOrElse(prior.warningBackground),
       warningForeground = (json \ warningForeground).asOpt[String].getOrElse(prior.warningForeground),
       warningBlockBackground = (json \ warningBlockBackground).asOpt[String].getOrElse(prior.warningBlockBackground),
-      warningBlockForeground = (json \ warningBlockForeground).asOpt[String].getOrElse(prior.warningBlockForeground)
+      warningBlockForeground = (json \ warningBlockForeground).asOpt[String].getOrElse(prior.warningBlockForeground),
+      mutedBackground = (json \ mutedBackground).asOpt[String].getOrElse(prior.mutedBackground),
+      mutedForeground = (json \ mutedForeground).asOpt[String].getOrElse(prior.mutedForeground)
     ))
   }
 
@@ -82,6 +91,7 @@ object ColorPalette {
     incorrectForeground = Defaults.incorrectForeground, hideShowBackground = Defaults.hideShowBackground,
     hideShowForeground = Defaults.hideShowForeground, warningBackground = Defaults.warningBackground,
     warningForeground = Defaults.warningForeground, warningBlockBackground = Defaults.warningBlockBackground,
-    warningBlockForeground = Defaults.warningBlockForeground)
+    warningBlockForeground = Defaults.warningBlockForeground,
+    mutedBackground = Defaults.mutedBackground, mutedForeground = Defaults.mutedForeground)
 
 }

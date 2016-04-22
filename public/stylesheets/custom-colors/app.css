@@ -1,0 +1,61 @@
+.palette-pane.modal {
+  padding: 0;
+}
+
+.palette-pane .content {
+  padding: 20px;
+}
+
+.palette-pane p {
+  padding: 15px 0;
+}
+
+.palette-pane .swatches {
+  list-style-type: none;
+  padding: 0;
+}
+
+.palette-pane .swatches li {
+  display: inline-block;
+  padding: 10px;
+  text-align: center;
+  font-family: 'Lato', sans-serif !important;
+  font-weight: 700;
+}
+
+.palette-pane .swatches li .swatch {
+  height: 50px;
+  width: 50px;
+  cursor: pointer;
+}
+
+.palette-pane .swatches li .color-label {
+  text-transform: uppercase;
+  color: #979797;
+}
+
+.palette-pane .svg-icons, .palette-pane .choice-icons {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.palette-pane .svg-icons li, .palette-pane .choice-icons li {
+  display: inline-block;
+}
+
+.palette-pane .svg-icons svg, .palette-pane .choice-icons svg {
+  height: 32px;
+  width: auto;
+}
+
+.palette-pane .preview {
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  padding: 17px;
+  margin-bottom: 20px;
+}
+
+.palette-pane .preview h4 {
+  margin-bottom: 10px;
+}

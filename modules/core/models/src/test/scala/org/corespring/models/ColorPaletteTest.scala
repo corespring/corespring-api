@@ -11,7 +11,7 @@ class ColorPaletteTest extends Specification {
 
     val prior =
       ColorPalette("#FFFFFF", "#000000", "#FF00FF", "#00FF00", "#F0F0F0", "#FF0000", "#00FFFF", "#FFFF00", "#0000FF",
-        "#111222", "#222111")
+        "#111222", "#222111", "#333444", "#555222")
     val correctBackground = "#AAAAAA"
     val correctForeground = "#BBBBBB"
     val partiallyCorrectBackground = "#CCCCCC"
@@ -23,6 +23,8 @@ class ColorPaletteTest extends Specification {
     val warningForeground = "#444444"
     val warningBlockBackground = "#555555"
     val warningBlockForeground ="#666666"
+    val mutedBackground = "#777777"
+    val mutedForeground = "#888888"
 
     implicit val Reads = new ColorPalette.Reads(prior)
 
@@ -43,6 +45,8 @@ class ColorPaletteTest extends Specification {
         result.warningForeground must be equalTo (prior.warningForeground)
         result.warningBlockBackground must be equalTo(prior.warningBlockBackground)
         result.warningBlockForeground must be equalTo(prior.warningBlockForeground)
+        result.mutedBackground must be equalTo(prior.mutedBackground)
+        result.mutedForeground must be equalTo(prior.mutedForeground)
       }
 
     }
@@ -168,6 +172,27 @@ class ColorPaletteTest extends Specification {
 
     }
 
+    "JSON containing mutedBackground" should {
+
+      val json = Json.obj(Fields.mutedBackground -> mutedBackground)
+      val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
+
+      "update mutedBackground" in {
+        result.mutedBackground must be equalTo (mutedBackground)
+      }
+
+    }
+
+    "JSON containing mutedForeground" should {
+
+      val json = Json.obj(Fields.mutedForeground -> mutedForeground)
+      val result = Json.fromJson[ColorPalette](json).getOrElse(throw new Exception("Deserialization problem"))
+
+      "update mutedForeground" in {
+        result.mutedForeground must be equalTo (mutedForeground)
+      }
+
+    }
   }
 
 }

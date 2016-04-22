@@ -142,22 +142,60 @@
 
 <!-- Preview Modal -->
 <div ng-class="{'window-up': showPopup}">
-    <div class="window-overlay">
-        <div class="window" style="top: 50px; display: block;" onclick="var event = arguments[0] || window.event; event.stopPropagation();">
-            <a class="focus-dummy" href="#"></a>
-            <div class="window-wrapper clearfix" style="">
-                <div class="clearfix">
-                    <div id="preloader" class="preloader" style="height: 600px">
+  <div class="window-overlay">
+    <div class="window" style="top: 50px; display: block;" onclick="var event = arguments[0] || window.event; event.stopPropagation();">
+      <a class="focus-dummy" href="#"></a>
+      <div class="window-wrapper clearfix" style="">
+        <div class="clearfix">
+          <div id="preloader" class="preloader" style="height: 600px">
                     </div>
-                    <span profile-player="" id='player' style="display: block; width: 1024px; margin-left:-5px; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/></span>
+          <span profile-player="" id='player' style="display: block; width: 1024px; margin-left:-5px; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/></span>
 
-                </div>
-            </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 <!-- //Preview Modal -->
 
+<div ui-modal class="palette-pane"
+    ng-model="uiState.showPalettePane"
+    ng-controller="SwitcherCtrl">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span class="close close-window-button" style="display: inline-block;" ng-click="uiState.showPalettePane = false">×</span>
+      <h4 class="header">Display Options</h4>
+    </div>
+    <div class="content">
+      <p>
+        Use the color pickers below to select the colors for icons presented by CoreSpring items. Click 'Save' to apply
+        changes to all items.
+      </p>
+      <switcher config="config">
+          <ul class="svg-icons">
+            <li><svg-icon key="incorrect" shape="round" icon-set="{{config.iconSet}}"></svg-icon></li>
+            <li><svg-icon key="incorrect" shape="round" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>
+            <li><svg-icon key="correct" shape="round" icon-set="{{config.iconSet}}"></svg-icon></li>
+            <li><svg-icon key="correct" shape="round" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>
+            <li><svg-icon key="partially-correct" shape="round" icon-set="{{config.iconSet}}"></svg-icon></li>
+            <li><svg-icon key="partially-correct" shape="round" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>
+            <li><svg-icon key="incorrect" shape="square" icon-set="{{config.iconSet}}"></svg-icon></li>
+            <li><svg-icon key="incorrect" shape="square" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>
+            <li><svg-icon key="correct" shape="square" icon-set="{{config.iconSet}}"></svg-icon></li>
+            <li><svg-icon key="correct" shape="square" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>
+            <li><svg-icon key="partially-correct" shape="square" icon-set="{{config.iconSet}}"></svg-icon></li>
+            <li><svg-icon key="partially-correct" shape="square" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>
+          </ul>
+          <ul class="choice-icons">
+            <li><choice-icon class="animate-show icon" shape="radio" key="selected"></choice-icon></li>
+            <li><choice-icon class="animate-hide icon" shape="radio" key="muted"></choice-icon></li>
+            <li><choice-icon class="animate-show icon" shape="radio" key="correct"></choice-icon></li>
+            <li><choice-icon class="animate-show icon" shape="radio" key="incorrect"></choice-icon></li>
+          </ul>
+      </switcher>
+    </div>
+  </div>
+</div>
 
 <!-- Filter Nav Bar -->
         <div class="navbar-filter navbar-filter-top" ng-controller="tagger.SubNavController">
@@ -183,13 +221,13 @@
                           <b>{{o.name}}</b> <br/>
                           <span ng-show="o.collections.length == 0">You don't have any collections yet</span>
                           <div ng-repeat="c in o.collections">
-                              
+
                               <span ng-show="c.enabled">
                                   <label>
-                                    <input 
-                                      type="checkbox" 
-                                      ng-model="selectedArr[c.${uidKey}]" 
-                                      id="{{ 'collections-' + $index }}" 
+                                    <input
+                                      type="checkbox"
+                                      ng-model="selectedArr[c.${uidKey}]"
+                                      id="{{ 'collections-' + $index }}"
                                       ng-click="toggleItem(c)"/>
                                     {{c.name}}
                                     <span ng-show="c.isPublic">(public)</span>
@@ -290,6 +328,7 @@
         </table>
         <div style="position: absolute; top: 15px; right: 20px;">
           <a style="text-decoration: underline;" ng-click="uiState.showCollectionsPane = !uiState.showCollectionsPane">Manage Collections</a>
+          <a ng-click="uiState.showPalettePane = !uiState.showPalettePane"><img src="/assets/images/color-palette.png" style="height: 15px; width: auto;" /></a>
         </div>
     </div>
 <!-- //Filter Nav Bar -->

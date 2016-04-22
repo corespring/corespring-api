@@ -24,7 +24,7 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
 
     val colorPalette =
       ColorPalette("#AAAAAA", "#BBBBBB", "#CCCCCC", "#DDDDDD", "#EEEEEE", "#111111", "#222222", "#333333", "#444444",
-        "#121212", "#212121")
+        "#121212", "#212121", "#444222", "#222999")
     val displayConfig = DisplayConfig(iconSet = "check", colors = colorPalette)
 
     lazy val mockedOrgAndOpts = mockOrgAndOpts(AuthMode.UserSession, displayConfig = displayConfig)
@@ -105,7 +105,7 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
       DisplayConfig(
         iconSet = "emoji",
         colors = ColorPalette("#444444", "#333333", "#222222", "#111111", "#EEEEEE", "#DDDDDD", "#CCCCCC", "#BBBBBB",
-          "#AAAAAA", "ABABAB", "BABABA")
+          "#AAAAAA", "#ABABAB", "#BABABA", "#CDCDCD", "#FAFAFA")
       )
     val json = Json.toJson(updatedDisplayConfig)
 

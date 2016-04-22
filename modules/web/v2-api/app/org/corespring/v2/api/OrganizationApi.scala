@@ -66,4 +66,9 @@ class OrganizationApi(
     })
   }
 
+  def displayConfigDefault = futureWithIdentity { (identity, request) =>
+    implicit val Writes = DisplayConfig.Writes
+    Future.successful(Ok(Json.prettyPrint(Json.toJson(DisplayConfig.default))))
+  }
+
 }
