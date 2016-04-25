@@ -95,7 +95,9 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
 
   "V2 - ScoringApi" should {
 
-    "when calling load score" should {
+    def emptyPlayerDefinition = PlayerDefinition(Seq.empty, "", Json.obj(), "", None)
+
+    "when calling loadScore" should {
 
       "fail when session and item are not found" in new apiScope() {
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
@@ -103,7 +105,6 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
         result must beCodeAndJson(error.statusCode, error.json)
       }
 
-      def emptyPlayerDefinition = PlayerDefinition(Seq.empty, "", Json.obj(), "", None)
       "fail when the session has no 'components'" in new apiScope(
         sessionAndItem = Success(Json.obj(), emptyPlayerDefinition)) {
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
@@ -118,6 +119,32 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
         scoreResult = Success(Json.obj("score" -> 100))) {
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
         result must beCodeAndJson(OK, Json.obj("score" -> 100))
+      }
+    }
+
+    "when calling loadMultipleScores" should {
+
+      "fail when sessionIds are not found" in new apiScope() {
+        val result = api.loadMultipleScores()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
+        val error = Json.obj("message"->"No sessionIds found.","errorType"->"missingSessionIds")
+        result must beCodeAndJson(BAD_REQUEST, error)
+      }
+
+      "fail when the session has no 'components'" in new apiScope(
+        sessionAndItem = Success(Json.obj(), emptyPlayerDefinition)) {
+        val result = api.loadMultipleScores()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("sessionIds" -> Json.arr("sessionId")))))
+        val error = Json.arr(Json.obj("sessionId" -> "sessionId", "error" -> sessionDoesNotContainResponses("sessionId").json))
+        result must beCodeAndJson(OK, error)
+      }
+
+      "work" in new apiScope(
+        sessionAndItem = Success(
+          Json.obj("components" -> Json.obj()),
+          emptyPlayerDefinition),
+        scoreResult = Success(Json.obj("score" -> 100))) {
+        val result = api.loadMultipleScores()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("sessionIds" -> Json.arr("sessionId")))))
+        val expectedResult = Json.arr(Json.obj("sessionId" -> "sessionId", "result" -> Json.obj("score" -> 100)))
+        result must beCodeAndJson(OK, expectedResult)
       }
     }
   }

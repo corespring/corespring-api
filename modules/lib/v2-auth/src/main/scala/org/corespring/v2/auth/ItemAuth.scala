@@ -41,3 +41,4 @@ trait SessionAuth[IDENTITY, CONTENT] {
   def orgCount(orgId: ObjectId, month: DateTime)(implicit identity: IDENTITY): Validation[V2Error, Map[DateTime, Long]]
 }
 
+
