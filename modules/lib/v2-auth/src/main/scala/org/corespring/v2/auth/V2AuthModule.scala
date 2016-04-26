@@ -29,6 +29,7 @@ trait V2AuthModule {
 
   lazy val perms: HasPermissions = new HasPermissions {
     import org.corespring.v2.auth.models.Mode
+
     override def has(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
       accessSettingsWildcardCheck.allow(itemId, sessionId, Mode.evaluate, settings)
     }
