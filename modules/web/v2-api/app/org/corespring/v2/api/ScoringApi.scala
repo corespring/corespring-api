@@ -57,12 +57,36 @@ class ScoringApi(
     }
   }
 
+  /**
+    * Loading multiple scores has many opportunities for optimisations
+    *
+    * What is needed to calculate the scores
+    * 1. All sessions have to be loaded to get the itemId and the answers
+    * 2. For every single session we are loading the item
+    * 3. Calculate the score for session & item
+    *
+    * In step 2 we can cache the items bc. it is unlikely that they
+    * are all different. That's implemented
+    *
+    * In step 3 we could cache the score for an answer to the item
+    * We'd need to calculate a cache id for an answer. That's
+    * not implemented yet.
+    *
+    * @return a list of json objects that map sessionIds to the result
+    * of the scoring.
+    *
+    * [
+    * {sessionId: "1234", "result": {"score": 1},
+    * {sessionId: "1234", "error": {"message": "Error scoring"}
+    * ]
+    */
   def loadMultipleScores(): Action[AnyContent] = Action.async { implicit request =>
 
     logger.debug(s"function=loadMultipleScores")
 
     def getSessionIdsFromRequest() = {
       val jsonBody = request.body.asJson.getOrElse(Json.obj())
+      println(s"jsonBody $jsonBody")
       (jsonBody \ "sessionIds").asOpt[JsArray]
         .map(arr => arr.value.map(v => v.as[String]))
     }
