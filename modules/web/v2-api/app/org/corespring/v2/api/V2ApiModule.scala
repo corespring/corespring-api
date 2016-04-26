@@ -39,6 +39,8 @@ trait V2ApiModule
 
   def itemSessionApiExecutionContext: ItemSessionApiExecutionContext
 
+  def scoringApiExecutionContext: ScoringApiExecutionContext
+
   def v2ApiExecutionContext: V2ApiExecutionContext
 
   def getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
@@ -81,6 +83,8 @@ trait V2ApiModule
 
   private lazy val organizationApi: Controller = wire[OrganizationApi]
 
+  private lazy val scoringApi: Controller = wire[ScoringApi]
+
   //Expose this api so v1 api can use it
   lazy val v2ItemApi: ItemApi = itemApi.asInstanceOf[ItemApi]
   lazy val v2CollectionApi: CollectionApi = collectionApi.asInstanceOf[CollectionApi]
@@ -98,6 +102,8 @@ trait V2ApiModule
     playerTokenApi,
     utilsApi,
     collectionApi,
-    organizationApi)
+    organizationApi,
+    scoringApi
+  )
 
 }

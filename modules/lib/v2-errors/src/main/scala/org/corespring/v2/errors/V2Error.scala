@@ -157,4 +157,6 @@ object Errors {
 
   case class cannotLoadSessionCount(orgId: ObjectId, month: DateTime) extends V2Error("Could not load session count", "There was a problem loading the session count.", s"There was a problem loading the session count for $orgId at month $month", INTERNAL_SERVER_ERROR)
 
+  case class missingSessionIds() extends V2Error("Could not score sessions", "No sessionIds found.", "No sessionIds found.", BAD_REQUEST)
+
 }
