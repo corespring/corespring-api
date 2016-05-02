@@ -6,27 +6,30 @@ case class NewRelicConf(
   enabled: Boolean = false,
   licenseKey: String = "",
   applicationID: String = "",
-  agent: String = "js-agent.newrelic.com/nr-476.min.js",
+  agent: String = "",
+  scriptPath: String = "",
   sa: Int = 1,
   beacon: String = "bam.nr-data.net",
   errorBeacon: String = "bam.nr-data.net")
 
 object NewRelicConf {
-  lazy val config: NewRelicConf = getNewRelicConf()
+  lazy val config: NewRelicConf = getNewRelicConf("newrelic.applications.cms")
 
   private val rootConfig: Config = ConfigFactory.load()
 
-  private def get(k: String): Option[String] = try {
-    Some(rootConfig.getString(k))
-  } catch {
-    case _: Throwable => None
-  }
+  def getNewRelicConf(prefix: String) = {
 
-  def getNewRelicConf() = {
+    def get(key: String): String = try {
+      rootConfig.getString(prefix + "." + key)
+    } catch {
+      case _: Throwable => ""
+    }
+
     new NewRelicConf(
-      enabled = get("newrelic.enabled").getOrElse("false") == "true",
-      licenseKey = get("newrelic.license-key").getOrElse(""),
-      applicationID = get("newrelic.application-id").getOrElse(""))
-
+      enabled = get("enabled") == "true",
+      licenseKey = get("license-key"),
+      applicationID = get("application-id"),
+      agent = get("agent"),
+      scriptPath = get("script-path"))
   }
 }
