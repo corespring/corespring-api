@@ -13,11 +13,11 @@ case class NewRelicConf(
   errorBeacon: String = "bam.nr-data.net")
 
 object NewRelicConf {
-  lazy val config: NewRelicConf = getNewRelicConf("newrelic.applications.cms")
+  lazy val config: NewRelicConf = getNewRelicConf("newrelic.rum.applications.cms")
 
-  private val rootConfig: Config = ConfigFactory.load()
+  private def getNewRelicConf(prefix: String) = {
 
-  def getNewRelicConf(prefix: String) = {
+    val rootConfig: Config = ConfigFactory.load()
 
     def get(key: String): String = try {
       rootConfig.getString(prefix + "." + key)
@@ -25,7 +25,7 @@ object NewRelicConf {
       case _: Throwable => ""
     }
 
-    new NewRelicConf(
+    NewRelicConf(
       enabled = get("enabled") == "true",
       licenseKey = get("license-key"),
       applicationID = get("application-id"),
