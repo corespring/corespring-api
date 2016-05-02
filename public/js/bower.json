@@ -1,0 +1,7 @@
+{
+  "name": "corespring-api-public",
+  "version": "0.0.1",
+  "dependencies": {
+    "newrelic-rum-js-agent": "git@github.com:corespring/newrelic-rum-js-agent.git#v1.892.0"
+  }
+}
