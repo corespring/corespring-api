@@ -68,6 +68,8 @@ class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildI
 
   def tagger = loader.scripts("tagger")("js/corespring/tagger")
 
+  def customColors = loader.scripts("custom-colors")("js/corespring/custom-colors")
+
   def corespringCommon = loader.scripts("cs-common")(
     "js/corespring/common/services/ItemFormattingUtils.js",
     "js/corespring/common/services/MessageBridge.js",

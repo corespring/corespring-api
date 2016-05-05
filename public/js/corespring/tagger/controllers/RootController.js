@@ -1,7 +1,8 @@
 function RootController($scope, $rootScope, $http, Modals, ItemService, V2SearchService, CollectionManager) {
   "use strict";
   $scope.uiState = {
-    showCollectionsPane: false
+    showCollectionsPane: false,
+    showPalettePane: false
   };
 
   $rootScope.$watch('modals', function(n,o){

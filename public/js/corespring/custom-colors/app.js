@@ -1,0 +1,1 @@
+angular.module('pocApp', ['colorpicker.module', 'angularBootstrap']);

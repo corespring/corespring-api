@@ -31,7 +31,7 @@ class BaseItemHooksTest extends V2PlayerIntegrationSpec {
       Left(500 -> "not implemented")
     }(ec)
 
-    override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+    override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
       Left(500 -> "not implemented")
     }(ec)
 

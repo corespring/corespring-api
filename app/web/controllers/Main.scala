@@ -5,11 +5,11 @@ import java.util.Date
 import org.bson.types.ObjectId
 import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
-import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
+import org.corespring.itemSearch.AggregateType.{WidgetType, ItemType}
 import org.corespring.models.json.JsonFormatting
-import org.corespring.models.{ User }
+import org.corespring.models.{User}
 import org.corespring.services.auth.ApiClientService
-import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.services.{OrganizationService, UserService}
 import org.corespring.services.item.FieldValueService
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
@@ -18,11 +18,11 @@ import org.corespring.web.common.views.helpers.BuildInfo
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import play.api.Logger
-import play.api.libs.json.{ Json, JsObject }
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc._
 import play.api.libs.json.Json._
 import securesocial.core.SecuredRequest
-import web.models.{ WebExecutionContext }
+import web.models.{WebExecutionContext}
 import scalaz.Scalaz._
 
 import scala.concurrent.Future
@@ -30,19 +30,19 @@ import scalaz.Success
 import scalaz.Failure
 
 class Main(
-  fieldValueService: FieldValueService,
-  jsonFormatting: JsonFormatting,
-  userService: UserService,
-  orgService: OrganizationService,
-  itemType: ItemType,
-  widgetType: WidgetType,
-  containerVersionInfo: VersionInfo,
-  webExecutionContext: WebExecutionContext,
-  playerTokenService: PlayerTokenService,
-  userSessionOrgIdentity: UserSessionOrgIdentity,
-  buildInfo: BuildInfo,
-  assetsLoader: AssetsLoader,
-  apiClientService: ApiClientService) extends Controller with securesocial.core.SecureSocial {
+            fieldValueService: FieldValueService,
+            jsonFormatting: JsonFormatting,
+            userService: UserService,
+            orgService: OrganizationService,
+            itemType: ItemType,
+            widgetType: WidgetType,
+            containerVersionInfo: VersionInfo,
+            webExecutionContext: WebExecutionContext,
+            playerTokenService: PlayerTokenService,
+            userSessionOrgIdentity: UserSessionOrgIdentity,
+            buildInfo: BuildInfo,
+            assetsLoader: AssetsLoader,
+            apiClientService: ApiClientService) extends Controller with securesocial.core.SecureSocial {
 
   implicit val context = webExecutionContext.context
 
@@ -69,6 +69,14 @@ class Main(
       val json = buildInfo.json.deepMerge(Json.obj("container" -> containerVersionInfo.json))
       Ok(json)
     }
+  }
+
+  def colorsTestPage = Action.async {
+    request =>
+      Future {
+        val html = web.views.html.colorsTestPage()
+        Ok(html)
+      }
   }
 
   def sampleLaunchCode(id: String) = Action.async {
@@ -111,13 +119,12 @@ class Main(
   }
 
   private def AdminAction(block: SecuredRequest[AnyContent] => SimpleResult) = SecuredAction {
-    implicit request: SecuredRequest[AnyContent] =>
-      {
-        userSessionOrgIdentity(request) match {
-          case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => block(request)
-          case _ => Unauthorized("Please contact a CoreSpring representative for access.")
-        }
+    implicit request: SecuredRequest[AnyContent] => {
+      userSessionOrgIdentity(request) match {
+        case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => block(request)
+        case _ => Unauthorized("Please contact a CoreSpring representative for access.")
       }
+    }
   }
 
   def index = SecuredAction {
