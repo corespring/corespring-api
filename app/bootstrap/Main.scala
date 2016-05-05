@@ -122,7 +122,7 @@ class Main(
     components = ComponentsConfig.fromConfig(mode, configuration.getConfig("container.components").getOrElse(Configuration.empty)),
     player = V2PlayerConfig(
       rootUrl = configuration.getString("container.rootUrl"),
-      newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic").getOrElse(Configuration.empty))))
+      newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))))
 
   logger.info(s"containerConfig: $containerConfig")
 
