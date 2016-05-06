@@ -1,7 +1,7 @@
 @conf = @{ org.corespring.web.common.views.helpers.NewRelicConf.config }
 
 @if(conf.enabled) {
-  <script type="text/javascript" src="/assets/js/vendor/newrelic/newrelic-rum-js-agent.min.js"></script>
+  <script type="text/javascript" src="@conf.scriptPath"></script>
   <script type="text/javascript">
     NREUM.info = {
       sa : @conf.sa,

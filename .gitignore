@@ -12,7 +12,6 @@
 atlassian-*
 aws.zip
 deployment/.env_vars.sh
-dist
 logs
 mongo-migrator.log
 project/project
