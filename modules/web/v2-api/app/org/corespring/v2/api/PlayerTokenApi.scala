@@ -37,16 +37,21 @@ class PlayerTokenApi(
    *
    * @see PlayerAccessSettings
    */
-  def createPlayerToken = createToken("Player")
+  def createPlayerToken = createToken("playerToken")
 
-  /*
-   * A duplicate of createPlayerToken to be able to use
-   * a different name /browser-token when you are not in
-   * a player
-   */
-  def createBrowserToken = createToken("Browser")
+  /**
+    * Creates a browser token.
+    * param json - access settings in the json body
+    * If the json doesn't specify any of the AccessSetting properties, an error will be returned.
+    * If they specify at a minimum the required 'expires' property,
+    * The remaining properties will be set to a wildcard value.
+    * return json - browserToken, clientId and accessSettings used
+    *
+    * @see PlayerAccessSettings
+    */
+  def createBrowserToken = createToken("browserToken")
 
-  def createToken(kind: String) = Action.async { request =>
+  private def createToken(kind: String) = Action.async { request =>
     Future {
 
       logger.debug(s"function=createToken $kind")
@@ -60,7 +65,7 @@ class PlayerTokenApi(
       validationToResult[CreateTokenResult] {
         case CreateTokenResult(apiClient, token, json) => {
           val response = Json.obj(
-            "playerToken" -> token,
+            kind -> token,
             "apiClient" -> apiClient,
             "accessSettings" -> json)
           logger.debug(s"function=createToken $kind response=${Json.stringify(response)}")
