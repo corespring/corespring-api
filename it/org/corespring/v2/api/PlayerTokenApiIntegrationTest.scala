@@ -53,4 +53,6 @@ class PlayerTokenApiIntegrationTest extends IntegrationSpecification {
     lazy val result = route(
       FakeRequest(call.method, url, FakeHeaders(), AnyContentAsJson(jsonBody))).getOrElse(throw new RuntimeException("Couldn't get a result"))
   }
+
+
 }

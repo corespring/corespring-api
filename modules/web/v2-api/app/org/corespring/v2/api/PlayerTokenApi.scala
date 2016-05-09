@@ -34,13 +34,23 @@ class PlayerTokenApi(
    * If they specify at a minimum the required 'expires' property,
    * The remaining properties will be set to a wildcard value.
    * return json - playerToken, clientId and accessSettings used
+   *
    * @see PlayerAccessSettings
    */
-  def createPlayerToken = Action.async { request =>
+  def createPlayerToken = createToken("Player")
 
-    logger.debug(s"function=createPlayerToken")
+  /*
+   * A duplicate of createPlayerToken to be able to use
+   * a different name /browser-token when you are not in
+   * a player
+   */
+  def createBrowserToken = createToken("Browser")
 
+  def createToken(kind: String) = Action.async { request =>
     Future {
+
+      logger.debug(s"function=createToken $kind")
+
       val out: Validation[V2Error, CreateTokenResult] = for {
         client <- identifyFn(request).map(_._2)
         json <- request.body.asJson.toSuccess(noJson)
@@ -49,12 +59,12 @@ class PlayerTokenApi(
 
       validationToResult[CreateTokenResult] {
         case CreateTokenResult(apiClient, token, json) => {
-          logger.debug(s"function=createPlayerToken apiClient=$apiClient accessSettings=${Json.stringify(json)} token=$token")
-          Ok(
-            Json.obj(
-              "playerToken" -> token,
-              "apiClient" -> apiClient,
-              "accessSettings" -> json))
+          val response = Json.obj(
+            "playerToken" -> token,
+            "apiClient" -> apiClient,
+            "accessSettings" -> json)
+          logger.debug(s"function=createToken $kind response=${Json.stringify(response)}")
+          Ok(response)
         }
       }(out)
     }
