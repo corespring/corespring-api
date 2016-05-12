@@ -12,11 +12,10 @@ import org.corespring.v2.auth.models.{MockFactory, OrgAndOpts}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AnyContentAsJson, RequestHeader}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
@@ -37,7 +36,8 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
     val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
     val orgAndClient: V2ApiScope.OrgAndClient = Success((mockedOrgAndOpts, client)),
     val maybeSessionId: Option[ObjectId] = None,
-    val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
+    val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("error getting score")),
+    val sessionAndItemMultiple: Seq[(String, Validation[V2Error, (JsValue, PlayerDefinition)])] = Seq(("sessionId", Failure(generalError("error getting score")))),
     val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
     val clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
     val apiClient: Option[ApiClient] = None,
@@ -48,6 +48,8 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
       m.canCreate(anyString)(any[OrgAndOpts]) returns canCreate
       m.loadForRead(anyString)(any[OrgAndOpts]) returns sessionAndItem
       m.loadForWrite(anyString)(any[OrgAndOpts]) returns sessionAndItem
+      m.loadForScoring(anyString)(any[OrgAndOpts]) returns sessionAndItem
+      m.loadForScoringMultiple(any[Seq[String]])(any[OrgAndOpts]) returns sessionAndItemMultiple
       m.loadWithIdentity(anyString)(any[OrgAndOpts]) returns sessionAndItem
       m.cloneIntoPreview(anyString)(any[OrgAndOpts]) returns clonedSession
       m.orgCount(any[ObjectId], any[DateTime])(any[OrgAndOpts]) returns sessionCounts
@@ -77,7 +79,7 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
 
     def sessionCreatedForItem(id: VersionedId[ObjectId]): Unit = {}
 
-    val apiContext = ScoringApiExecutionContext(ExecutionContext.Implicits.global)
+    val apiContext = ScoringApiExecutionContext(ExecutionContext.Implicits.global, ExecutionContext.Implicits.global)
 
     val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts] = { request: RequestHeader =>
       getOrgAndClient(request).map(_._1)
@@ -107,6 +109,7 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
 
       "fail when the session has no 'components'" in new apiScope(
         sessionAndItem = Success(Json.obj(), emptyPlayerDefinition)) {
+
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
         val error = sessionDoesNotContainResponses("sessionId")
         result must beCodeAndJson(error.statusCode, error.json)
@@ -131,16 +134,19 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
       }
 
       "fail when the session has no 'components'" in new apiScope(
-        sessionAndItem = Success(Json.obj(), emptyPlayerDefinition)) {
+        sessionAndItemMultiple = Seq(("sessionId", Success(
+          Json.obj(),
+          emptyPlayerDefinition))),
+        scoreResult = Success(Json.obj("score" -> 100))) {
         val result = api.loadMultipleScores()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("sessionIds" -> Json.arr("sessionId")))))
         val error = Json.arr(Json.obj("sessionId" -> "sessionId", "error" -> sessionDoesNotContainResponses("sessionId").json))
         result must beCodeAndJson(OK, error)
       }
 
       "work" in new apiScope(
-        sessionAndItem = Success(
+        sessionAndItemMultiple = Seq(("sessionId", Success(
           Json.obj("components" -> Json.obj()),
-          emptyPlayerDefinition),
+          emptyPlayerDefinition))),
         scoreResult = Success(Json.obj("score" -> 100))) {
         val result = api.loadMultipleScores()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("sessionIds" -> Json.arr("sessionId")))))
         val expectedResult = Json.arr(Json.obj("sessionId" -> "sessionId", "result" -> Json.obj("score" -> 100)))

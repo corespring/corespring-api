@@ -13,7 +13,8 @@ trait ScoreService {
 
   /**
    * get a score for a given item
-   * @param item
+    *
+    * @param item
    * @param answers
    * Should be in the format:
    * {
@@ -40,7 +41,8 @@ trait ScoreService {
    *         }
    *         }
    */
-  def score(item: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue]
+  def score(playerDefinition: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue]
+  def score(playerDefinition: JsValue, answers: JsValue): Validation[V2Error, JsValue]
 }
 
 class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: ScoreProcessor)(implicit val w: Writes[PlayerDefinition]) extends ScoreService {
@@ -48,19 +50,21 @@ class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: Scor
   protected lazy val logger = Logger(classOf[BasicScoreService])
 
   override def score(pd: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue] = {
+    val pdJson = Json.toJson(pd)
+    score(pdJson, answers)
+  }
 
+  override def score(pdJson: JsValue, answers: JsValue): Validation[V2Error, JsValue] = {
     logger.trace(s"function=score answers=${Json.stringify(answers)}")
 
     //TODO: Should we be doing some uid validation here, to make sure that they aren't sending unused uids.
     //TODO: Currently they'll just be ignored
 
-    val itemJson = Json.toJson(pd)
-
     /** Because we are only getting the score we don't care about feedback */
     val blankSettings = Json.obj()
     val componentAnswers = Json.obj("components" -> answers)
-    val outcome = outcomeProcessor.createOutcome(itemJson, componentAnswers, blankSettings)
-    Success(scoreProcessor.score(itemJson, componentAnswers, outcome))
+    val outcome = outcomeProcessor.createOutcome(pdJson, componentAnswers, blankSettings)
+    Success(scoreProcessor.score(pdJson, componentAnswers, outcome))
   }
 
 }

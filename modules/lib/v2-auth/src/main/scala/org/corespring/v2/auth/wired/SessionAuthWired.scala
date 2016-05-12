@@ -3,17 +3,17 @@ package org.corespring.v2.auth.wired
 import org.bson.types.ObjectId
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.v2.auth.SessionAuth.Session
-import org.corespring.v2.auth.models.{AuthMode, IdentityJson, OrgAndOpts, PlayerAccessSettings}
-import org.corespring.v2.auth.{ItemAuth, PlayerDefinitionLoader,  SessionAuth}
-import org.corespring.v2.errors.Errors.{cannotLoadSessionCount, cantLoadSession, errorSaving}
+import org.corespring.v2.auth.models.{ AuthMode, IdentityJson, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.{ ItemAuth, PlayerDefinitionLoader, SessionAuth }
+import org.corespring.v2.errors.Errors.{ cannotLoadSessionCount, cantLoadSession, errorSaving }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.sessiondb.{SessionService, SessionServices}
-import org.joda.time.{DateTime, DateTimeZone}
+import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.Logger
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 
 import scalaz.Scalaz._
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class SessionAuthWired(
   itemAuth: ItemAuth[OrgAndOpts],
@@ -46,6 +46,15 @@ class SessionAuthWired(
       json <- loadSessionJson(sessionId)
       playerDef <- loadPlayerDefinition(sessionId, json)
     } yield (cleanSession(json), playerDef)
+
+  override def loadForScoring(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] =
+    for {
+      json <- loadSessionJson(sessionId)
+      playerDef <- loadPlayerDefinition(sessionId, json)
+    } yield (cleanSession(json), playerDef)
+
+  override def loadForScoringMultiple(sessionIds: Seq[String])(implicit identity: OrgAndOpts): Seq[(String, Validation[V2Error, (JsValue, PlayerDefinition)])] =
+    sessionIds.map(sessionId => (sessionId, loadForScoring(sessionId)))
 
   override def loadWithIdentity(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] =
     for {

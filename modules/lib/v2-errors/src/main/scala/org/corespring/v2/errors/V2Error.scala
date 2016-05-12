@@ -153,10 +153,16 @@ object Errors {
 
   case class cantFindSession(id: String) extends V2Error("Can't Find Session", "The session with the id provided by the request could not be found.", s"Can't find session with id: $id", NOT_FOUND)
 
-  case class sessionDoesNotContainResponses(sessionId: String) extends V2Error("Session Does Not Contain Responses", "The session specified by the request does not contain any responses.", s"session: $sessionId does not contain any responses")
+  case class sessionDoesNotContainResponses(sessionId: String) extends V2Error("Session Does Not Contain Responses", "The session specified by the request does not contain any responses.", s"session: $sessionId does not contain any responses.")
 
   case class cannotLoadSessionCount(orgId: ObjectId, month: DateTime) extends V2Error("Could not load session count", "There was a problem loading the session count.", s"There was a problem loading the session count for $orgId at month $month", INTERNAL_SERVER_ERROR)
 
   case class missingSessionIds() extends V2Error("Could not score sessions", "No sessionIds found.", "No sessionIds found.", BAD_REQUEST)
+
+  case class missingItemId(sessionId:String) extends V2Error("Could not score session", "No item id found in session.", s"No itemId found in session $sessionId.", BAD_REQUEST)
+
+  case class errorLoadingItem(sessionId:String, itemId: String) extends V2Error("Could not score session", "Item not found.", s"Item $itemId not found in session $sessionId.", BAD_REQUEST)
+
+  case class missingPlayerDefinition(itemId: String) extends V2Error("Could not score session", "PlayerDefinition not found.", s"PlayerDefinition not found in item $itemId.", BAD_REQUEST)
 
 }
