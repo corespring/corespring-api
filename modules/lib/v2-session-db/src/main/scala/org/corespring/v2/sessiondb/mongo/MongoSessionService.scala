@@ -16,12 +16,19 @@ class MongoSessionService(collection: MongoCollection) extends SessionService wi
   val impl = new MongoService(collection)
 
   def create(data: JsValue): Option[ObjectId] = impl.create(data)
-  def load(id: String): Option[JsValue] = impl.load(id)
+
+  def load(id: String): Option[JsValue] = {
+    val result = impl.load(id)
+    result
+  }
+  def loadMultiple(ids: Seq[String]): Seq[JsValue] = impl.loadMultiple(ids)
   def save(id: String, data: JsValue): Option[JsValue] = impl.save(id, data)
 
   override def sessionCount(itemId: VersionedId[ObjectId]): Long = {
     val query = MongoDBObject("itemId" -> itemId.toString)
     impl.collection.count(query)
   }
+
+
 
 }

@@ -84,7 +84,7 @@ class ScoringApi(
     def getSessionIdsFromRequest() = {
       request.body.asJson.map { jsonBody =>
         (jsonBody \ "sessionIds").asOpt[JsArray]
-          .map(arr => arr.value.map(v => v.toString()))
+          .map(_.as[Seq[String]])
       }.flatten
     }
 
@@ -105,7 +105,7 @@ class ScoringApi(
 
   private def calcScores(items: Seq[ScoreItem]) = {
 
-    def calcScore( item: ScoreItem ): ScoreResult = item match {
+    def calcScore(item: ScoreItem): ScoreResult = item match {
       case (id: String, Success(sessionAndPlayerDef)) => {
         val out = for {
           score <- getScore(id, sessionAndPlayerDef._1, sessionAndPlayerDef._2)
@@ -120,15 +120,15 @@ class ScoringApi(
       case (id: String, Failure(e)) => Json.obj("sessionId" -> id, "error" -> e.json)
     }
 
-    JsArray(Await.result( Future.sequence(
-      items.map { data => Future {
-          resultToJson(calcScore(data))
-        }(apiContext.contextForScoring)
-      }
-    ), 20.seconds))
+    JsArray(
+      Await.result(
+        Future.sequence(
+          items.map { item =>
+            Future {
+              resultToJson(calcScore(item))
+            }(apiContext.contextForScoring)
+          }), 20.seconds))
   }
-
-
 
   private def getSingleScore(sessionId: String, identity: OrgAndOpts): Validation[V2Error, JsValue] = {
     for {

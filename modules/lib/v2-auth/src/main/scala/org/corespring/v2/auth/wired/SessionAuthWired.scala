@@ -53,8 +53,9 @@ class SessionAuthWired(
       playerDef <- loadPlayerDefinition(sessionId, json)
     } yield (cleanSession(json), playerDef)
 
-  override def loadForScoringMultiple(sessionIds: Seq[String])(implicit identity: OrgAndOpts): Seq[(String, Validation[V2Error, (JsValue, PlayerDefinition)])] =
+  override def loadForScoringMultiple(sessionIds: Seq[String])(implicit identity: OrgAndOpts): Seq[(String, Validation[V2Error, (JsValue, PlayerDefinition)])] = {
     sessionIds.map(sessionId => (sessionId, loadForScoring(sessionId)))
+  }
 
   override def loadWithIdentity(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] =
     for {

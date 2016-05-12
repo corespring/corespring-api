@@ -35,6 +35,11 @@ class RemoteSessionService(client: SessionServiceClient) extends SessionService 
     }
   }
 
+  override def loadMultiple(ids: Seq[String]): Seq[JsValue] = {
+    logger.error("[loadMultiple] not implemented")
+    Seq()
+  }
+
   override def save(id: String, data: JsValue): Option[JsValue] =
     Await.result(client.update(new ObjectId(id), data), REMOTE_TIMEOUT) match {
       case Success(maybeJson) => Some(maybeJson)
