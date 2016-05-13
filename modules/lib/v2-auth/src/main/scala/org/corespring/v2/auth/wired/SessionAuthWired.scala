@@ -51,10 +51,22 @@ class SessionAuthWired(
     for {
       json <- loadSessionJson(sessionId)
       playerDef <- loadPlayerDefinition(sessionId, json)
-    } yield (cleanSession(json), playerDef)
+    } yield (json, playerDef)
 
   override def loadForScoringMultiple(sessionIds: Seq[String])(implicit identity: OrgAndOpts): Seq[(String, Validation[V2Error, (JsValue, PlayerDefinition)])] = {
-    sessionIds.map(sessionId => (sessionId, loadForScoring(sessionId)))
+    val loaded: Map[String, JsValue] =
+      sessionService.loadMultiple(sessionIds).map(json =>
+        ((json \ "_id" \ "$oid").as[String], json)).toMap
+
+    val sessions: Seq[(String, Validation[V2Error, JsValue])] = sessionIds.map { id =>
+      if (loaded.contains(id)) {
+        (id, Success(loaded.get(id).get))
+      } else {
+        (id, Failure(cantLoadSession(id)))
+      }
+    }
+
+    pdLoader.loadMultiplePlayerDefinitions(sessions)
   }
 
   override def loadWithIdentity(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] =

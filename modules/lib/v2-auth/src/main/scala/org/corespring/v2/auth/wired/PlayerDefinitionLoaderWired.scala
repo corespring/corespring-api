@@ -64,4 +64,14 @@ class PlayerDefinitionLoaderWired(
         }
       }
   }
+
+  def loadMultiplePlayerDefinitions(sessions: Seq[(String, Validation[V2Error, JsValue])])(implicit identity: OrgAndOpts): Seq[(String, Validation[V2Error, (JsValue, PlayerDefinition)])] = {
+    sessions.map {
+      case (id:String, Success(json)) => loadPlayerDefinition(id, json) match {
+        case Success(pd) => (id, Success((json, pd)))
+        case Failure(err) => (id, Failure(err))
+      }
+      case (id:String, Failure(err)) => (id, Failure(err))
+    }
+  }
 }

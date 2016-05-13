@@ -21,7 +21,11 @@ class MongoSessionService(collection: MongoCollection) extends SessionService wi
     val result = impl.load(id)
     result
   }
-  def loadMultiple(ids: Seq[String]): Seq[JsValue] = impl.loadMultiple(ids)
+  def loadMultiple(ids: Seq[String]): Seq[JsValue] = {
+    val result = impl.loadMultiple(ids)
+    println(s"XXXXXXXXXXXXXxx loadMultiple $ids $result")
+    result
+  }
   def save(id: String, data: JsValue): Option[JsValue] = impl.save(id, data)
 
   override def sessionCount(itemId: VersionedId[ObjectId]): Long = {
