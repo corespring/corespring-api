@@ -55,19 +55,10 @@ class ScoringApi(
   }
 
   /**
-   * Loading multiple scores has many opportunities for optimisations
-   *
-   * What is needed to calculate the scores
-   * 1. All sessions have to be loaded to get the itemId and the answers
-   * 2. For every single session we are loading the item
-   * 3. Calculate the score for session & item
-   *
-   * In step 2 we can cache the items bc. it is unlikely that they
-   * are all different. That's implemented
-   *
-   * In step 3 we could cache the score for an answer to the item
-   * We'd need to calculate a cache id for an answer. That's
-   * not implemented yet.
+   * Loading multiple scores
+   * 1. Load all sessions
+   * 2. Load all items referenced in the sessions
+   * 3. In parallel calculate scores for all pairs of session/item
    *
    * @return a list of json objects that map sessionIds to the result
    * of the scoring.
