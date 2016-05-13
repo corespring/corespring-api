@@ -79,16 +79,15 @@ class ScoringApi(
       }.flatten
     }
 
-    Future {
-      val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
-        ids <- getSessionIdsFromRequest().toSuccess(missingSessionIds())
-        items <- Success(sessionAuth.loadForScoringMultiple(ids)(identity))
-        scores <- Success(calcScores(items))
-      } yield scores
+    val out: Validation[V2Error, Future[Seq[ScoreResult]]] = for {
+      identity <- getOrgAndOptions(request)
+      ids <- getSessionIdsFromRequest().toSuccess(missingSessionIds())
+    } yield scoreService.scoreMultiple(identity, ids)
+    //        items <- Success(sessionAuth.loadForScoringMultiple(ids)(identity))
+    //        scores <- Success(calcScores(items))
+    //      } yield scores
 
-      validationToResult[JsValue](j => Ok(j))(out)
-    }
+    //      validationToResult[JsValue](j => Ok(j))(out)
   }
 
   type ScoreItem = (String, Validation[V2Error, (JsValue, PlayerDefinition)])

@@ -49,6 +49,8 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def findMultipleById(ids: ObjectId*): Stream[Item]
 
+  def findMultiplePlayerDefinitions(orgId: ObjectId, ids: VersionedId[ObjectId]*): Future[Seq[(VersionedId[ObjectId], Option[PlayerDefinition])]]
+
   def findOneById(id: VersionedId[ObjectId]): Option[Item]
 
   def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item]

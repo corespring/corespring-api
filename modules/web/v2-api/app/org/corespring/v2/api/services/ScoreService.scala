@@ -2,19 +2,20 @@ package org.corespring.v2.api.services
 
 import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
-import org.corespring.models.item.{ PlayerDefinition }
+import org.corespring.models.item.PlayerDefinition
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
-import play.api.libs.json.{ Writes, Json, JsValue }
+import play.api.libs.json.{ JsValue, Json, Writes }
 
+import scala.concurrent.Future
 import scalaz.{ Success, Validation }
 
 trait ScoreService {
 
   /**
    * get a score for a given item
-    *
-    * @param item
+   *
+   * @param item
    * @param answers
    * Should be in the format:
    * {
@@ -42,19 +43,21 @@ trait ScoreService {
    *         }
    */
   def score(playerDefinition: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue]
-  def score(playerDefinition: JsValue, answers: JsValue): Validation[V2Error, JsValue]
+  def scoreMultiple(playerDefinition: PlayerDefinition, answers: Seq[JsValue]): Seq[Future[(JsValue, Validation[V2Error, JsValue])]]
 }
 
 class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: ScoreProcessor)(implicit val w: Writes[PlayerDefinition]) extends ScoreService {
 
   protected lazy val logger = Logger(classOf[BasicScoreService])
 
-  override def score(pd: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue] = {
-    val pdJson = Json.toJson(pd)
-    score(pdJson, answers)
+  override def scoreMultiple(playerDefinition: PlayerDefinition, answers: Seq[JsValue]): Seq[Future[(JsValue, Validation[V2Error, JsValue])]] = {
+    answers.map { a =>
+      Future { (a -> score(playerDefinition, a)) }
+    }
   }
 
-  override def score(pdJson: JsValue, answers: JsValue): Validation[V2Error, JsValue] = {
+  override def score(pd: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue] = {
+    val pdJson = Json.toJson(pd)
     logger.trace(s"function=score answers=${Json.stringify(answers)}")
 
     //TODO: Should we be doing some uid validation here, to make sure that they aren't sending unused uids.
@@ -63,6 +66,7 @@ class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: Scor
     /** Because we are only getting the score we don't care about feedback */
     val blankSettings = Json.obj()
     val componentAnswers = Json.obj("components" -> answers)
+    //TODO: Scoring should be asynchronous
     val outcome = outcomeProcessor.createOutcome(pdJson, componentAnswers, blankSettings)
     Success(scoreProcessor.score(pdJson, componentAnswers, outcome))
   }

@@ -6,6 +6,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.item.Content
 import org.corespring.platform.data.mongo.models.VersionedId
 
+import scala.concurrent.Future
 import scalaz.Validation
 
 trait BaseFindAndSaveService[ContentType <: Content[ID], ID] {
@@ -22,5 +23,7 @@ trait BaseContentService[ContentType <: Content[ID], ID] extends BaseFindAndSave
   def insert(i: ContentType): Option[ID]
 
   def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Validation[PlatformServiceError, Unit]
+
+  def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: (VersionedId[ObjectId], Permission)*): Future[Seq[(VersionedId[ObjectId], Boolean)]]
 
 }

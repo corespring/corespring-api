@@ -10,7 +10,7 @@ import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
-import org.corespring.models.item.{ Item, ItemStandards }
+import org.corespring.models.item.{ Item, ItemStandards, PlayerDefinition }
 import org.corespring.mongo.IdConverters
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -265,4 +265,14 @@ class ItemService(
     } yield ItemStandards(title, standards, itemId)
   }
 
+  override def findMultiplePlayerDefinitions(orgId: ObjectId, ids: VersionedId[ObjectId]*): Future[Seq[(VersionedId[ObjectId], Option[PlayerDefinition])]] = {
+
+    isAuthorizedBatch(orgId, ids.map(id => (id, Permission.Read)): _*).map { ids =>
+      val validIds = ids.partition(_._2)._1.map(_._1)
+
+      dao.findDbos(validIds, MongoDBObject(Keys.playerDefinition -> 1))
+        .map(dbo => dbo.get("playerDefinition"))
+
+    }
+  }
 }
