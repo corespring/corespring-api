@@ -23,7 +23,6 @@ class MongoSessionService(collection: MongoCollection) extends SessionService wi
   }
   def loadMultiple(ids: Seq[String]): Seq[JsValue] = {
     val result = impl.loadMultiple(ids)
-    println(s"XXXXXXXXXXXXXxx loadMultiple $ids $result")
     result
   }
   def save(id: String, data: JsValue): Option[JsValue] = impl.save(id, data)
