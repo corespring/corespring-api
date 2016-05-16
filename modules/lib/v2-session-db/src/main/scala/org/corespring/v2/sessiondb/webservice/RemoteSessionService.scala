@@ -5,10 +5,10 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.sessions.SessionServiceClient
 import org.corespring.v2.sessiondb.SessionService
 import org.joda.time.DateTime
-import play.api.{LoggerLike, Logger}
+import play.api.{ LoggerLike, Logger }
 import play.api.libs.json.JsValue
 
-import scala.concurrent.{Future, Await}
+import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration._
 import scalaz._
 
@@ -35,10 +35,9 @@ class RemoteSessionService(client: SessionServiceClient) extends SessionService 
     }
   }
 
-  override def loadMultiple(ids: Seq[String]): Seq[JsValue] = {
-    logger.error("[loadMultiple] not implemented")
-    Seq()
-  }
+  override def loadMultiple(ids: Seq[String]): Seq[JsValue] = Nil
+
+  override def loadMultipleTwo(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = Future.successful(Nil)
 
   override def save(id: String, data: JsValue): Option[JsValue] =
     Await.result(client.update(new ObjectId(id), data), REMOTE_TIMEOUT) match {

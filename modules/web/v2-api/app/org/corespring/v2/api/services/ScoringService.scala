@@ -9,5 +9,5 @@ import scalaz.Validation
 case class ScoreResult(sessionId: String, result: Validation[V2Error, JsValue])
 
 private[api] trait ScoringService[ID] {
-  def scoreMultipleSessions(identity: ID)(ids: Seq[String]): Future[Seq[Validation[V2Error, ScoreResult]]]
+  def scoreMultipleSessions(identity: ID)(ids: Seq[String]): Future[Seq[ScoreResult]]
 }

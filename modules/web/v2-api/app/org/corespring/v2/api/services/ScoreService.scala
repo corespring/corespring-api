@@ -7,7 +7,7 @@ import org.corespring.v2.errors.V2Error
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json, Writes }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Success, Validation }
 
 trait ScoreService {
@@ -46,13 +46,18 @@ trait ScoreService {
   def scoreMultiple(playerDefinition: PlayerDefinition, answers: Seq[JsValue]): Seq[Future[(JsValue, Validation[V2Error, JsValue])]]
 }
 
-class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: ScoreProcessor)(implicit val w: Writes[PlayerDefinition]) extends ScoreService {
+case class ScoreServiceExecutionContext(ec: ExecutionContext)
+
+class BasicScoreService(
+  outcomeProcessor: OutcomeProcessor,
+  scoreProcessor: ScoreProcessor,
+  scoreServiceContext: ScoreServiceExecutionContext)(implicit val w: Writes[PlayerDefinition]) extends ScoreService {
 
   protected lazy val logger = Logger(classOf[BasicScoreService])
 
   override def scoreMultiple(playerDefinition: PlayerDefinition, answers: Seq[JsValue]): Seq[Future[(JsValue, Validation[V2Error, JsValue])]] = {
     answers.map { a =>
-      Future { (a -> score(playerDefinition, a)) }
+      Future { (a -> score(playerDefinition, a)) }(scoreServiceContext.ec)
     }
   }
 

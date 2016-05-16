@@ -1,17 +1,20 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.container.components.outcome.ScoreProcessor
+import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.auth.ApiClient
-import org.corespring.models.item.{ PlayerDefinition, ComponentType }
+import org.corespring.models.item.{ ComponentType, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.ItemDraftsModule
-import org.corespring.v2.api.services.{ PlayerTokenService, ScoreService }
-import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
+import org.corespring.v2.api.services._
+import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
+import play.api.libs.json.Writes
 import play.api.mvc.{ Controller, RequestHeader }
 
 import scala.concurrent.ExecutionContext
@@ -33,13 +36,13 @@ trait V2ApiModule
 
   def componentTypes: Seq[ComponentType]
 
-  def scoreService: ScoreService
-
   def itemApiExecutionContext: ItemApiExecutionContext
 
   def itemSessionApiExecutionContext: ItemSessionApiExecutionContext
 
   def scoringApiExecutionContext: ScoringApiExecutionContext
+
+  def orgScoringExecutionContext: OrgScoringExecutionContext
 
   def v2ApiExecutionContext: V2ApiExecutionContext
 
@@ -58,6 +61,17 @@ trait V2ApiModule
   def sessionServices: SessionServices
 
   def rootOrgId: ObjectId
+
+  def scoreServiceExecutionContext: ScoreServiceExecutionContext
+
+  def outcomeProcessor: OutcomeProcessor
+  def scoreProcessor: ScoreProcessor
+
+  lazy val playerDefinitionWrites: Writes[PlayerDefinition] = jsonFormatting.formatPlayerDefinition
+
+  lazy val scoreService: ScoreService = wire[BasicScoreService]
+
+  lazy val orgScoringService: OrgScoringService = wire[OrgScoringService]
 
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 
@@ -103,7 +117,6 @@ trait V2ApiModule
     utilsApi,
     collectionApi,
     organizationApi,
-    scoringApi
-  )
+    scoringApi)
 
 }

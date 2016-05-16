@@ -8,19 +8,26 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.SessionService
+import play.api.Logger
 import play.api.libs.json.JsValue
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Validation }
 
 case class GroupedSessions[D](missingSessions: Seq[String], noItemIds: Seq[String], badItemIds: Seq[String], itemSessions: Seq[D])
 case class ItemSessions(itemId: VersionedId[ObjectId], sessions: Seq[JsValue])
 case class PlayerDefAndSessions(itemId: VersionedId[ObjectId], playerDef: Option[PlayerDefinition], sessions: Seq[JsValue])
+case class OrgScoringExecutionContext(ec: ExecutionContext)
 
 class OrgScoringService(
   sessionService: SessionService,
   itemService: ItemService,
-  scoreService: ScoreService) extends ScoringService[OrgAndOpts] {
+  scoreService: ScoreService,
+  scoringServiceExecutionContext: OrgScoringExecutionContext) extends ScoringService[OrgAndOpts] {
+
+  private lazy val logger = Logger(this.getClass)
+
+  private implicit val ec = scoringServiceExecutionContext.ec
 
   private def groupSessions(sessions: Seq[(String, Option[JsValue])]): Future[GroupedSessions[ItemSessions]] = {
     val groups: Map[String, Seq[(String, Option[JsValue])]] = sessions.groupBy {
@@ -52,10 +59,14 @@ class OrgScoringService(
     val itemIds = groupedSessions.itemSessions.map(_.itemId)
 
     itemService.findMultiplePlayerDefinitions(orgId, itemIds: _*).map { playerDefs =>
-      val defAndSessions: Seq[PlayerDefAndSessions] = playerDefs.map { (tuple) =>
-        val (id, d) = tuple
-        PlayerDefAndSessions(id, d, groupedSessions.itemSessions.find(_.itemId == id).map(_.sessions).getOrElse(Nil))
+
+      logger.trace(s"function=getPlayerDefAndSessions, playerDefs=$playerDefs")
+
+      val defAndSessions: Seq[PlayerDefAndSessions] = playerDefs.map {
+        case (id, d) =>
+          PlayerDefAndSessions(id, d, groupedSessions.itemSessions.find(_.itemId == id).map(_.sessions).getOrElse(Nil))
       }
+
       GroupedSessions[PlayerDefAndSessions](groupedSessions.missingSessions, groupedSessions.noItemIds, groupedSessions.badItemIds, defAndSessions)
     }
   }
@@ -84,9 +95,12 @@ class OrgScoringService(
   }
 
   override def scoreMultipleSessions(identity: OrgAndOpts)(ids: Seq[String]): Future[Seq[ScoreResult]] = for {
-    sessions <- sessionService.loadMultiple(ids)
+    sessions <- sessionService.loadMultipleTwo(ids)
+    _ <- Future.successful(logger.debug(s"function=scoreMultipleSessions, ids=$ids, sessions=$sessions"))
     grouped <- groupSessions(sessions)
+    _ <- Future.successful(logger.trace(s"function=scoreMultipleSessions, ids=$ids, grouped=$grouped"))
     playerDefAndSessions <- getPlayerDefAndSessions(identity.org.id, grouped)
+    _ <- Future.successful(logger.trace(s"function=scoreMultipleSessions, ids=$ids, playerDefAndSessions=$playerDefAndSessions"))
     scores <- getScores(playerDefAndSessions)
   } yield scores
 

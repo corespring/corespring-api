@@ -14,6 +14,7 @@ import org.corespring.models.item.{ Item, ItemStandards, PlayerDefinition }
 import org.corespring.mongo.IdConverters
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.CollectionIdPermission
 import org.corespring.services.item.ItemCount
 import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import org.corespring.{ services => interface }
@@ -188,6 +189,46 @@ class ItemService(
     }
   }
 
+  private def toVid(dbo: DBObject): VersionedId[ObjectId] = com.novus.salat.grater[VersionedId[ObjectId]].asObject(dbo)
+
+  override def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: (VersionedId[ObjectId], Permission)*): Future[Seq[(VersionedId[ObjectId], Boolean)]] = {
+
+    val futureItemAndCollectionIds = Future {
+      val fields = MongoDBObject("collectionId" -> 1)
+      dao.findDbos(idAndPermissions.map(_._1), fields).foldRight(Map.empty[CollectionIdPermission, Seq[VersionedId[ObjectId]]]) { (dbo, acc) =>
+
+        val vid = toVid(dbo.get("_id").asInstanceOf[DBObject])
+        idAndPermissions.find(_._1 == vid) match {
+          case Some((id, p)) => {
+            val collectionIdString = dbo.get("collectionId").asInstanceOf[String]
+            val oid = new ObjectId(collectionIdString)
+            val coll: Seq[VersionedId[ObjectId]] = acc.get(CollectionIdPermission(oid, p)).getOrElse(Seq.empty)
+            acc ++ Map(CollectionIdPermission(oid, p) -> (coll :+ vid))
+          }
+          case _ => acc
+        }
+      }
+    }
+
+    for {
+      itemAndCollectionIds <- futureItemAndCollectionIds
+      authResults <- orgCollectionService.isAuthorizedBatch(orgId, itemAndCollectionIds.keys.toSeq.distinct: _*)
+    } yield {
+      idAndPermissions.map {
+        case (vid, p) =>
+          itemAndCollectionIds.find {
+            case (_, itemIds) => {
+              itemIds.contains(vid)
+            }
+          }.map {
+            case (idPerm, itemIds) => {
+              vid -> authResults.find(_ == idPerm).map(_._2).getOrElse(false)
+            }
+          }.getOrElse(vid -> false)
+      }
+    }
+  }
+
   override def contributorsForOrg(orgId: ObjectId): Seq[String] = {
 
     val readableCollectionIds = orgCollectionService
@@ -206,6 +247,7 @@ class ItemService(
     logger.trace(s"distinct.filter=$filter")
     dao.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
   }
+
   //TODO - would db("content").group be quicker?
   override def countItemsInCollections(collectionIds: ObjectId*): Future[Seq[ItemCount]] = Future {
 
@@ -267,12 +309,40 @@ class ItemService(
 
   override def findMultiplePlayerDefinitions(orgId: ObjectId, ids: VersionedId[ObjectId]*): Future[Seq[(VersionedId[ObjectId], Option[PlayerDefinition])]] = {
 
+    logger.debug(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids")
     isAuthorizedBatch(orgId, ids.map(id => (id, Permission.Read)): _*).map { ids =>
       val validIds = ids.partition(_._2)._1.map(_._1)
 
-      dao.findDbos(validIds, MongoDBObject(Keys.playerDefinition -> 1))
-        .map(dbo => dbo.get("playerDefinition"))
+      logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids, validIds=$validIds")
 
+      if (validIds.length == 0) {
+        logger.warn("function=findMultiplePlayerDefinitions - No valid ids found")
+        Nil
+      } else {
+
+        dao.findDbos(validIds, MongoDBObject(Keys.playerDefinition -> 1))
+          .map(dbo => {
+            logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, dbo=$dbo")
+            val idDbo = dbo.get("_id").asInstanceOf[DBObject]
+            val vid = VersionedId(idDbo.get("_id").asInstanceOf[ObjectId], Some(idDbo.get("version").asInstanceOf[Long]))
+            val definition = dbo.get("playerDefinition").asInstanceOf[DBObject]
+            if (definition == null) {
+              (vid -> None)
+            } else {
+              val maybeDef = try {
+                Some(com.novus.salat.grater[PlayerDefinition].asObject(definition))
+              } catch {
+                case t: Throwable => {
+                  logger.error(t)
+                  t.printStackTrace()
+                  None
+                }
+              }
+              (vid -> maybeDef)
+            }
+          })
+      }
     }
   }
+
 }

@@ -481,4 +481,8 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
   }
 
+  "findMultiplePlayerDefinitions" should {
+    "return multiple player definitions" in pending
+  }
+
 }

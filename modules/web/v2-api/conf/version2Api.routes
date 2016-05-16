@@ -24,7 +24,8 @@ GET /organizations/with-shared-collection/:collId @org.corespring.v2.api.Organiz
 ## Check a score
 ## Load the score based on the saved response
 GET  /sessions/:sessionId/score.json       @org.corespring.v2.api.ScoringApi.loadScore(sessionId:String)
-POST  /sessions/multiple-scores.json        @org.corespring.v2.api.ScoringApi.loadMultipleScores()
+POST  /sessions/multiple-scores.json       @org.corespring.v2.api.ScoringApi.loadMultipleScores()
+POST  /sessions/multiple-scores-two.json   @org.corespring.v2.api.ScoringApi.loadMultipleScoresTwo()
 
 POST /items/:itemId/sessions               @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 

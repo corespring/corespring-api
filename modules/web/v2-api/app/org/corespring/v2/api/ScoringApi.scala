@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.v2.api.services.ScoreService
+import org.corespring.v2.api.services.{ OrgScoringService, ScoreResult, ScoreService }
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
@@ -22,6 +22,7 @@ class ScoringApi(
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   scoreService: ScoreService,
   apiContext: ScoringApiExecutionContext,
+  orgScoringService: OrgScoringService,
   val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)],
   val orgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
@@ -54,6 +55,37 @@ class ScoringApi(
     }
   }
 
+  private def getSessionIdsFromRequest(r: Request[AnyContent]): Validation[V2Error, Seq[String]] = {
+    r.body.asJson.flatMap { jsonBody =>
+      (jsonBody \ "sessionIds").asOpt[JsArray]
+        .map(_.as[Seq[String]])
+    }.toSuccess(missingSessionIds())
+  }
+
+  def loadMultipleScoresTwo(): Action[AnyContent] = Action.async { implicit request =>
+
+    val out = for {
+      identity <- getOrgAndOptions(request)
+      ids <- getSessionIdsFromRequest(request)
+    } yield orgScoringService.scoreMultipleSessions(identity)(ids)
+
+    out match {
+      case Failure(e) => Future.successful(Status(e.statusCode)(e.json))
+      case Success(f) => {
+        f.map { results =>
+          {
+            Ok(Json.toJson(results.map(resultToJson)))
+          }
+        }
+      }
+    }
+  }
+
+  private def resultToJson(item: ScoreResult): JsValue = item match {
+    case ScoreResult(id, Success(score)) => Json.obj("sessionId" -> id, "result" -> score)
+    case ScoreResult(id, Failure(e)) => Json.obj("sessionId" -> id, "error" -> e.json)
+  }
+
   /**
    * Loading multiple scores
    * 1. Load all sessions
@@ -72,26 +104,19 @@ class ScoringApi(
 
     logger.debug(s"function=loadMultipleScores")
 
-    def getSessionIdsFromRequest() = {
-      request.body.asJson.map { jsonBody =>
-        (jsonBody \ "sessionIds").asOpt[JsArray]
-          .map(_.as[Seq[String]])
-      }.flatten
+    Future {
+      val out: Validation[V2Error, JsValue] = for {
+        identity <- getOrgAndOptions(request)
+        ids <- getSessionIdsFromRequest(request)
+        items <- Success(sessionAuth.loadForScoringMultiple(ids)(identity))
+        scores <- Success(calcScores(items))
+      } yield scores
+
+      validationToResult[JsValue](j => Ok(j))(out)
     }
-
-    val out: Validation[V2Error, Future[Seq[ScoreResult]]] = for {
-      identity <- getOrgAndOptions(request)
-      ids <- getSessionIdsFromRequest().toSuccess(missingSessionIds())
-    } yield scoreService.scoreMultiple(identity, ids)
-    //        items <- Success(sessionAuth.loadForScoringMultiple(ids)(identity))
-    //        scores <- Success(calcScores(items))
-    //      } yield scores
-
-    //      validationToResult[JsValue](j => Ok(j))(out)
   }
 
   type ScoreItem = (String, Validation[V2Error, (JsValue, PlayerDefinition)])
-  type ScoreResult = (String, Validation[V2Error, JsValue])
 
   private def calcScores(items: Seq[ScoreItem]) = {
 
@@ -100,14 +125,9 @@ class ScoringApi(
         val out = for {
           score <- getScore(id, sessionAndPlayerDef._1, sessionAndPlayerDef._2)
         } yield score
-        (id, out)
+        ScoreResult(id, out)
       }
-      case (id: String, Failure(e)) => (id: String, Failure(e))
-    }
-
-    def resultToJson(item: ScoreResult): JsValue = item match {
-      case (id: String, Success(score)) => Json.obj("sessionId" -> id, "result" -> score)
-      case (id: String, Failure(e)) => Json.obj("sessionId" -> id, "error" -> e.json)
+      case (id: String, Failure(e)) => ScoreResult(id, Failure(e))
     }
 
     JsArray(

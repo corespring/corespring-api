@@ -10,6 +10,7 @@ import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.BaseContentService
 
+import scala.concurrent.Future
 import scalaz.Validation
 
 trait SalatContentService[ContentType <: Content[ID], ID] extends BaseContentService[ContentType, ID] {
@@ -29,6 +30,10 @@ class ItemApiContentService(underlying: BaseContentService[Item, VersionedId[Obj
     underlying.isAuthorized(orgId, contentId, p)
   }
 
+  override def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: (VersionedId[ObjectId], Permission)*): Future[Seq[(VersionedId[ObjectId], Boolean)]] = {
+    underlying.isAuthorizedBatch(orgId, idAndPermissions: _*)
+  }
+
   override def clone(content: Item): Validation[String, Item] = {
     underlying.clone(content)
   }
@@ -40,4 +45,5 @@ class ItemApiContentService(underlying: BaseContentService[Item, VersionedId[Obj
   override def save(i: Item, createNewVersion: Boolean): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
     underlying.save(i, createNewVersion)
   }
+
 }

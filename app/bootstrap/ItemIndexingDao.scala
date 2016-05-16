@@ -61,6 +61,10 @@ class ItemIndexingDao(
     underlying.findDbo(id)
   }
 
+  override def findDbos(ids: Seq[VersionedId[ObjectId]], fields: DBObject): Stream[DBObject] = {
+    underlying.findDbos(ids, fields)
+  }
+
   override def getCurrentVersion(id: VersionedId[Imports.ObjectId]): Long = {
     underlying.getCurrentVersion(id)
   }
