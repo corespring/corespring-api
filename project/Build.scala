@@ -73,6 +73,10 @@ object Build extends sbt.Build {
   lazy val coreSalatConfig = builders.lib("salat-config", "core", publish = true).settings(
     libraryDependencies ++= Seq(salat))
 
+  lazy val coreServicesWithCaching = builders.lib("services-with-caching", "core", publish = true)
+    .dependsOn(coreServices)
+    .aggregate(coreServices)
+
   lazy val coreServicesSalat = builders.lib("services-salat", "core", publish = true)
     .settings(
       libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws))
@@ -209,8 +213,7 @@ object Build extends sbt.Build {
       coreWeb,
       qtiToV2,
       v2Api,
-      v2SessionDb
-    )
+      v2SessionDb)
 
   object TemplateImports {
     lazy val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -277,6 +280,7 @@ object Build extends sbt.Build {
       apiUtils,
       coreModels,
       coreServices,
+      coreServicesWithCaching,
       coreServicesSalat,
       coreSalatConfig,
       coreWeb,
@@ -316,8 +320,7 @@ object Build extends sbt.Build {
       v2Api,
       v2Auth,
       v2PlayerIntegration,
-      v2SessionDb
-    )
+      v2SessionDb)
 
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }
