@@ -214,6 +214,8 @@ class ItemService(
       itemAndCollectionIds <- futureItemAndCollectionIds
       authResults <- orgCollectionService.isAuthorizedBatch(orgId, itemAndCollectionIds.keys.toSeq.distinct: _*)
     } yield {
+
+      logger.trace(s"function=isAuthorizedBatch, authResults=$authResults, itemAndCollectionIds=$itemAndCollectionIds")
       idAndPermissions.map {
         case (vid, p) =>
           itemAndCollectionIds.find {
@@ -222,7 +224,13 @@ class ItemService(
             }
           }.map {
             case (idPerm, itemIds) => {
-              vid -> authResults.find(_ == idPerm).map(_._2).getOrElse(false)
+              logger.trace(s"function=isAuthorizedBatch, idPerm=$idPerm, itemIds=$itemIds")
+              val authorized = authResults.find {
+                case ((idp, authed)) if (idp == idPerm) => true
+                case _ => false
+              }.map(_._2).getOrElse(false)
+
+              vid -> authorized
             }
           }.getOrElse(vid -> false)
       }
@@ -307,27 +315,34 @@ class ItemService(
     } yield ItemStandards(title, standards, itemId)
   }
 
-  override def findMultiplePlayerDefinitions(orgId: ObjectId, ids: VersionedId[ObjectId]*): Future[Seq[(VersionedId[ObjectId], Option[PlayerDefinition])]] = {
+  override def findMultiplePlayerDefinitions(orgId: ObjectId, ids: VersionedId[ObjectId]*): Future[Seq[(VersionedId[ObjectId], Validation[PlatformServiceError, PlayerDefinition])]] = {
 
     logger.debug(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids")
     isAuthorizedBatch(orgId, ids.map(id => (id, Permission.Read)): _*).map { ids =>
-      val validIds = ids.partition(_._2)._1.map(_._1)
+
+      logger.trace(s"function=findMultiplePlayerDefinitions, ids=$ids")
+
+      val (valid, invalid) = ids.partition(_._2)
+
+      val validIds = valid.map(_._1)
+      val invalidResults = invalid.map(_._1 -> Failure(PlatformServiceError("Not authorized to access")))
 
       logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids, validIds=$validIds")
 
-      if (validIds.length == 0) {
+      import scalaz.Scalaz._
+
+      val validResults: Seq[(VersionedId[ObjectId], Validation[PlatformServiceError, PlayerDefinition])] = if (validIds.length == 0) {
         logger.warn("function=findMultiplePlayerDefinitions - No valid ids found")
         Nil
       } else {
-
         dao.findDbos(validIds, MongoDBObject(Keys.playerDefinition -> 1))
           .map(dbo => {
             logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, dbo=$dbo")
             val idDbo = dbo.get("_id").asInstanceOf[DBObject]
-            val vid = VersionedId(idDbo.get("_id").asInstanceOf[ObjectId], Some(idDbo.get("version").asInstanceOf[Long]))
+            val vid = toVid(idDbo)
             val definition = dbo.get("playerDefinition").asInstanceOf[DBObject]
             if (definition == null) {
-              (vid -> None)
+              (vid -> Failure(PlatformServiceError("No player definition")))
             } else {
               val maybeDef = try {
                 Some(com.novus.salat.grater[PlayerDefinition].asObject(definition))
@@ -338,10 +353,12 @@ class ItemService(
                   None
                 }
               }
-              (vid -> maybeDef)
+              (vid -> maybeDef.toSuccess(PlatformServiceError("Unable to convert playerDefinition")))
             }
           })
       }
+
+      invalidResults ++ validResults
     }
   }
 

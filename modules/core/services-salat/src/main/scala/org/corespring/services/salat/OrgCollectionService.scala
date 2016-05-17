@@ -202,21 +202,21 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
 
     getPermissions(orgId, idsAndPermissions.map(_.collectionId).distinct: _*).map { grantedPermissions =>
 
-      println(s"grantedPermissions: ${grantedPermissions}")
+      logger.trace(s"grantedPermissions: ${grantedPermissions}")
       val out = idsAndPermissions.map { idPerm =>
         val granted = grantedPermissions
           .find(_._1 == idPerm.collectionId)
           .getOrElse(idPerm.collectionId -> None)
 
-        println(s"granted: $granted")
-        println(s"idPerm: $idPerm")
+        logger.trace(s"granted: $granted")
+        logger.trace(s"idPerm: $idPerm")
 
         val authorized = granted._2.map(_.has(idPerm.permission)).getOrElse(false)
-        println(s"authorized:: $authorized")
+        logger.trace(s"authorized:: $authorized")
         idPerm -> authorized
       }
 
-      println(s"out: $out")
+      logger.trace(s"out: $out")
       out
     }
   }

@@ -53,27 +53,33 @@ class BasicScoreService(
   scoreProcessor: ScoreProcessor,
   scoreServiceContext: ScoreServiceExecutionContext)(implicit val w: Writes[PlayerDefinition]) extends ScoreService {
 
-  protected lazy val logger = Logger(classOf[BasicScoreService])
+  private lazy val logger = Logger(this.getClass)
 
   override def scoreMultiple(playerDefinition: PlayerDefinition, answers: Seq[JsValue]): Seq[Future[(JsValue, Validation[V2Error, JsValue])]] = {
     answers.map { a =>
-      Future { (a -> score(playerDefinition, a)) }(scoreServiceContext.ec)
+      logger.trace(s"function=scoreMultiple, a=${Json.toJsFieldJsValueWrapper(a)}, playerDefinition=$playerDefinition")
+      Future { (a -> scoreSession(playerDefinition, a)) }(scoreServiceContext.ec)
     }
   }
 
   override def score(pd: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue] = {
+    scoreSession(pd, Json.obj("components" -> answers))
+  }
+
+  private def scoreSession(pd: PlayerDefinition, session: JsValue): Validation[V2Error, JsValue] = {
     val pdJson = Json.toJson(pd)
-    logger.trace(s"function=score answers=${Json.stringify(answers)}")
+    logger.trace(s"function=score session=${Json.stringify(session)}")
 
     //TODO: Should we be doing some uid validation here, to make sure that they aren't sending unused uids.
     //TODO: Currently they'll just be ignored
 
     /** Because we are only getting the score we don't care about feedback */
     val blankSettings = Json.obj()
-    val componentAnswers = Json.obj("components" -> answers)
     //TODO: Scoring should be asynchronous
-    val outcome = outcomeProcessor.createOutcome(pdJson, componentAnswers, blankSettings)
-    Success(scoreProcessor.score(pdJson, componentAnswers, outcome))
+    val outcome = outcomeProcessor.createOutcome(pdJson, session, blankSettings)
+    val score = scoreProcessor.score(pdJson, session, outcome)
+    logger.trace(s"function=score, score=${Json.prettyPrint(score)}, session=${Json.prettyPrint(session)}, pdJson=${Json.prettyPrint(pdJson)}, outcome=${Json.prettyPrint(outcome)}")
+    Success(score)
   }
 
 }

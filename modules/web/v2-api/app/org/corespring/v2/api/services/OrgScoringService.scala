@@ -1,6 +1,7 @@
 package org.corespring.v2.api.services
 
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
@@ -12,11 +13,11 @@ import play.api.Logger
 import play.api.libs.json.JsValue
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.{ Failure, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 case class GroupedSessions[D](missingSessions: Seq[String], noItemIds: Seq[String], badItemIds: Seq[String], itemSessions: Seq[D])
 case class ItemSessions(itemId: VersionedId[ObjectId], sessions: Seq[JsValue])
-case class PlayerDefAndSessions(itemId: VersionedId[ObjectId], playerDef: Option[PlayerDefinition], sessions: Seq[JsValue])
+case class PlayerDefAndSessions(itemId: VersionedId[ObjectId], playerDef: Validation[PlatformServiceError, PlayerDefinition], sessions: Seq[JsValue])
 case class OrgScoringExecutionContext(ec: ExecutionContext)
 
 class OrgScoringService(
@@ -74,14 +75,14 @@ class OrgScoringService(
   private def getScores(grouped: GroupedSessions[PlayerDefAndSessions]): Future[Seq[ScoreResult]] = {
     val futures = grouped.itemSessions.foldRight[Seq[Future[(JsValue, Validation[V2Error, JsValue])]]](Seq.empty) { (pds, acc) =>
       pds.playerDef match {
-        case Some(d) => acc ++ scoreService.scoreMultiple(d, pds.sessions)
-        case _ => acc ++ pds.sessions.map { s => Future.successful(s -> Failure(generalError("Can't access item"))) }
+        case Success(d) => acc ++ scoreService.scoreMultiple(d, pds.sessions)
+        case Failure(e) => acc ++ pds.sessions.map { s => Future.successful(s -> Failure(generalError(e.message))) }
       }
     }
 
     def toScoreResult(tuple: (JsValue, Validation[V2Error, JsValue])): ScoreResult = {
       val (session, result) = tuple
-      ScoreResult((session \ "id").as[String], result)
+      ScoreResult((session \ "_id" \ "$oid").as[String], result)
     }
 
     val results: Future[Seq[(JsValue, Validation[V2Error, JsValue])]] = Future.sequence(futures)

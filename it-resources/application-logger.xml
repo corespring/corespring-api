@@ -14,6 +14,7 @@
   <logger name="org.corespring.v2.auth.identifiers.TokenOrgIdentity" level="INFO"/>
   <logger name="org.corespring.it.helpers" level="INFO"/>
   <logger name="org.corespring.v2.api.services.OrgScoringService" level="TRACE"/>
+  <logger name="org.corespring.v2.api.services.BasicScoreService" level="TRACE"/>
   <logger name="org.corespring.services.salat.item.ItemService" level="TRACE"/>
 
   <root level="WARN">

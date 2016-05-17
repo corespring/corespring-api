@@ -2,6 +2,7 @@ package org.corespring.services.salat.item
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
 import org.corespring.models.item._
@@ -53,6 +54,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
         contributorDetails = Some(contributorDetails),
         contentType = contentType.getOrElse(Item.contentType),
         standards = standards,
+        playerDefinition = Some(PlayerDefinition.empty),
         taskInfo = Some(TaskInfo(title = title)))
 
       services.itemService.insert(item)
@@ -482,7 +484,37 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
   }
 
   "findMultiplePlayerDefinitions" should {
-    "return multiple player definitions" in pending
+    trait findMultiplePlayerDefinitions extends scope {
+
+      val orgItem = addItem(3, collectionOne)
+      val otherOrg = insertOrg("other-org")
+      val collectionTwo = insertCollection("two", otherOrg)
+      val otherItemOne = addItem(2, collectionTwo, Some(1))
+      val randomItemIdOne = randomItemId
+    }
+
+    "return a single player definitions" in new findMultiplePlayerDefinitions {
+      service.findMultiplePlayerDefinitions(org.id, itemOne.id) must equalTo(Seq(
+        itemOne.id -> Success(itemOne.playerDefinition.get))).await
+    }
+
+    "return multiple player definitions" in new findMultiplePlayerDefinitions {
+      service.findMultiplePlayerDefinitions(org.id, itemOne.id, orgItem.id) must equalTo(Seq(
+        itemOne.id -> Success(itemOne.playerDefinition.get),
+        orgItem.id -> Success(itemOne.playerDefinition.get))).await
+    }
+
+    "return a multiple player definitions with one access failure" in new findMultiplePlayerDefinitions {
+      service.findMultiplePlayerDefinitions(org.id, itemOne.id, otherItemOne.id) must equalTo(Seq(
+        otherItemOne.id -> Failure(PlatformServiceError("Not authorized to access")),
+        itemOne.id -> Success(itemOne.playerDefinition.get))).await
+    }
+
+    "return a multiple player definitions with one access failure" in new findMultiplePlayerDefinitions {
+      service.findMultiplePlayerDefinitions(org.id, itemOne.id, randomItemIdOne) must equalTo(Seq(
+        randomItemIdOne -> Failure(PlatformServiceError("Not authorized to access")),
+        itemOne.id -> Success(itemOne.playerDefinition.get))).await
+    }
   }
 
 }
