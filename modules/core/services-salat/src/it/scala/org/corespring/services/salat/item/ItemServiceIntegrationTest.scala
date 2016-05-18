@@ -483,6 +483,10 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
   }
 
+  "isAuthorizedBatch" should {
+    "return results" in pending
+  }
+
   "findMultiplePlayerDefinitions" should {
     trait findMultiplePlayerDefinitions extends scope {
 

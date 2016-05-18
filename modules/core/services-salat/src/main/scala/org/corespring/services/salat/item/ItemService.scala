@@ -193,46 +193,51 @@ class ItemService(
 
   override def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: (VersionedId[ObjectId], Permission)*): Future[Seq[(VersionedId[ObjectId], Boolean)]] = {
 
-    val futureItemAndCollectionIds = Future {
-      val fields = MongoDBObject("collectionId" -> 1)
-      dao.findDbos(idAndPermissions.map(_._1), fields).foldRight(Map.empty[CollectionIdPermission, Seq[VersionedId[ObjectId]]]) { (dbo, acc) =>
+    idAndPermissions match {
+      case Nil => Future.successful(Nil)
+      case _ => {
 
-        val vid = toVid(dbo.get("_id").asInstanceOf[DBObject])
-        idAndPermissions.find(_._1 == vid) match {
-          case Some((id, p)) => {
-            val collectionIdString = dbo.get("collectionId").asInstanceOf[String]
-            val oid = new ObjectId(collectionIdString)
-            val coll: Seq[VersionedId[ObjectId]] = acc.get(CollectionIdPermission(oid, p)).getOrElse(Seq.empty)
-            acc ++ Map(CollectionIdPermission(oid, p) -> (coll :+ vid))
+        lazy val futureItemAndCollectionIds = Future {
+          val fields = MongoDBObject("collectionId" -> 1)
+          dao.findDbos(idAndPermissions.map(_._1), fields).foldRight(Map.empty[CollectionIdPermission, Seq[VersionedId[ObjectId]]]) { (dbo, acc) =>
+
+            val vid = toVid(dbo.get("_id").asInstanceOf[DBObject])
+            idAndPermissions.find(_._1 == vid) match {
+              case Some((id, p)) => {
+                val collectionIdString = dbo.get("collectionId").asInstanceOf[String]
+                val oid = new ObjectId(collectionIdString)
+                val coll: Seq[VersionedId[ObjectId]] = acc.get(CollectionIdPermission(oid, p)).getOrElse(Seq.empty)
+                acc ++ Map(CollectionIdPermission(oid, p) -> (coll :+ vid))
+              }
+              case _ => acc
+            }
           }
-          case _ => acc
         }
-      }
-    }
 
-    for {
-      itemAndCollectionIds <- futureItemAndCollectionIds
-      authResults <- orgCollectionService.isAuthorizedBatch(orgId, itemAndCollectionIds.keys.toSeq.distinct: _*)
-    } yield {
+        for {
+          itemAndCollectionIds <- futureItemAndCollectionIds
+          authResults <- orgCollectionService.isAuthorizedBatch(orgId, itemAndCollectionIds.keys.toSeq.distinct: _*)
+        } yield {
 
-      logger.trace(s"function=isAuthorizedBatch, authResults=$authResults, itemAndCollectionIds=$itemAndCollectionIds")
-      idAndPermissions.map {
-        case (vid, p) =>
-          itemAndCollectionIds.find {
-            case (_, itemIds) => {
-              itemIds.contains(vid)
-            }
-          }.map {
-            case (idPerm, itemIds) => {
-              logger.trace(s"function=isAuthorizedBatch, idPerm=$idPerm, itemIds=$itemIds")
-              val authorized = authResults.find {
-                case ((idp, authed)) if (idp == idPerm) => true
-                case _ => false
-              }.map(_._2).getOrElse(false)
-
-              vid -> authorized
-            }
-          }.getOrElse(vid -> false)
+          logger.trace(s"function=isAuthorizedBatch, authResults=$authResults, itemAndCollectionIds=$itemAndCollectionIds")
+          idAndPermissions.map {
+            case (vid, p) =>
+              itemAndCollectionIds.find {
+                case (_, itemIds) => {
+                  itemIds.contains(vid)
+                }
+              }.map {
+                case (idPerm, itemIds) => {
+                  logger.trace(s"function=isAuthorizedBatch, idPerm=$idPerm, itemIds=$itemIds")
+                  val authorized = authResults.find {
+                    case ((idp, authed)) if (idp == idPerm) => true
+                    case _ => false
+                  }.map(_._2).getOrElse(false)
+                  vid -> authorized
+                }
+              }.getOrElse(vid -> false)
+          }
+        }
       }
     }
   }
