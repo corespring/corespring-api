@@ -9,15 +9,14 @@ import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.ItemDraftsModule
-import org.corespring.v2.api.services._
+import org.corespring.v2.api.services.{ CachingPlayerDefinitionService, _ }
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.wired.CachingPlayerDefinitionService
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
 import play.api.libs.json.Writes
 import play.api.mvc.{ Controller, RequestHeader }
-
+import spray.caching.Cache
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
 
@@ -73,9 +72,14 @@ trait V2ApiModule
 
   lazy val scoreService: ScoreService = wire[BasicScoreService]
 
-  lazy val cachingPlayerDefinitionService = new CachingPlayerDefinitionService(itemService)
+  lazy val playerDefCache: Cache[CachingPlayerDefinitionService.CacheType] = {
+    import scala.concurrent.duration._
+    spray.caching.LruCache[CachingPlayerDefinitionService.CacheType](timeToLive = 1.minute)
+  }
 
-  lazy val orgScoringService: OrgScoringService = new OrgScoringService(sessionServices.main, cachingPlayerDefinitionService, scoreService, orgScoringExecutionContext) //wire[OrgScoringService]
+  lazy val cachingPlayerDefinitionService = new CachingPlayerDefinitionService(itemService, playerDefCache)(orgScoringExecutionContext.ec)
+
+  lazy val orgScoringService: OrgScoringService = new OrgScoringService(sessionServices.main, cachingPlayerDefinitionService, scoreService, orgScoringExecutionContext)
 
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 

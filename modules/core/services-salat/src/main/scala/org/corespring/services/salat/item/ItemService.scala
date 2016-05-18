@@ -317,48 +317,54 @@ class ItemService(
 
   override def findMultiplePlayerDefinitions(orgId: ObjectId, ids: VersionedId[ObjectId]*): Future[Seq[(VersionedId[ObjectId], Validation[PlatformServiceError, PlayerDefinition])]] = {
 
-    logger.debug(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids")
-    isAuthorizedBatch(orgId, ids.map(id => (id, Permission.Read)): _*).map { ids =>
+    ids match {
+      case Nil => Future.successful(Nil)
+      case _ => {
 
-      logger.trace(s"function=findMultiplePlayerDefinitions, ids=$ids")
+        logger.debug(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids")
+        isAuthorizedBatch(orgId, ids.map(id => (id, Permission.Read)): _*).map { ids =>
 
-      val (valid, invalid) = ids.partition(_._2)
+          logger.trace(s"function=findMultiplePlayerDefinitions, ids=$ids")
 
-      val validIds = valid.map(_._1)
-      val invalidResults = invalid.map(_._1 -> Failure(PlatformServiceError("Not authorized to access")))
+          val (valid, invalid) = ids.partition(_._2)
 
-      logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids, validIds=$validIds")
+          val validIds = valid.map(_._1)
+          val invalidResults = invalid.map(_._1 -> Failure(PlatformServiceError("Not authorized to access")))
 
-      import scalaz.Scalaz._
+          logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids, validIds=$validIds")
 
-      val validResults: Seq[(VersionedId[ObjectId], Validation[PlatformServiceError, PlayerDefinition])] = if (validIds.length == 0) {
-        logger.warn("function=findMultiplePlayerDefinitions - No valid ids found")
-        Nil
-      } else {
-        dao.findDbos(validIds, MongoDBObject(Keys.playerDefinition -> 1))
-          .map(dbo => {
-            logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, dbo=$dbo")
-            val idDbo = dbo.get("_id").asInstanceOf[DBObject]
-            val vid = toVid(idDbo)
-            val definition = dbo.get("playerDefinition").asInstanceOf[DBObject]
-            if (definition == null) {
-              (vid -> Failure(PlatformServiceError("No player definition")))
-            } else {
-              val maybeDef = try {
-                Some(com.novus.salat.grater[PlayerDefinition].asObject(definition))
-              } catch {
-                case t: Throwable => {
-                  logger.error(t)
-                  t.printStackTrace()
-                  None
+          import scalaz.Scalaz._
+
+          val validResults: Seq[(VersionedId[ObjectId], Validation[PlatformServiceError, PlayerDefinition])] = if (validIds.length == 0) {
+            logger.warn("function=findMultiplePlayerDefinitions - No valid ids found")
+            Nil
+          } else {
+            dao.findDbos(validIds, MongoDBObject(Keys.playerDefinition -> 1))
+              .map(dbo => {
+                logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, dbo=$dbo")
+                val idDbo = dbo.get("_id").asInstanceOf[DBObject]
+                val vid = toVid(idDbo)
+                val definition = dbo.get("playerDefinition").asInstanceOf[DBObject]
+                if (definition == null) {
+                  (vid -> Failure(PlatformServiceError("No player definition")))
+                } else {
+                  val maybeDef = try {
+                    Some(com.novus.salat.grater[PlayerDefinition].asObject(definition))
+                  } catch {
+                    case t: Throwable => {
+                      logger.error(t)
+                      t.printStackTrace()
+                      None
+                    }
+                  }
+                  (vid -> maybeDef.toSuccess(PlatformServiceError("Unable to convert playerDefinition")))
                 }
-              }
-              (vid -> maybeDef.toSuccess(PlatformServiceError("Unable to convert playerDefinition")))
-            }
-          })
-      }
+              })
+          }
 
-      invalidResults ++ validResults
+          invalidResults ++ validResults
+        }
+      }
     }
   }
 
