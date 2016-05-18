@@ -12,6 +12,7 @@ import org.corespring.v2.api.drafts.item.ItemDraftsModule
 import org.corespring.v2.api.services._
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.wired.CachingPlayerDefinitionService
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
 import play.api.libs.json.Writes
@@ -65,13 +66,16 @@ trait V2ApiModule
   def scoreServiceExecutionContext: ScoreServiceExecutionContext
 
   def outcomeProcessor: OutcomeProcessor
+
   def scoreProcessor: ScoreProcessor
 
   lazy val playerDefinitionWrites: Writes[PlayerDefinition] = jsonFormatting.formatPlayerDefinition
 
   lazy val scoreService: ScoreService = wire[BasicScoreService]
 
-  lazy val orgScoringService: OrgScoringService = wire[OrgScoringService]
+  lazy val cachingPlayerDefinitionService = new CachingPlayerDefinitionService(itemService)
+
+  lazy val orgScoringService: OrgScoringService = new OrgScoringService(sessionServices.main, cachingPlayerDefinitionService, scoreService, orgScoringExecutionContext) //wire[OrgScoringService]
 
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 

@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.item.ItemService
+import org.corespring.services.item.{ ItemService, PlayerDefinitionService }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
@@ -22,7 +22,7 @@ case class OrgScoringExecutionContext(ec: ExecutionContext)
 
 class OrgScoringService(
   sessionService: SessionService,
-  itemService: ItemService,
+  playerDefinitionService: PlayerDefinitionService,
   scoreService: ScoreService,
   scoringServiceExecutionContext: OrgScoringExecutionContext) extends ScoringService[OrgAndOpts] {
 
@@ -59,7 +59,7 @@ class OrgScoringService(
   private def getPlayerDefAndSessions(orgId: ObjectId, groupedSessions: GroupedSessions[ItemSessions]): Future[GroupedSessions[PlayerDefAndSessions]] = {
     val itemIds = groupedSessions.itemSessions.map(_.itemId)
 
-    itemService.findMultiplePlayerDefinitions(orgId, itemIds: _*).map { playerDefs =>
+    playerDefinitionService.findMultiplePlayerDefinitions(orgId, itemIds: _*).map { playerDefs =>
 
       logger.trace(s"function=getPlayerDefAndSessions, playerDefs=$playerDefs")
 

@@ -73,10 +73,6 @@ object Build extends sbt.Build {
   lazy val coreSalatConfig = builders.lib("salat-config", "core", publish = true).settings(
     libraryDependencies ++= Seq(salat))
 
-  lazy val coreServicesWithCaching = builders.lib("services-with-caching", "core", publish = true)
-    .dependsOn(coreServices)
-    .aggregate(coreServices)
-
   lazy val coreServicesSalat = builders.lib("services-salat", "core", publish = true)
     .settings(
       libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws))
@@ -280,7 +276,6 @@ object Build extends sbt.Build {
       apiUtils,
       coreModels,
       coreServices,
-      coreServicesWithCaching,
       coreServicesSalat,
       coreSalatConfig,
       coreWeb,
