@@ -71,12 +71,8 @@ class ScoringApi(
 
     out match {
       case Failure(e) => Future.successful(Status(e.statusCode)(e.json))
-      case Success(f) => {
-        f.map { results =>
-          {
-            Ok(Json.toJson(results.map(resultToJson)))
-          }
-        }
+      case Success(f) => f.map { results =>
+        Ok(Json.toJson(results.map(resultToJson)))
       }
     }
   }

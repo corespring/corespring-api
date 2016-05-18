@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.item.{ ItemService, PlayerDefinitionService }
+import org.corespring.services.item.{ PlayerDefinitionService }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
