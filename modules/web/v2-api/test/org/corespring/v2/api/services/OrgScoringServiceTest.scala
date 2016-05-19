@@ -1,6 +1,7 @@
 package org.corespring.v2.api.services
 
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.PlayerDefinitionService
 import org.corespring.v2.auth.models.MockFactory
@@ -17,6 +18,10 @@ import scalaz.Failure
 class OrgScoringServiceTest extends Specification with Mockito {
 
   trait scope extends Scope with MockFactory {
+
+    lazy val item = mockItem
+    lazy val vid = item.id
+
     lazy val orgAndOpts = mockOrgAndOpts()
 
     lazy val sessionService = {
@@ -44,9 +49,7 @@ class OrgScoringServiceTest extends Specification with Mockito {
 
   "scoreMultipleSessions" should {
     "scoreMultipleSessions" should {
-      trait scoreMultipleSessions extends scope {
-
-      }
+      trait scoreMultipleSessions extends scope
 
       "return nil for nil" in new scoreMultipleSessions {
         service.scoreMultipleSessions(orgAndOpts)(Nil) must equalTo(Nil).await
@@ -68,6 +71,18 @@ class OrgScoringServiceTest extends Specification with Mockito {
         sessionService.loadMultipleTwo(any[Seq[String]]) returns Future.successful(Seq("sessionId" -> Some(Json.obj("itemId" -> "bad"))))
         val f = service.scoreMultipleSessions(orgAndOpts)(Seq("sessionId"))
         f must equalTo(Seq(ScoreResult("sessionId", Failure(generalError("Bad Item id"))))).await
+      }
+
+      "return error from loading player definition" in new scoreMultipleSessions {
+
+        val json = Json.obj("itemId" -> vid.toString, "_id" -> Json.obj("$oid" -> "sessionId"))
+        sessionService.loadMultipleTwo(any[Seq[String]]) returns Future.successful(Seq("sessionId" -> Some(json)))
+        playerDefinitionService.findMultiplePlayerDefinitions(any[ObjectId], any[VersionedId[ObjectId]]) returns {
+          Future.successful(Seq(vid -> Failure(PlatformServiceError("err"))))
+        }
+        val f = service.scoreMultipleSessions(orgAndOpts)(Seq("sessionId"))
+        f must equalTo(Seq(ScoreResult("sessionId", Failure(generalError("err"))))).await
+
       }
     }
   }
