@@ -26,31 +26,37 @@ class OrgScoringService(
   scoreService: ScoreService,
   scoringServiceExecutionContext: OrgScoringExecutionContext) extends ScoringService[OrgAndOpts] {
 
+  sealed trait Grouping
+
+  case object Missing extends Grouping
+  case object NoItemId extends Grouping
+  case object BadItemId extends Grouping
+  case class GoodItemId(id: VersionedId[ObjectId]) extends Grouping
+
   private lazy val logger = Logger(this.getClass)
 
   private implicit val ec = scoringServiceExecutionContext.ec
 
   private def groupSessions(sessions: Seq[(String, Option[JsValue])]): Future[GroupedSessions[ItemSessions]] = {
-    val groups: Map[String, Seq[(String, Option[JsValue])]] = sessions.groupBy {
-      case (id, None) => "missing"
+    val groups: Map[Grouping, Seq[(String, Option[JsValue])]] = sessions.groupBy {
+      case (id, None) => Missing
       case (id, Some(json)) => (json \ "itemId").asOpt[String] match {
-        case None => "no-item-ids"
-        case Some(id) => if (VersionedId(id).isDefined) id else "bad-item-id"
+        case None => NoItemId
+        case Some(id) => VersionedId(id).map(GoodItemId(_)).getOrElse(BadItemId)
       }
     }
 
     val itemSessions = groups.toSeq.flatMap {
-      case (key, sessions) => if (Seq("missing", "no-item-id", "bad-item-id").contains(key)) {
-        None
-      } else {
-        Some(ItemSessions(VersionedId(key).get, sessions.flatMap(_._2)))
+      case (GoodItemId(vid), sessions) => {
+        Some(ItemSessions(vid, sessions.flatMap(_._2)))
       }
+      case _ => None
     }
 
     val out = GroupedSessions(
-      missingSessions = groups.getOrElse("missing", Nil).map(_._1),
-      noItemIds = groups.getOrElse("no-item-id", Nil).map(_._1),
-      badItemIds = groups.getOrElse("bad-item-id", Nil).map(_._1),
+      missingSessions = groups.getOrElse(Missing, Nil).map(_._1),
+      noItemIds = groups.getOrElse(NoItemId, Nil).map(_._1),
+      badItemIds = groups.getOrElse(BadItemId, Nil).map(_._1),
       itemSessions = itemSessions)
 
     Future.successful(out)
