@@ -484,7 +484,61 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
   }
 
   "isAuthorizedBatch" should {
-    "return results" in pending
+
+    trait isAuthorizedBatch extends scope {
+
+      type Params = (VersionedId[ObjectId], Permission, Boolean)
+
+      val otherOrg = insertOrg("other-org")
+      val collectionTwo = insertCollection("two", otherOrg, isPublic = true)
+      val otherItemOne = addItem(2, collectionTwo, Some(1))
+    }
+
+    "return 1 authorized result" in new isAuthorizedBatch {
+      service.isAuthorizedBatch(org.id, (itemOne.id, Permission.Read)) must equalTo(Seq(itemOne.id -> Permission.Read -> true)).await
+    }
+
+    "return 2 results for same id with different permissions" in new isAuthorizedBatch {
+      val params: Seq[Params] = Seq(
+        (itemOne.id, Permission.Read, true),
+        (itemOne.id, Permission.Write, true))
+
+      service.isAuthorizedBatch(org.id, params.map(t => t._1 -> t._2): _*) must equalTo(
+        params.map(t => t._1 -> t._2 -> t._3)).await
+    }
+
+    "return 2 results" in new isAuthorizedBatch {
+      val random = randomItemId
+
+      val params = Seq(
+        (itemOne.id, Permission.Read, true),
+        (random, Permission.Read, false))
+
+      service.isAuthorizedBatch(org.id, params.map(t => t._1 -> t._2): _*) must equalTo(
+        params.map(t => t._1 -> t._2 -> t._3)).await
+    }
+
+    "return 2 results for Write/Read on a public collection" in new isAuthorizedBatch {
+      val params = Seq(
+        (otherItemOne.id, Permission.Write, false),
+        (otherItemOne.id, Permission.Read, true))
+
+      service.isAuthorizedBatch(org.id, params.map(t => t._1 -> t._2): _*) must equalTo(
+        params.map(t => t._1 -> t._2 -> t._3)).await
+    }
+
+    "return 4 results" in new isAuthorizedBatch {
+      val random = randomItemId
+
+      val params = Seq(
+        (itemOne.id, Permission.Read, true),
+        (otherItemOne.id, Permission.Read, true),
+        (otherItemOne.id, Permission.Write, false),
+        (random, Permission.Read, false))
+
+      service.isAuthorizedBatch(org.id, params.map(t => t._1 -> t._2): _*) must equalTo(
+        params.map(t => t._1 -> t._2 -> t._3)).await
+    }
   }
 
   "findMultiplePlayerDefinitions" should {

@@ -191,51 +191,61 @@ class ItemService(
 
   private def toVid(dbo: DBObject): VersionedId[ObjectId] = com.novus.salat.grater[VersionedId[ObjectId]].asObject(dbo)
 
-  override def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: (VersionedId[ObjectId], Permission)*): Future[Seq[(VersionedId[ObjectId], Boolean)]] = {
+  type CollToVidMap = Map[CollectionIdPermission, Seq[VersionedId[ObjectId]]]
+
+  override def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: VidPerm*): Future[Seq[(VidPerm, Boolean)]] = {
 
     idAndPermissions match {
       case Nil => Future.successful(Nil)
       case _ => {
 
         lazy val futureItemAndCollectionIds = Future {
-          val fields = MongoDBObject("collectionId" -> 1)
+          val fields = MongoDBObject(Keys.collectionId -> 1)
           dao.findDbos(idAndPermissions.map(_._1), fields).foldRight(Map.empty[CollectionIdPermission, Seq[VersionedId[ObjectId]]]) { (dbo, acc) =>
 
+            def getIdPermissionMap(vid: VersionedId[ObjectId], p: Permission, map: CollToVidMap) = {
+              val collectionIdString = dbo.get(Keys.collectionId).asInstanceOf[String]
+              val oid = new ObjectId(collectionIdString)
+              val coll: Seq[VersionedId[ObjectId]] = map.get(CollectionIdPermission(oid, p)).getOrElse(Seq.empty)
+              Map(CollectionIdPermission(oid, p) -> (coll :+ vid))
+            }
+
             val vid = toVid(dbo.get("_id").asInstanceOf[DBObject])
-            idAndPermissions.find(_._1 == vid) match {
-              case Some((id, p)) => {
-                val collectionIdString = dbo.get("collectionId").asInstanceOf[String]
-                val oid = new ObjectId(collectionIdString)
-                val coll: Seq[VersionedId[ObjectId]] = acc.get(CollectionIdPermission(oid, p)).getOrElse(Seq.empty)
-                acc ++ Map(CollectionIdPermission(oid, p) -> (coll :+ vid))
-              }
-              case _ => acc
+            acc ++ idAndPermissions.filter(_._1 == vid).foldRight(acc) { (tuple, m) =>
+              val (_, p) = tuple
+              m ++ getIdPermissionMap(vid, p, m)
             }
           }
         }
 
+        logger.trace(s"function=isAuthorizedBatch, idAndPermissions=$idAndPermissions")
+
         for {
-          itemAndCollectionIds <- futureItemAndCollectionIds
-          authResults <- orgCollectionService.isAuthorizedBatch(orgId, itemAndCollectionIds.keys.toSeq.distinct: _*)
+          collectionIdToVidMap <- futureItemAndCollectionIds
+          _ <- Future.successful(logger.trace(s"function=isAuthorizedBatch, collectionIdToViewMap=$collectionIdToVidMap"))
+          collectionResults <- orgCollectionService.isAuthorizedBatch(orgId, collectionIdToVidMap.keys.toSeq.distinct: _*)
         } yield {
 
-          logger.trace(s"function=isAuthorizedBatch, authResults=$authResults, itemAndCollectionIds=$itemAndCollectionIds")
+          logger.trace(s"function=isAuthorizedBatch, collectionResults=$collectionResults, collectionIdToVidMap=$collectionIdToVidMap")
           idAndPermissions.map {
             case (vid, p) =>
-              itemAndCollectionIds.find {
-                case (_, itemIds) => {
-                  itemIds.contains(vid)
+              val collectionIdToVid = collectionIdToVidMap.find {
+                case (idp, itemIds) => {
+                  itemIds.contains(vid) && idp.permission == p
                 }
-              }.map {
-                case (idPerm, itemIds) => {
-                  logger.trace(s"function=isAuthorizedBatch, idPerm=$idPerm, itemIds=$itemIds")
-                  val authorized = authResults.find {
-                    case ((idp, authed)) if (idp == idPerm) => true
+              }
+
+              collectionIdToVid.map {
+                case (collectionIdPermission, itemIds) => {
+                  logger.trace(s"function=isAuthorizedBatch, collectionIdPermission=$collectionIdPermission, itemIds=$itemIds")
+                  val authorized = collectionResults.find {
+                    case ((idp, authed)) if (idp == collectionIdPermission) => authed
                     case _ => false
                   }.map(_._2).getOrElse(false)
-                  vid -> authorized
+
+                  (vid -> p) -> authorized
                 }
-              }.getOrElse(vid -> false)
+              }.getOrElse((vid -> p) -> false)
           }
         }
       }
@@ -333,8 +343,8 @@ class ItemService(
 
           val (valid, invalid) = ids.partition(_._2)
 
-          val validIds = valid.map(_._1)
-          val invalidResults = invalid.map(_._1 -> Failure(PlatformServiceError("Not authorized to access")))
+          val validIds = valid.map(t => t._1._1)
+          val invalidResults = invalid.map(_._1._1 -> Failure(PlatformServiceError("Not authorized to access")))
 
           logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids, validIds=$validIds")
 

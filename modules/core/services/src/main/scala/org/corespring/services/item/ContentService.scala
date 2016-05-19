@@ -24,6 +24,8 @@ trait BaseContentService[ContentType <: Content[ID], ID] extends BaseFindAndSave
 
   def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Validation[PlatformServiceError, Unit]
 
-  def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: (VersionedId[ObjectId], Permission)*): Future[Seq[(VersionedId[ObjectId], Boolean)]]
+  type VidPerm = (VersionedId[ObjectId], Permission)
+
+  def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: (VidPerm)*): Future[Seq[(VidPerm, Boolean)]]
 
 }

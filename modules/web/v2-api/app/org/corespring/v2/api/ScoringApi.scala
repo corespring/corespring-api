@@ -45,14 +45,18 @@ class ScoringApi(
 
     logger.debug(s"function=loadScore sessionId=$sessionId")
 
-    Future {
-      val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
-        score <- getSingleScore(sessionId, identity)
-      } yield score
+    val out: Validation[V2Error, Future[ScoreResult]] = for {
+      identity <- getOrgAndOptions(request)
+    } yield orgScoringService.scoreSession(identity)(sessionId)
 
-      validationToResult[JsValue](j => Ok(j))(out)
+    def scoreResultToJson(f: Future[ScoreResult]): Future[SimpleResult] = f.map { result =>
+      result.result match {
+        case Success(json) => Ok(json)
+        case Failure(e) => Status(e.statusCode)(e.json)
+      }
     }
+
+    validationToFutureResult[ScoreResult](scoreResultToJson)(out)
   }
 
   private def getSessionIdsFromRequest(r: Request[AnyContent]): Validation[V2Error, Seq[String]] = {
