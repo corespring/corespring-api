@@ -239,7 +239,7 @@ class ItemService(
                 case (collectionIdPermission, itemIds) => {
                   logger.trace(s"function=isAuthorizedBatch, collectionIdPermission=$collectionIdPermission, itemIds=$itemIds")
                   val authorized = collectionResults.find {
-                    case ((idp, authed)) if (idp == collectionIdPermission) => authed
+                    case ((idp, authorized)) if (idp == collectionIdPermission) => authorized
                     case _ => false
                   }.map(_._2).getOrElse(false)
 
