@@ -10,6 +10,8 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
+
+import scala.concurrent.ExecutionContext
 import scalaz.Success
 
 class BasicScoreServiceTest extends Specification with Mockito {
@@ -47,7 +49,8 @@ class BasicScoreServiceTest extends Specification with Mockito {
       m.score(any[JsValue], any[JsValue], any[JsValue]) returns score
       m
     }
-    lazy val service = new BasicScoreService(outcomeProcessor, scoreProcessor)
+    lazy val context = ScoreServiceExecutionContext(ExecutionContext.global)
+    lazy val service = new BasicScoreService(outcomeProcessor, scoreProcessor, context)
     val response = service.score(playerDefinition, answers)
   }
 

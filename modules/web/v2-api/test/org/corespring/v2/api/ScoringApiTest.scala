@@ -1,27 +1,27 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.encryption.apiClient.{ApiClientEncryptionService, EncryptionSuccess}
+import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionSuccess }
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
-import org.corespring.v2.api.services.ScoreService
+import org.corespring.v2.api.services.{ OrgScoringService, ScoreService }
 import org.corespring.v2.auth.SessionAuth
-import org.corespring.v2.auth.models.{MockFactory, OrgAndOpts}
+import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{AnyContentAsJson, RequestHeader}
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ AnyContentAsJson, RequestHeader }
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.concurrent.ExecutionContext
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class ScoringApiTest extends Specification with Mockito with MockFactory {
 
@@ -30,7 +30,7 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
 
   val rootOrgId = new ObjectId()
   val rootApiClient = ApiClient(rootOrgId, ObjectId.get, "secret")
-  val rootOrgAndClient = Success((mockOrgAndOpts().copy(org = mockOrg().copy(id = rootOrgId)) , rootApiClient))
+  val rootOrgAndClient = Success((mockOrgAndOpts().copy(org = mockOrg().copy(id = rootOrgId)), rootApiClient))
 
   class apiScope(
     val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
@@ -81,19 +81,23 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
 
     val apiContext = ScoringApiExecutionContext(ExecutionContext.Implicits.global, ExecutionContext.Implicits.global)
 
+    lazy val orgScoringService = {
+      val m = mock[OrgScoringService]
+      m
+    }
+
     val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts] = { request: RequestHeader =>
       getOrgAndClient(request).map(_._1)
     }
-
 
     val api = new ScoringApi(
       mockSessionAuth,
       mockScoreService,
       apiContext,
+      orgScoringService,
       getOrgAndClient,
       getOrgAndOptionsFn)
   }
-
 
   "V2 - ScoringApi" should {
 
@@ -129,7 +133,7 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
 
       "fail when sessionIds are not found" in new apiScope() {
         val result = api.loadMultipleScores()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        val error = Json.obj("message"->"No sessionIds found.","errorType"->"missingSessionIds")
+        val error = Json.obj("message" -> "No sessionIds found.", "errorType" -> "missingSessionIds")
         result must beCodeAndJson(BAD_REQUEST, error)
       }
 
