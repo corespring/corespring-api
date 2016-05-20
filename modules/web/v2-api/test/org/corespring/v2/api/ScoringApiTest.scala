@@ -6,7 +6,7 @@ import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
-import org.corespring.v2.api.services.{ OrgScoringService, ScoreService }
+import org.corespring.v2.api.services.{ OrgScoringService, ScoreResult, ScoreService }
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
@@ -20,7 +20,7 @@ import play.api.mvc.{ AnyContentAsJson, RequestHeader }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
 
 class ScoringApiTest extends Specification with Mockito with MockFactory {
@@ -83,6 +83,8 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
 
     lazy val orgScoringService = {
       val m = mock[OrgScoringService]
+      m.scoreMultipleSessions(any[OrgAndOpts])(any[Seq[String]]) returns Future.successful(Seq(ScoreResult("sessionId", scoreResult)))
+      m.scoreSession(any[OrgAndOpts])(any[String]) returns Future.successful(ScoreResult("sessionId", scoreResult))
       m
     }
 
@@ -115,7 +117,7 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
         sessionAndItem = Success(Json.obj(), emptyPlayerDefinition)) {
 
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        val error = sessionDoesNotContainResponses("sessionId")
+        val error = scoreResult.toEither.left.get
         result must beCodeAndJson(error.statusCode, error.json)
       }
 

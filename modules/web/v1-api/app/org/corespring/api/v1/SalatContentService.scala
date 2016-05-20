@@ -30,7 +30,7 @@ class ItemApiContentService(underlying: BaseContentService[Item, VersionedId[Obj
     underlying.isAuthorized(orgId, contentId, p)
   }
 
-  override def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: (VersionedId[ObjectId], Permission)*): Future[Seq[(VersionedId[ObjectId], Boolean)]] = {
+  override def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: (VersionedId[ObjectId], Permission)*): Future[Seq[((VersionedId[ObjectId], Permission), Boolean)]] = {
     underlying.isAuthorizedBatch(orgId, idAndPermissions: _*)
   }
 

@@ -37,14 +37,18 @@ class CachingPlayerDefinitionService(
       case _ => None
     })
 
-    val futureUnderlyingResults = underlying.findMultiplePlayerDefinitions(orgId, missingIds: _*).map { r =>
-      r.foreach {
-        case ((id, v)) => {
-          logger.trace(s"function=findMultiplePlayerDefinition, id=$id - cache the result")
-          cache(id, () => Future.successful(v))
+    logger.trace(s"function=findMultiplePlayerDefinitions, missingIds=$missingIds, cached=${cached.map(_._1)}")
+
+    val futureUnderlyingResults = if (missingIds.isEmpty) Future.successful(Nil) else {
+      underlying.findMultiplePlayerDefinitions(orgId, missingIds: _*).map { r =>
+        r.foreach {
+          case ((id, v)) => {
+            logger.trace(s"function=findMultiplePlayerDefinition, id=$id - cache the result")
+            cache(id, () => Future.successful(v))
+          }
         }
+        r
       }
-      r
     }
 
     for {
