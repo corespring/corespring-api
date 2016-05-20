@@ -179,7 +179,7 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
   }
 
   class token_loadMultipleScores() extends BeforeAfter with multiSessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndMultipleSessions {
-    override def getCall(): Call = Routes.loadMultipleScoresTwo()
+    override def getCall(): Call = Routes.loadMultipleScores()
     override def getJsonBody(sessionIds: Seq[ObjectId]) =
       Json.obj("sessionIds" -> Json.toJson(sessionIds.map(s => s.toString)))
   }

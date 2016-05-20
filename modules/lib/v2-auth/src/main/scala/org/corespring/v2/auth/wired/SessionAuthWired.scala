@@ -3,7 +3,7 @@ package org.corespring.v2.auth.wired
 import org.bson.types.ObjectId
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.v2.auth.SessionAuth.Session
-import org.corespring.v2.auth.models.{ AuthMode, IdentityJson, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{ AuthMode, IdentityJson, OrgAndOpts }
 import org.corespring.v2.auth.{ ItemAuth, PlayerDefinitionLoader, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cannotLoadSessionCount, cantLoadSession, errorSaving }
 import org.corespring.v2.errors.V2Error
@@ -46,28 +46,6 @@ class SessionAuthWired(
       json <- loadSessionJson(sessionId)
       playerDef <- loadPlayerDefinition(sessionId, json)
     } yield (cleanSession(json), playerDef)
-
-  override def loadForScoring(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] =
-    for {
-      json <- loadSessionJson(sessionId)
-      playerDef <- loadPlayerDefinition(sessionId, json)
-    } yield (json, playerDef)
-
-  override def loadForScoringMultiple(sessionIds: Seq[String])(implicit identity: OrgAndOpts): Seq[(String, Validation[V2Error, (JsValue, PlayerDefinition)])] = {
-    val loaded: Map[String, JsValue] =
-      sessionService.loadMultiple(sessionIds).map(json =>
-        ((json \ "_id" \ "$oid").as[String], json)).toMap
-
-    val sessions: Seq[(String, Validation[V2Error, JsValue])] = sessionIds.map { id =>
-      if (loaded.contains(id)) {
-        (id, Success(loaded.get(id).get))
-      } else {
-        (id, Failure(cantLoadSession(id)))
-      }
-    }
-
-    pdLoader.loadMultiplePlayerDefinitions(sessions)
-  }
 
   override def loadWithIdentity(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] =
     for {

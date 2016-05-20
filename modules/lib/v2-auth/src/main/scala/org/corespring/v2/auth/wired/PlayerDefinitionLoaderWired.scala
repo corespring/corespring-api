@@ -19,7 +19,7 @@ trait HasPermissions {
   def has(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
 }
 
-class PlayerDefinitionLoaderWired(
+private[auth] class PlayerDefinitionLoaderWired(
   itemTransformer: ItemTransformer,
   jsonToPlayerDef: JsonFormatting,
   itemAuth: ItemAuth[OrgAndOpts],

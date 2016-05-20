@@ -7,7 +7,7 @@ import play.api.libs.json.JsValue
 
 import scalaz.Validation
 
-trait PlayerDefinitionLoader {
+private[auth] trait PlayerDefinitionLoader {
 
   def loadPlayerDefinition(sessionId: String, session: JsValue)(implicit identity: OrgAndOpts): Validation[V2Error, PlayerDefinition]
   def loadMultiplePlayerDefinitions(sessions: Seq[(String, Validation[V2Error, JsValue])])(implicit identity: OrgAndOpts): Seq[(String, Validation[V2Error, (JsValue, PlayerDefinition)])]

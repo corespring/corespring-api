@@ -5,19 +5,16 @@ import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, Encrypt
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.OrganizationService
-import org.corespring.v2.api.services.{ OrgScoringService, ScoreResult, ScoreService }
-import org.corespring.v2.auth.SessionAuth
+import org.corespring.v2.api.services.{ OrgScoringService, ScoreResult }
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ AnyContentAsJson, RequestHeader }
-import play.api.test.Helpers._
+import play.api.http.Status._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -33,41 +30,10 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
   val rootOrgAndClient = Success((mockOrgAndOpts().copy(org = mockOrg().copy(id = rootOrgId)), rootApiClient))
 
   class apiScope(
-    val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
     val orgAndClient: V2ApiScope.OrgAndClient = Success((mockedOrgAndOpts, client)),
-    val maybeSessionId: Option[ObjectId] = None,
     val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("error getting score")),
     val sessionAndItemMultiple: Seq[(String, Validation[V2Error, (JsValue, PlayerDefinition)])] = Seq(("sessionId", Failure(generalError("error getting score")))),
-    val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
-    val clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
-    val apiClient: Option[ApiClient] = None,
-    val sessionCounts: Validation[V2Error, Map[DateTime, Long]] = Success(Map.empty[DateTime, Long])) extends Scope {
-
-    val mockSessionAuth = {
-      val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
-      m.canCreate(anyString)(any[OrgAndOpts]) returns canCreate
-      m.loadForRead(anyString)(any[OrgAndOpts]) returns sessionAndItem
-      m.loadForWrite(anyString)(any[OrgAndOpts]) returns sessionAndItem
-      m.loadForScoring(anyString)(any[OrgAndOpts]) returns sessionAndItem
-      m.loadForScoringMultiple(any[Seq[String]])(any[OrgAndOpts]) returns sessionAndItemMultiple
-      m.loadWithIdentity(anyString)(any[OrgAndOpts]) returns sessionAndItem
-      m.cloneIntoPreview(anyString)(any[OrgAndOpts]) returns clonedSession
-      m.orgCount(any[ObjectId], any[DateTime])(any[OrgAndOpts]) returns sessionCounts
-      import scalaz.Scalaz._
-      m.create(any[JsValue])(any[OrgAndOpts]) returns maybeSessionId.toSuccess(errorSaving("no session id returned from mock"))
-      m
-    }
-
-    val mockScoreService = {
-      val m = mock[ScoreService]
-      m.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
-      m
-    }
-
-    val mockOrgService = {
-      val m = mock[OrganizationService]
-      m
-    }
+    val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score"))) extends Scope {
 
     val mockEncryptionService = {
       val m = mock[ApiClientEncryptionService]
@@ -93,8 +59,6 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
     }
 
     val api = new ScoringApi(
-      mockSessionAuth,
-      mockScoreService,
       apiContext,
       orgScoringService,
       getOrgAndClient,
@@ -113,12 +77,16 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
         result must beCodeAndJson(error.statusCode, error.json)
       }
 
-      "fail when the session has no 'components'" in new apiScope(
+      "return a score error statusCode and json" in new apiScope(
         sessionAndItem = Success(Json.obj(), emptyPlayerDefinition)) {
 
+        val err = generalError("score error")
+        orgScoringService.scoreSession(any[OrgAndOpts])(any[String]) returns {
+          Future.successful(ScoreResult("sessionId", Failure(err)))
+        }
+
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        val error = scoreResult.toEither.left.get
-        result must beCodeAndJson(error.statusCode, error.json)
+        result must beCodeAndJson(err.statusCode, err.json)
       }
 
       "work" in new apiScope(
@@ -139,13 +107,19 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
         result must beCodeAndJson(BAD_REQUEST, error)
       }
 
-      "fail when the session has no 'components'" in new apiScope(
+      "return a scoreService error" in new apiScope(
         sessionAndItemMultiple = Seq(("sessionId", Success(
           Json.obj(),
           emptyPlayerDefinition))),
         scoreResult = Success(Json.obj("score" -> 100))) {
+
+        val err = generalError("score error")
+
+        orgScoringService.scoreMultipleSessions(any[OrgAndOpts])(any[Seq[String]]) returns {
+          Future.successful(Seq(ScoreResult("sessionId", Failure(err))))
+        }
         val result = api.loadMultipleScores()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("sessionIds" -> Json.arr("sessionId")))))
-        val error = Json.arr(Json.obj("sessionId" -> "sessionId", "error" -> sessionDoesNotContainResponses("sessionId").json))
+        val error = Json.arr(Json.obj("sessionId" -> "sessionId", "error" -> err.json))
         result must beCodeAndJson(OK, error)
       }
 
