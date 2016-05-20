@@ -53,9 +53,7 @@ class DynamoSessionService(table: Table, client: AmazonDynamoDBClient) extends S
     }
   }
 
-  override def loadMultipleTwo(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = Future.successful(Nil)
-
-  override def loadMultiple(ids: Seq[String]): Seq[JsValue] = Nil
+  override def loadMultiple(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = Future.successful(Nil)
 
   def save(sessionId: String, data: JsValue): Option[JsValue] = {
     val itemId = (data \ itemIdKey).asOpt[String].getOrElse("")

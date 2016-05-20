@@ -108,7 +108,7 @@ class OrgScoringService(
   }
 
   override def scoreMultipleSessions(identity: OrgAndOpts)(ids: Seq[String]): Future[Seq[ScoreResult]] = for {
-    sessions <- sessionService.loadMultipleTwo(ids)
+    sessions <- sessionService.loadMultiple(ids)
     _ <- Future.successful(logger.debug(s"function=scoreMultipleSessions, ids=$ids, sessions=$sessions"))
     grouped <- groupSessions(sessions)
     _ <- Future.successful(logger.trace(s"function=scoreMultipleSessions, ids=$ids, grouped=$grouped"))

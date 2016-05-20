@@ -27,7 +27,7 @@ class OrgScoringServiceTest extends Specification with Mockito {
 
     lazy val sessionService = {
       val m = mock[SessionService]
-      m.loadMultipleTwo(any[Seq[String]]) returns Future.successful(Nil)
+      m.loadMultiple(any[Seq[String]]) returns Future.successful(Nil)
       m
     }
 
@@ -52,7 +52,7 @@ class OrgScoringServiceTest extends Specification with Mockito {
     val json = Json.obj("itemId" -> vid.toString, "_id" -> Json.obj("$oid" -> "sessionId"))
     lazy val score = Json.obj("score" -> 1)
 
-    sessionService.loadMultipleTwo(any[Seq[String]]) returns Future.successful(Seq("sessionId" -> Some(json)))
+    sessionService.loadMultiple(any[Seq[String]]) returns Future.successful(Seq("sessionId" -> Some(json)))
     playerDefinitionService.findMultiplePlayerDefinitions(any[ObjectId], any[VersionedId[ObjectId]]) returns {
       Future.successful(Seq(vid -> Success(PlayerDefinition.empty)))
     }
@@ -74,14 +74,14 @@ class OrgScoringServiceTest extends Specification with Mockito {
     trait scoreMultipleSessions extends base
 
     "return nil for nil" in new scoreMultipleSessions {
-      sessionService.loadMultipleTwo(any[Seq[String]]) returns Future.successful(Nil)
+      sessionService.loadMultiple(any[Seq[String]]) returns Future.successful(Nil)
       playerDefinitionService.findMultiplePlayerDefinitions(any[ObjectId], any[VersionedId[ObjectId]]) returns Future.successful(Nil)
       scoreService.scoreMultiple(any[PlayerDefinition], any[Seq[JsValue]]) returns Nil
       service.scoreMultipleSessions(orgAndOpts)(Nil) must equalTo(Nil).await
     }
 
     "return errors for missing sessions" in new scoreMultipleSessions {
-      sessionService.loadMultipleTwo(any[Seq[String]]) returns Future.successful(Seq("missing-sessionId" -> None))
+      sessionService.loadMultiple(any[Seq[String]]) returns Future.successful(Seq("missing-sessionId" -> None))
       scoreService.scoreMultiple(any[PlayerDefinition], any[Seq[JsValue]]) returns Nil
       val f = service.scoreMultipleSessions(orgAndOpts)(Seq("missing-sessionId"))
       f must equalTo(Seq(ScoreResult("missing-sessionId", Failure(generalError("No session found"))))).await
@@ -89,14 +89,14 @@ class OrgScoringServiceTest extends Specification with Mockito {
 
     "return errors for missing itemId in session" in new scoreMultipleSessions {
       scoreService.scoreMultiple(any[PlayerDefinition], any[Seq[JsValue]]) returns Nil
-      sessionService.loadMultipleTwo(any[Seq[String]]) returns Future.successful(Seq("sessionId" -> Some(Json.obj())))
+      sessionService.loadMultiple(any[Seq[String]]) returns Future.successful(Seq("sessionId" -> Some(Json.obj())))
       val f = service.scoreMultipleSessions(orgAndOpts)(Seq("sessionId"))
       f must equalTo(Seq(ScoreResult("sessionId", Failure(generalError("No item id"))))).await
     }
 
     "return errors for bad itemId in session" in new scoreMultipleSessions {
       scoreService.scoreMultiple(any[PlayerDefinition], any[Seq[JsValue]]) returns Nil
-      sessionService.loadMultipleTwo(any[Seq[String]]) returns Future.successful(Seq("sessionId" -> Some(Json.obj("itemId" -> "bad"))))
+      sessionService.loadMultiple(any[Seq[String]]) returns Future.successful(Seq("sessionId" -> Some(Json.obj("itemId" -> "bad"))))
       val f = service.scoreMultipleSessions(orgAndOpts)(Seq("sessionId"))
       f must equalTo(Seq(ScoreResult("sessionId", Failure(generalError("Bad Item id"))))).await
     }

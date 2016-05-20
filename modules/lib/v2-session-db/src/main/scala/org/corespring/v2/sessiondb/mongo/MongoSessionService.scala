@@ -2,15 +2,13 @@ package org.corespring.v2.sessiondb.mongo
 
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.sessiondb.{ SessionReportingUnsupported, SessionService, SessionServiceExecutionContext }
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
-import org.joda.time.DateTime
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.sessiondb.{ SessionReportingUnsupported, SessionService, SessionServiceExecutionContext }
 import play.api.libs.json.JsValue
 
 import scala.concurrent.Future
-import scalaz.Validation
 
 class MongoSessionService(collection: MongoCollection, context: SessionServiceExecutionContext) extends SessionService with SessionReportingUnsupported {
 
@@ -23,12 +21,7 @@ class MongoSessionService(collection: MongoCollection, context: SessionServiceEx
     result
   }
 
-  def loadMultiple(ids: Seq[String]): Seq[JsValue] = {
-    val result = impl.loadMultiple(ids)
-    result
-  }
-
-  def loadMultipleTwo(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = Future {
+  def loadMultiple(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = Future {
     val result = impl.loadMultiple(ids)
 
     val found = result.map { json =>
