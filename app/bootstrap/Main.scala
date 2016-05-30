@@ -159,14 +159,18 @@ class Main(
   }
 
   override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
+  override def      containerContext: ContainerExecutionContext = ContainerExecutionContext(ExecutionContext.global)
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
+  override lazy val itemApiExecutionContext: ItemApiExecutionContext = ItemApiExecutionContext(ExecutionContext.global)
+  override lazy val itemSessionApiExecutionContext: ItemSessionApiExecutionContext = ItemSessionApiExecutionContext(ExecutionContext.global)
   override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ecLookup("akka.salat-services"))
+  override lazy val scoringApiExecutionContext: ScoringApiExecutionContext = ScoringApiExecutionContext(ecLookup("akka.scoring-default"), ecLookup("akka.scoring-heavy"))
   override lazy val sessionExecutionContext = SessionExecutionContext(ecLookup("akka.session-default"), ecLookup("akka.session-heavy"))
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ecLookup("akka.v1-api"))
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
-  override def webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
+  override def      webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
 
   private def mainAppVersion(): String = {
     val commit = buildInfo.commitHashShort
@@ -279,8 +283,6 @@ class Main(
       .map(toComponentType) :+ ComponentType("multiple-interactions", "Multiple Interactions")
   }
 
-  override lazy val itemSessionApiExecutionContext: ItemSessionApiExecutionContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
-
   //Used for wiring RequestIdentifiers
   private lazy val secureSocial: SecureSocial = new SecureSocial {}
 
@@ -295,8 +297,6 @@ class Main(
   override lazy val getOrgAndOptsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = requestIdentifiers.allIdentifiers.apply
 
   override def getOrgOptsAndApiClientFn: (RequestHeader) => Validation[V2Error, (OrgAndOpts, ApiClient)] = requestIdentifiers.accessTokenToOrgAndApiClient
-
-  override lazy val itemApiExecutionContext: ItemApiExecutionContext = ItemApiExecutionContext(ExecutionContext.global)
 
   override lazy val scoreService: ScoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)(jsonFormatting.formatPlayerDefinition)
 
@@ -395,8 +395,6 @@ class Main(
   }
 
   override def playMode: PlayMode = mode
-
-  override def containerContext: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
 
   lazy val itemAssetKeys = ItemAssetKeys
   lazy val draftAssetKeys = DraftAssetKeys

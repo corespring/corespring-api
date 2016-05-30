@@ -53,6 +53,10 @@ class DynamoSessionService(table: Table, client: AmazonDynamoDBClient) extends S
     }
   }
 
+  def loadMultiple(sessionIds: Seq[String]): Seq[JsValue] = {
+    Seq()
+  }
+
   def save(sessionId: String, data: JsValue): Option[JsValue] = {
     val itemId = (data \ itemIdKey).asOpt[String].getOrElse("")
     val item = mkItem(sessionId, itemId, data)
