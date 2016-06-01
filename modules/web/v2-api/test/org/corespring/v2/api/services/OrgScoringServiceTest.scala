@@ -13,14 +13,15 @@ import org.corespring.v2.sessiondb.SessionService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+import org.specs2.time.NoTimeConversions
 import play.api.libs.json.{ JsValue, Json }
 import play.api.test.{ DefaultAwaitTimeout, FutureAwaits }
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scalaz.{ Failure, Success }
 
 class OrgScoringServiceTest extends Specification
-  with Mockito with FutureAwaits with DefaultAwaitTimeout {
+  with Mockito with NoTimeConversions {
 
   trait scope extends Scope with MockFactory {
 
@@ -55,6 +56,7 @@ class OrgScoringServiceTest extends Specification
     }
 
     lazy val scoreService = mock[ScoreService]
+
     lazy val scoringServiceExecutionContext = new OrgScoringExecutionContext(ExecutionContext.global)
     lazy val service = new OrgScoringService(
       sessionService,
@@ -145,26 +147,23 @@ class OrgScoringServiceTest extends Specification
 
     trait scoreWithInlineSession extends base {
 
-      val definition = PlayerDefinition("<h1>test</h1>")
+      val definition = PlayerDefinition("<h1>inline definition</h1>")
 
       val inlineSession = obj(
         "_id" -> obj("$oid" -> sessionId.toString),
         "item" -> jsonFormatting.formatPlayerDefinition.writes(definition))
 
       sessionService.loadMultiple(any[Seq[String]]) returns Future.successful {
-        Seq("sessionId" -> Some(inlineSession))
+        Seq("inlineSession" -> Some(inlineSession))
       }
 
-      val scoreResult = service.scoreMultipleSessions(orgAndOpts)(Seq("sessionId"))
-    }
-
-    "return scoring for session with inline definition" in new scoreWithInlineSession {
-      scoreResult must equalTo(Seq(ScoreResult("sessionId", Success(Json.obj("score" -> 1))))).await
+      lazy val scoreResult = service.scoreMultipleSessions(orgAndOpts)(Seq("inlineId"))
     }
 
     "call scoreMultiple with inline player definition" in new scoreWithInlineSession {
-      await(scoreResult)
-      there was one(scoreService).scoreMultiple(PlayerDefinition.empty, Seq(obj()))
+      import scala.concurrent.duration._
+      Await.result(scoreResult, 1.second)
+      there was one(scoreService).scoreMultiple(definition, Seq(inlineSession))
     }
   }
 }
