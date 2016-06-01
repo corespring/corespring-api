@@ -15,7 +15,25 @@ import play.api.libs.json.JsValue
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
 
-case class GroupedSessions[D](missingSessions: Seq[String], noItemIds: Seq[String], badItemIds: Seq[String], itemSessions: Seq[D])
+//case class LoadResult(
+//                     missing : Seq[String],
+//                     noItemId : Seq[String],
+//                     badItemId: Seq[String],
+//                     inlineItem : Seq[InlineItemSession],
+//
+//                     )
+
+//
+// Seq["111"] =>
+//   Result(missing = Nil, noItemId = Nil, badItemId = Nil, loadedSessions = Seq("111" -> {})) =>
+//      Result(missing = Nil, noItemId = Nil, badItemId = Nil, loadedSessions = Seq("111" -> {})) =>
+//
+case class GroupedSessions[D](
+  missingSessions: Seq[String],
+  noItemIds: Seq[String],
+  badItemIds: Seq[String],
+  itemSessions: Seq[D])
+
 case class ItemSessions(itemId: VersionedId[ObjectId], sessions: Seq[JsValue])
 case class PlayerDefAndSessions(itemId: VersionedId[ObjectId], playerDef: Validation[PlatformServiceError, PlayerDefinition], sessions: Seq[JsValue])
 case class OrgScoringExecutionContext(ec: ExecutionContext)
@@ -37,48 +55,95 @@ class OrgScoringService(
 
   private implicit val ec = scoringServiceExecutionContext.ec
 
-  private def groupSessions(sessions: Seq[(String, Option[JsValue])]): Future[GroupedSessions[ItemSessions]] = {
-    val groups: Map[Grouping, Seq[(String, Option[JsValue])]] = sessions.groupBy {
-      case (id, None) => Missing
-      case (id, Some(json)) => (json \ "itemId").asOpt[String] match {
-        case None => NoItemId
-        case Some(id) => VersionedId(id).map(GoodItemId(_)).getOrElse(BadItemId)
-      }
-    }
+  //  private def groupSessions(sessions: Seq[(String, Option[JsValue])]): Future[GroupedSessions[ItemSessions]] = {
+  //    val groups: Map[Grouping, Seq[(String, Option[JsValue])]] = sessions.groupBy {
+  //      case (id, None) => Missing
+  //      case (id, Some(json)) => (json \ "itemId").asOpt[String] match {
+  //        case None => NoItemId
+  //        case Some(id) => VersionedId(id).map(GoodItemId(_)).getOrElse(BadItemId)
+  //      }
+  //    }
+  //
+  //    val itemSessions = groups.toSeq.flatMap {
+  //      case (GoodItemId(vid), sessions) => {
+  //        Some(ItemSessions(vid, sessions.flatMap(_._2)))
+  //      }
+  //      case _ => None
+  //    }
+  //
+  //    val out = GroupedSessions(
+  //      missingSessions = groups.getOrElse(Missing, Nil).map(_._1),
+  //      noItemIds = groups.getOrElse(NoItemId, Nil).map(_._1),
+  //      badItemIds = groups.getOrElse(BadItemId, Nil).map(_._1),
+  //      itemSessions = itemSessions)
+  //
+  //    Future.successful(out)
+  //  }
 
-    val itemSessions = groups.toSeq.flatMap {
-      case (GoodItemId(vid), sessions) => {
-        Some(ItemSessions(vid, sessions.flatMap(_._2)))
-      }
-      case _ => None
-    }
-
-    val out = GroupedSessions(
-      missingSessions = groups.getOrElse(Missing, Nil).map(_._1),
-      noItemIds = groups.getOrElse(NoItemId, Nil).map(_._1),
-      badItemIds = groups.getOrElse(BadItemId, Nil).map(_._1),
-      itemSessions = itemSessions)
-
-    Future.successful(out)
+  sealed trait SessionLoad {
+    def sessionId: String
   }
 
-  private def getPlayerDefAndSessions(orgId: ObjectId, groupedSessions: GroupedSessions[ItemSessions]): Future[GroupedSessions[PlayerDefAndSessions]] = {
-    val itemIds = groupedSessions.itemSessions.map(_.itemId)
+  case class SessionLoadFailure(sessionId: String, error: V2Error) extends SessionLoad
+  case class SessionLoaded(sessionId: String, session: JsValue) extends SessionLoad
 
-    playerDefinitionService.findMultiplePlayerDefinitions(orgId, itemIds: _*).map { playerDefs =>
+  case class SessionsFailed(sessions: Seq[SessionLoadFailure])
+  case class SessionsByItemId(sessions: Seq[SessionLoaded], itemId: VersionedId[ObjectId])
+  case class SessionsByItemIdAndLoadedDefinition(sessions: Seq[SessionLoaded], itemId: VersionedId[ObjectId], maybeDef: Validation[PlatformServiceError, PlayerDefinition])
+  case class SessionsByInlineDefinition(sessions: Seq[SessionLoaded], definition: PlayerDefinition)
+
+  //  case class SessionWithItemId(sessionId:String, session:JsValue, itemId:VersionedId[ObjectId]) extends SessionLoad
+  //  case class SessionWithInlineDefinition(sessionId:String, session:JsValue, playerDef:PlayerDefinition) extends SessionLoad
+  //  case class SessionWithLoadedDefinition(sessionId:String, session:JsValue, itemId:VersionedId[ObjectId], maybeDef:Validation[PlatformServiceError,PlayerDefinition]) extends SessionLoad
+
+  private def groupSessions(sessions: Seq[(String, Option[JsValue])]): Future[Seq[SessionLoad]] = {
+
+    def toSessionLoad(r: (String, Option[JsValue])): SessionLoad = {
+      val (id, maybeSession) = r
+      maybeSession.map { s =>
+        (s \ "itemId").asOpt[String] match {
+          case Some(itemId) => VersionedId(itemId).map(vid => id -> SessionWithItemId(id, s, vid)).getOrElse(SessionLoadFailure(id, generalError("Invalid itemId")))
+          case _ => id -> SessionLoadFailure(id, generalError("No item id"))
+        }
+      }.getOrElse(id -> SessionLoadFailure(id, generalError("Not found")))
+    }
+
+    Future { sessions.map(toSessionLoad) }
+  }
+
+  private def getPlayerDefAndSessions(orgId: ObjectId, s: Seq[SessionLoad]): Future[Seq[SessionLoad]] = {
+
+    val sessionWithItemIds = s.flatMap({
+      case s: SessionWithItemId => Some(s)
+      case _ => None
+    })
+
+    playerDefinitionService.findMultiplePlayerDefinitions(orgId, sessionWithItemIds.map(_.itemId): _*).map { playerDefs =>
 
       logger.trace(s"function=getPlayerDefAndSessions, playerDefs=$playerDefs")
 
-      val defAndSessions: Seq[PlayerDefAndSessions] = playerDefs.map {
+      playerDefs.flatMap {
         case (id, d) =>
-          PlayerDefAndSessions(id, d, groupedSessions.itemSessions.find(_.itemId == id).map(_.sessions).getOrElse(Nil))
+          sessionWithItemIds.find(_.itemId == id).map { swi =>
+            SessionWithLoadedDefinition(swi.sessionId, swi.session, swi.itemId, d)
+          }
       }
-
-      GroupedSessions[PlayerDefAndSessions](groupedSessions.missingSessions, groupedSessions.noItemIds, groupedSessions.badItemIds, defAndSessions)
     }
   }
 
-  private def getScores(grouped: GroupedSessions[PlayerDefAndSessions]): Future[Seq[ScoreResult]] = {
+  private def getScores(loaded: Seq[SessionLoad]): Future[Seq[ScoreResult]] = {
+
+    loaded.map(sl => sl match {
+      case SessionLoadFailure(sessionId, err) => ScoreResult(sessionId, Failure(err))
+      case SessionWithLoadedDefinition(sessionId, session, itemId, maybeDef) => {
+        maybeDef match {
+          case Failure(e) => ScoreResult(sessionId, Failure(generalError(e.message)))
+          case Success(d) =>
+        }
+
+      }
+
+    })
     val futures = grouped.itemSessions.foldRight[Seq[Future[(JsValue, Validation[V2Error, JsValue])]]](Seq.empty) { (pds, acc) =>
       pds.playerDef match {
         case Success(d) => acc ++ scoreService.scoreMultiple(d, pds.sessions)
