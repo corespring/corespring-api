@@ -7,6 +7,7 @@ import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, PlayerDefinition }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.ItemDraftsModule
 import org.corespring.v2.api.services.{ CachingPlayerDefinitionService, _ }
@@ -17,6 +18,7 @@ import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
 import play.api.libs.json.Writes
 import play.api.mvc.{ Controller, RequestHeader }
 import spray.caching.Cache
+
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
 
@@ -79,7 +81,7 @@ trait V2ApiModule
 
   lazy val cachingPlayerDefinitionService = new CachingPlayerDefinitionService(itemService, playerDefCache)(orgScoringExecutionContext.ec)
 
-  lazy val orgScoringService: OrgScoringService = new OrgScoringService(sessionServices.main, cachingPlayerDefinitionService, scoreService, orgScoringExecutionContext)
+  lazy val orgScoringService: OrgScoringService = new OrgScoringService(sessionServices.main, cachingPlayerDefinitionService, scoreService, orgScoringExecutionContext, jsonFormatting)
 
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 

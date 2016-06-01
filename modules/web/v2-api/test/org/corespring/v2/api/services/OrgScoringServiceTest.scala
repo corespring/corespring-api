@@ -2,7 +2,9 @@ package org.corespring.v2.api.services
 
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
-import org.corespring.models.item.PlayerDefinition
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.models.item.{ FieldValue, PlayerDefinition }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.PlayerDefinitionService
 import org.corespring.v2.auth.models.MockFactory
@@ -12,14 +14,17 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
+import play.api.test.{ DefaultAwaitTimeout, FutureAwaits }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success }
 
-class OrgScoringServiceTest extends Specification with Mockito {
+class OrgScoringServiceTest extends Specification
+  with Mockito with FutureAwaits with DefaultAwaitTimeout {
 
   trait scope extends Scope with MockFactory {
 
+    lazy val sessionId = ObjectId.get
     lazy val item = mockItem
     lazy val vid = item.id
 
@@ -39,13 +44,24 @@ class OrgScoringServiceTest extends Specification with Mockito {
       m
     }
 
+    lazy val jsonFormatting = new JsonFormatting {
+      override def fieldValue: FieldValue = FieldValue()
+
+      override def findSubjectById: (ObjectId) => Option[Subject] = _ => None
+
+      override def findStandardByDotNotation: (String) => Option[Standard] = _ => None
+
+      override def rootOrgId: ObjectId = ObjectId.get
+    }
+
     lazy val scoreService = mock[ScoreService]
     lazy val scoringServiceExecutionContext = new OrgScoringExecutionContext(ExecutionContext.global)
     lazy val service = new OrgScoringService(
       sessionService,
       playerDefinitionService,
       scoreService,
-      scoringServiceExecutionContext)
+      scoringServiceExecutionContext,
+      jsonFormatting)
   }
 
   trait base extends scope {
@@ -123,6 +139,32 @@ class OrgScoringServiceTest extends Specification with Mockito {
 
     "return scoring" in new scoreMultipleSessions {
       service.scoreMultipleSessions(orgAndOpts)(Seq("sessionId")) must equalTo(Seq(ScoreResult("sessionId", Success(Json.obj("score" -> 1))))).await
+    }
+
+    import play.api.libs.json.Json._
+
+    trait scoreWithInlineSession extends base {
+
+      val definition = PlayerDefinition("<h1>test</h1>")
+
+      val inlineSession = obj(
+        "_id" -> obj("$oid" -> sessionId.toString),
+        "item" -> jsonFormatting.formatPlayerDefinition.writes(definition))
+
+      sessionService.loadMultiple(any[Seq[String]]) returns Future.successful {
+        Seq("sessionId" -> Some(inlineSession))
+      }
+
+      val scoreResult = service.scoreMultipleSessions(orgAndOpts)(Seq("sessionId"))
+    }
+
+    "return scoring for session with inline definition" in new scoreWithInlineSession {
+      scoreResult must equalTo(Seq(ScoreResult("sessionId", Success(Json.obj("score" -> 1))))).await
+    }
+
+    "call scoreMultiple with inline player definition" in new scoreWithInlineSession {
+      await(scoreResult)
+      there was one(scoreService).scoreMultiple(PlayerDefinition.empty, Seq(obj()))
     }
   }
 }
