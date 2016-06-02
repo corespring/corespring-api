@@ -2,6 +2,7 @@ package org.corespring.services.salat.item
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
 import org.corespring.models.item._
@@ -53,6 +54,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
         contributorDetails = Some(contributorDetails),
         contentType = contentType.getOrElse(Item.contentType),
         standards = standards,
+        playerDefinition = Some(PlayerDefinition.empty),
         taskInfo = Some(TaskInfo(title = title)))
 
       services.itemService.insert(item)
@@ -478,6 +480,98 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
     "return None if the item cannot be found in current or archive" in new scope {
       service.saveNewUnpublishedVersion(randomItemId) must_== None
+    }
+  }
+
+  "isAuthorizedBatch" should {
+
+    trait isAuthorizedBatch extends scope {
+
+      type Params = (VersionedId[ObjectId], Permission, Boolean)
+
+      val otherOrg = insertOrg("other-org")
+      val collectionTwo = insertCollection("two", otherOrg, isPublic = true)
+      val otherItemOne = addItem(2, collectionTwo, Some(1))
+    }
+
+    "return 1 authorized result" in new isAuthorizedBatch {
+      service.isAuthorizedBatch(org.id, (itemOne.id, Permission.Read)) must equalTo(Seq(itemOne.id -> Permission.Read -> true)).await
+    }
+
+    "return 2 results for same id with different permissions" in new isAuthorizedBatch {
+      val params: Seq[Params] = Seq(
+        (itemOne.id, Permission.Read, true),
+        (itemOne.id, Permission.Write, true))
+
+      service.isAuthorizedBatch(org.id, params.map(t => t._1 -> t._2): _*) must equalTo(
+        params.map(t => t._1 -> t._2 -> t._3)).await
+    }
+
+    "return 2 results" in new isAuthorizedBatch {
+      val random = randomItemId
+
+      val params = Seq(
+        (itemOne.id, Permission.Read, true),
+        (random, Permission.Read, false))
+
+      service.isAuthorizedBatch(org.id, params.map(t => t._1 -> t._2): _*) must equalTo(
+        params.map(t => t._1 -> t._2 -> t._3)).await
+    }
+
+    "return 2 results for Write/Read on a public collection" in new isAuthorizedBatch {
+      val params = Seq(
+        (otherItemOne.id, Permission.Write, false),
+        (otherItemOne.id, Permission.Read, true))
+
+      service.isAuthorizedBatch(org.id, params.map(t => t._1 -> t._2): _*) must equalTo(
+        params.map(t => t._1 -> t._2 -> t._3)).await
+    }
+
+    "return 4 results" in new isAuthorizedBatch {
+      val random = randomItemId
+
+      val params = Seq(
+        (itemOne.id, Permission.Read, true),
+        (otherItemOne.id, Permission.Read, true),
+        (otherItemOne.id, Permission.Write, false),
+        (random, Permission.Read, false))
+
+      service.isAuthorizedBatch(org.id, params.map(t => t._1 -> t._2): _*) must equalTo(
+        params.map(t => t._1 -> t._2 -> t._3)).await
+    }
+  }
+
+  "findMultiplePlayerDefinitions" should {
+    trait findMultiplePlayerDefinitions extends scope {
+
+      val orgItem = addItem(3, collectionOne)
+      val otherOrg = insertOrg("other-org")
+      val collectionTwo = insertCollection("two", otherOrg)
+      val otherItemOne = addItem(2, collectionTwo, Some(1))
+      val randomItemIdOne = randomItemId
+    }
+
+    "return a single player definitions" in new findMultiplePlayerDefinitions {
+      service.findMultiplePlayerDefinitions(org.id, itemOne.id) must equalTo(Seq(
+        itemOne.id -> Success(itemOne.playerDefinition.get))).await
+    }
+
+    "return multiple player definitions" in new findMultiplePlayerDefinitions {
+      service.findMultiplePlayerDefinitions(org.id, itemOne.id, orgItem.id) must equalTo(Seq(
+        itemOne.id -> Success(itemOne.playerDefinition.get),
+        orgItem.id -> Success(itemOne.playerDefinition.get))).await
+    }
+
+    "return a multiple player definitions with one access failure" in new findMultiplePlayerDefinitions {
+      service.findMultiplePlayerDefinitions(org.id, itemOne.id, otherItemOne.id) must equalTo(Seq(
+        otherItemOne.id -> Failure(PlatformServiceError("Not authorized to access")),
+        itemOne.id -> Success(itemOne.playerDefinition.get))).await
+    }
+
+    "return a multiple player definitions with one access failure" in new findMultiplePlayerDefinitions {
+      service.findMultiplePlayerDefinitions(org.id, itemOne.id, randomItemIdOne) must equalTo(Seq(
+        randomItemIdOne -> Failure(PlatformServiceError("Not authorized to access")),
+        itemOne.id -> Success(itemOne.playerDefinition.get))).await
     }
   }
 

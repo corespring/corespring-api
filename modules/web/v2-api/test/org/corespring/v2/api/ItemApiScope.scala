@@ -6,14 +6,15 @@ import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{CloneItemService, OrgCollectionService, OrganizationService}
+import org.corespring.services.{ CloneItemService, OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.SessionService
-import org.specs2.matcher.{ ThrownExpectations, Expectable, MatchResult, Matcher }
+import org.specs2.matcher.{ Expectable, MatchResult, Matcher, ThrownExpectations }
+import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
 import play.api.http.HeaderNames
 import play.api.libs.json.{ JsValue, Json }
@@ -58,7 +59,12 @@ private[api] trait ItemApiSpec extends V2ApiSpec {
   }
 }
 
-private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory with ThrownExpectations {
+private[api] trait ItemApiScope
+  extends V2ApiScope
+  with Scope
+  with MockFactory
+  with ThrownExpectations
+  with Mockito {
 
   import ExecutionContext.Implicits.global
 
