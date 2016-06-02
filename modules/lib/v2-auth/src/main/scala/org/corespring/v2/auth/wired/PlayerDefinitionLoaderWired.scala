@@ -45,6 +45,7 @@ private[auth] class PlayerDefinitionLoaderWired(
       } yield pd
     }
 
+    //TODO: AC-336 - add auth to inline items in sessions
     val sessionPlayerDef: Option[PlayerDefinition] = (session \ "item").asOpt[JsObject].map {
       internalModel =>
         jsonToPlayerDef.toPlayerDefinition(internalModel)

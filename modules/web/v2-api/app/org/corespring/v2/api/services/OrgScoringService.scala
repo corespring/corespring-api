@@ -56,7 +56,7 @@ class OrgScoringService(
         case (Some(id), _) => VersionedId(id).map(GoodItemId(_)).getOrElse(BadItemId)
         case (None, Some(definitionJson)) => {
           logger.debug(s"function=groupSessions, id=$id - inline session")
-          logger.warn(s"Multi-Scoring - We don't authenticate inline session scoring. It's not used by anyone at the moment.")
+          logger.warn(s"Multi-Scoring - [AC-336] We don't authenticate inline session scoring. It's not used by anyone at the moment.")
           InlineDefinition(id, json, definitionJson)
         }
       }
