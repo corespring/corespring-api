@@ -1,0 +1,1 @@
+libraryDependencies ++= Seq("org.corespring" %% "elasticsearch-play-ws" % "0.0.24-AC-339-PLAY22")
