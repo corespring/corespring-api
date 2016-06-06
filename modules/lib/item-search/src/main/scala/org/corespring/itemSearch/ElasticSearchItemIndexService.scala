@@ -47,14 +47,26 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
       implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
       val queryJson = Json.toJson(query)
-      logger.trace(s"function=search, query=$queryJson")
+      logger.trace(s"function=unboundedSearch, query=${Json.prettyPrint(queryJson)}")
 
       authed("/content/_search")(url, ec)
         .post(queryJson)
-        .map(result => Json.fromJson[ItemIndexSearchResult](Json.parse(result.body)) match {
-          case JsSuccess(searchResult, _) => Success(searchResult)
-          case _ => Failure(new Error("Could not read results"))
-        })
+        .map { result =>
+          val resultJson = Json.parse(result.body)
+          logger.trace(s"function=unboundedSearch, resultJson=${Json.prettyPrint(resultJson)}")
+          Json.fromJson[ItemIndexSearchResult](resultJson) match {
+            case JsSuccess(searchResult, _) => {
+              logger.trace(s"function=unboundedSearch, searchResult=$searchResult")
+
+              //Note: AC-339 - for the hotfix the simplest thing to do it to strip duplicates in the app
+              //We may want to look at baking this into the ES query, but it will mean that we'll
+              //need to parse the results differently. See: https://gist.github.com/edeustace/b6fb6cac02c25db5856080694b1e1bde
+              val withoutDuplicates = ItemIndexSearchResult.removeDuplicates(searchResult)
+              Success(withoutDuplicates)
+            }
+            case _ => Failure(new Error("Could not read results"))
+          }
+        }
     } catch {
       case e: Exception => future { Failure(new Error(e.getMessage)) }
     }
@@ -134,18 +146,24 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
     val contentDenormalizer = new ContentDenormalizer(config.mongoUri, config.componentPath)
 
     def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]] = {
-      contentDenormalizer.withCollection("content", collection => {
-        collection.findOne(MongoDBObject("_id._id" -> id.id), ContentIndexer.defaultFilter) match {
-          case Some(record) => {
-            val recordJson = Json.parse(record.toString)
-            val denormalized = contentDenormalizer.denormalize(recordJson)
-            val res = contentIndex.add(id.id.toString, denormalized.toString)
-            logger.trace(s"function=reindex, id=$id, recordJson=$recordJson, denormalized=$denormalized, res=$res")
-            res
+
+      logger.debug(s"function=reindex, id=$id")
+      if (id.version.isEmpty) {
+        Future.successful(Failure(new Error(s"id is mising a version - can't index: $id")))
+      } else {
+        contentDenormalizer.withCollection("content", collection => {
+          collection.findOne(MongoDBObject("_id._id" -> id.id), ContentIndexer.defaultFilter) match {
+            case Some(record) => {
+              val recordJson = Json.parse(record.toString)
+              val denormalized = contentDenormalizer.denormalize(recordJson)
+              val res = contentIndex.add(id.toString, denormalized.toString)
+              logger.trace(s"function=reindex, id=$id, recordJson=$recordJson, denormalized=$denormalized, res=$res")
+              res
+            }
+            case _ => future { Failure(new Error(s"Item with id=$id not found")) }
           }
-          case _ => future { Failure(new Error(s"Item with id=$id not found")) }
-        }
-      })
+        })
+      }
     }
   }
 

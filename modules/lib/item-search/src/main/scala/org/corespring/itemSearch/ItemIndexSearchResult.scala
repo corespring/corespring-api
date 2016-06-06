@@ -6,6 +6,8 @@ case class ItemIndexSearchResult(total: Int, hits: Seq[ItemIndexHit])
 
 object ItemIndexSearchResult {
 
+  def removeDuplicates(r: ItemIndexSearchResult): ItemIndexSearchResult = ???
+
   object Format extends Format[ItemIndexSearchResult] {
 
     implicit val ItemIndexHitFormat = ItemIndexHit.Format

@@ -51,4 +51,5 @@ class ItemApiSearchIntegrationTest extends IntegrationSpecification {
       jsArray.value.map(json => (json \ "collectionId").as[String]) === Seq(collectionId.toString)
     }
   }
+
 }
