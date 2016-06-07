@@ -73,9 +73,11 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
     lazy val result = {
       val query = ItemIndexQuery(
-        text = Some(text),
+        text = if (text.isEmpty) None else Some(text),
         collections = Seq(collectionId.toString),
         published = published)
+      println("pause - allow index to prepare itself")
+      Thread.sleep(1000)
       Await.result(itemIndexService.search(query), 5.seconds).toOption.get
     }
   }
@@ -114,8 +116,16 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
       val text = item.id.id.toString
     }
 
-    trait byVersionedId extends indexWithTwoItems {
+    trait byPublishedVersionedId extends indexWithTwoItems {
       val text = item.id.toString
+    }
+
+    trait byUnpublishedVersionedId extends indexWithTwoItems {
+      val text = unpublishedItem.id.toString
+    }
+
+    trait emptyQuery extends indexWithTwoItems {
+      val text = ""
     }
 
     "by Text in title" should {
@@ -134,6 +144,14 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
         override val published = Some(false)
         result.total must_== 1
         result.hits.head.id must_== unpublishedItem.id.toString
+      }
+    }
+
+    "by empty query" should {
+
+      "return the 2 latest items" in new emptyQuery {
+        result.total must_== 2
+        result.hits.map(_.id) must_== Seq(itemWithClusterId.toString, unpublishedItem.id.toString)
       }
     }
 
@@ -158,21 +176,39 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
     }
 
-    "by VersionedId" should {
-      "return 1 document" in new byVersionedId {
+    "by published VersionedId" should {
+      "return 1 document only" in new byPublishedVersionedId {
         result.total must_== 1
         result.hits.head.id must_== item.id.toString
       }
 
-      "return 0 documents if published: false" in new byVersionedId {
+      "return 0 documents if published: false" in new byPublishedVersionedId {
         override val published = Some(false)
         result.total must_== 0
       }
 
-      "return 1 documents if published: false" in new byVersionedId {
+      "return 1 documents if published: true" in new byPublishedVersionedId {
         override val published = Some(true)
         result.total must_== 1
         result.hits.head.id must_== item.id.toString
+      }
+    }
+
+    "by unpublished VersionedId" should {
+      "return 1 document only" in new byUnpublishedVersionedId {
+        result.total must_== 1
+        result.hits.head.id must_== unpublishedItem.id.toString
+      }
+
+      "return 1 documents if published: false" in new byUnpublishedVersionedId {
+        override val published = Some(false)
+        result.total must_== 1
+        result.hits.head.id must_== unpublishedItem.id.toString
+      }
+
+      "return 0 documents if published: true" in new byUnpublishedVersionedId {
+        override val published = Some(true)
+        result.total must_== 0
       }
     }
   }

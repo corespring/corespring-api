@@ -40,6 +40,8 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
   private val contentIndex = ElasticSearchClient(config.url).index("content")
 
+  private val contentIndexHelper = new ContentIndexHelper(contentIndex, executionContext, url)
+
   override def unboundedSearch(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
 
@@ -57,12 +59,7 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
           Json.fromJson[ItemIndexSearchResult](resultJson) match {
             case JsSuccess(searchResult, _) => {
               logger.trace(s"function=unboundedSearch, searchResult=$searchResult")
-
-              //Note: AC-339 - for the hotfix the simplest thing to do it to strip duplicates in the app
-              //We may want to look at baking this into the ES query, but it will mean that we'll
-              //need to parse the results differently. See: https://gist.github.com/edeustace/b6fb6cac02c25db5856080694b1e1bde
-              val withoutDuplicates = ItemIndexSearchResult.removeDuplicates(searchResult)
-              Success(withoutDuplicates)
+              Success(searchResult)
             }
             case _ => Failure(new Error("Could not read results"))
           }
@@ -111,6 +108,9 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
   def reindex(id: VersionedId[ObjectId]) = Indexer.reindex(id).map(_ match {
     case Failure(error) => {
       logger.error(s"Item indexing failed: ${error.getMessage}")
+      if (logger.isDebugEnabled) {
+        error.printStackTrace()
+      }
       Failure(error)
     }
     case Success(message) => {
@@ -149,14 +149,14 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
       logger.debug(s"function=reindex, id=$id")
       if (id.version.isEmpty) {
-        Future.successful(Failure(new Error(s"id is mising a version - can't index: $id")))
+        Future.successful(Failure(new Error(s"id is missing a version - can't index: $id")))
       } else {
         contentDenormalizer.withCollection("content", collection => {
           collection.findOne(MongoDBObject("_id._id" -> id.id), ContentIndexer.defaultFilter) match {
             case Some(record) => {
               val recordJson = Json.parse(record.toString)
-              val denormalized = contentDenormalizer.denormalize(recordJson)
-              val res = contentIndex.add(id.toString, denormalized.toString)
+              val denormalized = contentDenormalizer.denormalize(recordJson).as[JsObject]
+              val res = contentIndexHelper.addLatest(id.id, id.version.get, denormalized)
               logger.trace(s"function=reindex, id=$id, recordJson=$recordJson, denormalized=$denormalized, res=$res")
               res
             }

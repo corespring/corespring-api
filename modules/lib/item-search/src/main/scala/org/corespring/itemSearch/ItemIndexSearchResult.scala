@@ -6,15 +6,13 @@ case class ItemIndexSearchResult(total: Int, hits: Seq[ItemIndexHit])
 
 object ItemIndexSearchResult {
 
-  def removeDuplicates(r: ItemIndexSearchResult): ItemIndexSearchResult = ???
-
   object Format extends Format[ItemIndexSearchResult] {
 
     implicit val ItemIndexHitFormat = ItemIndexHit.Format
 
     def reads(json: JsValue): JsResult[ItemIndexSearchResult] = {
       JsSuccess(ItemIndexSearchResult(
-        total = (json \ "hits" \ "total").asOpt[Int].getOrElse(0),
+        total = (json \ "aggregations" \ "id_count" \ "value").asOpt[Int].getOrElse(0),
         hits = (json \ "hits" \ "hits").asOpt[Seq[ItemIndexHit]].getOrElse(Seq.empty)))
     }
 
