@@ -17,40 +17,30 @@ object Dependencies {
     val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
   }
 
+  val componentLoader = toModule("component-loader")
+  val componentModel = toModule("component-model")
   val containerClientWeb = toModule("container-client-web")
   val containerJsProcessing = toModule("js-processing")
-  val componentModel = toModule("component-model")
-  val componentLoader = toModule("component-loader")
   val mongoJsonService = toModule("mongo-json-service")
 
-  val qti = "org.corespring" %% "corespring-qti" % qtiVersion
-  val qtiConverter = "org.corespring" %% "qti-corespring-converter" % qtiVersion
-
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5")
-    .exclude("com.yahoo.platform.yui", "yuicompressor")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5").exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.10.0"
   val casbah = "org.mongodb" %% "casbah" % "2.6.3"
-  val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ())
-    .exclude("args4j", "args4j")
-    .exclude("com.google.guava", "guava")
-    .exclude("org.json", "json")
-    .exclude("com.google.protobuf", "protobuf-java")
-    .exclude("org.apache.ant", "ant")
-    .exclude("com.google.code.findbugs", "jsr305")
-    .exclude("com.googlecode.jarjar", "jarjar")
-    .exclude("junit", "junit")
+  val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ()).exclude("args4j", "args4j").exclude("com.google.guava", "guava").exclude("org.json", "json").exclude("com.google.protobuf", "protobuf-java").exclude("org.apache.ant", "ant").exclude("com.google.code.findbugs", "jsr305").exclude("com.googlecode.jarjar", "jarjar").exclude("junit", "junit")
+  val commonsCodec = "commons-codec" % "commons-codec" % "1.10"
   val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
-  val commonsCodec = "commons-codec" % "commons-codec" % "1.10"
-
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.23-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val grizzledLog = "org.clapper" %% "grizzled-slf4j" % "1.0.2"
   val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
-  val jodaTime = "joda-time" % "joda-time" % "2.2"
   val jodaConvert = "org.joda" % "joda-convert" % "1.2"
+  val jodaTime = "joda-time" % "joda-time" % "2.2"
+  val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
+  val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
   val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
   val macWireMacro = "com.softwaremill.macwire" %% "macros" % "0.7.3"
   val macWireRuntime = "com.softwaremill.macwire" %% "runtime" % "0.7.3"
@@ -64,26 +54,23 @@ object Dependencies {
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
   val playS3 = "org.corespring" %% "s3-play-plugin" % "1.1.0"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
-  val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
+  val qti = "org.corespring" %% "corespring-qti" % qtiVersion
+  val qtiConverter = "org.corespring" %% "qti-corespring-converter" % qtiVersion
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
+  val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.20.0"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.21.0"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val scalazContrib = "org.typelevel" %% "scalaz-contrib-210" % "0.1.5"
-
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
+  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.4"
+  val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.2.2" // "3.6.2"
   //val specs2Mock = "org.specs2" %% "specs2-mock" % "2.2.2" //"3.6.2"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
-  val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
-  val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.23-PLAY22").exclude("org.mongodb", "mongo-java-driver")
-  val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
-  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.4"
-
   val ztZip = "org.zeroturnaround" % "zt-zip" % "1.8" % "it"
 
   object Resolvers {

@@ -58,19 +58,20 @@ class ItemAuthWired(
   private def canWithPermission(itemId: String, p: Permission)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = {
     logger.trace(s"can ${p.name} to $itemId")
 
-    def loadItem = for {
-      vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-      item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
-      //ensure the item has v2 data
-      updatedItem <- Success(itemTransformer.updateV2Json(item))
-    } yield updatedItem
-
     for {
-      item <- loadItem
+      item <- loadItem(itemId)
       granted <- access.grant(identity, p, item)
     } yield {
       logger.trace(s"accessGranted=$granted")
       item
     }
   }
+
+  private def loadItem(itemId: String) = for {
+    vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+    item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
+    //ensure the item has v2 data
+    updatedItem <- Success(itemTransformer.updateV2Json(item))
+  } yield updatedItem
+
 }

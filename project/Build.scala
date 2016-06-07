@@ -209,8 +209,7 @@ object Build extends sbt.Build {
       coreWeb,
       qtiToV2,
       v2Api,
-      v2SessionDb
-    )
+      v2SessionDb)
 
   object TemplateImports {
     lazy val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -316,8 +315,7 @@ object Build extends sbt.Build {
       v2Api,
       v2Auth,
       v2PlayerIntegration,
-      v2SessionDb
-    )
+      v2SessionDb)
 
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

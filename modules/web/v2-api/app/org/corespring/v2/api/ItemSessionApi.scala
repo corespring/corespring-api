@@ -6,7 +6,6 @@ import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
-import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
@@ -25,7 +24,6 @@ case class ItemSessionApiExecutionContext(context: ExecutionContext)
 
 class ItemSessionApi(
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
-  scoreService: ScoreService,
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
@@ -120,33 +118,6 @@ class ItemSessionApi(
     }
   }
 
-  /**
-   * Returns the score for the given session.
-   * If the session doesn't contain a 'components' object, an error will be returned.
-   * @param sessionId
-   * @return
-   */
-  def loadScore(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
-
-    logger.debug(s"function=loadScore sessionId=$sessionId")
-
-    def getComponents(session: JsValue): Option[JsValue] = {
-      (session \ "components").asOpt[JsObject]
-    }
-
-    Future {
-      val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
-        sessionAndPlayerDef <- sessionAuth.loadForWrite(sessionId)(identity)
-        session <- Success(sessionAndPlayerDef._1)
-        playerDef <- Success(sessionAndPlayerDef._2)
-        components <- getComponents(session).toSuccess(sessionDoesNotContainResponses(sessionId))
-        score <- scoreService.score(playerDef, components)
-      } yield score
-
-      validationToResult[JsValue](j => Ok(j))(out)
-    }
-  }
 
   def reopen(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
     Future {

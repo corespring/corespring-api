@@ -9,7 +9,7 @@ the integration tests.
     </appender>
 
 
-    <logger name="org.corespring.services.salat.auth.AccessTokenService" level="TRACE"/>
+    <logger name="org.corespring.services.salat.item.ItemService" level="INFO"/>
 
     <root level="WARN">
         <appender-ref ref="STDOUT" />

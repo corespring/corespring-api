@@ -27,6 +27,11 @@ trait ValidationToResultLike {
     v.fold[SimpleResult](errResult, fn)
   }
 
+  protected def validationToFutureResult[A](fn: Future[A] => Future[SimpleResult])(v: Validation[V2Error, Future[A]]) = {
+    def errResult(e: V2Error) = Future.successful(jsonResult(e.statusCode, e.json))
+    v.fold[Future[SimpleResult]](errResult, fn)
+  }
+
   protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
     def toResult: SimpleResult = jsonResult(error.statusCode, error.json)
     def toResult(statusCode: Int): SimpleResult = jsonResult(statusCode, error.json)
@@ -41,13 +46,9 @@ trait ValidationToResultLike {
     }
   }
 
-  /**
-   * Returns a pretty-printed application/json http response with the provided status code
-   */
-  private def jsonResult(statusCode: Int, json: JsValue) =
-    Status(statusCode)(Json.prettyPrint(json)).as(ContentTypes.JSON)
-
+  private def jsonResult(statusCode: Int, json: JsValue) = Status(statusCode)(json)
 }
+
 trait V2Api extends Controller with LoadOrgAndOptions with ValidationToResultLike {
 
   implicit def ec: ExecutionContext

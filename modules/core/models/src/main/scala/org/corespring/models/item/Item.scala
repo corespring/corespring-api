@@ -14,7 +14,7 @@ case class Item(
   data: Option[Resource] = None,
   dateModified: Option[DateTime] = Some(new DateTime()),
   id: VersionedId[ObjectId] = VersionedId(ObjectId.get(), Some(0)),
-  clonedFromId : Option[VersionedId[ObjectId]] = None,
+  clonedFromId: Option[VersionedId[ObjectId]] = None,
   lexile: Option[String] = None,
   otherAlignments: Option[Alignments] = None,
   pValue: Option[String] = None,
@@ -33,14 +33,13 @@ case class Item(
 
   extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
 
-  def cloneItem(newCollectionId:String = collectionId): Item = {
+  def cloneItem(newCollectionId: String = collectionId): Item = {
 
     require(ObjectId.isValid(newCollectionId), s"$newCollectionId is not a valid ObjectId")
 
     val taskInfoCopy = taskInfo
       .getOrElse(
-        TaskInfo(title = Some(""))
-      ).cloneInfo("[copy]")
+        TaskInfo(title = Some(""))).cloneInfo("[copy]")
 
     copy(
       id = VersionedId(ObjectId.get(), Some(0)),
@@ -101,6 +100,7 @@ object Item {
     val licenseType = "licenseType"
     val originId = "originId"
     val otherAlignments = "otherAlignments"
+    val playerDefinition = "playerDefinition"
     val pValue = "pValue"
     val primarySubject = "primarySubject"
     val priorGradeLevel = "priorGradeLevel"
