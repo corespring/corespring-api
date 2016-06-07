@@ -41,7 +41,7 @@ class UpdateItemIntegrationTest extends IntegrationSpecification {
     trait saveXhtmlAndComponents extends scope {
       lazy val call = org.corespring.container.client.controllers.resources.routes.Item.saveXhtmlAndComponents(itemId.toString)
       val components = Json.obj("1" -> Json.obj("componentType" -> "my-comp"))
-      val xhtml = "<div>hi there</div>"
+      val xhtml = "<div id=\"1\">hi there</div>"
       lazy val request: Request[AnyContentAsJson] = makeJsonRequest(call, Json.obj("xhtml" -> xhtml, "components" -> components))
       logger.debug(s"request: $request")
       logger.debug(s"body: ${request.body.json}")
