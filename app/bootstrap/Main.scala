@@ -44,7 +44,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api._
-import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
+import org.corespring.v2.api.services.{ BasicScoreService, OrgScoringExecutionContext, ScoreService, ScoreServiceExecutionContext }
 import org.corespring.v2.auth.identifiers.{ PlayerTokenConfig, UserSessionOrgIdentity }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
@@ -122,7 +122,7 @@ class Main(
     components = ComponentsConfig.fromConfig(mode, configuration.getConfig("container.components").getOrElse(Configuration.empty)),
     player = V2PlayerConfig(
       rootUrl = configuration.getString("container.rootUrl"),
-      newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic").getOrElse(Configuration.empty))))
+      newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))))
 
   logger.info(s"containerConfig: $containerConfig")
 
@@ -159,14 +159,21 @@ class Main(
   }
 
   override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
+  override lazy val containerContext: ContainerExecutionContext = ContainerExecutionContext(ExecutionContext.global)
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
+  override lazy val itemApiExecutionContext: ItemApiExecutionContext = ItemApiExecutionContext(ExecutionContext.global)
+  override lazy val itemSessionApiExecutionContext: ItemSessionApiExecutionContext = ItemSessionApiExecutionContext(ExecutionContext.global)
   override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ecLookup("akka.salat-services"))
+  override lazy val scoringApiExecutionContext: ScoringApiExecutionContext = ScoringApiExecutionContext(ecLookup("akka.scoring-default"), ecLookup("akka.scoring-heavy"))
   override lazy val sessionExecutionContext = SessionExecutionContext(ecLookup("akka.session-default"), ecLookup("akka.session-heavy"))
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ecLookup("akka.v1-api"))
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
-  override def webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
+  override lazy val webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
+  override lazy val sessionServiceExecutionContext: SessionServiceExecutionContext = SessionServiceExecutionContext(sessionExecutionContext.heavyLoad)
+  override lazy val orgScoringExecutionContext: OrgScoringExecutionContext = OrgScoringExecutionContext(scoringApiExecutionContext.contextForScoring)
+  override lazy val scoreServiceExecutionContext = ScoreServiceExecutionContext(scoringApiExecutionContext.contextForScoring)
 
   private def mainAppVersion(): String = {
     val commit = buildInfo.commitHashShort
@@ -279,8 +286,6 @@ class Main(
       .map(toComponentType) :+ ComponentType("multiple-interactions", "Multiple Interactions")
   }
 
-  override lazy val itemSessionApiExecutionContext: ItemSessionApiExecutionContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
-
   //Used for wiring RequestIdentifiers
   private lazy val secureSocial: SecureSocial = new SecureSocial {}
 
@@ -295,10 +300,6 @@ class Main(
   override lazy val getOrgAndOptsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = requestIdentifiers.allIdentifiers.apply
 
   override def getOrgOptsAndApiClientFn: (RequestHeader) => Validation[V2Error, (OrgAndOpts, ApiClient)] = requestIdentifiers.accessTokenToOrgAndApiClient
-
-  override lazy val itemApiExecutionContext: ItemApiExecutionContext = ItemApiExecutionContext(ExecutionContext.global)
-
-  override lazy val scoreService: ScoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)(jsonFormatting.formatPlayerDefinition)
 
   /**
    * Note: macwire > 1.0 has a tagging option so that you can tag instances of the same type
@@ -395,8 +396,6 @@ class Main(
   }
 
   override def playMode: PlayMode = mode
-
-  override def containerContext: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
 
   lazy val itemAssetKeys = ItemAssetKeys
   lazy val draftAssetKeys = DraftAssetKeys

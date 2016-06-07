@@ -10,10 +10,11 @@ import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
-import org.corespring.models.item.{ Item, ItemStandards }
+import org.corespring.models.item.{ Item, ItemStandards, PlayerDefinition }
 import org.corespring.mongo.IdConverters
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.CollectionIdPermission
 import org.corespring.services.item.ItemCount
 import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import org.corespring.{ services => interface }
@@ -188,6 +189,69 @@ class ItemService(
     }
   }
 
+  private def toVid(dbo: DBObject): VersionedId[ObjectId] = com.novus.salat.grater[VersionedId[ObjectId]].asObject(dbo)
+
+  type CollToVidMap = Map[CollectionIdPermission, Seq[VersionedId[ObjectId]]]
+
+  override def isAuthorizedBatch(orgId: ObjectId, idAndPermissions: VidPerm*): Future[Seq[(VidPerm, Boolean)]] = {
+
+    idAndPermissions match {
+      case Nil => Future.successful(Nil)
+      case _ => {
+
+        lazy val futureItemAndCollectionIds = Future {
+          val fields = MongoDBObject(Keys.collectionId -> 1)
+          dao.findDbos(idAndPermissions.map(_._1), fields).foldRight(Map.empty[CollectionIdPermission, Seq[VersionedId[ObjectId]]]) { (dbo, acc) =>
+
+            def getIdPermissionMap(vid: VersionedId[ObjectId], p: Permission, map: CollToVidMap) = {
+              val collectionIdString = dbo.get(Keys.collectionId).asInstanceOf[String]
+              val oid = new ObjectId(collectionIdString)
+              val coll: Seq[VersionedId[ObjectId]] = map.get(CollectionIdPermission(oid, p)).getOrElse(Seq.empty)
+              Map(CollectionIdPermission(oid, p) -> (coll :+ vid))
+            }
+
+            val vid = toVid(dbo.get("_id").asInstanceOf[DBObject])
+            acc ++ idAndPermissions.filter(_._1 == vid).foldRight(acc) { (tuple, m) =>
+              val (_, p) = tuple
+              m ++ getIdPermissionMap(vid, p, m)
+            }
+          }
+        }
+
+        logger.trace(s"function=isAuthorizedBatch, idAndPermissions=$idAndPermissions")
+
+        for {
+          collectionIdToVidMap <- futureItemAndCollectionIds
+          _ <- Future.successful(logger.trace(s"function=isAuthorizedBatch, collectionIdToViewMap=$collectionIdToVidMap"))
+          collectionResults <- orgCollectionService.isAuthorizedBatch(orgId, collectionIdToVidMap.keys.toSeq.distinct: _*)
+        } yield {
+
+          logger.trace(s"function=isAuthorizedBatch, collectionResults=$collectionResults, collectionIdToVidMap=$collectionIdToVidMap")
+          idAndPermissions.map {
+            case (vid, p) =>
+              val collectionIdToVid = collectionIdToVidMap.find {
+                case (idp, itemIds) => {
+                  itemIds.contains(vid) && idp.permission == p
+                }
+              }
+
+              collectionIdToVid.map {
+                case (collectionIdPermission, itemIds) => {
+                  logger.trace(s"function=isAuthorizedBatch, collectionIdPermission=$collectionIdPermission, itemIds=$itemIds")
+                  val authorized = collectionResults.find {
+                    case ((idp, authorized)) if (idp == collectionIdPermission) => authorized
+                    case _ => false
+                  }.map(_._2).getOrElse(false)
+
+                  (vid -> p) -> authorized
+                }
+              }.getOrElse((vid -> p) -> false)
+          }
+        }
+      }
+    }
+  }
+
   override def contributorsForOrg(orgId: ObjectId): Seq[String] = {
 
     val readableCollectionIds = orgCollectionService
@@ -206,6 +270,7 @@ class ItemService(
     logger.trace(s"distinct.filter=$filter")
     dao.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
   }
+
   //TODO - would db("content").group be quicker?
   override def countItemsInCollections(collectionIds: ObjectId*): Future[Seq[ItemCount]] = Future {
 
@@ -263,6 +328,59 @@ class ItemService(
       standards <- dbo.expand[Seq[String]](Keys.standards)
       _ <- Some(logger.trace(s"function=findItemStandards, standards=$standards"))
     } yield ItemStandards(title, standards, itemId)
+  }
+
+  override def findMultiplePlayerDefinitions(orgId: ObjectId, ids: VersionedId[ObjectId]*): Future[Seq[(VersionedId[ObjectId], Validation[PlatformServiceError, PlayerDefinition])]] = {
+
+    ids match {
+      case Nil => Future.successful(Nil)
+      case _ => {
+
+        logger.debug(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids")
+        isAuthorizedBatch(orgId, ids.map(id => (id, Permission.Read)): _*).map { ids =>
+
+          logger.trace(s"function=findMultiplePlayerDefinitions, ids=$ids")
+
+          val (valid, invalid) = ids.partition(_._2)
+
+          val validIds = valid.map(t => t._1._1)
+          val invalidResults = invalid.map(_._1._1 -> Failure(PlatformServiceError("Not authorized to access")))
+
+          logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids, validIds=$validIds")
+
+          import scalaz.Scalaz._
+
+          val validResults: Seq[(VersionedId[ObjectId], Validation[PlatformServiceError, PlayerDefinition])] = if (validIds.length == 0) {
+            logger.warn("function=findMultiplePlayerDefinitions - No valid ids found")
+            Nil
+          } else {
+            dao.findDbos(validIds, MongoDBObject(Keys.playerDefinition -> 1))
+              .map(dbo => {
+                logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, dbo=$dbo")
+                val idDbo = dbo.get("_id").asInstanceOf[DBObject]
+                val vid = toVid(idDbo)
+                val definition = dbo.get("playerDefinition").asInstanceOf[DBObject]
+                if (definition == null) {
+                  (vid -> Failure(PlatformServiceError("No player definition")))
+                } else {
+                  val maybeDef = try {
+                    Some(com.novus.salat.grater[PlayerDefinition].asObject(definition))
+                  } catch {
+                    case t: Throwable => {
+                      logger.error(t)
+                      t.printStackTrace()
+                      None
+                    }
+                  }
+                  (vid -> maybeDef.toSuccess(PlatformServiceError("Unable to convert playerDefinition")))
+                }
+              })
+          }
+
+          invalidResults ++ validResults
+        }
+      }
+    }
   }
 
 }
