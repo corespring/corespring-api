@@ -57,6 +57,24 @@ class MainTest extends Specification with Mockito {
         resourceAsUrl _)
       main.componentSetFilter must haveInterface[CacheFilter]
     }
+
+    "should use play mode from config" in {
+      val main = new Main(db,
+        Configuration.from(config + ("APP_MODE_OVERRIDE" -> "Prod")),
+        Mode.Test,
+        this.getClass.getClassLoader,
+        resourceAsUrl _)
+      main.playMode must_== Mode.Prod
+    }
+
+    "should use play mode from arguments, when mode is not set in config" in {
+      val main = new Main(db,
+        Configuration.from(config),
+        Mode.Test,
+        this.getClass.getClassLoader,
+        resourceAsUrl _)
+      main.playMode must_== Mode.Test
+    }
   }
 
   "resolveDomain" should {
