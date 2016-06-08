@@ -83,7 +83,7 @@ object Main {
         }
     }
 
-    new Main(db, app.configuration, Mode.Dev, app.classloader, app.resource)
+    new Main(db, app.configuration, app.mode, app.classloader, app.resource)
   }
 }
 
