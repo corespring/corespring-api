@@ -70,12 +70,14 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
     def text: String
     def published: Option[Boolean] = None
+    def latest: Option[Boolean] = Some(true)
 
     lazy val result = {
       val query = ItemIndexQuery(
         text = if (text.isEmpty) None else Some(text),
         collections = Seq(collectionId.toString),
-        published = published)
+        published = published,
+        latest = latest)
       println("pause - allow index to prepare itself")
       Thread.sleep(1000)
       Await.result(itemIndexService.search(query), 5.seconds).toOption.get
@@ -136,6 +138,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
       "return the penultimate version of the item if published: true" in new byTitle {
         override val published = Some(true)
+        override val latest = None
         result.total must_== 1
         result.hits.head.id must_== item.id.toString
       }
@@ -164,6 +167,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
       "return the penultimate version of the item if published: true" in new byObjectId {
         override val published = Some(true)
+        override val latest = None
         result.total must_== 1
         result.hits.head.id must_== item.id.toString
       }

@@ -1,6 +1,7 @@
 package org.corespring.itemSearch
 
 import org.bson.types.ObjectId
+import org.corespring.itemSearch.ItemIndexQuery.Field.Field
 import org.corespring.models.json.JsonUtil
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Logger
@@ -18,6 +19,7 @@ case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
   itemTypes: Seq[String] = ItemIndexQuery.Defaults.itemTypes,
   widgets: Seq[String] = ItemIndexQuery.Defaults.widgets,
   gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
+  latest: Option[Boolean] = ItemIndexQuery.Defaults.latest,
   published: Option[Boolean] = ItemIndexQuery.Defaults.published,
   standardClusters: Seq[String] = ItemIndexQuery.Defaults.standardClusters,
   standards: Seq[String] = ItemIndexQuery.Defaults.standards,
@@ -89,6 +91,7 @@ object ItemIndexQuery {
     val itemTypes = Seq.empty[String]
     val metadata = Map.empty[String, String]
     val published = None
+    val latest = Some(true)
     val requiredPlayerWidth = None
     val sort = Seq.empty[Sort]
     val standardClusters = Seq.empty[String]
@@ -98,69 +101,58 @@ object ItemIndexQuery {
     val workflows = Seq.empty[String]
   }
 
-  object Fields {
-    val collections = "collections"
-    val contributors = "contributors"
-    val count = "count"
-    val gradeLevels = "gradeLevels"
-    val itemTypes = "itemTypes"
-    val offset = "offset"
-    val published = "published"
-    val requiredPlayerWidth = "requiredPlayerWidth"
-    val sort = "sort"
-    val standardClusters = "standardClusters"
-    val standards = "standards"
-    val text = "text"
-    val widgets = "widgets"
-    val workflows = "workflows"
+  private[itemSearch] object Field extends Enumeration {
 
-    val all = Set(
-      collections,
-      contributors,
-      count,
-      gradeLevels,
-      itemTypes,
-      offset,
-      published,
-      requiredPlayerWidth,
-      sort,
-      standardClusters,
-      standards,
-      text,
-      widgets,
-      workflows)
+    import scala.language.implicitConversions
+
+    implicit def fieldToString(f: Field) = f.toString
+
+    type Field = Value
+
+    val collections, contributors, count, gradeLevels, itemTypes, offset, published, latest, requiredPlayerWidth, sort, standardClusters, standards, text, widgets, workflows = Value
+
+    def all = this.values.map(_.toString)
   }
 
   /**
    * Reads JSON in the format provided by requests to the search API.
    */
   object ApiReads extends Reads[ItemIndexQuery] with JsonUtil {
-    import Fields._
     implicit val SortReads = Sort.Reads
 
-    override def reads(json: JsValue): JsResult[ItemIndexQuery] = JsSuccess(
-      ItemIndexQuery(
-        collections = (json \ collections).asOpt[Seq[String]].getOrElse(Defaults.collections),
-        contributors = (json \ contributors).asOpt[Seq[String]].getOrElse(Defaults.contributors),
-        count = (json \ count).asOpt[Int].getOrElse(Defaults.count),
-        gradeLevels = (json \ gradeLevels).asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
-        itemTypes = (json \ itemTypes).asOpt[Seq[String]].getOrElse(Defaults.itemTypes),
-        metadata = (json match {
-          case jsObject: JsObject =>
-            (jsObject.keys diff all).map(key => (jsObject \ key).asOpt[String].map(value => key -> value)).flatten.toMap
-          case _ => Map.empty[String, String]
-        }),
-        offset = (json \ offset).asOpt[Int].getOrElse(Defaults.offset),
-        published = (json \ published).asOpt[Boolean],
-        requiredPlayerWidth = (json \ requiredPlayerWidth).asOpt[Int],
-        sort = (json \ sort).asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
-          .getOrElse(throw new Exception(s"Could not parse sort object ${(json \ "sort")}"))))
-          .getOrElse(Defaults.sort),
-        standardClusters = (json \ standardClusters).asOpt[Seq[String]].getOrElse(Defaults.standardClusters),
-        standards = (json \ standards).asOpt[Seq[String]].getOrElse(Defaults.standards),
-        text = (json \ text).asOpt[String],
-        widgets = (json \ widgets).asOpt[Seq[String]].getOrElse(Defaults.widgets),
-        workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows)))
+    import Field._
+
+    override def reads(json: JsValue): JsResult[ItemIndexQuery] = {
+
+      JsSuccess(
+        ItemIndexQuery(
+          collections = (json \ collections).asOpt[Seq[String]].getOrElse(Defaults.collections),
+          contributors = (json \ contributors).asOpt[Seq[String]].getOrElse(Defaults.contributors),
+          count = (json \ count).asOpt[Int].getOrElse(Defaults.count),
+          gradeLevels = (json \ gradeLevels).asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
+          itemTypes = (json \ itemTypes).asOpt[Seq[String]].getOrElse(Defaults.itemTypes),
+          metadata = (json match {
+            case jsObject: JsObject =>
+              (jsObject.keys diff all).map(key => (jsObject \ key).asOpt[String].map(value => key -> value)).flatten.toMap
+            case _ => Map.empty[String, String]
+          }),
+          offset = (json \ offset).asOpt[Int].getOrElse(Defaults.offset),
+          published = (json \ published).asOpt[Boolean],
+          latest = (json \ latest).asOpt[String].orElse(Some("yes")).flatMap {
+            case "no" => Some(false)
+            case "skip" => None
+            case _ => Defaults.latest
+          },
+          requiredPlayerWidth = (json \ requiredPlayerWidth).asOpt[Int],
+          sort = (json \ sort).asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
+            .getOrElse(throw new Exception(s"Could not parse sort object ${(json \ "sort")}"))))
+            .getOrElse(Defaults.sort),
+          standardClusters = (json \ standardClusters).asOpt[Seq[String]].getOrElse(Defaults.standardClusters),
+          standards = (json \ standards).asOpt[Seq[String]].getOrElse(Defaults.standards),
+          text = (json \ text).asOpt[String],
+          widgets = (json \ widgets).asOpt[Seq[String]].getOrElse(Defaults.widgets),
+          workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows)))
+    }
   }
 
   /**
@@ -209,17 +201,19 @@ object ItemIndexQuery {
 
     private def must(query: ItemIndexQuery, extras: JsObject*): JsObject = {
 
-      val base = query.published
-        .flatMap { p => term("published", Some(p)) }
-        .orElse {
+      val publishedTerm: JsObject = query.published
+        .flatMap(p => term("published", Some(p)))
+        .getOrElse(obj())
+
+      val latestTerm: JsObject = query.latest
+        .flatMap { l =>
           //If a versionedId is specified - then latest:true doesn't apply
           query.versionedId.filter(_.version.isDefined)
             .map { _ => obj() }
-            .orElse(term("latest", Some(true)))
-        }
-        .getOrElse(obj())
+            .orElse(term("latest", Some(l)))
+        }.getOrElse(obj())
 
-      logger.trace(s"function=should, base=$base")
+      logger.trace(s"function=should, publishedTerm=$publishedTerm, latestTerm=$latestTerm")
 
       val metadataQuery: Seq[JsValue] = query.metadata.toSeq.map {
         case (key, value) => {
@@ -233,7 +227,7 @@ object ItemIndexQuery {
         }
       }
 
-      val allClauses: Seq[JsValue] = (base +: metadataQuery) ++ extras
+      val allClauses: Seq[JsValue] = (publishedTerm +: latestTerm +: metadataQuery) ++ extras
       obj("must" -> allClauses.filter(!_.isEmpty))
     }
 

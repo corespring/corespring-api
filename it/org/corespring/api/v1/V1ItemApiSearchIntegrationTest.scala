@@ -8,7 +8,7 @@ import org.corespring.models.item.{ TaskInfo, Item }
 import play.api.libs.json.{ JsObject, Json, JsArray }
 import play.api.mvc.{ AnyContent, Request }
 
-class ItemApiSearchIntegrationTest extends IntegrationSpecification {
+class V1ItemApiSearchIntegrationTest extends IntegrationSpecification {
 
   val Routes = org.corespring.api.v1.routes.ItemApi
 

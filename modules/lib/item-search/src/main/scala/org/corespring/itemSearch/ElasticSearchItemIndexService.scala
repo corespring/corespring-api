@@ -40,7 +40,7 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
   private val contentIndex = ElasticSearchClient(config.url).index("content")
 
-  private val contentIndexHelper = new ContentIndexHelper(contentIndex, executionContext, url)
+  private val contentIndexHelper = new ContentIndexHelper(contentIndex, executionContext, this)
 
   override def unboundedSearch(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
@@ -49,7 +49,7 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
       implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
       val queryJson = Json.toJson(query)
-      logger.trace(s"function=unboundedSearch, query=${Json.prettyPrint(queryJson)}")
+      logger.trace(s"function=unboundedSearch\n\tquery=$query\n\tqueryJson=${Json.prettyPrint(queryJson)}")
 
       authed("/content/_search")(url, ec)
         .post(queryJson)

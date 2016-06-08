@@ -19,12 +19,9 @@ import scalaz.{ Failure, Success, Validation }
 class ContentIndexHelper(
   index: Index,
   elasticSearchExecutionContext: ElasticSearchExecutionContext,
-  implicit val url: URL)
-  extends AuthenticatedUrl {
+  url: AuthenticatedUrl) {
 
   private val logger = Logger(this.getClass)
-
-  override val webService = play.api.libs.ws.WS
 
   implicit val ec = elasticSearchExecutionContext.context
 
@@ -33,9 +30,6 @@ class ContentIndexHelper(
     logger.info(s"function=addLatest, oid=$oid, version=$version")
     logger.trace(s"function=addLatest, oid=$oid, version=$version, json=${prettyPrint(json)}")
 
-    //1. flag as latest
-    //2. remove old versions
-    //3. update penultimate version to be latest:false
     val flagged = json ++ Json.obj("latest" -> true)
 
     import FutureValidation._
@@ -72,14 +66,14 @@ class ContentIndexHelper(
 
       import play.api.libs.ws.Implicits._
 
-      val out = authed("s/content/content/_query")
+      val out = url.authed("s/content/content/_query")
         .delete(deleteQuery)
         .map { result =>
           logger.trace(s"function=deleteOldVersions, oid=$oid, latestVersion=$latestVersion, result.body=${result.body}")
           if (result.status == 200) {
             Success(result.body)
           } else {
-            Failure(new Error(result.statusText))
+            Failure(new Error(result.body))
           }
         }
 
@@ -97,7 +91,7 @@ class ContentIndexHelper(
         "doc" -> obj(
           "latest" -> false))
 
-      val operation = authed(s"/content/content/$oid:$penultimateVersion/_update")
+      val operation = url.authed(s"/content/content/$oid:$penultimateVersion/_update")
         .post(update)
         .map { result =>
           logger.trace(s"function=updatePenultimate, oid=$oid, penultimateVersion=$penultimateVersion, result.body=${result.body}")
