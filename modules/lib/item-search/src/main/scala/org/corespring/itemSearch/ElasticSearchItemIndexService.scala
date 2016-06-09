@@ -40,7 +40,7 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
   private val contentIndex = ElasticSearchClient(config.url).index("content")
 
-  private val contentIndexHelper = new ContentIndexHelper(contentIndex, executionContext, this)
+  private val contentIndexHelper = new ContentIndexHelper(contentIndex, executionContext, this, url)
 
   override def unboundedSearch(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {

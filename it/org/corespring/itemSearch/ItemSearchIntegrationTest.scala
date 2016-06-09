@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.it.helpers.ItemHelper
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
+import org.corespring.itemSearch.SearchMode.SearchMode
 import org.corespring.models.item.{ Item, StandardCluster, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
 
@@ -70,14 +71,14 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
     def text: String
     def published: Option[Boolean] = None
-    def latest: Option[Boolean] = Some(true)
+    def mode: SearchMode = SearchMode.latest
 
     lazy val result = {
       val query = ItemIndexQuery(
         text = if (text.isEmpty) None else Some(text),
         collections = Seq(collectionId.toString),
         published = published,
-        latest = latest)
+        mode = mode)
       println("pause - allow index to prepare itself")
       Thread.sleep(1000)
       Await.result(itemIndexService.search(query), 5.seconds).toOption.get
@@ -137,8 +138,8 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
       }
 
       "return the penultimate version of the item if published: true" in new byTitle {
-        override val published = Some(true)
-        override val latest = None
+        override val published = None //Some(true)
+        override val mode = SearchMode.latestPublished
         result.total must_== 1
         result.hits.head.id must_== item.id.toString
       }
@@ -166,8 +167,8 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
       }
 
       "return the penultimate version of the item if published: true" in new byObjectId {
-        override val published = Some(true)
-        override val latest = None
+        override val published = None
+        override val mode = SearchMode.latestPublished
         result.total must_== 1
         result.hits.head.id must_== item.id.toString
       }
@@ -182,6 +183,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
     "by published VersionedId" should {
       "return 1 document only" in new byPublishedVersionedId {
+        override val mode = SearchMode.latestPublished
         result.total must_== 1
         result.hits.head.id must_== item.id.toString
       }

@@ -1,12 +1,22 @@
 package org.corespring.itemSearch
 
 import org.bson.types.ObjectId
-import org.corespring.itemSearch.ItemIndexQuery.Field.Field
+import org.corespring.itemSearch.SearchMode.SearchMode
 import org.corespring.models.json.JsonUtil
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Logger
 import play.api.libs.json.Json._
 import play.api.libs.json._
+
+private[itemSearch] object SearchMode extends Enumeration {
+  type SearchMode = Value
+
+  /**
+   * latest = the latest version of an item (published or unpublished)
+   * latestPublished - the latest published version of an item
+   */
+  val latest, latestPublished = Value
+}
 
 /**
  * Contains fields used for querying the item index
@@ -19,7 +29,7 @@ case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
   itemTypes: Seq[String] = ItemIndexQuery.Defaults.itemTypes,
   widgets: Seq[String] = ItemIndexQuery.Defaults.widgets,
   gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
-  latest: Option[Boolean] = ItemIndexQuery.Defaults.latest,
+  mode: SearchMode = ItemIndexQuery.Defaults.mode,
   published: Option[Boolean] = ItemIndexQuery.Defaults.published,
   standardClusters: Seq[String] = ItemIndexQuery.Defaults.standardClusters,
   standards: Seq[String] = ItemIndexQuery.Defaults.standards,
@@ -74,7 +84,6 @@ object Sort {
       case _ => JsError("Must be object")
     }
   }
-
 }
 
 object ItemIndexQuery {
@@ -91,7 +100,7 @@ object ItemIndexQuery {
     val itemTypes = Seq.empty[String]
     val metadata = Map.empty[String, String]
     val published = None
-    val latest = Some(true)
+    val mode = SearchMode.latest
     val requiredPlayerWidth = None
     val sort = Seq.empty[Sort]
     val standardClusters = Seq.empty[String]
@@ -124,6 +133,14 @@ object ItemIndexQuery {
 
     override def reads(json: JsValue): JsResult[ItemIndexQuery] = {
 
+      val searchMode: SearchMode = (json \ "mode").asOpt[String].flatMap { m =>
+        try {
+          Some(SearchMode.withName(m))
+        } catch {
+          case t: Throwable => None
+        }
+      }.getOrElse(SearchMode.latest)
+
       JsSuccess(
         ItemIndexQuery(
           collections = (json \ collections).asOpt[Seq[String]].getOrElse(Defaults.collections),
@@ -138,11 +155,7 @@ object ItemIndexQuery {
           }),
           offset = (json \ offset).asOpt[Int].getOrElse(Defaults.offset),
           published = (json \ published).asOpt[Boolean],
-          latest = (json \ latest).asOpt[String].orElse(Some("yes")).flatMap {
-            case "no" => Some(false)
-            case "skip" => None
-            case _ => Defaults.latest
-          },
+          mode = searchMode,
           requiredPlayerWidth = (json \ requiredPlayerWidth).asOpt[Int],
           sort = (json \ sort).asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
             .getOrElse(throw new Exception(s"Could not parse sort object ${(json \ "sort")}"))))
@@ -177,6 +190,8 @@ object ItemIndexQuery {
     private def term[A](field: String, values: Option[A])(implicit writes: Writes[A], execution: Option[String] = None): Option[JsObject] =
       filter("term", field, values, execution)
 
+    private def term[A](field: String, value: A)(implicit writes: Writes[A]): JsObject = obj("term" -> obj(field -> value))
+
     private def filter[A](named: String, field: String, values: Seq[A], execution: Option[String])(implicit writes: Writes[A]): Option[JsObject] =
       values.nonEmpty match {
         case true => Some(obj(named -> partialObj(
@@ -201,21 +216,14 @@ object ItemIndexQuery {
 
     private def must(query: ItemIndexQuery, extras: JsObject*): JsObject = {
 
-      val publishedTerm: JsObject = query.published
-        .flatMap(p => term("published", Some(p)))
-        .getOrElse(obj())
+      val modeFlags: Seq[JsObject] = query.mode match {
+        case SearchMode.latestPublished => Seq(term("latestPublished", true))
+        case _ => Seq(term("latest", true), query.published.map(p => term("published", p)).getOrElse(obj()))
+      }
 
-      val latestTerm: JsObject = query.latest
-        .flatMap { l =>
-          //If a versionedId is specified - then latest:true doesn't apply
-          query.versionedId.filter(_.version.isDefined)
-            .map { _ => obj() }
-            .orElse(term("latest", Some(l)))
-        }.getOrElse(obj())
+      logger.trace(s"function=should, modeFlag=$modeFlags")
 
-      logger.trace(s"function=should, publishedTerm=$publishedTerm, latestTerm=$latestTerm")
-
-      val metadataQuery: Seq[JsValue] = query.metadata.toSeq.map {
+      val metadataQuery: Seq[JsObject] = query.metadata.toSeq.map {
         case (key, value) => {
           obj("nested" -> obj(
             "path" -> "metadata",
@@ -227,7 +235,7 @@ object ItemIndexQuery {
         }
       }
 
-      val allClauses: Seq[JsValue] = (publishedTerm +: latestTerm +: metadataQuery) ++ extras
+      val allClauses: Seq[JsValue] = metadataQuery ++ modeFlags ++ extras
       obj("must" -> allClauses.filter(!_.isEmpty))
     }
 

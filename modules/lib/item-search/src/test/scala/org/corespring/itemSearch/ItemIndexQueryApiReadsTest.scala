@@ -10,7 +10,7 @@ class ItemIndexQueryApiReadsTest extends Specification {
 
     "read the defaults" in {
       val query = ItemIndexQuery.ApiReads.reads(obj()).asOpt.get
-      query.latest must_== Defaults.latest
+      query.mode must_== Defaults.mode
       query.published must_== Defaults.published
       query.text must_== Defaults.text
       query.collections must_== Defaults.collections
@@ -27,28 +27,17 @@ class ItemIndexQueryApiReadsTest extends Specification {
       query.workflows must_== Defaults.workflows
     }
 
-    "read latest" should {
+    "read mode" should {
 
-      "be None for skip" in {
-        val query = ItemIndexQuery.ApiReads.reads(obj("latest" -> "skip")).asOpt.get
-        query.latest must_== None
+      "be latest" in {
+        val query = ItemIndexQuery.ApiReads.reads(obj("mode" -> "latest")).asOpt.get
+        query.mode must_== SearchMode.latest
       }
 
-      "be Some(false) for no" in {
-        val query = ItemIndexQuery.ApiReads.reads(obj("latest" -> "no")).asOpt.get
-        query.latest must_== Some(false)
-      }
-
-      "be Some(true) for yes" in {
-        val query = ItemIndexQuery.ApiReads.reads(obj("latest" -> "yes")).asOpt.get
-        query.latest must_== Some(true)
-      }
-
-      "be Some(true) for anything else" in {
-        val query = ItemIndexQuery.ApiReads.reads(obj("latest" -> "hello-there??")).asOpt.get
-        query.latest must_== Some(true)
+      "be latestPublished" in {
+        val query = ItemIndexQuery.ApiReads.reads(obj("mode" -> "latestPublished")).asOpt.get
+        query.mode must_== SearchMode.latestPublished
       }
     }
   }
-
 }

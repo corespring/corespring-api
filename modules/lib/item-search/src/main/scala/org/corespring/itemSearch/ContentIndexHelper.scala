@@ -19,7 +19,8 @@ import scalaz.{ Failure, Success, Validation }
 class ContentIndexHelper(
   index: Index,
   elasticSearchExecutionContext: ElasticSearchExecutionContext,
-  url: AuthenticatedUrl) {
+  auth: AuthenticatedUrl,
+  implicit val url: URL) {
 
   private val logger = Logger(this.getClass)
 
@@ -30,13 +31,18 @@ class ContentIndexHelper(
     logger.info(s"function=addLatest, oid=$oid, version=$version")
     logger.trace(s"function=addLatest, oid=$oid, version=$version, json=${prettyPrint(json)}")
 
-    val flagged = json ++ Json.obj("latest" -> true)
+    val currentPublished = (json \ "published").asOpt[Boolean].getOrElse(false)
+
+    val flagged = json ++
+      obj("latest" -> true, "latestPublished" -> currentPublished)
 
     import FutureValidation._
 
+    logger.trace(s"function=addLatest, oid=$oid, flagged=${prettyPrint(flagged)}")
+
     val o = for {
       deleteResult <- deleteOldVersions(oid, version)
-      updateResult <- unsetLatestOnPenultimate(oid, version - 1)
+      updateResult <- updatePenultimateFlags(oid, version - 1, latest = false, latestPublished = !currentPublished)
       add <- fv(index.add(s"$oid:$version", flagged.toString))
     } yield add
 
@@ -66,7 +72,7 @@ class ContentIndexHelper(
 
       import play.api.libs.ws.Implicits._
 
-      val out = url.authed("s/content/content/_query")
+      val out = auth.authed("s/content/content/_query")
         .delete(deleteQuery)
         .map { result =>
           logger.trace(s"function=deleteOldVersions, oid=$oid, latestVersion=$latestVersion, result.body=${result.body}")
@@ -81,17 +87,19 @@ class ContentIndexHelper(
     }
   }
 
-  private def unsetLatestOnPenultimate(oid: ObjectId, penultimateVersion: Long): FutureValidation[Error, String] = {
+  private def updatePenultimateFlags(oid: ObjectId, penultimateVersion: Long, latest: Boolean, latestPublished: Boolean): FutureValidation[Error, String] = {
 
-    logger.debug(s"function=updatePenultimate, oid=$oid, penultimateVersion=$penultimateVersion")
+    logger.debug(s"function=updatePenultimateFlags, oid=$oid, penultimateVersion=$penultimateVersion, latest=$latest, latestPublished=$latestPublished")
 
     if (penultimateVersion >= 0) {
 
+      //TODO: this assumes that the penultimate item is published:true - will that always be the case?
       val update = obj(
         "doc" -> obj(
-          "latest" -> false))
+          "latest" -> false,
+          "latestPublished" -> latestPublished))
 
-      val operation = url.authed(s"/content/content/$oid:$penultimateVersion/_update")
+      val operation = auth.authed(s"/content/content/$oid:$penultimateVersion/_update")
         .post(update)
         .map { result =>
           logger.trace(s"function=updatePenultimate, oid=$oid, penultimateVersion=$penultimateVersion, result.body=${result.body}")
