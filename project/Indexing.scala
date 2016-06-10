@@ -1,6 +1,6 @@
 import sbt._
 import sbt.Keys._
-import org.corespring.elasticsearch.ContentIndexer
+import org.corespring.elasticsearch.BatchContentIndexer
 import sbt.{ Plugin, SettingKey, TaskKey }
 
 object ElasticSearchIndexerPlugin extends Plugin {
@@ -16,7 +16,7 @@ object ElasticSearchIndexerPlugin extends Plugin {
 
   def index(mongoUri: String, elasticsearchUri: String, componentPath: String): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    ContentIndexer.reindex(new java.net.URL(elasticsearchUri), mongoUri, componentPath)
+    BatchContentIndexer.reindex(new java.net.URL(elasticsearchUri), mongoUri, componentPath)
   }
 
   val newSettings = Seq(
