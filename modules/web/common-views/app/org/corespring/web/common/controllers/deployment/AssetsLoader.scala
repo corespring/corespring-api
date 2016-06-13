@@ -9,13 +9,28 @@ import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Mode.Mode
 import play.api.{ Configuration, Mode, Logger }
 
+private[deployment] object ValidBucketName {
+
+  val bucketNameLengthMax = 63
+  val base = "corespring-public-assets"
+
+  def apply(env: String, branch: String): String = {
+    val bucketCompliantBranchName = branch.replaceAll("feature", "").replaceAll("hotfix", "").replaceAll("/", "-")
+    val raw = Seq(base, env, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase.replaceAll("--", "-")
+    val trimmed = raw.take(bucketNameLengthMax)
+    if (trimmed.endsWith("-")) {
+      StringUtils.substringBeforeLast(trimmed, "-")
+    } else {
+      trimmed
+    }
+  }
+}
+
 class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildInfo: BuildInfo) {
 
   private[this] val logger = Logger(classOf[AssetsLoader])
 
   private def isProd: Boolean = mode == Mode.Prod
-
-  val bucketNameLengthMax = 63
 
   lazy val closureOptions = {
     val o = new CompilerOptions()
@@ -37,13 +52,9 @@ class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildI
     }
 
     val bucketName: String = {
-      val publicAssets = "corespring-public-assets"
       if (isProd) {
         val envName = config.getString("ENV_NAME").getOrElse("")
-        val bucketCompliantBranchName = branch.replaceAll("feature", "").replaceAll("hotfix", "").replaceAll("/", "-")
-        val raw = Seq(publicAssets, envName, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase
-        val trimmed = raw.take(bucketNameLengthMax)
-        StringUtils.substringBeforeLast(trimmed, "-")
+        ValidBucketName(envName, branch)
       } else {
         "corespring-dev-tmp-assets"
       }
