@@ -88,8 +88,6 @@ object Dependencies {
 
   object Resolvers {
 
-    val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots"
-    val corespringReleases = "Corespring Artifactory Releases" at "http://repository.corespring.org/artifactory/ivy-releases"
     val corespringPublicSnapshots = "Corespring Public Artifactory Snapshots" at "http://repository.corespring.org/artifactory/public-ivy-snapshots"
     val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
     val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
@@ -108,8 +106,6 @@ object Dependencies {
       scalazBintray,
       sonatypeSnapshots,
       typesafe,
-      corespringSnapshots,
-      corespringReleases,
       corespringPublicSnapshots,
       spy,
       sbtPluginSnapshots,
