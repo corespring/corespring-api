@@ -27,6 +27,7 @@ case class ElasticSearchConfig(url: URL, mongoUri: String, componentPath: String
  */
 class ElasticSearchItemIndexService(config: ElasticSearchConfig,
   rawTypes: Seq[ComponentType],
+  contentIndex: ContentIndex,
   executionContext: ElasticSearchExecutionContext)
   extends ItemIndexService with AuthenticatedUrl with ItemIndexDeleteService {
 
@@ -38,9 +39,9 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
   implicit val url = config.url
 
-  private val contentIndex = ElasticSearchClient(config.url).index("content")
+  //  private val contentIndex = ElasticSearchClient(config.url).index("content")
 
-  private val contentIndexHelper = new ContentIndexHelper(contentIndex, executionContext, this, url)
+  //  private val contentIndexHelper = new ContentIndexHelper(contentIndex, executionContext, this, url)
 
   override def unboundedSearch(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
@@ -151,18 +152,24 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
       if (id.version.isEmpty) {
         Future.successful(Failure(new Error(s"id is missing a version - can't index: $id")))
       } else {
-        contentDenormalizer.withCollection("content", collection => {
-          collection.findOne(MongoDBObject("_id._id" -> id.id), ContentIndexer.defaultFilter) match {
-            case Some(record) => {
-              val recordJson = Json.parse(record.toString)
-              val denormalized = contentDenormalizer.denormalize(recordJson).as[JsObject]
-              val res = contentIndexHelper.addLatest(id.id, id.version.get, denormalized)
-              logger.trace(s"function=reindex, id=$id, recordJson=$recordJson, denormalized=$denormalized, res=$res")
-              res
-            }
-            case _ => future { Failure(new Error(s"Item with id=$id not found")) }
+        for {
+          maybeDbo <- Future {
+            contentDenormalizer.withCollection("content", collection => {
+              collection.findOne(MongoDBObject("_id._id" -> id.id))
+            })
           }
-        })
+          mainDbo <- Future.successful(maybeDbo.getOrElse(Failure(new Error(s"Can't find dbo by id: $id"))))
+          versionedDbo <- Future {
+            contentDenormalizer.withCollection("versioned_content", { c =>
+              c.findOne(MongoDBObject("_id._id" -> id.id, "id.version" -> id.version.get))
+            })
+          }
+          mainDenormalized <- contentDenormalizer.denormalize(Json.parse(mainDbo.toString))
+          versionedDenormalized <- versionedDbo.map { v =>
+            contentDenormalizer.denormalize(Json.parse(v.toString)).map { Some(_) }
+          }.getOrElse(Future.successful(None))
+          result <- contentIndex.add(true, ItemData(mainDenormalized, versionedDenormalized))
+        } yield result
       }
     }
   }
@@ -175,7 +182,7 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
   }
 
   override def create(): Future[Validation[Error, Unit]] = {
-    ContentIndexer.createIndex(url).map { v => v.map { _ => Unit } }
+    BatchContentIndexer.createIndex(url).map { v => v.map { _ => Unit } }
   }
 }
 
