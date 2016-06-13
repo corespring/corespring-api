@@ -12,7 +12,7 @@ object ItemIndexSearchResult {
 
     def reads(json: JsValue): JsResult[ItemIndexSearchResult] = {
       JsSuccess(ItemIndexSearchResult(
-        total = (json \ "aggregations" \ "id_count" \ "value").asOpt[Int].getOrElse(0),
+        total = (json \ "hits" \ "total").asOpt[Int].getOrElse(0),
         hits = (json \ "hits" \ "hits").asOpt[Seq[ItemIndexHit]].getOrElse(Seq.empty)))
     }
 

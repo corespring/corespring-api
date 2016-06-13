@@ -137,7 +137,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
         result.hits.head.id must_== unpublishedItem.id.toString
       }
 
-      "return the penultimate version of the item if published: true" in new byTitle {
+      "text and title - return the penultimate version of the item" in new byTitle {
         override val published = None //Some(true)
         override val mode = SearchMode.latestPublished
         result.total must_== 1
@@ -194,6 +194,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
       }
 
       "return 1 documents if published: true" in new byPublishedVersionedId {
+        override val mode = SearchMode.latestPublished
         override val published = Some(true)
         result.total must_== 1
         result.hits.head.id must_== item.id.toString

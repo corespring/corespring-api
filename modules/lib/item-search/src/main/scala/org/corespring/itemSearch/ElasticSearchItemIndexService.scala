@@ -4,7 +4,6 @@ import java.net.URL
 
 import com.mongodb.casbah.commons.MongoDBObject
 import grizzled.slf4j.Logger
-import org.apache.commons.codec.binary.Base64._
 import org.bson.types.ObjectId
 import org.corespring.elasticsearch._
 import org.corespring.models.item.ComponentType
@@ -25,23 +24,16 @@ case class ElasticSearchConfig(url: URL, mongoUri: String, componentPath: String
  * service. When we upgrade ot Play 2.3.x, we should use [play-mockws](https://github.com/leanovate/play-mockws) to
  * test this exhaustively.
  */
-class ElasticSearchItemIndexService(config: ElasticSearchConfig,
+class ElasticSearchItemIndexService(
+  config: ElasticSearchConfig,
   rawTypes: Seq[ComponentType],
   contentIndex: ContentIndex,
   executionContext: ElasticSearchExecutionContext)
-  extends ItemIndexService with AuthenticatedUrl with ItemIndexDeleteService {
+  extends ItemIndexService with ItemIndexDeleteService {
 
-  override val webService = play.api.libs.ws.WS
-
-  implicit def ec: ExecutionContext = executionContext.context
+  implicit val ec: ExecutionContext = executionContext.context
 
   private val logger = Logger(classOf[ElasticSearchItemIndexService])
-
-  implicit val url = config.url
-
-  //  private val contentIndex = ElasticSearchClient(config.url).index("content")
-
-  //  private val contentIndexHelper = new ContentIndexHelper(contentIndex, executionContext, this, url)
 
   override def unboundedSearch(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
@@ -52,8 +44,7 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
       val queryJson = Json.toJson(query)
       logger.trace(s"function=unboundedSearch\n\tquery=$query\n\tqueryJson=${Json.prettyPrint(queryJson)}")
 
-      authed("/content/_search")(url, ec)
-        .post(queryJson)
+      contentIndex.search(queryJson)
         .map { result =>
           val resultJson = Json.parse(result.body)
           logger.trace(s"function=unboundedSearch, resultJson=${Json.prettyPrint(resultJson)}")
@@ -84,8 +75,7 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
       val searchQuery = Json.toJson(agg)
       logger.trace(s"function=distinct, field=$field, searchQuery=$searchQuery")
 
-      authed("/content/_search")(url, ec)
-        .post(searchQuery)
+      contentIndex.search(searchQuery)
         .map(result => {
 
           val resultJson = Json.parse(result.body)
@@ -144,7 +134,7 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
    */
   private object Indexer {
 
-    val contentDenormalizer = new ContentDenormalizer(config.mongoUri, config.componentPath)
+    val contentDenormalizer = new ContentDenormalizer(config.mongoUri, config.componentPath, executionContext.context)
 
     def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]] = {
 
@@ -159,53 +149,31 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
             })
           }
           mainDbo <- Future.successful(maybeDbo.getOrElse(Failure(new Error(s"Can't find dbo by id: $id"))))
-          versionedDbo <- Future {
+          versionedDbo <- if (id.version.get <= 0) Future.successful(None) else Future {
+
+            val query = MongoDBObject("_id._id" -> id.id, "_id.version" -> (id.version.get - 1))
             contentDenormalizer.withCollection("versioned_content", { c =>
-              c.findOne(MongoDBObject("_id._id" -> id.id, "id.version" -> id.version.get))
+              c.findOne(query)
             })
           }
           mainDenormalized <- contentDenormalizer.denormalize(Json.parse(mainDbo.toString))
           versionedDenormalized <- versionedDbo.map { v =>
-            contentDenormalizer.denormalize(Json.parse(v.toString)).map { Some(_) }
+            contentDenormalizer.denormalize(Json.parse(v.toString)).map(Some(_))
           }.getOrElse(Future.successful(None))
           result <- contentIndex.add(true, ItemData(mainDenormalized, versionedDenormalized))
-        } yield result
+        } yield result.map(_.result).headOption.getOrElse(Failure(new Error("reindex failed")))
       }
     }
   }
 
   override def delete(): Future[Validation[Error, Unit]] = {
-    authed("/content")
-      .delete()
+    contentIndex.dropIndex()
       .recover({ case e => Failure(new Error("failed to delete the index")) })
       .map(_ => Success())
   }
 
   override def create(): Future[Validation[Error, Unit]] = {
-    BatchContentIndexer.createIndex(url).map { v => v.map { _ => Unit } }
+    contentIndex.recreate().map { v => v.map(_ => Unit) }
   }
-}
-
-trait AuthenticatedUrl {
-
-  def webService: play.api.libs.ws.WS.type
-
-  private def baseUrl(url: URL) =
-    s"${url.getProtocol}://${url.getHost}${if (url.getPort == -1) "" else s":${url.getPort}"}"
-
-  private def authHeader(implicit url: URL) = Option(url.getUserInfo).map(_.split(":")) match {
-    case Some(Array(username, password)) =>
-      Some("Authorization" -> s"Basic ${new String(encodeBase64(s"$username:$password".getBytes))}")
-    case _ => None
-  }
-
-  /**
-   * Provides a WSRequest with authentication headers from a route and a URL-base.
-   */
-  def authed(route: String)(implicit url: URL, ec: ExecutionContext) = {
-    val holder = webService.url(s"${baseUrl(url)}$route")
-    authHeader.map(header => holder.withHeaders(header)).getOrElse(holder)
-  }
-
 }
 

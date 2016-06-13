@@ -12,9 +12,11 @@ object Dependencies {
 
   object ModuleConfigurations {
 
-    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, Resolvers.corespringSnapshots))
+    import org.corespring.sbt.repo.RepoAuthPlugin
+
+    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, RepoAuthPlugin.snapshots))
     val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", chainedSnapshots)
-    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
+    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", RepoAuthPlugin.releases)
   }
 
   val containerClientWeb = toModule("container-client-web")

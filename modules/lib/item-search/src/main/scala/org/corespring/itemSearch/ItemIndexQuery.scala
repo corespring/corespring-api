@@ -118,7 +118,7 @@ object ItemIndexQuery {
 
     type Field = Value
 
-    val collections, contributors, count, gradeLevels, itemTypes, offset, published, latest, requiredPlayerWidth, sort, standardClusters, standards, text, widgets, workflows = Value
+    val mode, collections, contributors, count, gradeLevels, itemTypes, offset, published, latest, requiredPlayerWidth, sort, standardClusters, standards, text, widgets, workflows = Value
 
     def all = this.values.map(_.toString)
   }

@@ -1,15 +1,25 @@
 package org.corespring.v2.api
 
-import org.corespring.it.IntegrationSpecification
+import javax.transaction.Transaction
+
+import bootstrap.Main
+import org.bson.types.ObjectId
+import org.corespring.it.contexts.OrgWithAccessToken
+import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
 import org.corespring.it.helpers.{ CollectionHelper, ItemHelper }
-import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessToken }
+import org.corespring.it.scopes.{ TokenRequest, TokenRequestBuilder, orgWithAccessToken }
 import org.corespring.models.item.{ Item, TaskInfo }
-import org.specs2.mutable.After
-import org.specs2.specification.Scope
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.specs2.execute.{ AsResult, Result, Success }
+import org.specs2.mutable.{ After, Before }
+import org.specs2.specification.{ Fixture, Scope }
 import play.api.libs.json.{ JsArray, JsObject, JsValue }
 import play.api.libs.json.Json._
+import play.api.mvc.AnyContentAsEmpty
 
 class V2ItemApiSearchIntegrationTest extends IntegrationSpecification {
+
+  val Routes = org.corespring.v2.api.routes.ItemApi
 
   trait scope extends Scope with orgWithAccessToken with TokenRequestBuilder with After {
 
@@ -17,7 +27,6 @@ class V2ItemApiSearchIntegrationTest extends IntegrationSpecification {
     val item = Item(collectionId = collectionId.toString, taskInfo = Some(TaskInfo(title = Some("Item title"))))
     val itemId = ItemHelper.create(collectionId, item)
     val itemService = global.Global.main.itemService
-    val Routes = org.corespring.v2.api.routes.ItemApi
     override def after = removeData()
 
   }
@@ -65,10 +74,10 @@ class V2ItemApiSearchIntegrationTest extends IntegrationSpecification {
       lazy val result = route(request).get
     }
 
-    class search(published: Option[Boolean], latest: String = "true") extends searchBase {
+    class search(published: Option[Boolean], mode: String) extends searchBase {
       override lazy val query: Option[JsObject] = {
         val p = published.map { p => obj("published" -> p) }.getOrElse(obj())
-        Some(obj("latest" -> latest) ++ p)
+        Some(obj("mode" -> mode) ++ p)
       }
     }
 
@@ -88,31 +97,100 @@ class V2ItemApiSearchIntegrationTest extends IntegrationSpecification {
       }
     }
 
-    "with published:true and latest:skip" should {
-      s"return the penultimate published item" in new search(published = Some(true), latest = "skip") {
+    "with published:true and mode:latestPublished" should {
+      s"return the penultimate published item" in new search(published = Some(true), mode = "latestPublished") {
         val json = contentAsJson(result)
+        println(prettyPrint(json))
         val head = (json \ "hits").as[Seq[JsValue]].head
         (head \ "id").as[String] must_== item.id.toString
         (head \ "published").as[Boolean] must_== true
       }
     }
 
-    "with published:true and latest:yes" should {
-      s"return an empty list" in new search(published = Some(true), latest = "yes") {
+    "with published:true and mode:latest" should {
+      s"return an empty list" in new search(published = Some(true), mode = "latest") {
         val json = contentAsJson(result)
         val head = (json \ "hits").as[Seq[JsValue]].length must_== 0
       }
     }
 
-    "with published:false and latest:yes" should {
-      s"return the most recent unpublished item" in new search(published = Some(false), latest = "yes") {
+    "with published:false and mode:latest" should {
+      s"return the most recent unpublished item" in new search(published = Some(false), mode = "latest") {
         val json = contentAsJson(result)
         val head = (json \ "hits").as[Seq[JsValue]].head
         (head \ "id").as[String] must_== unpublishedItem.id.toString
         (head \ "published").as[Boolean] must_== false
       }
     }
-
   }
 
+  "search - large dataset" should {
+
+    def largeSet(publishOdd: Boolean) = new Fixture[OrgWithAccessToken] with ItemIndexCleaner {
+      def apply[R: AsResult](f: OrgWithAccessToken => R) = {
+
+        cleanIndex()
+        removeData()
+
+        val ctx: OrgWithAccessToken = OrgWithAccessToken.apply
+        val collectionId = CollectionHelper.create(ctx.org.id)
+        val itemService = global.Global.main.itemService
+
+        def addItem(index: Int) = {
+          val item = Item(collectionId = collectionId.toString, taskInfo = Some(TaskInfo(title = Some(s"Item index $index"))))
+          val itemId = ItemHelper.create(collectionId, item)
+
+          //all even items will be latest/published - odd ones only latest
+          if (index % 2 == 0) {
+            itemService.publish(itemId)
+            itemService.getOrCreateUnpublishedVersion(itemId)
+          } else {
+            if (publishOdd) {
+              itemService.publish(itemId)
+            }
+          }
+          index -> itemId
+        }
+
+        (0 to 49).map(addItem)
+        val r = f(ctx)
+        cleanIndex()
+        removeData()
+        AsResult(r)
+      }
+    }
+
+    "returns half the number of items when mode:latestPublished" in largeSet(false) { ctx =>
+      lazy val call = Routes.search(Some("""{"mode": "latestPublished"}"""))
+      lazy val request = ctx.tokenRequestBuilder.makeRequest(call, AnyContentAsEmpty)
+      lazy val result = route(request).get
+      lazy val json = contentAsJson(result)
+      (json \ "total").as[Int] must_== 25
+    }
+
+    "returns all the items when mode:latestPublished and odd items are also published" in largeSet(publishOdd = true) { ctx =>
+      lazy val call = Routes.search(Some("""{"mode" : "latestPublished"}"""))
+      lazy val request = ctx.tokenRequestBuilder.makeRequest(call, AnyContentAsEmpty)
+      lazy val result = route(request).get
+      lazy val json = contentAsJson(result)
+      (json \ "total").as[Int] must_== 50
+    }
+
+    "returns all the items when mode:latest" in largeSet(publishOdd = false) { ctx =>
+      lazy val call = Routes.search(Some("""{}"""))
+      lazy val request = ctx.tokenRequestBuilder.makeRequest(call, AnyContentAsEmpty)
+      lazy val result = route(request).get
+      lazy val json = contentAsJson(result)
+      (json \ "total").as[Int] must_== 50
+    }
+
+    "returns half the items when mode:latest and published:true" in largeSet(publishOdd = true) { ctx =>
+      lazy val call = Routes.search(Some("""{"published" : true}"""))
+      lazy val request = ctx.tokenRequestBuilder.makeRequest(call, AnyContentAsEmpty)
+      lazy val result = route(request).get
+      lazy val json = contentAsJson(result)
+      (json \ "total").as[Int] must_== 25
+    }
+
+  }
 }
