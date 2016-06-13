@@ -3,15 +3,15 @@ package org.corespring.v2.player.hooks
 import org.apache.commons.httpclient.util.URIUtil
 import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
-import org.corespring.container.client.hooks.{ UploadResult, DraftEditorHooks => ContainerDraftEditorHooks }
+import org.corespring.container.client.hooks.{UploadResult, DraftEditorHooks => ContainerDraftEditorHooks}
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.{ DraftAssetKeys, ItemDrafts, MakeDraftId, S3Paths }
+import org.corespring.drafts.item.{DraftAssetKeys, ItemDrafts, MakeDraftId, S3Paths}
 import org.corespring.models.appConfig.Bucket
-import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.models.item.resource.{BaseFile, StoredFile}
 import org.corespring.v2.auth.LoadOrgAndOptions
-import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.models.{DisplayConfigJson, OrgAndOpts}
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.assets.S3PathResolver
@@ -58,9 +58,10 @@ class DraftEditorHooks(
   override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
     logger.trace(s"function=load id=$id")
     for {
+      identity <- getOrgAndOptions(header)
       d <- loadDraft(id)
       item <- Success(d.change.data)
-    } yield (transformer.transformToV2Json(item), Json.obj())
+    } yield (transformer.transformToV2Json(item), DisplayConfigJson(identity))
   }
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
