@@ -160,7 +160,7 @@ class ElasticSearchItemIndexService(
           versionedDenormalized <- versionedDbo.map { v =>
             contentDenormalizer.denormalize(Json.parse(v.toString)).map(Some(_))
           }.getOrElse(Future.successful(None))
-          result <- contentIndex.add(true, ItemData(mainDenormalized, versionedDenormalized))
+          result <- contentIndex.bulkAdd(true, ItemData(mainDenormalized, versionedDenormalized))
         } yield result.map(_.result).headOption.getOrElse(Failure(new Error("reindex failed")))
       }
     }

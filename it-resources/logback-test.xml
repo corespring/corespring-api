@@ -4,8 +4,6 @@
 
     <!-- this is to suppress logback initial logging -->
 
-    <logger name="org.corespring.itemSearch.ElasticSearchItemIndexService" level="TRACE" />
-
     <root level="OFF">
     </root>
 </configuration>

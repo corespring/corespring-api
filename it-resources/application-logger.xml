@@ -9,8 +9,6 @@
 
   <logger name="ch.qos.logback" level="WARN"/>
   <logger name="org.corespring.it.helpers" level="DEBUG"/>
-  <logger name="org.corespring.itemSearch.ElasticSearchItemIndexService" level="TRACE" />
-  <logger name="org.corespring.elasticsearch.ContentIndex" level="TRACE"/>
   <logger name="org.corespring.v2.api.ItemApi" level="TRACE" />
 
   <root level="WARN">
