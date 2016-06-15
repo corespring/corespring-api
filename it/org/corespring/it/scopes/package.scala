@@ -352,7 +352,7 @@ package object scopes {
   trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
 
     protected def mkUrl(url: String, token: String = accessToken) = {
-      new TokenRequest(accessToken).mkUrl(url)
+      new TokenRequest(token).mkUrl(url)
     }
 
     override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
