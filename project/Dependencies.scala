@@ -1,20 +1,21 @@
 import sbt._
-
 object Dependencies {
 
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "3.3.0-SNAPSHOT"
+  val containerVersion = "3.2.2"
   val qtiVersion = "0.16"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
   object ModuleConfigurations {
 
-    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, Resolvers.corespringSnapshots))
+    import org.corespring.sbt.repo.RepoAuthPlugin
+
+    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, RepoAuthPlugin.snapshots))
     val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", chainedSnapshots)
-    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
+    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", RepoAuthPlugin.releases)
   }
 
   val componentLoader = toModule("component-loader")
@@ -32,15 +33,12 @@ object Dependencies {
   val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.23-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val grizzledLog = "org.clapper" %% "grizzled-slf4j" % "1.0.2"
   val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val jodaConvert = "org.joda" % "joda-convert" % "1.2"
   val jodaTime = "joda-time" % "joda-time" % "2.2"
-  val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
   val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
   val macWireMacro = "com.softwaremill.macwire" %% "macros" % "0.7.3"
   val macWireRuntime = "com.softwaremill.macwire" %% "runtime" % "0.7.3"
@@ -65,18 +63,19 @@ object Dependencies {
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val scalazContrib = "org.typelevel" %% "scalaz-contrib-210" % "0.1.5"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
-  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.4"
-  val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.2.2" // "3.6.2"
-  //val specs2Mock = "org.specs2" %% "specs2-mock" % "2.2.2" //"3.6.2"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
+  val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
+  val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.24-PLAY22").exclude("org.mongodb", "mongo-java-driver")
+  val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
+  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.4"
+
   val ztZip = "org.zeroturnaround" % "zt-zip" % "1.8" % "it"
 
   object Resolvers {
 
-    val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots"
-    val corespringReleases = "Corespring Artifactory Releases" at "http://repository.corespring.org/artifactory/ivy-releases"
     val corespringPublicSnapshots = "Corespring Public Artifactory Snapshots" at "http://repository.corespring.org/artifactory/public-ivy-snapshots"
     val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
     val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
@@ -95,8 +94,6 @@ object Dependencies {
       scalazBintray,
       sonatypeSnapshots,
       typesafe,
-      corespringSnapshots,
-      corespringReleases,
       corespringPublicSnapshots,
       spy,
       sbtPluginSnapshots,
