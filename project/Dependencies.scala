@@ -1,5 +1,4 @@
 import sbt._
-
 object Dependencies {
 
   val playVersion = "2.2.1"
@@ -12,9 +11,11 @@ object Dependencies {
 
   object ModuleConfigurations {
 
-    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, Resolvers.corespringSnapshots))
+    import org.corespring.sbt.repo.RepoAuthPlugin
+
+    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, RepoAuthPlugin.snapshots))
     val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", chainedSnapshots)
-    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
+    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", RepoAuthPlugin.releases)
   }
 
   val containerClientWeb = toModule("container-client-web")
@@ -80,7 +81,7 @@ object Dependencies {
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.23-PLAY22").exclude("org.mongodb", "mongo-java-driver")
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.24-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
   val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.4"
 
@@ -88,8 +89,6 @@ object Dependencies {
 
   object Resolvers {
 
-    val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots"
-    val corespringReleases = "Corespring Artifactory Releases" at "http://repository.corespring.org/artifactory/ivy-releases"
     val corespringPublicSnapshots = "Corespring Public Artifactory Snapshots" at "http://repository.corespring.org/artifactory/public-ivy-snapshots"
     val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
     val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
@@ -108,8 +107,6 @@ object Dependencies {
       scalazBintray,
       sonatypeSnapshots,
       typesafe,
-      corespringSnapshots,
-      corespringReleases,
       corespringPublicSnapshots,
       spy,
       sbtPluginSnapshots,

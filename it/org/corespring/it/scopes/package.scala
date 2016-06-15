@@ -10,7 +10,9 @@ import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.helpers._
 import org.corespring.it.assets.{ ImageUtils, PlayerDefinitionImageUploader }
-import org.corespring.models.Organization
+import org.corespring.it.scopes.TokenRequest
+import org.corespring.models.auth.{ AccessToken, ApiClient }
+import org.corespring.models.{ Organization, User }
 import org.corespring.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
@@ -22,6 +24,29 @@ import play.api.libs.Files
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import play.api.test.{ FakeHeaders, FakeRequest }
+
+package object contexts {
+
+  object OrgWithAccessToken {
+    def apply: OrgWithAccessToken = {
+      val org = OrganizationHelper.createAndReturnOrg("org")
+      OrgWithAccessToken(
+        org,
+        apiClient = ApiClientHelper.create(org.id),
+        user = UserHelper.create(org.id, "test_user"),
+        accessToken = AccessTokenHelper.create(org.id))
+    }
+  }
+
+  case class OrgWithAccessToken(
+    org: Organization,
+    apiClient: ApiClient,
+    user: User,
+    accessToken: String) {
+
+    val tokenRequestBuilder = new TokenRequest(accessToken)
+  }
+}
 
 package object scopes {
 
@@ -309,20 +334,33 @@ package object scopes {
     def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A]
   }
 
-  trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
-
-    protected def mkUrl(url: String, token: String = accessToken) = {
+  class TokenRequest[A](token: String) {
+    def mkUrl(url: String) = {
       val separator = if (url.contains("?")) "&" else "?"
       s"$url${separator}access_token=$token"
     }
 
-    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
-      val separator = if (call.url.contains("?")) "&" else "?"
+    def makeRequest[A <: AnyContent](call: Call, body: A): Request[A] = {
       FakeRequest(call.method, mkUrl(call.url), FakeHeaders(), body)
     }
 
     def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
       FakeRequest(call.method, mkUrl(call.url)).withJsonBody(json)
+    }
+  }
+
+  trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
+
+    protected def mkUrl(url: String, token: String = accessToken) = {
+      new TokenRequest(token).mkUrl(url)
+    }
+
+    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
+      new TokenRequest[A](accessToken).makeRequest(call, body)
+    }
+
+    def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
+      new TokenRequest[AnyContentAsJson](accessToken).makeJsonRequest(call, json)
     }
   }
 
