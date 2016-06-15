@@ -50,7 +50,7 @@ object Build extends sbt.Build {
   lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
     .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
-  lazy val futureValidation = builders.lib("future-validation", "core")
+  lazy val futureValidation = builders.lib("future-validation", "core", publish = true)
     .settings(libraryDependencies ++= Seq(scalaz, specs2 % "test"))
 
   lazy val coreServices = builders.lib("services", "core", publish = true)
@@ -59,6 +59,8 @@ object Build extends sbt.Build {
     .dependsOn(coreModels, futureValidation)
 
   lazy val coreUtils = builders.lib("utils", "core", publish = true)
+    .settings(
+      libraryDependencies ++= Seq(specs2 % "test"))
 
   lazy val coreLegacy = builders.lib("legacy", "core")
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, securesocial, playFramework, specs2 % "test", playS3))
@@ -198,7 +200,16 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(casbah, playS3),
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
-    .dependsOn(v2Api, coreWeb, coreModels, coreServices, coreJson, coreLegacy, qtiToV2, assets, v2SessionDb)
+    .dependsOn(
+      assets,
+      coreJson,
+      coreLegacy,
+      coreModels,
+      coreServices,
+      coreWeb,
+      qtiToV2,
+      v2Api,
+      v2SessionDb)
 
   object TemplateImports {
     lazy val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -260,6 +271,7 @@ object Build extends sbt.Build {
     .settings(CustomRelease.settings: _*)
     .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
+    .settings(AccessToken.cleanupTask)
     .dependsOn(
       apiUtils,
       coreModels,
@@ -283,24 +295,27 @@ object Build extends sbt.Build {
       itemDrafts % "compile->compile;test->test;it->test",
       v2SessionDb)
     .aggregate(
+      apiTracking,
       apiUtils,
+      assets,
+      commonViews,
+      coreJson,
       coreModels,
+      coreSalatConfig,
       coreServices,
       coreServicesSalat,
+      coreUtils,
       coreWeb,
-      coreJson,
-      apiUtils,
-      commonViews,
+      futureValidation,
+      itemDrafts,
+      itemImport,
+      qtiToV2,
       testLib,
-      v2PlayerIntegration,
       v1Api,
       v2Api,
-      apiTracking,
       v2Auth,
-      v2SessionDb,
-      qtiToV2,
-      itemImport,
-      itemDrafts)
+      v2PlayerIntegration,
+      v2SessionDb)
 
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

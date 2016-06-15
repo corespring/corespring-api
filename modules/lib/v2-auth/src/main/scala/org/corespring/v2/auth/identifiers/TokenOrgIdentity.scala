@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.auth.{ AccessToken, ApiClient }
 import org.corespring.models.{ Organization, User }
 import org.corespring.services.OrganizationService
-import org.corespring.services.auth.{ AccessTokenService, ApiClientService, UpdateAccessTokenService }
+import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
@@ -24,12 +24,11 @@ case class TokenIdentityInput(input: AccessToken) extends Input[AccessToken] {
 
   override def authMode: AuthMode = AuthMode.AccessToken
 
-  override def apiClientId: Option[ObjectId] = input.apiClientId
+  override def apiClientId: Option[ObjectId] = Some(input.apiClientId)
 }
 
 class TokenOrgIdentity(
   tokenService: AccessTokenService,
-  updateAccessTokenService: UpdateAccessTokenService,
   val orgService: OrganizationService,
   apiClientService: ApiClientService)
   extends OrgAndOptsIdentity[AccessToken]
@@ -41,39 +40,20 @@ class TokenOrgIdentity(
   override def toInput(rh: RequestHeader): Validation[V2Error, Input[AccessToken]] = {
     def onToken(token: String) = for {
       t <- tokenService.findByTokenId(token).toSuccess(generalError(s"can't find token with id: $token"))
-      withApiClientId <- Success(tokenWithApiClientId(t))
-    } yield TokenIdentityInput(withApiClientId)
+      _ <- Success(logger.debug(s"function=toInput, token=$t, expired=${t.isExpired}"))
+
+    } yield {
+      if (t.isExpired) {
+        logger.error(s"function=toInput, accessToken=$t - token is expired [AC-320]")
+      }
+      TokenIdentityInput(t)
+    }
 
     def onError(e: String) = Failure(if (e == "Invalid token") invalidToken(rh) else noToken(rh))
-    logger.trace(s"getToken from request")
     getToken[String](rh, "Invalid token", "No token").fold(onError, onToken)
   }
 
-  /**
-   * AC-258
-   * We are temporarily ensuring that all accessTokens have an associated apiClientId.
-   * All new tokens have it, so this will only affect unexpired tokens what were created before this release.
-   * @param t
-   * @return
-   */
-  private def tokenWithApiClientId(t: AccessToken): AccessToken = t.apiClientId match {
-    case Some(_) => t
-    case None => {
-      logger.warn(s"Token: ${t.tokenId} has no apiClientId - adding one...")
-      apiClientService.getOrCreateForOrg(t.organization).toOption.map { c =>
-        val update = t.copy(apiClientId = Some(c.clientId))
-        logger.info(s"Token: ${t.tokenId} has no apiClientId - adding one apiClient: ${c.clientId}")
-        updateAccessTokenService.update(update)
-        update
-      }.getOrElse {
-        logger.error(s"Failed to get or create apiClient for org: ${t.organization}")
-        t
-      }
-    }
-  }
-
   override def toOrgAndUser(i: Input[AccessToken]): Validation[V2Error, (Organization, Option[User])] = {
-    println(s"? $i")
     orgService.findOneById(i.input.organization).toSuccess(cantFindOrgWithId(i.input.organization)).map { o =>
       o -> None
     }
@@ -81,8 +61,7 @@ class TokenOrgIdentity(
 
   def headerToOrgAndApiClient(rh: RequestHeader): Validation[V2Error, (Organization, ApiClient)] = for {
     accessToken <- toInput(rh).map(_.input)
-    apiClientId <- accessToken.apiClientId.toSuccess(generalError(s"token: ${accessToken.tokenId} has no apiClientId"))
-    apiClient <- apiClientService.findByClientId(apiClientId.toString).toSuccess(cantFindApiClientWithId(apiClientId.toString))
+    apiClient <- apiClientService.findByClientId(accessToken.apiClientId.toString).toSuccess(cantFindApiClientWithId(accessToken.apiClientId.toString))
     org <- orgService.findOneById(accessToken.organization).toSuccess(cantFindOrgWithId(accessToken.organization))
   } yield org -> apiClient
 }

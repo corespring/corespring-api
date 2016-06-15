@@ -2,17 +2,19 @@ package org.corespring.v2.api.services
 
 import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
-import org.corespring.models.item.{ PlayerDefinition }
+import org.corespring.models.item.PlayerDefinition
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
-import play.api.libs.json.{ Writes, Json, JsValue }
+import play.api.libs.json.{ JsValue, Json, Writes }
 
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Success, Validation }
 
 trait ScoreService {
 
   /**
    * get a score for a given item
+   *
    * @param item
    * @param answers
    * Should be in the format:
@@ -40,27 +42,44 @@ trait ScoreService {
    *         }
    *         }
    */
-  def score(item: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue]
+  def score(playerDefinition: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue]
+  def scoreMultiple(playerDefinition: PlayerDefinition, answers: Seq[JsValue]): Seq[Future[(JsValue, Validation[V2Error, JsValue])]]
 }
 
-class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: ScoreProcessor)(implicit val w: Writes[PlayerDefinition]) extends ScoreService {
+case class ScoreServiceExecutionContext(ec: ExecutionContext)
 
-  protected lazy val logger = Logger(classOf[BasicScoreService])
+class BasicScoreService(
+  outcomeProcessor: OutcomeProcessor,
+  scoreProcessor: ScoreProcessor,
+  scoreServiceContext: ScoreServiceExecutionContext)(implicit val w: Writes[PlayerDefinition]) extends ScoreService {
+
+  private lazy val logger = Logger(this.getClass)
+
+  override def scoreMultiple(playerDefinition: PlayerDefinition, answers: Seq[JsValue]): Seq[Future[(JsValue, Validation[V2Error, JsValue])]] = {
+    answers.map { a =>
+      logger.trace(s"function=scoreMultiple, a=${Json.toJsFieldJsValueWrapper(a)}, playerDefinition=$playerDefinition")
+      Future { (a -> scoreSession(playerDefinition, a)) }(scoreServiceContext.ec)
+    }
+  }
 
   override def score(pd: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue] = {
+    scoreSession(pd, Json.obj("components" -> answers))
+  }
 
-    logger.trace(s"function=score answers=${Json.stringify(answers)}")
+  private def scoreSession(pd: PlayerDefinition, session: JsValue): Validation[V2Error, JsValue] = {
+    val pdJson = Json.toJson(pd)
+    logger.trace(s"function=score session=${Json.stringify(session)}")
 
     //TODO: Should we be doing some uid validation here, to make sure that they aren't sending unused uids.
     //TODO: Currently they'll just be ignored
 
-    val itemJson = Json.toJson(pd)
-
     /** Because we are only getting the score we don't care about feedback */
     val blankSettings = Json.obj()
-    val componentAnswers = Json.obj("components" -> answers)
-    val outcome = outcomeProcessor.createOutcome(itemJson, componentAnswers, blankSettings)
-    Success(scoreProcessor.score(itemJson, componentAnswers, outcome))
+    //TODO: Scoring should be asynchronous
+    val outcome = outcomeProcessor.createOutcome(pdJson, session, blankSettings)
+    val score = scoreProcessor.score(pdJson, session, outcome)
+    logger.trace(s"function=score, score=${Json.prettyPrint(score)}, session=${Json.prettyPrint(session)}, pdJson=${Json.prettyPrint(pdJson)}, outcome=${Json.prettyPrint(outcome)}")
+    Success(score)
   }
 
 }

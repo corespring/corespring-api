@@ -41,6 +41,9 @@ class EncodingHelperTest extends Specification {
     assertEncodedOnce("/a/b/c.png", 2)
     assertEncodedOnce("/a~tilde/b/c.png", 2)
 
+    "retain the path" in {
+      helper.encodedOnce("a/b/c") must_== "a/b/c"
+    }
   }
 
   "decodeCompletely" should {
@@ -52,9 +55,21 @@ class EncodingHelperTest extends Specification {
         helper.decodeCompletely(encoded) must_== s
       }
     }
-    //Note: + is treated as a space on decode.
-    assertDecodeCompletely(rfc3986Reserved.replace("+", " "))
-    assertDecodeCompletely(rfc3986Reserved.replace("+", " "), 10)
-    assertDecodeCompletely("hi how are you $/there !/test")
+
+    "decode retains +" in {
+      helper.decodeCompletely("+") must_== "+"
+    }
+
+    "decode retains ++" in {
+      helper.decodeCompletely("++") must_== "++"
+    }
+
+    "decode double encoded %2520 to blank" in {
+      helper.decodeCompletely("A%2520B") must_== "A B"
+    }
+
+    assertDecodeCompletely(rfc3986Reserved)
+    assertDecodeCompletely(rfc3986Reserved, 10)
+    assertDecodeCompletely("hi+how are you $/there !/test")
   }
 }

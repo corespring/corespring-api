@@ -11,6 +11,11 @@
   <logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>
   <logger name="org.corespring.services.salat.OrgCollectionService" level="WARN"/>
   <logger name="org.corespring.assets.EncodedKeyS3Client" level="WARN"/>
+  <logger name="org.corespring.v2.auth.identifiers.TokenOrgIdentity" level="INFO"/>
+  <logger name="org.corespring.it.helpers" level="INFO"/>
+  <logger name="org.corespring.v2.api.services.OrgScoringService" level="TRACE"/>
+  <logger name="org.corespring.v2.api.services.BasicScoreService" level="TRACE"/>
+  <logger name="org.corespring.services.salat.item.ItemService" level="TRACE"/>
 
   <root level="WARN">
     <appender-ref ref="STDOUT" />

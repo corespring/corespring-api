@@ -4,10 +4,11 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
-import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
+import org.corespring.conversion.qti.transformers.{ ItemTransformer, PlayerJsonToItem }
+import org.corespring.models.item.{ PlayerDefinition, Item => ModelItem }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.services.OrgCollectionService
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
@@ -34,6 +35,7 @@ class ItemHooks(
   val jsonFormatting: JsonFormatting,
   val playerJsonToItem: PlayerJsonToItem,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  orgCollectionService: OrgCollectionService,
   override implicit val containerContext: ContainerExecutionContext)
   extends containerHooks.ItemHooks
   with BaseItemHooks
@@ -62,27 +64,43 @@ class ItemHooks(
     } yield Json.obj("id" -> vid.toString)
   }
 
-  override def createItem(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
+  override def createSingleComponentItem(collectionId: Option[String], componentType: String, key: String, defaultData: JsObject)(implicit h: RequestHeader): R[String] = {
+    createItem(h, collectionId) { (collectionId, orgAndOpts) =>
+      val xhtml = s"""<div><div $componentType="" id="$key"></div></div>"""
+      val definition = PlayerDefinition(xhtml = xhtml, components = Json.obj(key -> defaultData))
+      val item = ModelItem(
+        collectionId = collectionId,
+        playerDefinition = Some(definition))
+      auth.insert(item)(orgAndOpts)
+    }
+  }
 
-    def createItem(collectionId: String, identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
+  override def createItem(collectionId: Option[String])(implicit header: RequestHeader): R[String] = {
+    createItem(header, collectionId) { (collectionId, orgAndOpts) =>
       val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
       val item = ModelItem(
         collectionId = collectionId,
         playerDefinition = Some(definition))
-      auth.insert(item)(identity)
+      auth.insert(item)(orgAndOpts)
+    }
+  }
+
+  private def createItem(header: RequestHeader, collectionId: Option[String])(mkItem: (String, OrgAndOpts) => Option[VersionedId[ObjectId]]): Future[Either[StatusMessage, String]] = Future {
+
+    def getDefaultCollectionId(orgId: ObjectId): Validation[V2Error, String] = {
+      orgCollectionService.getDefaultCollection(orgId).bimap(_ => generalError(""), _.id.toString)
     }
 
     val accessResult: Validation[V2Error, VersionedId[ObjectId]] = for {
       identity <- getOrgAndOptions(header)
-      json <- maybeJson.toSuccess(noJson)
-      collectionId <- (json \ "collectionId").asOpt[String].toSuccess(propertyNotFoundInJson("collectionId"))
-      canWrite <- auth.canCreateInCollection(collectionId)(identity)
+      c <- collectionId.toSuccess(generalError("no collection id defined")).orElse(getDefaultCollectionId(identity.org.id))
+      canWrite <- auth.canCreateInCollection(c)(identity)
       hasAccess <- if (canWrite) {
         Success(true)
       } else {
         Failure(generalError("Write to item denied"))
       }
-      id <- createItem(collectionId, identity).toSuccess(generalError("Error creating item"))
+      id <- mkItem(c, identity).toSuccess(generalError("Error creating item"))
     } yield id
 
     accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString()).toEither

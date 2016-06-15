@@ -113,12 +113,11 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
     } else if (to.id.version.isEmpty) {
       Failure(MissingVersionFromId(to.id))
     } else {
-      val v1DataResult = cloneDataResource(from, to)
-      val supportingMaterialResults: Seq[CloneResourceResult] = cloneSupportingMaterialFiles(from, to)
+      val v1DataResult = (Seq.empty ++ cloneDataResource(from, to)).map(_.results).flatten
+      val supportingMaterialResults = cloneSupportingMaterialFiles(from, to).map(_.results).flatten
+      val v2FileResults = clonePlayerDefinitionFiles(v1DataResult, from, to)
 
-      val initialResults = (supportingMaterialResults ++ v1DataResult).map(_.results).flatten
-      val v2FileResults = clonePlayerDefinitionFiles(initialResults, from, to)
-      val cloneFileResults = initialResults ++ v2FileResults
+      val cloneFileResults = v1DataResult ++ supportingMaterialResults ++ v2FileResults
 
       /**
        * Note: we have decided to not return a Failure if a file isn't found on clone.

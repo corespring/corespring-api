@@ -63,7 +63,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
     "create a html based supporting material" in new scope {
       val result = createHtmlMaterial
 
-      status(result) === CREATED
+      status(result) must_== CREATED
 
       getHeadResource match {
         case Some(Resource(_, materialName, Some("Rubric"), _)) => success
@@ -92,7 +92,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
       val req = makeFormRequest(call, form)
 
       route(req)(MultipartFormDataWriteable.writeableOf_multipartFormData).map { r =>
-        status(r) === CREATED
+        status(r) must_== CREATED
 
         assertHeadResource { r =>
           r match {
@@ -101,7 +101,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
           }
         }
 
-        ImageUtils.list(key) === Seq(key)
+        ImageUtils.list(key.replace(filename, ""))(0).contains(filename) must_== true
       }.getOrElse(failure("no result returned"))
     }
   }
@@ -123,7 +123,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
         r <- deleteMaterial(materialName)
       } yield r
 
-      status(result) === OK
+      status(result) must_== OK
       getHeadResource must beNone
     }
   }
@@ -143,7 +143,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
         r <- updateHtmlContent("hi")
       } yield r
 
-      status(result) === OK
+      status(result) must_== OK
 
       assertHeadResource { r =>
         r.defaultVirtualFile.map(_.content) must_== Some("hi")
@@ -169,14 +169,14 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
         r <- addFile
       } yield r
 
-      status(result) === OK
+      status(result) must_== OK
 
       assertHeadResource { r =>
-        r.files.length === 2
-        r.files.exists(_.name == filename) === true
+        r.files.length must_== 2
+        r.files.exists(_.name.contains(filename)) must_== true
       }
 
-      ImageUtils.list(s3Key) === Seq(s3Key)
+      ImageUtils.list(s3Key.replace(filename, ""))(0).contains(filename) must_== true
 
     }
   }
@@ -189,8 +189,8 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
 
       lazy val s3Key = DraftAssetKeys.supportingMaterialFile(draftId, materialName, filename)
 
-      def removeFile = {
-        val call = Routes.deleteAssetFromSupportingMaterial(draftId.itemId.toString, materialName, filename)
+      def removeFile(path: String) = {
+        val call = Routes.deleteAssetFromSupportingMaterial(draftId.itemId.toString, materialName, path)
         val req = makeRequest(call)
         futureResult(req)
       }
@@ -205,18 +205,18 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
 
       val result = for {
         _ <- createHtmlMaterial
-        _ <- addFile
-        r <- removeFile
+        json <- Future.successful(contentAsJson(addFile))
+        r <- removeFile((json \ "path").as[String])
       } yield r
 
-      status(result) === OK
+      status(result) must_== OK
 
       assertHeadResource { r =>
-        r.files.length === 1
-        r.files.exists(_.name == filename) === false
+        r.files.length must_== 1
+        r.files.exists(_.name == filename) must_== false
       }
 
-      ImageUtils.list(s3Key) === Nil
+      ImageUtils.list(s3Key) must_== Nil
 
     }
   }

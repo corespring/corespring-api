@@ -71,7 +71,7 @@ class ItemDraftsTest extends Specification with Mockito {
       val m = mock[ItemDraftService]
       m.save(any[ItemDraft]) returns mockWriteResult()
       m.owns(any[OrgAndUser], any[DraftId]) returns true
-      m.removeByItemId(any[ObjectId]) returns true
+      m.removeByItemId(any[ObjectId]) returns 1
       m
     }
 
@@ -163,14 +163,14 @@ class ItemDraftsTest extends Specification with Mockito {
       }
 
       "return the id when successful" in new removeByItemId {
-        itemDrafts.removeByItemId(ed)(itemId.id) must_== Success(itemId.id)
+        itemDrafts.removeByItemId(ed)(itemId.id) must_== Success(1)
       }
 
     }
     "remove" should {
 
       class remove(removeSuccessful: Boolean, owns: Boolean, assetsSuccessful: Boolean) extends scope {
-        draftService.remove(any[DraftId]) returns removeSuccessful
+        draftService.remove(any[DraftId]) returns {if(removeSuccessful) 1 else 0}
         draftService.owns(any[OrgAndUser], any[DraftId]) returns owns
         assets.deleteDraft(any[DraftId]) returns {
           if (assetsSuccessful) Success(Unit) else Failure(TestError("deleteDraft"))
@@ -188,8 +188,13 @@ class ItemDraftsTest extends Specification with Mockito {
       "fail if assets.deleteDraft failed" in new remove(true, true, false) {
         itemDrafts.remove(ed)(oid) must_== Failure(TestError("deleteDraft"))
       }
+
       "succeed" in new remove(true, true, true) {
         itemDrafts.remove(ed)(oid) must_== Success(oid)
+      }
+
+      "succeed if remove fails but succeedIfItemDoesNotExist is true" in new remove(false, true, true) {
+        itemDrafts.remove(ed)(oid, true) must_== Success(oid)
       }
     }
 

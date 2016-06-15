@@ -9,11 +9,12 @@ import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
+import org.corespring.services.CollectionIdPermission
 import org.corespring.services.salat.OrgCollectionService.OrgKeys
 import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import org.omg.CORBA.TIMEOUT
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
@@ -185,33 +186,38 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     collectionDao.findOne(query)
   }
 
+  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = isAuthorized(orgId, CollectionIdPermission(collId, p))
 
-  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
-    logger.debug(s"function=isAuthorized, orgId=$orgId, collId=$collId, p=$p")
-    val batchResult = Await.result(isAuthorizedBatch(orgId, (collId -> p)), TIMEOUT)
+  override def isAuthorized(orgId: ObjectId, collectionIdPermission: CollectionIdPermission): Boolean = {
+    logger.debug(s"function=isAuthorized, orgId=$orgId, collId=$collectionIdPermission")
+    val batchResult = Await.result(isAuthorizedBatch(orgId, collectionIdPermission), TIMEOUT)
     logger.trace(s"function=isAuthorized, batchResult=$batchResult")
-    val maybeAuthorized = batchResult.find{ {case (id, _) => id == collId}}
+    val maybeAuthorized = batchResult.find { { case (id, _) => id == collectionIdPermission } }
     logger.trace(s"function=isAuthorized, maybeAuthorized=$maybeAuthorized")
     maybeAuthorized.map(_._2).getOrElse(false)
   }
 
-  override def isAuthorizedBatch(orgId: ObjectId, idsAndPermissions: (ObjectId, Permission)*): Future[Seq[(ObjectId,Boolean)]] = {
+  override def isAuthorizedBatch(orgId: ObjectId, idsAndPermissions: CollectionIdPermission*): Future[Seq[(CollectionIdPermission, Boolean)]] = {
     logger.trace(s"function=isAuthorizedBatch, idsAndPermissions=$idsAndPermissions")
 
-    val rawIds = idsAndPermissions.map(_._1)
-    require(rawIds.distinct.length == rawIds.length, "There are duplicate ids passed in - can't return a non-ambiguous result")
+    getPermissions(orgId, idsAndPermissions.map(_.collectionId).distinct: _*).map { grantedPermissions =>
 
-    val f = getPermissions(orgId, idsAndPermissions.map(_._1) : _*)
+      logger.trace(s"grantedPermissions: ${grantedPermissions}")
+      val out = idsAndPermissions.map { idPerm =>
+        val granted = grantedPermissions
+          .find(_._1 == idPerm.collectionId)
+          .getOrElse(idPerm.collectionId -> None)
 
-    f.map{ grantedPermissions =>
-      grantedPermissions.map{ case (id, granted) =>
-        idsAndPermissions.find( {case (i, _) => i == id}) match {
-          case None => id -> false
-          case Some((_, p)) =>
-            val authorized = granted.map( g => g.has(p)).getOrElse(false)
-            id ->  authorized
-        }
+        logger.trace(s"granted: $granted")
+        logger.trace(s"idPerm: $idPerm")
+
+        val authorized = granted._2.map(_.has(idPerm.permission)).getOrElse(false)
+        logger.trace(s"authorized:: $authorized")
+        idPerm -> authorized
       }
+
+      logger.trace(s"out: $out")
+      out
     }
   }
 
@@ -220,8 +226,7 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     perms.find({ case (id, p) => id == collId }).flatMap(_._2)
   }
 
-
-  override def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Future[Stream[(ObjectId,Option[Permission])]] = Future{
+  override def getPermissions(orgId: ObjectId, collectionIds: ObjectId*): Future[Stream[(ObjectId, Option[Permission])]] = Future {
     logger.debug(s"function=getPermissions, orgId=$orgId, collectionIds=$collectionIds")
 
     val distinctIds = collectionIds.distinct
@@ -232,20 +237,18 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
 
     val query = "_id" $in distinctIds
 
-
-    def permissionFromRef(c:ContentCollection) : (ObjectId, Option[Permission]) = {
-      val fallbackPermission = if(c.isPublic) Some(Permission.Read) else None
-      val p = allRefs.find(_.collectionId == c.id).flatMap{ r => Permission.fromLong(r.pval)}.orElse(fallbackPermission)
+    def permissionFromRef(c: ContentCollection): (ObjectId, Option[Permission]) = {
+      val fallbackPermission = if (c.isPublic) Some(Permission.Read) else None
+      val p = allRefs.find(_.collectionId == c.id).flatMap { r => Permission.fromLong(r.pval) }.orElse(fallbackPermission)
       c.id -> p
     }
 
     val foundIdPermissions = collectionDao.find(query).toStream.map(permissionFromRef)
-    val notFoundIds = distinctIds.filterNot( id => foundIdPermissions.exists(_._1 == id))
-    val out  = foundIdPermissions ++ notFoundIds.map(_ -> None)
+    val notFoundIds = distinctIds.filterNot(id => foundIdPermissions.exists(_._1 == id))
+    val out = foundIdPermissions ++ notFoundIds.map(_ -> None)
     logger.trace(s"function=getPermissions, out=$out")
     out
   }
-
 
   private def getCollRef(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
     import scalaz.Scalaz._

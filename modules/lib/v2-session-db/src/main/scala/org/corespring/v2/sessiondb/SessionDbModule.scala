@@ -22,6 +22,8 @@ trait SessionDbModule {
 
   def dbClient: AmazonDynamoDBClient
 
+  def sessionServiceExecutionContext: SessionServiceExecutionContext
+
   private lazy val dynamoDB = new DynamoDB(dbClient)
 
   private def mkService(table: String) = {
@@ -37,7 +39,7 @@ trait SessionDbModule {
         new RemoteSessionService(client)
       }
       case "dynamo" => new DynamoSessionService(dynamoDB.getTable(table), dbClient)
-      case _ => new MongoSessionService(db(table))
+      case _ => new MongoSessionService(db(table), sessionServiceExecutionContext)
     }
   }
 

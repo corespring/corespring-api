@@ -2,6 +2,7 @@ package web
 
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
+import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.appConfig.Bucket
@@ -13,11 +14,11 @@ import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
-import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.Mode.Mode
 import web.controllers._
-import web.models.{ ContainerVersion, WebExecutionContext }
+import web.models.{ WebExecutionContext }
 
+case class WebModuleConfig(mode: Mode)
 case class PublicSiteConfig(url: String)
 case class DefaultOrgs(v2Player: Seq[ObjectId], root: ObjectId)
 
@@ -32,9 +33,9 @@ trait WebModule {
   def orgService: OrganizationService
   def itemType: ItemType
   def widgetType: WidgetType
-  def containerVersion: ContainerVersion
+  def containerVersion: VersionInfo
   def webExecutionContext: WebExecutionContext
-  def mode: Mode
+  def webModuleConfig: WebModuleConfig
   def defaultOrgs: DefaultOrgs
   def bucket: Bucket
   def publicSiteConfig: PublicSiteConfig
@@ -53,7 +54,7 @@ trait WebModule {
     userSessionOrgIdentity.apply _)
 
   lazy val showResource = new ShowResource(itemService, s3Service, bucket)
-  lazy val partials = new Partials(mode, defaultOrgs)
+  lazy val partials = new Partials(webModuleConfig.mode, defaultOrgs)
   lazy val webMain = new Main(
     fieldValueService,
     jsonFormatting,
@@ -69,7 +70,7 @@ trait WebModule {
     assetsLoader,
     apiClientService)
 
-  lazy val publicSite = new PublicSite(publicSiteConfig.url, mode)
+  lazy val publicSite = new PublicSite(publicSiteConfig.url, webModuleConfig.mode)
 
   lazy val webControllers = Seq(showResource, webMain, publicSite, partials, itemSearch)
 }

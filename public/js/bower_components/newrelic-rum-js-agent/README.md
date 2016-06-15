@@ -1,0 +1,1 @@
+The javascript agent is embedded into the pages which report to new relic 

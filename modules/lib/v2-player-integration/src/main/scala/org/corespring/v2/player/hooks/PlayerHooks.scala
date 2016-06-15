@@ -4,8 +4,8 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.item.{ Item, PlayerDefinition }
-import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -17,7 +17,7 @@ import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.{ Future }
+import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz._
 
@@ -28,16 +28,20 @@ trait PlayerAssets {
   def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult
 }
 
+trait PlayerItemProcessor {
+  def makePlayerDefinitionJson(session: JsValue, playerDefinition: Option[PlayerDefinition]): JsValue
+}
+
 class PlayerHooks(
+  archiveConfig: ArchiveConfig,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
   itemService: ItemService,
   itemTransformer: ItemTransformer,
-  auth: SessionAuth[OrgAndOpts, PlayerDefinition],
-  jsonFormatting: JsonFormatting,
   playerAssets: PlayerAssets,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  override implicit val containerContext: ContainerExecutionContext) extends ContainerPlayerHooks with LoadOrgAndOptions {
-
-  implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
+  playerItemProcessor: PlayerItemProcessor,
+  sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
+  override implicit val containerContext: ContainerExecutionContext)
+  extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
@@ -62,13 +66,14 @@ class PlayerHooks(
 
     val result = for {
       identity <- getOrgAndOptions(header)
-      canWrite <- auth.canCreate(itemId)(identity)
+      canWrite <- sessionAuth.canCreate(itemId)(identity)
       writeAllowed <- if (canWrite) Success(true) else Failure(generalError(s"Can't create session for $itemId"))
       vid <- getVid
       item <- itemTransformer.loadItemAndUpdateV2(vid).toSuccess(generalError("Error generating item v2 JSON", INTERNAL_SERVER_ERROR))
-      json <- Success(createSessionJson(item))
-      sessionId <- auth.create(json)(identity)
-    } yield (Json.obj("id" -> sessionId.toString) ++ json, Json.toJson(item.playerDefinition))
+      session <- Success(createSessionJson(item))
+      sessionId <- sessionAuth.create(session)(identity)
+      playerDefinitionJson <- Success(playerItemProcessor.makePlayerDefinitionJson(session, item.playerDefinition))
+    } yield (Json.obj("id" -> sessionId.toString) ++ session, playerDefinitionJson)
 
     result
       .leftMap(s => UNAUTHORIZED -> s.message)
@@ -80,26 +85,21 @@ class PlayerHooks(
 
     val o = for {
       identity <- getOrgAndOptions(header)
-      models <- auth.loadForRead(sessionId)(identity)
+      models <- sessionAuth.loadForRead(sessionId)(identity)
     } yield models
 
     o.leftMap(s => s.statusCode -> s.message).rightMap { (models) =>
       val (session, playerDefinition) = models
-      val v2Json = Json.toJson(playerDefinition) //itemTransformer.transformToV2Json(item)
-
-      //Ensure that only the requested properties are returned
-      val playerV2Json = Json.obj(
-        "xhtml" -> (v2Json \ "xhtml").as[String],
-        "components" -> (v2Json \ "components").as[JsValue],
-        "summaryFeedback" -> (v2Json \ "summaryFeedback").as[String])
-
+      val playerDefinitionJson = playerItemProcessor.makePlayerDefinitionJson(session, Some(playerDefinition))
       val withId: JsValue = Json.obj("id" -> sessionId) ++ session.as[JsObject]
-      (withId, playerV2Json)
+      (withId, playerDefinitionJson)
     }.toEither
   }
 
   override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = playerAssets.loadItemFile(itemId, file)(header)
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = playerAssets.loadFile(id, path)(request)
+
+  override def archiveCollectionId: String = archiveConfig.contentCollectionId.toString()
 }
 

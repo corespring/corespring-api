@@ -4,10 +4,11 @@ import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.sessions.SessionServiceClient
 import org.corespring.v2.sessiondb.SessionService
-import play.api.{LoggerLike, Logger}
+import org.joda.time.DateTime
+import play.api.{ LoggerLike, Logger }
 import play.api.libs.json.JsValue
 
-import scala.concurrent.Await
+import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration._
 import scalaz._
 
@@ -34,6 +35,8 @@ class RemoteSessionService(client: SessionServiceClient) extends SessionService 
     }
   }
 
+  override def loadMultiple(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = Future.successful(Nil)
+
   override def save(id: String, data: JsValue): Option[JsValue] =
     Await.result(client.update(new ObjectId(id), data), REMOTE_TIMEOUT) match {
       case Success(maybeJson) => Some(maybeJson)
@@ -51,4 +54,12 @@ class RemoteSessionService(client: SessionServiceClient) extends SessionService 
     }
   }
 
+  override def orgCount(orgId: ObjectId, month: DateTime) =
+    Await.result(client.sessionOrgCount(orgId.toString, month), REMOTE_TIMEOUT) match {
+      case Success(counts) => Some(counts)
+      case Failure(error) => {
+        logger.error(s"[orgCount] orgId = $orgId, month = $month ${error.getMessage}")
+        None
+      }
+    }
 }

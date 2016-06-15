@@ -5,12 +5,13 @@ import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.{ Item, FieldValue, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.v2.auth.ItemAuth
+import org.corespring.v2.auth.{ItemAuth,PlayerDefinitionLoader}
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models._
-import org.corespring.v2.errors.Errors.{ noItemIdInSession, cantLoadSession, generalError }
+import org.corespring.v2.errors.Errors.{cannotLoadSessionCount, noItemIdInSession, cantLoadSession, generalError}
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.{ SessionServices, SessionService }
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatcher
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -99,12 +100,17 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         override def has(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = Success(true)
       }
 
-      val auth = new SessionAuthWired(
+      val pdLoader:PlayerDefinitionLoader = new PlayerDefinitionLoaderWired(
         itemTransformer,
         jsonFormatting,
         itemAuth,
-        sessionServices,
-        perms)
+        perms
+      )
+
+      val auth = new SessionAuthWired(
+        itemAuth,
+        pdLoader,
+        sessionServices)
     }
 
     def getEmptyPlayerDefinition: PlayerDefinition = PlayerDefinition(
@@ -332,6 +338,42 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
       "return id of saved session" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
         auth.cloneIntoPreview("")(optsIn) must be equalTo (Success(savedId))
+      }
+
+    }
+
+    "orgCount" should {
+
+      val orgId = new ObjectId()
+      val month = new DateTime()
+
+      val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+
+      val results = {
+        val r = scala.util.Random
+        1.to(31).map(day => new DateTime().withMonthOfYear(1).withDayOfMonth(day) -> r.nextInt(100).toLong).toMap
+      }
+
+      "SessionService returns successfully" should {
+
+        trait SessionServiceSucceeds extends authScope {
+          sessionServices.main.orgCount(any[ObjectId], any[DateTime]) returns Some(results)
+        }
+
+        "return result from SessionService" in new SessionServiceSucceeds() {
+          auth.orgCount(orgId, month)(optsIn) must be equalTo(Success(results))
+        }
+
+      }
+
+      "SessionService returns empty" should {
+        trait SessionServiceEmpty extends authScope {
+          sessionServices.main.orgCount(any[ObjectId], any[DateTime]) returns None
+        }
+
+        "return failure" in new SessionServiceEmpty {
+          auth.orgCount(orgId, month)(optsIn) must be equalTo(Failure(cannotLoadSessionCount(orgId, month)))
+        }
       }
 
     }

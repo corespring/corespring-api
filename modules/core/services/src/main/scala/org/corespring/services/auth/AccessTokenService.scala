@@ -7,7 +7,7 @@ import org.corespring.models.auth.{ AccessToken, ApiClient }
 import scalaz.Validation
 
 trait UpdateAccessTokenService {
-  def update(token: AccessToken): Unit
+  def update(token: AccessToken): Validation[PlatformServiceError, AccessToken]
 }
 
 trait AccessTokenService {

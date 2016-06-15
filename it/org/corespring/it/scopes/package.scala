@@ -1,7 +1,7 @@
 package org.corespring.it
 
 import global.Global.main
-import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
+import com.amazonaws.services.s3.transfer.{TransferManager, Upload}
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import grizzled.slf4j.Logger
@@ -9,19 +9,20 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.helpers._
-import org.corespring.it.assets.{ ImageUtils, PlayerDefinitionImageUploader }
+import org.corespring.it.assets.{ImageUtils, PlayerDefinitionImageUploader}
 import org.corespring.models.Organization
-import org.corespring.models.item.resource.{ Resource, StoredFile }
+import org.corespring.models.item.resource.{Resource, StoredFile}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.services.salat.bootstrap.CollectionNames
 import org.corespring.v2.auth.identifiers.PlayerTokenIdentity.Keys
+import org.corespring.v2.player.supportingMaterials.Helpers
 import org.specs2.specification.BeforeAfter
-import play.api.http.{ ContentTypeOf, Writeable }
+import play.api.http.{ContentTypeOf, Writeable}
 import play.api.libs.Files
 import play.api.libs.json.JsValue
 import play.api.mvc._
-import play.api.test.{ FakeHeaders, FakeRequest }
+import play.api.test.{FakeHeaders, FakeRequest}
 
 package object scopes {
 
@@ -63,6 +64,10 @@ package object scopes {
     val sessionId: ObjectId
   }
 
+  trait HasMultipleSessionIds {
+    val sessionIds: Seq[ObjectId]
+  }
+
   trait orgWithAccessTokenAndItem extends orgWithAccessToken with HasItemId {
 
     val collectionId = CollectionHelper.create(orgId)
@@ -85,6 +90,21 @@ package object scopes {
     override def after: Any = {
       println("[orgWithAccessTokenAndItemAndSession] after")
       v2SessionHelper.delete(sessionId)
+    }
+  }
+
+  trait orgWithAccessTokenItemAndMultipleSessions
+    extends orgWithAccessTokenAndItem
+      with HasMultipleSessionIds
+      with WithV2SessionHelper {
+
+    val sessionIds = Seq(
+      v2SessionHelper.create(itemId, orgId = Some(orgId)),
+      v2SessionHelper.create(itemId, orgId = Some(orgId)))
+
+    override def after: Any = {
+      println("[orgWithAccessTokenAndItemAndSession] after")
+      sessionIds.map(v2SessionHelper.delete(_))
     }
   }
 
@@ -238,7 +258,8 @@ package object scopes {
       val call = getCall(itemId)
       implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
       val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
-      play.api.test.Helpers.route(makeRequest(call))(writeable).getOrElse(throw new RuntimeException("Error calling route"))
+      val req = makeRequest(call)
+      play.api.test.Helpers.route(req)(writeable).getOrElse(throw new RuntimeException("Error calling route"))
     }
   }
 
@@ -300,6 +321,25 @@ package object scopes {
       play.api.test.Helpers.route(req)(writeable).getOrElse(throw new RuntimeException("Error calling route"))
     }
   }
+
+  trait multiSessionLoader { self: TokenRequestBuilder with HasMultipleSessionIds =>
+
+    def getCall(): Call
+    def getJsonBody(sessionIds: Seq[ObjectId]): JsValue
+
+    lazy val req = {
+      val call = getCall()
+      val body = getJsonBody(sessionIds)
+      val out = makeJsonRequest(call, body)
+      out
+    }
+
+    lazy val result = {
+      implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
+      play.api.test.Helpers.route(req)(Helpers.writeableOf_AnyContentAsJson).getOrElse(throw new RuntimeException("Error calling route"))
+    }
+  }
+
 
   trait RequestBuilder {
     implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
