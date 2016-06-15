@@ -25,7 +25,7 @@ case class ElasticSearchConfig(url: URL, mongoUri: String, componentPath: String
  * test this exhaustively.
  */
 class ElasticSearchItemIndexService(
-  config: ElasticSearchConfig,
+  contentDenormalizer: ContentDenormalizer,
   rawTypes: Seq[ComponentType],
   contentIndex: ContentIndex,
   executionContext: ElasticSearchExecutionContext)
@@ -133,8 +133,6 @@ class ElasticSearchItemIndexService(
    * TODO: Big tech debt. This *must* be replaced with a rabbitmq/amqp solution.
    */
   private object Indexer {
-
-    val contentDenormalizer = new ContentDenormalizer(config.mongoUri, config.componentPath, executionContext.context)
 
     def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]] = {
 
