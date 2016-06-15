@@ -1,5 +1,4 @@
 import sbt._
-
 object Dependencies {
 
   val playVersion = "2.2.1"
