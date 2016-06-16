@@ -2,34 +2,7 @@ import sbt._
 import sbt.Keys._
 import org.corespring.elasticsearch.{ BatchConfig, BatchContentIndexer }
 import sbt.{ Plugin, SettingKey, TaskKey }
-
-object ElasticSearchIndexerPlugin extends Plugin {
-  val indexKey = TaskKey[Unit]("elasticsearch-index")
-
-  val mongoUri = SettingKey[String]("mongoUri")
-  val elasticSearchUri = SettingKey[String]("elasticSearchUri")
-  val componentPath = SettingKey[String]("container.components.path")
-
-  private val defaultMongoUri = "mongodb://localhost:27017"
-  private val defaultElasticsearchUri = "http://localhost:9200"
-  private val defaultComponentPath = "corespring-components/components"
-
-  def index(mongoUri: String, elasticsearchUri: String, componentPath: String): Unit = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-
-    val config = BatchConfig(
-      mongoUri,
-      elasticsearchUri,
-      componentPath)
-    BatchContentIndexer.reindex(config)
-  }
-
-  val newSettings = Seq(
-    mongoUri := defaultMongoUri,
-    elasticSearchUri := defaultElasticsearchUri,
-    componentPath := defaultComponentPath,
-    indexKey <<= (mongoUri, elasticSearchUri, componentPath) map (index))
-}
+import scala.concurrent.ExecutionContext
 
 object Indexing {
 
@@ -44,7 +17,8 @@ object Indexing {
     val elasticSearchUri = getEnv("BONSAI_URL").getOrElse("http://localhost:9200")
     val componentPath = getEnv("CONTAINER_COMPONENTS_PATH").getOrElse("corespring-components/components")
     if (isRemoteIndexingAllowed || elasticSearchUri.contains("localhost") || elasticSearchUri.contains("127.0.0.1")) {
-      ElasticSearchIndexerPlugin.index(mongoUri, elasticSearchUri, componentPath)
+      val config = BatchConfig(mongoUri, elasticSearchUri, componentPath)
+      BatchContentIndexer.reindex(config)(ExecutionContext.global)
       s.log.info(s"[safeIndex] Indexing $elasticSearchUri complete")
     } else {
       s.log.error(
