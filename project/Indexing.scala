@@ -1,7 +1,7 @@
-import sbt._
-import sbt.Keys._
 import org.corespring.elasticsearch.{ BatchConfig, BatchContentIndexer }
-import sbt.{ Plugin, SettingKey, TaskKey }
+import sbt.Keys._
+import sbt.{ TaskKey, _ }
+
 import scala.concurrent.ExecutionContext
 
 object Indexing {
