@@ -198,7 +198,7 @@ class Main(
 
     override def s3: AmazonS3 = Main.this.s3
 
-    override def intercept(path: String) = path.contains("component-sets")
+    override def intercept(path: String) = path.contains("component-sets") && !path.contains(".less")
 
     override val gzipEnabled = containerConfig.components.gzip
 
