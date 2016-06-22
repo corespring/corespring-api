@@ -4,7 +4,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "3.2.4"
+  val containerVersion = "3.2.5"
   val qtiVersion = "0.16"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
