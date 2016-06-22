@@ -60,6 +60,7 @@ class DraftEditorHooks(
     for {
       identity <- getOrgAndOptions(header)
       d <- loadDraft(id)
+      identity <- getOrgAndOptsFn(header)
       item <- Success(d.change.data)
     } yield (transformer.transformToV2Json(item), DisplayConfigJson(identity))
   }
