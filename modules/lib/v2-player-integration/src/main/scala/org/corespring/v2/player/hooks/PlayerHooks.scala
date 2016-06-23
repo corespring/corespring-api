@@ -3,6 +3,7 @@ package org.corespring.v2.player.hooks
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
+import org.corespring.container.components.processing.StashProcessor
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.item.{ Item, PlayerDefinition }
@@ -39,6 +40,7 @@ class PlayerHooks(
   itemTransformer: ItemTransformer,
   playerAssets: PlayerAssets,
   playerItemProcessor: PlayerItemProcessor,
+  stashProcessor: StashProcessor,
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   override implicit val containerContext: ContainerExecutionContext)
   extends ContainerPlayerHooks with LoadOrgAndOptions {
@@ -54,6 +56,13 @@ class PlayerHooks(
     def createSessionJson(item: Item) = Json.obj(
       "itemId" -> item.id.toString,
       "collectionId" -> item.collectionId)
+
+    def addOptionalStash(item: JsValue, session: JsObject): JsObject = {
+      stashProcessor.prepareStash(item, session) match {
+        case Some(stash) => session ++ Json.obj("components" -> stash)
+        case _ => session
+      }
+    }
 
     lazy val getVid: Validation[V2Error, VersionedId[ObjectId]] = {
       val withVersion: Option[VersionedId[ObjectId]] = VersionedId(itemId).map {
@@ -71,9 +80,10 @@ class PlayerHooks(
       vid <- getVid
       item <- itemTransformer.loadItemAndUpdateV2(vid).toSuccess(generalError("Error generating item v2 JSON", INTERNAL_SERVER_ERROR))
       session <- Success(createSessionJson(item))
-      sessionId <- sessionAuth.create(session)(identity)
       playerDefinitionJson <- Success(playerItemProcessor.makePlayerDefinitionJson(session, item.playerDefinition))
-    } yield (Json.obj("id" -> sessionId.toString) ++ session, playerDefinitionJson)
+      sessionWithStash <- Success(addOptionalStash(playerDefinitionJson, session))
+      sessionId <- sessionAuth.create(sessionWithStash)(identity)
+    } yield (Json.obj("id" -> sessionId.toString) ++ sessionWithStash, playerDefinitionJson)
 
     result
       .leftMap(s => UNAUTHORIZED -> s.message)
