@@ -16,6 +16,7 @@ angular.module('customColors.directives').directive('switcher', ['$timeout', fun
           $(el).spectrum({
             color: $(el).val(),
             preferredFormat: "hex",
+            showInput: true,
             change: function() {
               $(el).trigger('input');
             }
