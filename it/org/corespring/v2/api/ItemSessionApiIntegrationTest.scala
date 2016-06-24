@@ -141,14 +141,16 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
 
         val item = itemService.findOneById(itemId).get
         val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
+        itemService.save(update)
+
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}, "summary":{"numcorrect" : 1, "score" : 1.0}}"""
         val resultJson = Json.parse(resultString)
-        itemService.save(update)
+
         v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("carrot")))))
-        status(result) === OK
         contentAsJson(result) === resultJson
+        status(result) === OK
       }
 
     }
@@ -174,8 +176,8 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
         itemService.save(update)
         v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("carrot")))))
-        status(result) === OK
         contentAsJson(result) === resultJson
+        status(result) === OK
       }
 
       s"return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
