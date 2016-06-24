@@ -39,15 +39,15 @@ class PlayerTokenApi(
   def createPlayerToken = createToken("playerToken")
 
   /**
-    * Creates a browser token.
-    * param json - access settings in the json body
-    * If the json doesn't specify any of the AccessSetting properties, an error will be returned.
-    * If they specify at a minimum the required 'expires' property,
-    * The remaining properties will be set to a wildcard value.
-    * return json - browserToken, clientId and accessSettings used
-    *
-    * @see PlayerAccessSettings
-    */
+   * Creates a browser token.
+   * param json - access settings in the json body
+   * If the json doesn't specify any of the AccessSetting properties, an error will be returned.
+   * If they specify at a minimum the required 'expires' property,
+   * The remaining properties will be set to a wildcard value.
+   * return json - browserToken, clientId and accessSettings used
+   *
+   * @see PlayerAccessSettings
+   */
   def createBrowserToken = createToken("browserToken")
 
   private def createToken(kind: String) = actions.OrgAndApiClient.async { request =>

@@ -14,7 +14,7 @@ import scalaz.{ Failure, Success, Validation }
 case class ScoringApiExecutionContext(context: ExecutionContext, contextForScoring: ExecutionContext)
 
 class ScoringApi(
-  actions : org.corespring.v2.actions.V2Actions,
+  actions: org.corespring.v2.actions.V2Actions,
   apiContext: ScoringApiExecutionContext,
   orgScoringService: OrgScoringService)
   extends V2Api {
@@ -34,7 +34,7 @@ class ScoringApi(
 
     logger.debug(s"function=loadScore sessionId=$sessionId")
 
-    orgScoringService.scoreSession(request.orgAndOpts)(sessionId).map{ r =>
+    orgScoringService.scoreSession(request.orgAndOpts)(sessionId).map { r =>
       r.result.toSimpleResult()
     }
   }

@@ -49,7 +49,6 @@ trait ValidationToResultLike {
   private def jsonResult(statusCode: Int, json: JsValue) = Status(statusCode)(json)
 }
 
-
 trait V2Api extends Controller with ValidationToResultLike {
 
   implicit def ec: ExecutionContext

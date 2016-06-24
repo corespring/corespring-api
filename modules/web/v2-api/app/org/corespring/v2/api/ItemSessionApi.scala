@@ -105,37 +105,6 @@ class ItemSessionApi(
     }
   }
 
-  //<<<<<<< HEAD
-  //  /**
-  //   * Returns the score for the given session.
-  //   * If the session doesn't contain a 'components' object, an error will be returned.
-  //   *
-  //   * @param sessionId
-  //   * @return
-  //   */
-  //  def loadScore(sessionId: String): Action[AnyContent] = actions.Org.async { implicit request =>
-  //
-  //    logger.debug(s"function=loadScore sessionId=$sessionId")
-  //
-  //    def getComponents(session: JsValue): Option[JsValue] = {
-  //      (session \ "components").asOpt[JsObject]
-  //    }
-  //
-  //    Future {
-  //      val out: Validation[V2Error, JsValue] = for {
-  //        sessionAndPlayerDef <- sessionAuth.loadForWrite(sessionId)(request.orgAndOpts)
-  //        session <- Success(sessionAndPlayerDef._1)
-  //        playerDef <- Success(sessionAndPlayerDef._2)
-  //        components <- getComponents(session).toSuccess(sessionDoesNotContainResponses(sessionId))
-  //        score <- scoreService.score(playerDef, components)
-  //      } yield score
-  //
-  //      out.toSimpleResult()
-  //    }
-  //  }
-  //=======
-  //>>>>>>> develop
-
   def reopen(sessionId: String): Action[AnyContent] = actions.Org.async { implicit request =>
     Future {
       sessionAuth.reopen(sessionId)(request.orgAndOpts).toSimpleResult()
@@ -179,8 +148,7 @@ class ItemSessionApi(
             case (json, _) => {
               json.asOpt[JsObject].getOrElse(Json.obj()) ++
                 Json.obj(
-                  "apiClient" -> request.apiClient.clientId.toString,
-                  "organization" -> request.org.name) ++
+                  "apiClient" -> request.apiClient.clientId.toString) ++
                   (options match {
                     case s: EncryptionSuccess => Json.obj("options" -> s.data)
                     case _ => Json.obj()

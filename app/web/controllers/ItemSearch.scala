@@ -17,7 +17,8 @@ case class ItemInfo(hit: ItemIndexHit, p: Option[Permission]) {
   def json = {
     val permissionJson = p.map { permission =>
       obj("permission" ->
-        obj("read" -> permission.read,
+        obj(
+          "read" -> permission.read,
           "write" -> permission.write,
           "clone" -> permission.canClone))
     }.getOrElse(Json.obj())
