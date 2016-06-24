@@ -1,6 +1,5 @@
 import com.mongodb.casbah.MongoURI
 import org.joda.time.DateTime
-import play.Play
 import sbt.Keys._
 import sbt._
 import com.mongodb.casbah.Imports._

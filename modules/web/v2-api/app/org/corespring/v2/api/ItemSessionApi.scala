@@ -26,7 +26,6 @@ case class ItemSessionApiExecutionContext(context: ExecutionContext)
 class ItemSessionApi(
   actions: V2Actions,
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
-  scoreService: ScoreService,
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
@@ -107,33 +106,36 @@ class ItemSessionApi(
     }
   }
 
-  /**
-   * Returns the score for the given session.
-   * If the session doesn't contain a 'components' object, an error will be returned.
-   *
-   * @param sessionId
-   * @return
-   */
-  def loadScore(sessionId: String): Action[AnyContent] = actions.Org.async { implicit request =>
-
-    logger.debug(s"function=loadScore sessionId=$sessionId")
-
-    def getComponents(session: JsValue): Option[JsValue] = {
-      (session \ "components").asOpt[JsObject]
-    }
-
-    Future {
-      val out: Validation[V2Error, JsValue] = for {
-        sessionAndPlayerDef <- sessionAuth.loadForWrite(sessionId)(request.orgAndOpts)
-        session <- Success(sessionAndPlayerDef._1)
-        playerDef <- Success(sessionAndPlayerDef._2)
-        components <- getComponents(session).toSuccess(sessionDoesNotContainResponses(sessionId))
-        score <- scoreService.score(playerDef, components)
-      } yield score
-
-      out.toSimpleResult()
-    }
-  }
+//<<<<<<< HEAD
+//  /**
+//   * Returns the score for the given session.
+//   * If the session doesn't contain a 'components' object, an error will be returned.
+//   *
+//   * @param sessionId
+//   * @return
+//   */
+//  def loadScore(sessionId: String): Action[AnyContent] = actions.Org.async { implicit request =>
+//
+//    logger.debug(s"function=loadScore sessionId=$sessionId")
+//
+//    def getComponents(session: JsValue): Option[JsValue] = {
+//      (session \ "components").asOpt[JsObject]
+//    }
+//
+//    Future {
+//      val out: Validation[V2Error, JsValue] = for {
+//        sessionAndPlayerDef <- sessionAuth.loadForWrite(sessionId)(request.orgAndOpts)
+//        session <- Success(sessionAndPlayerDef._1)
+//        playerDef <- Success(sessionAndPlayerDef._2)
+//        components <- getComponents(session).toSuccess(sessionDoesNotContainResponses(sessionId))
+//        score <- scoreService.score(playerDef, components)
+//      } yield score
+//
+//      out.toSimpleResult()
+//    }
+//  }
+//=======
+//>>>>>>> develop
 
   def reopen(sessionId: String): Action[AnyContent] = actions.Org.async { implicit request =>
     Future {

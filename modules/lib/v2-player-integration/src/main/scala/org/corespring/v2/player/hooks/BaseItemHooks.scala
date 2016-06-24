@@ -29,6 +29,7 @@ trait BaseItemHooks
     update(id, json, (i, _) => playerJsonToItem.playerDef(i, baseDefinition(i.playerDefinition) ++ json))(header)
   }
 
+
   override final def saveXhtml(id: String, xhtml: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     savePartOfPlayerDef(id, Json.obj("xhtml" -> xhtml))
   }
@@ -58,6 +59,10 @@ trait BaseItemHooks
 
     update(id, Json.obj("customScoring" -> customScoring), updateCustomScoring)
   }
+
+//  override final def saveXhtmlAndComponents(id: String, xhtml: String, components: JsValue)(implicit rh: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+//    savePartOfPlayerDef(id, Json.obj("xhtml" -> xhtml, "components" -> components))
+// }
 
   override final def saveXhtmlAndComponents(id: String, markup: String, components: JsValue)(implicit h: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     update(id, Json.obj(), (item, _) => {

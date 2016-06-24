@@ -1,20 +1,26 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.container.components.outcome.ScoreProcessor
+import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.appConfig.DefaultOrgs
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, PlayerDefinition }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.drafts.item.ItemDraftsModule
 import org.corespring.v2.api.services.{ PlayerTokenService, ScoreService }
+import org.corespring.v2.api.services.{ CachingPlayerDefinitionService, _ }
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
+import play.api.libs.json.Writes
 import play.api.mvc.{ Controller, RequestHeader }
+import spray.caching.Cache
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -42,11 +48,13 @@ trait V2ApiModule
 
   def componentTypes: Seq[ComponentType]
 
-  def scoreService: ScoreService
-
   def itemApiExecutionContext: ItemApiExecutionContext
 
   def itemSessionApiExecutionContext: ItemSessionApiExecutionContext
+
+  def scoringApiExecutionContext: ScoringApiExecutionContext
+
+  def orgScoringExecutionContext: OrgScoringExecutionContext
 
   def v2ApiExecutionContext: V2ApiExecutionContext
 
@@ -65,6 +73,25 @@ trait V2ApiModule
   def sessionServices: SessionServices
 
   private lazy val apiV2Actions = v2ApiActions.actions
+
+  def scoreServiceExecutionContext: ScoreServiceExecutionContext
+
+  def outcomeProcessor: OutcomeProcessor
+
+  def scoreProcessor: ScoreProcessor
+
+  lazy val playerDefinitionWrites: Writes[PlayerDefinition] = jsonFormatting.formatPlayerDefinition
+
+  lazy val scoreService: ScoreService = wire[BasicScoreService]
+
+  lazy val playerDefCache: Cache[CachingPlayerDefinitionService.CacheType] = {
+    import scala.concurrent.duration._
+    spray.caching.LruCache[CachingPlayerDefinitionService.CacheType](timeToLive = 1.minute)
+  }
+
+  lazy val cachingPlayerDefinitionService = new CachingPlayerDefinitionService(itemService, playerDefCache)(orgScoringExecutionContext.ec)
+
+  lazy val orgScoringService: OrgScoringService = new OrgScoringService(sessionServices.main, cachingPlayerDefinitionService, scoreService, orgScoringExecutionContext, jsonFormatting)
 
   lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 
@@ -90,6 +117,8 @@ trait V2ApiModule
 
   private lazy val organizationApi: Controller = wire[OrganizationApi]
 
+  private lazy val scoringApi: Controller = wire[ScoringApi]
+
   //Expose this api so v1 api can use it
   lazy val v2ItemApi: ItemApi = itemApi.asInstanceOf[ItemApi]
   lazy val v2CollectionApi: CollectionApi = collectionApi.asInstanceOf[CollectionApi]
@@ -107,6 +136,7 @@ trait V2ApiModule
     playerTokenApi,
     utilsApi,
     collectionApi,
-    organizationApi)
+    organizationApi,
+    scoringApi)
 
 }

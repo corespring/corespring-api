@@ -8,7 +8,7 @@ import org.corespring.models.item.Item
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.specs2.mock.Mockito
 
-trait MockFactory extends Mockito {
+trait MockFactory {
 
   def mockOrg(collections: Seq[ObjectId] = Seq.empty) = Organization("mock org", contentcolls = collections.map(ContentCollRef(_, enabled = true)))
 

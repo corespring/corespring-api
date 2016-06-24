@@ -31,7 +31,6 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
     val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
     val maybeSessionId: Option[ObjectId] = None,
     val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
-    val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
     val clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
     val sessionCounts: Validation[V2Error, Map[DateTime, Long]] = Success(Map.empty[DateTime, Long])) extends Scope {
 
@@ -47,12 +46,6 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       m.orgCount(any[ObjectId], any[DateTime])(any[OrgAndOpts]) returns sessionCounts
       import scalaz.Scalaz._
       m.create(any[JsValue])(any[OrgAndOpts]) returns maybeSessionId.toSuccess(errorSaving("no session id returned from mock"))
-      m
-    }
-
-    val mockScoreService = {
-      val m = mock[ScoreService]
-      m.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
       m
     }
 
@@ -74,7 +67,6 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
     val api = new ItemSessionApi(
       V2ActionsFactory.apply,
       mockSessionAuth,
-      mockScoreService,
       mockOrgService,
       mockEncryptionService,
       sessionCreatedForItem,
@@ -153,32 +145,6 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.get("sessionId")(FakeRequest("", ""))
         status(result) === OK
-      }
-    }
-
-    "when calling load score" should {
-
-      "fail when session and item are not found" in new apiScope() {
-        val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        val error = sessionAndItem.toEither.left.get
-        result must beCodeAndJson(error.statusCode, error.json)
-      }
-
-      def emptyPlayerDefinition = PlayerDefinition(Seq.empty, "", Json.obj(), "", None)
-      "fail when the session has no 'components'" in new apiScope(
-        sessionAndItem = Success(Json.obj(), emptyPlayerDefinition)) {
-        val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        val error = sessionDoesNotContainResponses("sessionId")
-        result must beCodeAndJson(error.statusCode, error.json)
-      }
-
-      "work" in new apiScope(
-        sessionAndItem = Success(
-          Json.obj("components" -> Json.obj()),
-          emptyPlayerDefinition),
-        scoreResult = Success(Json.obj("score" -> 100))) {
-        val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        result must beCodeAndJson(OK, Json.obj("score" -> 100))
       }
     }
   }

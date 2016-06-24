@@ -14,6 +14,11 @@ trait ValidationToResultLike {
   import play.api.http.Status.OK
   import play.api.mvc.Results.Status
 
+  protected def validationToFutureResult[A](fn: Future[A] => Future[SimpleResult])(v: Validation[V2Error, Future[A]]) = {
+    def errResult(e: V2Error) = Future.successful(jsonResult(e.statusCode, e.json))
+    v.fold[Future[SimpleResult]](errResult, fn)
+  }
+
   protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
     def toResult: SimpleResult = Status(error.statusCode)(error.json)
     def toResult(statusCode: Int): SimpleResult = Status(statusCode)(error.json)
@@ -40,7 +45,10 @@ trait ValidationToResultLike {
       }
     }
   }
+
+  private def jsonResult(statusCode: Int, json: JsValue) = Status(statusCode)(json)
 }
+
 
 trait V2Api extends Controller with ValidationToResultLike {
 

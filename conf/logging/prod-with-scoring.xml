@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<configuration>
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%coloredLevel %logger{15} - %message%n%xException{5}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="api" level="WARN" />
+    <logger name="application" level="WARN" />
+    <logger name="client-logger" level="INFO"/>
+    <logger name="org.corespring.api.tracking" level="INFO"/>
+
+    <!-- Set the level for Session via ENV, default is the root level -->
+    <logger name="org.corespring.container.Session" level="${LOG_LEVEL_SESSION}"/>
+    <!-- Set the specific parts of Session as needed via ENV -->
+    <logger name="org.corespring.container.Session.load" level="${LOG_LEVEL_SESSION_LOAD}"/>
+    <logger name="org.corespring.container.Session.scoring" level="${LOG_LEVEL_SESSION_SCORING}"/>
+    <logger name="org.corespring.container.Session.updates" level="${LOG_LEVEL_SESSION_UPDATES}"/>
+
+    <logger name="play" level="WARN" />
+
+    <root level="ERROR">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

@@ -37,12 +37,7 @@ object ItemIndexHit {
 
     def reads(json: JsValue) = try {
       JsSuccess(ItemIndexHit(
-        id = s"${(json \ "_id").as[String]}${
-          (json \ "_source" \ "version").asOpt[Int] match {
-            case Some(version) => s":$version"
-            case _ => ""
-          }
-        }",
+        id = s"${(json \ "_id").as[String]}",
         collectionId = (json \ "_source" \ "collectionId").asOpt[String],
         contributor = (json \ "_source" \ "contributorDetails" \ "contributor").asOpt[String],
         published = (json \ "_source" \ "published").asOpt[Boolean].getOrElse(false),
