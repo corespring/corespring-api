@@ -14,7 +14,8 @@ import scalaz.{ Failure, Success }
 
 class ItemApiDeleteTest extends ItemApiSpec {
 
-  case class deleteApiScope(isLoggedIn: Boolean = true,
+  case class deleteApiScope(
+    isLoggedIn: Boolean = true,
     findFieldsById: Option[DBObject] = None,
     canDelete: Boolean = false,
     throwErrorInMoveItemToArchive: Boolean = false) extends ItemApiScope {

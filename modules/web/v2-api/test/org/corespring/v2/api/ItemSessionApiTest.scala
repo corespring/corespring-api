@@ -86,13 +86,15 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
     "with valid session and authentication" should {
 
-      "return 201" in new apiScope(clonedSession = Success(new ObjectId()),
+      "return 201" in new apiScope(
+        clonedSession = Success(new ObjectId()),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
         status(result) === CREATED
       }
 
-      "return apiClient" in new apiScope(clonedSession = Success(new ObjectId()),
+      "return apiClient" in new apiScope(
+        clonedSession = Success(new ObjectId()),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
         (contentAsJson(result) \ "apiClient").asOpt[String] === Some(V2ActionsFactory.apiClient.clientId.toString)

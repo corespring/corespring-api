@@ -1,25 +1,25 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.encryption.apiClient.{ApiClientEncryptionService, EncryptionSuccess}
+import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionSuccess }
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.actions.{OrgActionBuilder, V2Actions, V2ActionsFactory}
-import org.corespring.v2.api.services.{OrgScoringService, ScoreResult}
-import org.corespring.v2.auth.models.{MockFactory, OrgAndOpts}
+import org.corespring.v2.actions.{ OrgActionBuilder, V2Actions, V2ActionsFactory }
+import org.corespring.v2.api.services.{ OrgScoringService, ScoreResult }
+import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{AnyContentAsJson, RequestHeader, SimpleResult}
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ AnyContentAsJson, RequestHeader, SimpleResult }
 import play.api.http.Status._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 
-import scala.concurrent.{ExecutionContext, Future}
-import scalaz.{Failure, Success, Validation}
+import scala.concurrent.{ ExecutionContext, Future }
+import scalaz.{ Failure, Success, Validation }
 
 class ScoringApiTest extends Specification with Mockito with MockFactory {
 
@@ -41,7 +41,6 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
       m.encrypt(any[ApiClient], any[String]) returns Some(EncryptionSuccess("apiClient", "encrypted"))
       m
     }
-
 
     def sessionCreatedForItem(id: VersionedId[ObjectId]): Unit = {}
 

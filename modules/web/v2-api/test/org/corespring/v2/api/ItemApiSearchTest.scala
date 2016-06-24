@@ -96,7 +96,8 @@ class ItemApiSearchTest extends ItemApiSpec {
       there was one(itemIndexService).search(ItemIndexQuery(offset = 4, count = 2, text = Some("hi"), collections = Seq(collectionId.toString)))
     }
 
-    def hit(title: String) = ItemIndexHit("id",
+    def hit(title: String) = ItemIndexHit(
+      "id",
       None,
       None,
       false,

@@ -148,7 +148,8 @@ class ItemSessionApi(
             case (json, _) => {
               json.asOpt[JsObject].getOrElse(Json.obj()) ++
                 Json.obj(
-                  "apiClient" -> request.apiClient.clientId.toString) ++
+                  "apiClient" -> request.apiClient.clientId.toString,
+                  "organization" -> request.org.name) ++
                   (options match {
                     case s: EncryptionSuccess => Json.obj("options" -> s.data)
                     case _ => Json.obj()

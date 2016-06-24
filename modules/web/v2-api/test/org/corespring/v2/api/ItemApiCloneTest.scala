@@ -30,7 +30,8 @@ class ItemApiCloneTest extends ItemApiSpec {
 
       lazy val clonedItem: Item = Item(id = clonedId, collectionId = ObjectId.get.toString)
 
-      case class ItemApiCloneScope(vid: String = vid.toString,
+      case class ItemApiCloneScope(
+        vid: String = vid.toString,
         itemServiceClones: Boolean = true,
         item: Option[Item] = Some(clonedItem)) extends ItemApiScope {
 

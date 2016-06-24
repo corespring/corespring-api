@@ -24,7 +24,8 @@ class ItemSearchTest extends Specification with Mockito with MockFactory {
   import ExecutionContext.Implicits.global
 
   def hit(collectionId: ObjectId) =
-    ItemIndexHit("hit",
+    ItemIndexHit(
+      "hit",
       Some(collectionId.toString),
       None,
       false,
