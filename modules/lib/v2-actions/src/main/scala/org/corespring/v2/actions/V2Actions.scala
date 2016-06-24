@@ -71,8 +71,8 @@ class OrgActionBuilder(
 
   override def onAuthFailed(err: V2Error): SimpleResult = {
     unauthorizedStatusCode.map { us =>
-      Status(us)(err.message)
-    }.getOrElse(Status(err.statusCode)(err.message))
+      Status(us)(err.json)
+    }.getOrElse(Status(err.statusCode)(err.json))
   }
 }
 

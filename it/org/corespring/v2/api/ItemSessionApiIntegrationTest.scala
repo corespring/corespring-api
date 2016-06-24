@@ -21,8 +21,11 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
     "when loading a session" should {
 
       s"return $UNAUTHORIZED for unknown user" in new unknownUser_getSession {
-        val e = noToken(req)
-        println(contentAsString(result))
+        val e = compoundError("Failed to identify an Organization from the request",
+          Seq(
+            invalidQueryStringParameter("apiClientId", "apiClient"),
+            noToken(req),
+            noUserSession(req)), UNAUTHORIZED)
         contentAsJson(result) === e.json
         status(result) === e.statusCode
       }
@@ -32,8 +35,8 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
         contentAsJson(result) === Json.obj("id" -> sessionId.toString(), "itemId" -> itemId.toString())
       }
 
-      s"return $UNAUTHORIZED for client id and player token" in new clientIdAndPlayerToken_getSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), true) {
-        status(result) === UNAUTHORIZED
+      s"return $OK for client id and player token" in new clientIdAndPlayerToken_getSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), true) {
+        status(result) === OK
       }
 
     }
@@ -41,7 +44,12 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
     "when creating a session" should {
 
       s"return $BAD_REQUEST for unknown user" in new unknownUser_createSession {
-        val e = noToken(req)
+        //        val e = noToken(req)
+        val e = compoundError("Failed to identify an Organization from the request",
+          Seq(
+            invalidQueryStringParameter("apiClientId", "apiClient"),
+            noToken(req),
+            noUserSession(req)), UNAUTHORIZED)
         status(result) === e.statusCode
         contentAsJson(result) === e.json
       }
@@ -62,9 +70,9 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
         status(result) === OK
       }
 
-      s"return $UNAUTHORIZED for client id and player token" in new clientIdAndPlayerToken_createSession(
+      s"return $OK for client id and player token" in new clientIdAndPlayerToken_createSession(
         Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
-        status(result) === UNAUTHORIZED
+        status(result) === OK
       }
 
       s"adds identity data to the session" in new token_createSession {
