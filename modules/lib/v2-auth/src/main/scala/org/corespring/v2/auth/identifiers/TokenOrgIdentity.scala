@@ -1,6 +1,7 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
+import org.corespring.models.appConfig.AllowExpiredTokens
 import org.corespring.models.auth.{ AccessToken, ApiClient }
 import org.corespring.models.{ Organization, User }
 import org.corespring.services.OrganizationService
@@ -28,6 +29,7 @@ case class TokenIdentityInput(input: AccessToken) extends Input[AccessToken] {
 }
 
 class TokenOrgIdentity(
+  allowExpiredTokens: AllowExpiredTokens,
   tokenService: AccessTokenService,
   val orgService: OrganizationService,
   apiClientService: ApiClientService)
@@ -36,8 +38,6 @@ class TokenOrgIdentity(
 
   override lazy val logger = Logger(classOf[TokenOrgIdentity])
   override val name = "access-token-in-query-string"
-
-  val allowExpiredTokens = false
 
   override def toInput(request: RequestHeader): Validation[V2Error, Input[AccessToken]] = {
     getToken[String](request, "Invalid token", "No token") match {
@@ -52,7 +52,7 @@ class TokenOrgIdentity(
             case false => Success(TokenIdentityInput(accessToken))
             case true => {
               logger.error(s"function=toInput, accessToken=$accessToken - token is expired")
-              allowExpiredTokens match {
+              allowExpiredTokens.value match {
                 case false => Failure(expiredToken(request))
                 case true => Success(TokenIdentityInput(accessToken))
               }

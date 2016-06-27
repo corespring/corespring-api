@@ -32,7 +32,7 @@ import org.corespring.importing.validation.ItemSchema
 import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
-import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket, DefaultOrgs }
+import org.corespring.models.appConfig._
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
@@ -310,6 +310,8 @@ class Main(
   override lazy val archiveConfig = ArchiveConfig(appConfig.archiveContentCollectionId, appConfig.archiveOrgId)
 
   override lazy val accessTokenConfig = AccessTokenConfig()
+
+  override lazy val allowExpiredTokens = AllowExpiredTokens(appConfig.allowExpiredTokens)
 
   override lazy val transferManager: TransferManager = new TransferManager(s3)
 

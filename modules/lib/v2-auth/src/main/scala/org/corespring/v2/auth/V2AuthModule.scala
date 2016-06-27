@@ -1,6 +1,6 @@
 package org.corespring.v2.auth
 
-import org.corespring.models.appConfig.ArchiveConfig
+import org.corespring.models.appConfig.{AllowExpiredTokens, ArchiveConfig}
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.conversion.qti.transformers.ItemTransformer
@@ -24,6 +24,7 @@ trait V2AuthModule {
   def jsonFormatting: JsonFormatting
   def orgCollectionService: OrgCollectionService
   def orgService: OrganizationService
+  def allowExpiredTokens: AllowExpiredTokens
 
   lazy val accessSettingsWildcardCheck = new AccessSettingsWildcardCheck(accessSettingsCheckConfig)
 
