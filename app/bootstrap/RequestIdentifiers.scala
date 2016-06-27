@@ -26,6 +26,7 @@ class RequestIdentifiers(
   tokenService: AccessTokenService,
   apiClientService: ApiClientService,
   apiClientEncryptionService: ApiClientEncryptionService,
+  appConfig: AppConfig,
   playerTokenConfig: PlayerTokenConfig) {
 
   /** A token only based auth */

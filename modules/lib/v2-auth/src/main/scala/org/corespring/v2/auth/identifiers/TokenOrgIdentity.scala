@@ -37,20 +37,31 @@ class TokenOrgIdentity(
   override lazy val logger = Logger(classOf[TokenOrgIdentity])
   override val name = "access-token-in-query-string"
 
-  override def toInput(rh: RequestHeader): Validation[V2Error, Input[AccessToken]] = {
-    def onToken(token: String) = for {
-      t <- tokenService.findByTokenId(token).toSuccess(generalError(s"can't find token with id: $token"))
-      _ <- Success(logger.debug(s"function=toInput, token=$t, expired=${t.isExpired}"))
+  val allowExpiredTokens = false
 
-    } yield {
-      if (t.isExpired) {
-        logger.error(s"function=toInput, accessToken=$t - token is expired [AC-320]")
+  override def toInput(request: RequestHeader): Validation[V2Error, Input[AccessToken]] = {
+    getToken[String](request, "Invalid token", "No token") match {
+      case Left(errorMessage) => Failure(errorMessage match {
+        case "Invalid token" => invalidToken(request)
+        case _ => noToken(request)
+      })
+      case Right(token) => tokenService.findByTokenId(token) match {
+        case Some(accessToken) => {
+          logger.debug(s"function=toInput, token=$accessToken, expired=${accessToken.isExpired}")
+          accessToken.isExpired match {
+            case false => Success(TokenIdentityInput(accessToken))
+            case true => {
+              logger.error(s"function=toInput, accessToken=$accessToken - token is expired")
+              allowExpiredTokens match {
+                case false => Failure(expiredToken(request))
+                case true => Success(TokenIdentityInput(accessToken))
+              }
+            }
+          }
+        }
+        case None => Failure(generalError(s"can't find token with id: $token"))
       }
-      TokenIdentityInput(t)
     }
-
-    def onError(e: String) = Failure(if (e == "Invalid token") invalidToken(rh) else noToken(rh))
-    getToken[String](rh, "Invalid token", "No token").fold(onError, onToken)
   }
 
   override def toOrgAndUser(i: Input[AccessToken]): Validation[V2Error, (Organization, Option[User])] = {
