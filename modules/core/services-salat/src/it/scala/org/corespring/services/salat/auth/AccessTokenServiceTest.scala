@@ -35,8 +35,7 @@ class AccessTokenServiceTest extends ServicesSalatIntegrationTest {
     def updateToken(token: AccessToken) = {
       services.tokenDao.update(
         MongoDBObject("tokenId" -> token.tokenId),
-        token, false, false, WriteConcern.Safe
-      )
+        token, false, false, WriteConcern.Safe)
     }
   }
 

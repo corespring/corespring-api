@@ -6,8 +6,8 @@ import org.corespring.assets.ItemAssetKeys
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.assets.ImageUtils
-import org.corespring.models.item.resource.{Resource, VirtualFile}
-import org.corespring.models.item.{Item, TaskInfo}
+import org.corespring.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat.bootstrap.CollectionNames
 import org.specs2.mutable.BeforeAfter

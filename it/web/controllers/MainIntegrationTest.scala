@@ -1,9 +1,8 @@
 package web.controllers
 
-import global.Global
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ApiClientHelper, SecureSocialHelper}
-import org.corespring.it.scopes.{SessionRequestBuilder, userAndItem}
+import org.corespring.it.helpers.{ ApiClientHelper, SecureSocialHelper }
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 
@@ -21,7 +20,7 @@ class MainIntegrationTest extends IntegrationSpecification {
 
     "return version info" in {
       val result = route(req).get
-      contentAsJson(result) must_== main.buildInfo.json.deepMerge(Json.obj("container" -> main.containerVersion.json))
+      contentAsJson(result) must_== main.buildInfo.json.deepMerge(Json.obj("container" -> main.versionInfo.json))
     }
 
   }
@@ -36,6 +35,7 @@ class MainIntegrationTest extends IntegrationSpecification {
         val request = makeRequest(web.controllers.routes.Main.sampleLaunchCode(itemId.toString))
         route(request)(writeable)
       }
+
       result.map { r =>
         val content = contentAsString(r)
         status(r) must_== OK

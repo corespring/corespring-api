@@ -5,6 +5,7 @@ import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, Encrypt
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.actions.{ OrgActionBuilder, V2Actions, V2ActionsFactory }
 import org.corespring.v2.api.services.{ OrgScoringService, ScoreResult }
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
@@ -13,7 +14,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ AnyContentAsJson, RequestHeader }
+import play.api.mvc.{ AnyContentAsJson, RequestHeader, SimpleResult }
 import play.api.http.Status._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
@@ -41,8 +42,6 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
       m
     }
 
-    def getOrgAndClient(rh: RequestHeader) = orgAndClient
-
     def sessionCreatedForItem(id: VersionedId[ObjectId]): Unit = {}
 
     val apiContext = ScoringApiExecutionContext(ExecutionContext.Implicits.global, ExecutionContext.Implicits.global)
@@ -54,15 +53,9 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
       m
     }
 
-    val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts] = { request: RequestHeader =>
-      getOrgAndClient(request).map(_._1)
-    }
+    val v2Actions = V2ActionsFactory.apply
 
-    val api = new ScoringApi(
-      apiContext,
-      orgScoringService,
-      getOrgAndClient,
-      getOrgAndOptionsFn)
+    val api = new ScoringApi(v2Actions, apiContext, orgScoringService)
   }
 
   "V2 - ScoringApi" should {

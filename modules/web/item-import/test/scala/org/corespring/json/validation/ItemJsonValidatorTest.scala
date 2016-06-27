@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json._
 
-import scalaz.{Failure, Success}
+import scalaz.{ Failure, Success }
 
 class ItemJsonValidatorTest extends Specification {
 

@@ -1,11 +1,11 @@
 package web.controllers
 
 import org.corespring.legacy.ServiceLookup
-import org.corespring.models.{ User }
+import org.corespring.models.User
+import org.corespring.models.appConfig.DefaultOrgs
 import play.api.Mode.Mode
-import play.api.{ Play, Mode }
-import play.api.mvc.{ Controller, Action }
-import web.DefaultOrgs
+import play.api.mvc.{ Action, Controller }
+import play.api.{ Mode, Play }
 
 class Partials(mode: Mode, orgs: DefaultOrgs) extends Controller with securesocial.core.SecureSocial {
 

@@ -50,7 +50,8 @@ class MainTest extends Specification with Mockito {
 
   "Main" should {
     "use new CacheFilter" in {
-      val main = new Main(db,
+      val main = new Main(
+        db,
         Configuration.from(config),
         Mode.Test,
         this.getClass.getClassLoader,
@@ -89,7 +90,7 @@ class MainTest extends Specification with Mockito {
         mainConfig ++ iarConfig
       }
 
-      def mkMain(config:Map[String, Any]) = {
+      def mkMain(config: Map[String, Any]) = {
         new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       }
     }

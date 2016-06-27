@@ -156,7 +156,7 @@ object Build extends sbt.Build {
 
   lazy val v2Actions = builders.lib("v2-actions")
     .settings(
-      libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
+      libraryDependencies ++= Seq(playFramework, securesocial)).dependsOn(v2Auth % "compile->compile;test->test")
 
   lazy val apiTracking = builders.lib("api-tracking")
     .settings(
@@ -192,7 +192,8 @@ object Build extends sbt.Build {
       coreJson,
       qtiToV2,
       draftsApi,
-      futureValidation)
+      futureValidation,
+      v2Actions % "test->test;compile->compile")
     .aggregate(draftsApi)
 
   lazy val v1Api = builders.web("v1-api")
@@ -284,7 +285,7 @@ object Build extends sbt.Build {
       commonViews,
       testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
-      v2Actions,
+      v2Actions % "test->test;compile->compile",
       v1Api,
       v2Api,
       v2SessionDb,

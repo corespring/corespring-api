@@ -1,8 +1,6 @@
 package org.corespring.v2.api
 
-import org.corespring.models.auth.ApiClient
 import org.corespring.v2.api.services.{ OrgScoringService, ScoreResult }
-import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
@@ -16,18 +14,14 @@ import scalaz.{ Failure, Success, Validation }
 case class ScoringApiExecutionContext(context: ExecutionContext, contextForScoring: ExecutionContext)
 
 class ScoringApi(
+  actions: org.corespring.v2.actions.V2Actions,
   apiContext: ScoringApiExecutionContext,
-  orgScoringService: OrgScoringService,
-  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)],
-  val orgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  orgScoringService: OrgScoringService)
+  extends V2Api {
 
   override implicit def ec: ExecutionContext = apiContext.context
 
   private lazy val logger = Logger(classOf[ItemSessionApi])
-
-  override def getOrgAndOptionsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = r => {
-    identifyFn(r).map(_._1)
-  }
 
   /**
    * Returns the score for the given session.
@@ -36,19 +30,13 @@ class ScoringApi(
    * @param sessionId
    * @return
    */
-  def loadScore(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+  def loadScore(sessionId: String): Action[AnyContent] = actions.Org.async { implicit request =>
 
     logger.debug(s"function=loadScore sessionId=$sessionId")
 
-    val out: Validation[V2Error, Future[ScoreResult]] = for {
-      identity <- getOrgAndOptions(request)
-    } yield orgScoringService.scoreSession(identity)(sessionId)
-
-    def scoreResultToJson(f: Future[ScoreResult]): Future[SimpleResult] = f.map { result =>
-      validationToResult[JsValue](j => Ok(j))(result.result)
+    orgScoringService.scoreSession(request.orgAndOpts)(sessionId).map { r =>
+      r.result.toSimpleResult()
     }
-
-    validationToFutureResult[ScoreResult](scoreResultToJson)(out)
   }
 
   private def getSessionIdsFromRequest(r: Request[AnyContent]): Validation[V2Error, Seq[String]] = {
@@ -72,12 +60,11 @@ class ScoringApi(
    * {sessionId: "1234", "error": {"message": "Error scoring"}
    * ]
    */
-  def loadMultipleScores(): Action[AnyContent] = Action.async { implicit request =>
+  def loadMultipleScores(): Action[AnyContent] = actions.Org.async { implicit request =>
 
     val out = for {
-      identity <- getOrgAndOptions(request)
       ids <- getSessionIdsFromRequest(request)
-    } yield orgScoringService.scoreMultipleSessions(identity)(ids)
+    } yield orgScoringService.scoreMultipleSessions(request.orgAndOpts)(ids)
 
     out match {
       case Failure(e) => Future.successful(Status(e.statusCode)(e.json))

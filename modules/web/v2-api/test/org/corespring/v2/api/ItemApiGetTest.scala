@@ -19,8 +19,6 @@ class ItemApiGetTest extends ItemApiSpec {
     loadForRead: Validation[V2Error, Item] = Failure(notReady)) extends ItemApiScope {
 
     itemAuth.loadForRead(anyString)(any[OrgAndOpts]) returns loadForRead
-
-    override def orgAndOpts: Validation[V2Error, OrgAndOpts] = loadForRead.map(_ => mockOrgAndOpts())
   }
 
   "V2 - ItemApi" should {

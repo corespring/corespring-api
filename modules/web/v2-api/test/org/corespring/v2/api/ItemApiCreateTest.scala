@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.models.{ ContentCollection, Organization }
+import org.corespring.models.ContentCollection
 import org.corespring.models.item._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -32,7 +32,6 @@ class ItemApiCreateTest extends ItemApiSpec {
 
     orgCollectionService.getDefaultCollection(any[ObjectId]) returns Success(ContentCollection(name = "default", ownerOrgId = ObjectId.get, id = defaultCollectionId))
 
-    override def orgAndOpts: Validation[V2Error, OrgAndOpts] = canCreate.map(_ => mockOrgAndOpts())
   }
 
   "V2 - ItemApi" should {

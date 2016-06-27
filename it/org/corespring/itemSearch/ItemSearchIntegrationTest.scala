@@ -7,8 +7,8 @@ import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
 import org.corespring.itemSearch.SearchMode.SearchMode
 import org.corespring.models.item.{ Item, StandardCluster, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
-
 import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
 class ItemSearchIntegrationTest extends IntegrationSpecification {

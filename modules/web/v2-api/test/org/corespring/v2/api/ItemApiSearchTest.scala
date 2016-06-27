@@ -3,9 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexQuery, ItemIndexSearchResult }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models._
-import org.corespring.v2.errors.Errors.invalidToken
-import org.corespring.v2.errors.V2Error
+import org.corespring.v2.actions.V2ActionsFactory
 import play.api.libs.json._
 
 import scala.concurrent._
@@ -18,7 +16,7 @@ class ItemApiSearchTest extends ItemApiSpec {
     Await.result(f, 2.seconds)
   }
 
-  case class searchApiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+  case class searchApiScope(
     searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends ItemApiScope {
     import ExecutionContext.Implicits.global
     itemIndexService.search(any[ItemIndexQuery]) returns future { Success(searchResult) }
@@ -28,7 +26,7 @@ class ItemApiSearchTest extends ItemApiSpec {
   "search" should {
 
     implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
-    val allowableCollections = (1 to 5).map(i => new ObjectId())
+    val allowableCollections = V2ActionsFactory.orgCollections
     val restrictedCollection = new ObjectId()
 
     "call itemIndexService#search" in new searchApiScope {
@@ -40,31 +38,29 @@ class ItemApiSearchTest extends ItemApiSpec {
     "with empty collections" should {
 
       "call itemIndexService#search with allowed collections" in
-        new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
+        new searchApiScope() {
           val query = Json.obj("collections" -> Seq()).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
           waitFor(result)
-          there was one(itemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
+          there was one(itemIndexService).search(ItemIndexQuery(collections = V2ActionsFactory.orgCollections.map(_.toString)))
         }
     }
 
     "with unallowed collections" should {
 
       "call itemIndexService#search with allowed collections" in
-        new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
+        new searchApiScope() {
           val query = Json.obj("collections" -> Seq(restrictedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
           waitFor(result)
           there was one(itemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
         }
-
     }
 
     "with allowed and unallowed collections" should {
 
       "call itemIndexService#search with only allowed collections" in
-        new searchApiScope(
-          orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
+        new searchApiScope() {
           val query = Json.obj("collections" -> Seq(allowableCollections.head.toString, restrictedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
           waitFor(result)
@@ -76,14 +72,6 @@ class ItemApiSearchTest extends ItemApiSpec {
     "return results as JSON" in new searchApiScope {
       val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
       contentAsJson(result) must_== Json.toJson(searchResult)
-    }
-
-    "without proper authentication" should {
-
-      "return unauthorized" in new searchApiScope(orgAndOpts = Failure(invalidToken(FakeJsonRequest()))) {
-        val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
-        status(result) must_== UNAUTHORIZED
-      }
     }
 
     "with bad json" should {
@@ -108,7 +96,8 @@ class ItemApiSearchTest extends ItemApiSpec {
       there was one(itemIndexService).search(ItemIndexQuery(offset = 4, count = 2, text = Some("hi"), collections = Seq(collectionId.toString)))
     }
 
-    def hit(title: String) = ItemIndexHit("id",
+    def hit(title: String) = ItemIndexHit(
+      "id",
       None,
       None,
       false,

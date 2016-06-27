@@ -1,9 +1,8 @@
 package org.corespring.v2.player.cdn
 
-
 trait ItemAssetResolver {
 
-  def resolve(itemId:String)(file:String):String = {
+  def resolve(itemId: String)(file: String): String = {
     mkPath(itemId)(file)
   }
 
