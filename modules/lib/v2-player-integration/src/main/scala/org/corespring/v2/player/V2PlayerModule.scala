@@ -10,7 +10,7 @@ import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, PlayerJsonToItem }
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.models.appConfig.{ ArchiveConfig, Bucket }
+import org.corespring.models.appConfig.{AllowExpiredTokens, ArchiveConfig, Bucket}
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services._
@@ -47,6 +47,7 @@ trait V2PlayerModule extends DefaultIntegration {
   def versionInfo: VersionInfo
   def archiveConfig: ArchiveConfig
   def bucket: Bucket
+  def allowExpiredTokens: AllowExpiredTokens
   def componentLoader: ComponentLoader
   def componentSetExecutionContext: ComponentSetExecutionContext
   def contentCollectionService: ContentCollectionService
