@@ -5,6 +5,7 @@ angular.module('customColors.directives').factory('DisplayProvider', ['$http', f
   return {
 
     get: function(callback) {
+      callback = callback || function() {};
       $http({
         method: 'GET',
         url: "/api/v2/organizations/display-config"
@@ -16,6 +17,7 @@ angular.module('customColors.directives').factory('DisplayProvider', ['$http', f
     },
 
     set: function(values, callback) {
+      callback = callback || function() {};
       if (confirm("Are you sure? These changes will apply to all items.")) {
         $http({
           method: 'PUT',

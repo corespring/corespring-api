@@ -7,10 +7,6 @@ angular.module('customColors.directives').directive('switcher', ['$timeout', fun
     },
     link: function($scope, $element) {
 
-      function dashize(string) {
-        return string.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-      }
-
       $scope.initSpectrum = function() {
         $element.find('.swatch').each(function(index, el) {
           $(el).spectrum({
@@ -26,16 +22,6 @@ angular.module('customColors.directives').directive('switcher', ['$timeout', fun
 
       $scope.setColors = function() {
         if ($scope.config.colors) {
-          $scope.colorLoop = (function() {
-            var keys = _.keys($scope.config.colors);
-            var filtered = _.filter(keys, function(variable) {
-              return !$scope.config.autoLighten ||
-                (variable.toLowerCase().indexOf('dark') >= 0 || variable.toLowerCase().indexOf('accent') >= 0);
-            });
-            return _.map(filtered, function(variable) {
-              return [dashize(variable), variable];
-            });
-          })();
           $timeout($scope.initSpectrum);
         }
       };
@@ -59,44 +45,78 @@ angular.module('customColors.directives').directive('switcher', ['$timeout', fun
     },
     template: [
       '<div class="switcher">',
+      '  <p>',
+      '    Select an Icon set and colors for your organization using this page. Click \'Save\' to apply your changes.',
+      '  </p>',
       '  <label>',
-      '    Icon Set:',
+      '    <span class="header icon-set-header">Icon Set</span>',
       '    <select ng-model="config.iconSet">',
       '      <option value="emoji">Emoji</option>',
       '      <option value="check">Check</option>',
       '    </select>',
       '  </label>',
-      '  <ul class="swatches">',
-      '    <li ng-repeat="color in colorLoop">',
-      '      <input class="swatch {{color[0]}}" type="text" ng-model="config.colors[color[1]]" />',
-      '    </li>',
-      '  </ul>',
-      '  <div class="preview">',
-      '    <h4>Preview</h4>',
-      '    <ul class="svg-icons">',
-      '      <li><svg-icon key="incorrect" shape="round" icon-set="{{config.iconSet}}"></svg-icon></li>',
-      '      <li><svg-icon key="incorrect" shape="round" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>',
-      '      <li><svg-icon key="correct" shape="round" icon-set="{{config.iconSet}}"></svg-icon></li>',
-      '      <li><svg-icon key="correct" shape="round" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>',
-      '      <li><svg-icon key="partially-correct" shape="round" icon-set="{{config.iconSet}}"></svg-icon></li>',
-      '      <li><svg-icon key="partially-correct" shape="round" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>',
-      '      <li><svg-icon key="incorrect" shape="square" icon-set="{{config.iconSet}}"></svg-icon></li>',
-      '      <li><svg-icon key="incorrect" shape="square" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>',
-      '      <li><svg-icon key="correct" shape="square" icon-set="{{config.iconSet}}"></svg-icon></li>',
-      '      <li><svg-icon key="correct" shape="square" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>',
-      '      <li><svg-icon key="partially-correct" shape="square" icon-set="{{config.iconSet}}"></svg-icon></li>',
-      '      <li><svg-icon key="partially-correct" shape="square" icon-set="{{config.iconSet}}" text="This is feedback"></svg-icon></li>',
-      '    </ul>',
-      '    <ul class="choice-icons">',
-      '      <li><choice-icon class="animate-show icon" shape="radio" key="selected"></choice-icon></li>',
-      '      <li><choice-icon class="animate-hide icon" shape="radio" key="muted"></choice-icon></li>',
-      '      <li><choice-icon class="animate-show icon" shape="radio" key="correct"></choice-icon></li>',
-      '      <li><choice-icon class="animate-show icon" shape="radio" key="incorrect"></choice-icon></li>',
-      '    </ul>',
+      '  <span class="header">Color Scheme</span>',
+      '  <div class="resets">',
+      '    <button class="btn" ng-click="reset()">Reset to previous settings</button></br>',
+      '    <button class="btn" ng-click="resetDefault()">Reset to CoreSpring defaults</button>',
       '  </div>',
-      '  <button class="btn" ng-click="save()">Save</button>',
-      '  <button class="btn" ng-click="reset()">Reset to previous settings</button>',
-      '  <button class="btn" ng-click="resetDefault()">Reset to CoreSpring defaults</button>',
+      '  <div class="swatches">',
+      '    <div>',
+      '      <div class="icon-holder">',
+      '        <svg-icon key="correct" shape="round" icon-set="{{config.iconSet}}"></svg-icon>',
+      '        <span>Correct Icon</span>',
+      '      </div>',
+      '      <div class="background">',
+      '        <label>',
+      '          Background',
+      '          <input class="swatch" type="text" ng-model="config.colors[\'correct-background\']" />',
+      '        </label>',
+      '      </div>',
+      '      <div class="foreground">',
+      '        <label>',
+      '          Foreground',
+      '          <input class="swatch" type="text"ng-model="config.colors[\'correct-foreground\']" />',
+      '        </label>',
+      '      </div>',
+      '    </div>',
+      '    <div>',
+      '      <div class="icon-holder">',
+      '        <svg-icon key="incorrect" shape="round" icon-set="{{config.iconSet}}"></svg-icon>',
+      '        <span>Incorrect Icon</span>',
+      '      </div>',
+      '      <div class="background">',
+      '        <label>',
+      '          Background',
+      '          <input class="swatch" type="text" ng-model="config.colors[\'incorrect-background\']" />',
+      '        </label>',
+      '      </div>',
+      '      <div class="foreground">',
+      '        <label>',
+      '          Foreground',
+      '          <input class="swatch" type="text"ng-model="config.colors[\'incorrect-foreground\']" />',
+      '        </label>',
+      '      </div>',
+      '    </div>',
+      '    <div>',
+      '      <div class="icon-holder">',
+      '        <svg-icon key="partially-correct" shape="round" icon-set="{{config.iconSet}}"></svg-icon>',
+      '        <span>Partially Correct</span>',
+      '      </div>',
+      '      <div class="background">',
+      '        <label>',
+      '          Background',
+      '          <input class="swatch" type="text" ng-model="config.colors[\'partially-correct-background\']" />',
+      '        </label>',
+      '      </div>',
+      '      <div class="foreground">',
+      '        <label>',
+      '          Foreground',
+      '          <input class="swatch" type="text"ng-model="config.colors[\'partially-correct-foreground\']" />',
+      '        </label>',
+      '      </div>',
+      '    </div>',
+      '  </div>',
+      '  <button class="btn save-btn" ng-click="save()">Save</button>',
       '</div>'
     ].join('\n')
   };

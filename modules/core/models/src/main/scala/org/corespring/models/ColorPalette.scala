@@ -3,10 +3,10 @@ package org.corespring.models
 import play.api.libs.json._
 
 case class ColorPalette(correctBackground: String, correctForeground: String, partiallyCorrectBackground: String,
-                        incorrectBackground: String, incorrectForeground: String, hideShowBackground: String,
-                        hideShowForeground: String, warningBackground: String, warningForeground: String,
-                        warningBlockBackground: String, warningBlockForeground: String, mutedBackground: String,
-                        mutedForeground: String)
+                        partiallyCorrectForeground: String, incorrectBackground: String, incorrectForeground: String,
+                        hideShowBackground: String, hideShowForeground: String, warningBackground: String,
+                        warningForeground: String, warningBlockBackground: String, warningBlockForeground: String,
+                        mutedBackground: String, mutedForeground: String)
 
 object ColorPalette {
 
@@ -14,6 +14,7 @@ object ColorPalette {
     val correctBackground = "#4aaf46"
     val correctForeground = "#f8ffe2"
     val partiallyCorrectBackground = "#c1e1ac"
+    val partiallyCorrectForeground = "#4aaf46"
     val incorrectBackground = "#fcb733"
     val incorrectForeground = "#fbf2e3"
     val hideShowBackground = "#bce2ff"
@@ -30,6 +31,7 @@ object ColorPalette {
     val correctBackground = "correct-background"
     val correctForeground = "correct-foreground"
     val partiallyCorrectBackground = "partially-correct-background"
+    val partiallyCorrectForeground = "partially-correct-foreground"
     val incorrectBackground = "incorrect-background"
     val incorrectForeground = "incorrect-foreground"
     val hideShowBackground = "hide-show-background"
@@ -50,6 +52,7 @@ object ColorPalette {
       correctBackground -> colorPalette.correctBackground,
       correctForeground -> colorPalette.correctForeground,
       partiallyCorrectBackground -> colorPalette.partiallyCorrectBackground,
+      partiallyCorrectForeground -> colorPalette.partiallyCorrectForeground,
       incorrectBackground -> colorPalette.incorrectBackground,
       incorrectForeground -> colorPalette.incorrectForeground,
       hideShowBackground -> colorPalette.hideShowBackground,
@@ -72,6 +75,7 @@ object ColorPalette {
       correctBackground = (json \ correctBackground).asOpt[String].getOrElse(prior.correctBackground),
       correctForeground = (json \ correctForeground).asOpt[String].getOrElse(prior.correctForeground),
       partiallyCorrectBackground = (json \ partiallyCorrectBackground).asOpt[String].getOrElse(prior.partiallyCorrectBackground),
+      partiallyCorrectForeground = (json \ partiallyCorrectForeground).asOpt[String].getOrElse(prior.partiallyCorrectForeground),
       incorrectBackground = (json \ incorrectBackground).asOpt[String].getOrElse(prior.incorrectBackground),
       incorrectForeground = (json \ incorrectForeground).asOpt[String].getOrElse(prior.incorrectForeground),
       hideShowBackground = (json \ hideShowBackground).asOpt[String].getOrElse(prior.hideShowBackground),
@@ -87,7 +91,9 @@ object ColorPalette {
 
   val default = ColorPalette(
     correctBackground = Defaults.correctBackground, correctForeground = Defaults.correctForeground,
-    partiallyCorrectBackground = Defaults.partiallyCorrectBackground, incorrectBackground = Defaults.incorrectBackground,
+    partiallyCorrectBackground = Defaults.partiallyCorrectBackground,
+    partiallyCorrectForeground = Defaults.partiallyCorrectForeground,
+    incorrectBackground = Defaults.incorrectBackground,
     incorrectForeground = Defaults.incorrectForeground, hideShowBackground = Defaults.hideShowBackground,
     hideShowForeground = Defaults.hideShowForeground, warningBackground = Defaults.warningBackground,
     warningForeground = Defaults.warningForeground, warningBlockBackground = Defaults.warningBlockBackground,

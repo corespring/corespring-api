@@ -1,61 +1,76 @@
-.palette-pane.modal {
+.switcher {
+  width: 800px;
+  margin: 50px auto;
+}
+
+.header {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.icon-set-header {
+  background-image: none;
+  display: inline;
+}
+
+.switcher label select {
+  display: inline;
+}
+
+.resets {
+  list-style-type: none;
   padding: 0;
+  margin: 20px;
+  width: 100%;
+  text-align: right;
 }
 
-.palette-pane .content {
-  padding: 20px;
-}
-
-.palette-pane p {
-  padding: 15px 0;
-}
-
-.palette-pane .swatches {
+.swatches {
   list-style-type: none;
   padding: 0;
 }
 
-.palette-pane .swatches li {
-  display: inline-block;
-  padding: 10px;
+.swatches > div {
   text-align: center;
-  font-family: 'Lato', sans-serif !important;
-  font-weight: 700;
+  min-height: 80px;
 }
 
-.palette-pane .swatches li .swatch {
+.swatches div * {
+  vertical-align: middle;
+}
+
+.swatches span {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.icon-holder {
+  width: 110px;
+  text-align: center;
+  margin-right: 40px;
+  background-image: none;
   height: 50px;
-  width: 50px;
-  cursor: pointer;
 }
 
-.palette-pane .swatches li .color-label {
-  text-transform: uppercase;
-  color: #979797;
+.background, .foreground {
+  width: 200px;
 }
 
-.palette-pane .svg-icons, .palette-pane .choice-icons {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-
-.palette-pane .svg-icons li, .palette-pane .choice-icons li {
+.icon-holder, .background, .foreground {
   display: inline-block;
 }
 
-.palette-pane .svg-icons svg, .palette-pane .choice-icons svg {
-  height: 32px;
-  width: auto;
+.cs-icon {
+  margin: 0 auto;
+  width: 32px;
+  height: auto;
 }
 
-.palette-pane .preview {
-  border: 1px solid #cccccc;
-  border-radius: 4px;
-  padding: 17px;
-  margin-bottom: 20px;
+button.btn {
+  display: inline-block;
+  margin: 5px 0;
 }
 
-.palette-pane .preview h4 {
-  margin-bottom: 10px;
+.save-btn {
+  float: right;
 }

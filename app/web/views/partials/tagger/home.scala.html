@@ -156,25 +156,6 @@
     </div>
   </div>
 </div>
-<!-- //Preview Modal -->
-
-<div ui-modal class="palette-pane"
-    ng-model="uiState.showPalettePane"
-    ng-controller="SwitcherCtrl">
-  <div class="modal-content">
-    <div class="modal-header">
-      <span class="close close-window-button" style="display: inline-block;" ng-click="uiState.showPalettePane = false">×</span>
-      <h4 class="header">Display Options</h4>
-    </div>
-    <div class="content">
-      <p>
-        Use the color pickers below to select the colors for icons presented by CoreSpring items. Click 'Save' to apply
-        changes to all items.
-      </p>
-      <switcher config="config"></switcher>
-    </div>
-  </div>
-</div>
 
 <!-- Filter Nav Bar -->
         <div class="navbar-filter navbar-filter-top" ng-controller="tagger.SubNavController">
@@ -307,7 +288,6 @@
         </table>
         <div style="position: absolute; top: 15px; right: 20px;">
           <a style="text-decoration: underline;" ng-click="uiState.showCollectionsPane = !uiState.showCollectionsPane">Manage Collections</a>
-          <a ng-click="uiState.showPalettePane = !uiState.showPalettePane"><img src="/assets/images/color-palette.png" style="height: 15px; width: auto;" /></a>
         </div>
     </div>
 <!-- //Filter Nav Bar -->

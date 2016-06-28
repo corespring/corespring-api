@@ -26,7 +26,7 @@ function SwitcherCtrl($scope, DisplayProvider, ColorTools) {
 
   $scope.$on('settingsSave', function() {
     DisplayProvider.set($scope.config, function() {
-      $scope.uiState.showPalettePane = false;
+      window.alert("Your settings have been saved.");
     });
   });
 

@@ -71,10 +71,10 @@ class Main(
     }
   }
 
-  def colorsTestPage = Action.async {
+  def iconsAndColorsPage() = Action.async {
     request =>
       Future {
-        val html = web.views.html.colorsTestPage()
+        val html = web.views.html.iconsAndColorsPage()
         Ok(html)
       }
   }

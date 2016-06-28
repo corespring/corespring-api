@@ -1,1 +1,1 @@
-angular.module('pocApp', ['colorpicker.module', 'angularBootstrap']);
+angular.module('customColors', ['angularBootstrap', 'customColors.directives']);
