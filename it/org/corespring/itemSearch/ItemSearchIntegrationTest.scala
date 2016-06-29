@@ -1,6 +1,9 @@
 package org.corespring.itemSearch
 
+import java.net.URL
+
 import org.bson.types.ObjectId
+import org.corespring.elasticsearch.WSClient
 import org.corespring.it.helpers.{ ItemHelper, StandardHelper }
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
@@ -110,8 +113,10 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
         extends orgWithAccessTokenAndItem
         with ItemIndexCleaner {
 
+        logger.info(s"before - remove data and clean the index...")
         removeData()
         cleanIndex()
+        logger.info(s"before - remove data and clean the index.. DONE.")
 
         val itemIndexService = main.itemIndexService
         val itemService = main.itemService
@@ -119,7 +124,8 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
         val standards = (0 to 4).map { index =>
 
           val s = Standard(
-            dotNotation = Some(s"DN.$index"),
+            standard = Some(s"standard-$index"),
+            dotNotation = Some(s"DN.AB.$index"),
             category = Some(s"category-$index"),
             subCategory = Some(s"subCategory-$index"),
             subject = Some(s"category-$index"))
@@ -140,27 +146,30 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
         }
       }
 
-      "search by dotNotation" in new dotNotation {
-
-        lazy val testResult = {
-          val query = ItemIndexQuery(
-            text = None,
-            collections = Seq(collectionId.toString))
-          Thread.sleep(1000)
-          Await.result(itemIndexService.search(query), 5.seconds).toOption.get
-        }
+      "find 1 item by the starting term of the dotNotation" in new dotNotation {
 
         lazy val result = {
           val query = ItemIndexQuery(
             text = Some("DN"),
             collections = Seq(collectionId.toString))
-          Thread.sleep(1000)
           Await.result(itemIndexService.search(query), 5.seconds).toOption.get
         }
 
-        println(testResult)
-        println(result)
         result.total must_== 1
+        result.hits(0).id must_== item.id.toString
+      }
+
+      "find 1 item by the middle term of the dotNotation" in new dotNotation {
+
+        lazy val result = {
+          val query = ItemIndexQuery(
+            text = Some("AB"),
+            collections = Seq(collectionId.toString))
+          Await.result(itemIndexService.search(query), 5.seconds).toOption.get
+        }
+
+        result.total must_== 1
+        result.hits(0).id must_== item.id.toString
       }
     }
 
