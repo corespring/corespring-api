@@ -71,12 +71,10 @@ class Main(
     }
   }
 
-  def iconsAndColorsPage() = Action.async {
-    request =>
-      Future {
-        val html = web.views.html.iconsAndColorsPage()
-        Ok(html)
-      }
+  def iconsAndColorsPage() = SecuredAction {
+    implicit request: SecuredRequest[AnyContent] =>
+      val html = web.views.html.iconsAndColorsPage()
+      Ok(html)
   }
 
   def sampleLaunchCode(id: String) = Action.async {
