@@ -1,12 +1,14 @@
 package org.corespring.itemSearch
 
 import org.bson.types.ObjectId
-import org.corespring.it.helpers.ItemHelper
+import org.corespring.it.helpers.{ ItemHelper, StandardHelper }
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
 import org.corespring.itemSearch.SearchMode.SearchMode
+import org.corespring.models.Standard
 import org.corespring.models.item.{ Item, StandardCluster, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
@@ -101,6 +103,66 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
   }
 
   "search" should {
+
+    "by dotNotation" should {
+
+      trait dotNotation
+        extends orgWithAccessTokenAndItem
+        with ItemIndexCleaner {
+
+        removeData()
+        cleanIndex()
+
+        val itemIndexService = main.itemIndexService
+        val itemService = main.itemService
+
+        val standards = (0 to 4).map { index =>
+
+          val s = Standard(
+            dotNotation = Some(s"DN.$index"),
+            category = Some(s"category-$index"),
+            subCategory = Some(s"subCategory-$index"),
+            subject = Some(s"category-$index"))
+          StandardHelper.create(s)
+          s
+        }
+
+        val item = {
+          val i = Item(collectionId = collectionId.toString, standards = standards.flatMap(_.dotNotation))
+          itemService.insert(i)
+          i
+        }
+
+        override def after = {
+          logger.info("after.. cleaning up..")
+          removeData()
+          cleanIndex()
+        }
+      }
+
+      "search by dotNotation" in new dotNotation {
+
+        lazy val testResult = {
+          val query = ItemIndexQuery(
+            text = None,
+            collections = Seq(collectionId.toString))
+          Thread.sleep(1000)
+          Await.result(itemIndexService.search(query), 5.seconds).toOption.get
+        }
+
+        lazy val result = {
+          val query = ItemIndexQuery(
+            text = Some("DN"),
+            collections = Seq(collectionId.toString))
+          Thread.sleep(1000)
+          Await.result(itemIndexService.search(query), 5.seconds).toOption.get
+        }
+
+        println(testResult)
+        println(result)
+        result.total must_== 1
+      }
+    }
 
     "by cluster" should {
       "find item by standardCluster" in new scope {

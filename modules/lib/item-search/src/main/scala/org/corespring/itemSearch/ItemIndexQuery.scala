@@ -249,7 +249,8 @@ object ItemIndexQuery {
           "taskInfo.standardClusters")
 
         val clauses = arr(
-
+          obj("wildcard" -> obj(
+            "standards.dotNotation" -> s"*$t*")),
           obj(
             "term" -> obj(
               "id" -> t)),
