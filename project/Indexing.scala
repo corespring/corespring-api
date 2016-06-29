@@ -13,7 +13,7 @@ object Indexing {
     val args: Seq[String] = spaceDelimited("<arg>").parsed
 
     val defaultConfig = BatchConfig(
-      mongoUri = "mongodb://localhost:27017/api",
+      mongoUri = sys.env.get("ENV_MONGO_URI").getOrElse("mongodb://localhost:27017/api"),
       elasticSearchUri = "http://localhost:9200",
       componentPath = "corespring-components/components")
 
