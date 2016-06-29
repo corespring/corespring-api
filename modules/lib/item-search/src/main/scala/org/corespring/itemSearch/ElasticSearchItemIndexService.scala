@@ -141,7 +141,7 @@ class ElasticSearchItemIndexService(
       if (id.version.isEmpty) {
         Future.successful(Failure(new Error(s"id is missing a version - can't index: $id")))
       } else {
-        val result = for {
+        for {
           maybeDbo <- Future {
             contentDenormalizer.withCollection("content", collection => {
               collection.findOne(MongoDBObject("_id._id" -> id.id))
@@ -164,14 +164,7 @@ class ElasticSearchItemIndexService(
             logger.trace(s"function=reindex, id=$id, versioned=${prettyPrint(versionedDenormalized.map(_.denormalized).getOrElse(obj("empty" -> true)))}")
             contentIndex.bulkAdd(true, ItemData(mainDenormalized, versionedDenormalized))
           }
-        } yield {
-          logger.trace(result)
-          result.map(_.result).headOption.getOrElse(Failure(new Error("reindex failed")))
-        }
-        result.map { r =>
-          logger.trace(s"function=reindex, id=$id, result=$r")
-          r
-        }
+        } yield result.map(_.result).headOption.getOrElse(Failure(new Error("reindex failed")))
       }
     }
   }
