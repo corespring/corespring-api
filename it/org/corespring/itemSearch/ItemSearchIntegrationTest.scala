@@ -226,7 +226,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
       "return the 2 latest items" in new emptyQuery {
         result.total must_== 2
-        result.hits.map(_.id) must_== Seq(itemWithClusterId.toString, unpublishedItem.id.toString)
+        result.hits.map(_.id).toSet must_== Set(itemWithClusterId.toString, unpublishedItem.id.toString)
       }
     }
 
