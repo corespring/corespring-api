@@ -249,7 +249,10 @@ object ItemIndexQuery {
           "taskInfo.standardClusters")
 
         val clauses = arr(
-
+          obj("match" -> obj(
+            "standards.dotNotation" -> obj(
+              "query" -> t,
+              "type" -> "phrase"))),
           obj(
             "term" -> obj(
               "id" -> t)),

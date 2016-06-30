@@ -12,7 +12,11 @@
   <logger name="org.corespring.it.IntegrationSpecification" level="DEBUG"/>
   <logger name="org.corespring.v2.api.ItemApi" level="TRACE" />
   <logger name="org.corespring.v2.api.CollectionApiIntegrationTest" level="TRACE"/>
-
+  <logger name="org.corespring.it.ItemIndexCleaner" level="TRACE"/>
+  <logger name="org.corespring.itemSearch.ItemSearchIntegrationTest" level="TRACE"/>
+  <logger name="org.corespring.itemSearch.ElasticSearchItemIndexService" level="TRACE"/>
+  <logger name="org.corespring.elasticsearch.ContentDenormalizer" level="TRACE"/>
+  <logger name="bootstrap.ItemIndexingDao" level="TRACE"/>
   <root level="WARN">
     <appender-ref ref="STDOUT" />
   </root>
