@@ -12,16 +12,45 @@ import org.corespring.it.helpers._
 import org.corespring.it.assets.{ ImageUtils, PlayerDefinitionImageUploader }
 import org.corespring.models.Organization
 import org.corespring.models.item.resource.{ Resource, StoredFile }
+import org.corespring.it.assets.{ ImageUtils, PlayerDefinitionImageUploader }
+import org.corespring.it.scopes.TokenRequest
+import org.corespring.models.auth.{ AccessToken, ApiClient }
+import org.corespring.models.{ Organization, User }
+import org.corespring.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.services.salat.bootstrap.CollectionNames
 import org.corespring.v2.auth.identifiers.PlayerTokenIdentity.Keys
+import org.corespring.v2.player.supportingMaterials.Helpers
 import org.specs2.specification.BeforeAfter
 import play.api.http.{ ContentTypeOf, Writeable }
 import play.api.libs.Files
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import play.api.test.{ FakeHeaders, FakeRequest }
+
+package object contexts {
+
+  object OrgWithAccessToken {
+    def apply: OrgWithAccessToken = {
+      val org = OrganizationHelper.createAndReturnOrg("org")
+      OrgWithAccessToken(
+        org,
+        apiClient = ApiClientHelper.create(org.id),
+        user = UserHelper.create(org.id, "test_user"),
+        accessToken = AccessTokenHelper.create(org.id))
+    }
+  }
+
+  case class OrgWithAccessToken(
+    org: Organization,
+    apiClient: ApiClient,
+    user: User,
+    accessToken: String) {
+
+    val tokenRequestBuilder = new TokenRequest(accessToken)
+  }
+}
 
 package object scopes {
 
@@ -63,6 +92,10 @@ package object scopes {
     val sessionId: ObjectId
   }
 
+  trait HasMultipleSessionIds {
+    val sessionIds: Seq[ObjectId]
+  }
+
   trait orgWithAccessTokenAndItem extends orgWithAccessToken with HasItemId {
 
     val collectionId = CollectionHelper.create(orgId)
@@ -85,6 +118,21 @@ package object scopes {
     override def after: Any = {
       println("[orgWithAccessTokenAndItemAndSession] after")
       v2SessionHelper.delete(sessionId)
+    }
+  }
+
+  trait orgWithAccessTokenItemAndMultipleSessions
+    extends orgWithAccessTokenAndItem
+    with HasMultipleSessionIds
+    with WithV2SessionHelper {
+
+    val sessionIds = Seq(
+      v2SessionHelper.create(itemId, orgId = Some(orgId)),
+      v2SessionHelper.create(itemId, orgId = Some(orgId)))
+
+    override def after: Any = {
+      println("[orgWithAccessTokenAndItemAndSession] after")
+      sessionIds.map(v2SessionHelper.delete(_))
     }
   }
 
@@ -302,6 +350,24 @@ package object scopes {
     }
   }
 
+  trait multiSessionLoader { self: TokenRequestBuilder with HasMultipleSessionIds =>
+
+    def getCall(): Call
+    def getJsonBody(sessionIds: Seq[ObjectId]): JsValue
+
+    lazy val req = {
+      val call = getCall()
+      val body = getJsonBody(sessionIds)
+      val out = makeJsonRequest(call, body)
+      out
+    }
+
+    lazy val result = {
+      implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
+      play.api.test.Helpers.route(req)(Helpers.writeableOf_AnyContentAsJson).getOrElse(throw new RuntimeException("Error calling route"))
+    }
+  }
+
   trait RequestBuilder {
     implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
     implicit val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
@@ -309,20 +375,42 @@ package object scopes {
     def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A]
   }
 
-  trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
-
-    protected def mkUrl(url: String, token: String = accessToken) = {
+  class TokenRequest[A](token: String) {
+    def mkUrl(url: String) = {
       val separator = if (url.contains("?")) "&" else "?"
       s"$url${separator}access_token=$token"
     }
 
-    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
-      val separator = if (call.url.contains("?")) "&" else "?"
+    def makeRequest[A <: AnyContent](call: Call, body: A): Request[A] = {
       FakeRequest(call.method, mkUrl(call.url), FakeHeaders(), body)
+    }
+
+    def makeFormRequest(call: Call, form: MultipartFormData[Files.TemporaryFile]): Request[AnyContentAsMultipartFormData] = {
+      FakeRequest(call.method, mkUrl(call.url)).withMultipartFormDataBody(form)
+    }
+
+    def makeRawRequest(call: Call, bytes: Array[Byte]) = {
+      FakeRequest(call.method, mkUrl(call.url))
+        .withRawBody(bytes)
     }
 
     def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
       FakeRequest(call.method, mkUrl(call.url)).withJsonBody(json)
+    }
+  }
+
+  trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
+
+    protected def mkUrl(url: String, token: String = accessToken) = {
+      new TokenRequest(token).mkUrl(url)
+    }
+
+    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
+      new TokenRequest[A](accessToken).makeRequest(call, body)
+    }
+
+    def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
+      new TokenRequest[AnyContentAsJson](accessToken).makeJsonRequest(call, json)
     }
   }
 

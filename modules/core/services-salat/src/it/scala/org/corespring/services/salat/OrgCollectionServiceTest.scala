@@ -5,6 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
+import org.corespring.services.CollectionIdPermission
 import org.specs2.mutable.{ After, BeforeAfter }
 import org.specs2.specification.Scope
 
@@ -139,26 +140,39 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
 
     }
 
-    "throw an exception if the idsAndPermisions has duplicate ids" in new isAuthorized {
-      service.isAuthorizedBatch(testOrg.id, (publicCollection.id -> Permission.Read),
-        (publicCollection.id -> Permission.Read)) must throwA[IllegalArgumentException].await
-    }
-
     "return 1 result" in new isAuthorized {
-      service.isAuthorizedBatch(testOrg.id, (publicCollection.id -> Permission.Read)) must equalTo(Seq(publicCollection.id -> true)).await
+      val result = service.isAuthorizedBatch(testOrg.id, CollectionIdPermission(publicCollection.id, Permission.Read))
+      result must equalTo(Seq(CollectionIdPermission(publicCollection.id, Permission.Read) -> true)).await
     }
 
     "return 2 results" in new isAuthorized {
+
+      val expected = Seq(
+        CollectionIdPermission(publicCollection.id, Permission.Read) -> true,
+        CollectionIdPermission(otherOrgOne.id, Permission.Write) -> false)
+
       service.isAuthorizedBatch(testOrg.id,
-        (publicCollection.id -> Permission.Read),
-        (otherOrgOne.id -> Permission.Write)) must equalTo(Seq(publicCollection.id -> true, otherOrgOne.id -> false)).await
+        expected.map(_._1): _*) must equalTo(expected).await
+    }
+
+    "return results for the same collection id" in new isAuthorized {
+      service.isAuthorizedBatch(org.id,
+        CollectionIdPermission(otherOrgOne.id, Permission.Read),
+        CollectionIdPermission(otherOrgOne.id, Permission.Write)) must equalTo(
+          Seq(
+            CollectionIdPermission(otherOrgOne.id, Permission.Read) -> true,
+            CollectionIdPermission(otherOrgOne.id, Permission.Write) -> false)).await
     }
 
     "return 3 results" in new isAuthorized {
       service.isAuthorizedBatch(testOrg.id,
-        (publicCollection.id -> Permission.Read),
-        (otherOrgOne.id -> Permission.Write),
-        (collection.id -> Permission.Write)) must equalTo(Seq(publicCollection.id -> true, otherOrgOne.id -> false, collection.id -> false)).await
+        CollectionIdPermission(publicCollection.id, Permission.Read),
+        CollectionIdPermission(otherOrgOne.id, Permission.Write),
+        CollectionIdPermission(collection.id, Permission.Write)) must equalTo(
+          Seq(
+            CollectionIdPermission(publicCollection.id, Permission.Read) -> true,
+            CollectionIdPermission(otherOrgOne.id, Permission.Write) -> false,
+            CollectionIdPermission(collection.id, Permission.Write) -> false)).await
     }
   }
 

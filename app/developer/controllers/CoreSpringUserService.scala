@@ -78,7 +78,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
   def deleteExpiredTokens(): Unit = {
 
-    if(ServiceLookup.registrationTokenService != null){
+    if (ServiceLookup.registrationTokenService != null) {
       ServiceLookup.registrationTokenService.deleteExpiredTokens()
     }
   }

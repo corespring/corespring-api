@@ -2,15 +2,18 @@ package web.controllers
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.VersionInfo
-import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
+import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
+import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.FieldValue
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.v2.actions.V2ActionsFactory
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
+import org.corespring.v2.auth.models.MockFactory
 import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.corespring.web.common.views.helpers.BuildInfo
 import org.specs2.mock.Mockito
@@ -18,11 +21,11 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsArray, Json }
 import play.api.test.PlaySpecification
-import web.models.{ WebExecutionContext }
+import web.models.WebExecutionContext
 
 import scala.concurrent.ExecutionContext
 
-class MainTest extends Specification with Mockito with PlaySpecification {
+class MainTest extends Specification with Mockito with PlaySpecification with MockFactory {
 
   trait scope extends Scope {
 
@@ -87,7 +90,12 @@ class MainTest extends Specification with Mockito with PlaySpecification {
     val buildInfo = BuildInfo("hash", "date", "branch", "version")
 
     val assetsLoader = mock[AssetsLoader]
+
+    lazy val orgAndOpts = V2ActionsFactory.orgAndOpts
+    lazy val actions = V2ActionsFactory.apply
+
     val main = new Main(
+      actions,
       fieldValueService,
       jsonFormatting,
       userService,
@@ -97,10 +105,8 @@ class MainTest extends Specification with Mockito with PlaySpecification {
       containerVersion,
       webExecutionContext,
       playerTokenService,
-      userSessionOrgIdentity,
       buildInfo,
-      assetsLoader,
-      apiClientService)
+      assetsLoader)
   }
 
   "defaultValues" should {

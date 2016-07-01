@@ -23,7 +23,7 @@ import play.api.libs.json.Json._
 import play.api.libs.json.{ JsNumber, JsObject, JsString, _ }
 import play.api.mvc.{ Action, AnyContent, Result }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, _ }
 

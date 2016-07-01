@@ -19,13 +19,13 @@ class AccessTokenIntegrationTest extends IntegrationSpecification {
         with TokenRequestBuilder {
       }
 
-      s"return $BAD_REQUEST - for an access token that has expired" in new scope {
+      s"return $UNAUTHORIZED - for an access token that has expired" in new scope {
         AccessTokenHelper.expire(accessToken)
         lazy val call = routes.get(itemId.toString)
         lazy val req = makeRequest(call)
         lazy val result = route(req).get
-        status(result) must_== BAD_REQUEST
-      }.pendingUntilFixed("AC-320")
+        status(result) must_== UNAUTHORIZED
+      }
     }
   }
 

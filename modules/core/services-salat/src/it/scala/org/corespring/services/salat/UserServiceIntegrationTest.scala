@@ -8,7 +8,7 @@ import org.specs2.mutable.After
 
 import scalaz.{ Failure, Success }
 
-class UserServiceTest extends ServicesSalatIntegrationTest {
+class UserServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
   trait scope extends After {
 

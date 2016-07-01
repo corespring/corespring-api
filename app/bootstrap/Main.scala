@@ -32,7 +32,7 @@ import org.corespring.importing.validation.ItemSchema
 import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
-import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
+import org.corespring.models.appConfig._
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
@@ -43,8 +43,9 @@ import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
+import org.corespring.v2.actions.{ DefaultV2Actions, V2ActionExecutionContext }
 import org.corespring.v2.api._
-import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
+import org.corespring.v2.api.services.{ BasicScoreService, OrgScoringExecutionContext, ScoreService, ScoreServiceExecutionContext }
 import org.corespring.v2.auth.identifiers.{ PlayerTokenConfig, UserSessionOrgIdentity }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
@@ -65,9 +66,9 @@ import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import se.radley.plugin.salat.SalatPlugin
 import web.models.WebExecutionContext
-import web.{ DefaultOrgs, PublicSiteConfig, WebModule, WebModuleConfig }
+import web.{ PublicSiteConfig, WebModule, WebModuleConfig, WebV2Actions }
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Validation
 
 object Main {
@@ -111,7 +112,7 @@ class Main(
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  private lazy val logger = Logger(classOf[Main])
+  private lazy val logger = Logger(this.getClass)
 
   lazy val appConfig = AppConfig(configuration)
 
@@ -126,11 +127,7 @@ class Main(
 
   logger.info(s"containerConfig: $containerConfig")
 
-  override lazy val versionInfo: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
-
   logger.info(s"versionInfo: $versionInfo")
-
-  override lazy val rootOrgId: ObjectId = appConfig.rootOrgId
 
   override lazy val accessSettingsCheckConfig: AccessSettingsCheckConfig = AccessSettingsCheckConfig(appConfig.allowAllSessions)
 
@@ -159,14 +156,22 @@ class Main(
   }
 
   override lazy val componentSetExecutionContext = ComponentSetExecutionContext(ecLookup("akka.component-set-heavy"))
+  override lazy val containerContext: ContainerExecutionContext = ContainerExecutionContext(ExecutionContext.global)
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ecLookup("akka.elastic-search"))
   override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ecLookup("akka.import"))
+  override lazy val itemApiExecutionContext: ItemApiExecutionContext = ItemApiExecutionContext(ExecutionContext.global)
+  override lazy val itemSessionApiExecutionContext: ItemSessionApiExecutionContext = ItemSessionApiExecutionContext(ExecutionContext.global)
   override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ecLookup("akka.salat-services"))
+  override lazy val scoringApiExecutionContext: ScoringApiExecutionContext = ScoringApiExecutionContext(ecLookup("akka.scoring-default"), ecLookup("akka.scoring-heavy"))
   override lazy val sessionExecutionContext = SessionExecutionContext(ecLookup("akka.session-default"), ecLookup("akka.session-heavy"))
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ecLookup("akka.v1-api"))
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
-  override def webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
+  override lazy val webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
+  lazy val v2ActionContext: V2ActionExecutionContext = V2ActionExecutionContext(ecLookup("akka.v2-actions"))
+  override lazy val sessionServiceExecutionContext: SessionServiceExecutionContext = SessionServiceExecutionContext(sessionExecutionContext.heavyLoad)
+  override lazy val orgScoringExecutionContext: OrgScoringExecutionContext = OrgScoringExecutionContext(scoringApiExecutionContext.contextForScoring)
+  override lazy val scoreServiceExecutionContext = ScoreServiceExecutionContext(scoringApiExecutionContext.contextForScoring)
 
   private def mainAppVersion(): String = {
     val commit = buildInfo.commitHashShort
@@ -279,8 +284,6 @@ class Main(
       .map(toComponentType) :+ ComponentType("multiple-interactions", "Multiple Interactions")
   }
 
-  override lazy val itemSessionApiExecutionContext: ItemSessionApiExecutionContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
-
   //Used for wiring RequestIdentifiers
   private lazy val secureSocial: SecureSocial = new SecureSocial {}
 
@@ -296,10 +299,6 @@ class Main(
 
   override def getOrgOptsAndApiClientFn: (RequestHeader) => Validation[V2Error, (OrgAndOpts, ApiClient)] = requestIdentifiers.accessTokenToOrgAndApiClient
 
-  override lazy val itemApiExecutionContext: ItemApiExecutionContext = ItemApiExecutionContext(ExecutionContext.global)
-
-  override lazy val scoreService: ScoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)(jsonFormatting.formatPlayerDefinition)
-
   /**
    * Note: macwire > 1.0 has a tagging option so that you can tag instances of the same type
    * in a scope so it knows which property to inject (eg if we have multiple strings in scope)
@@ -311,6 +310,8 @@ class Main(
   override lazy val archiveConfig = ArchiveConfig(appConfig.archiveContentCollectionId, appConfig.archiveOrgId)
 
   override lazy val accessTokenConfig = AccessTokenConfig()
+
+  override lazy val allowExpiredTokens = AllowExpiredTokens(appConfig.allowExpiredTokens)
 
   override lazy val transferManager: TransferManager = new TransferManager(s3)
 
@@ -396,8 +397,6 @@ class Main(
 
   override def playMode: PlayMode = mode
 
-  override def containerContext: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
-
   lazy val itemAssetKeys = ItemAssetKeys
   lazy val draftAssetKeys = DraftAssetKeys
 
@@ -448,7 +447,26 @@ class Main(
   initServiceLookup()
   componentLoader.reload
 
-  override lazy val containerVersion: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
+  lazy val futureAuth = (request: RequestHeader) => Future { getOrgAndOptsFn(request) }(v2ApiExecutionContext.context)
+
+  override lazy val versionInfo: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
+
+  override def webV2Actions: WebV2Actions = WebV2Actions(new DefaultV2Actions(
+    defaultOrgs,
+    rh => Future { userSessionOrgIdentity.apply(rh) }(webExecutionContext.context),
+    apiClientService,
+    v2ActionContext))
+
+  override lazy val v2ApiActions: V2ApiActions = V2ApiActions(new DefaultV2Actions(
+    defaultOrgs,
+
+    /**
+     * TODO: We have to support userSession here because legacy v1 api endpoints are used in the cms
+     * These are routed to v2.
+     */
+    rh => Future { requestIdentifiers.allIdentifiers(rh) }(v2ApiExecutionContext.context),
+    apiClientService,
+    v2ActionContext))
 
   override lazy val webModuleConfig: WebModuleConfig = WebModuleConfig(mode)
 

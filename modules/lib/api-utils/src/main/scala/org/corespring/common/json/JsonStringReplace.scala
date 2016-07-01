@@ -1,6 +1,6 @@
 package org.corespring.common.json
 
-import play.api.libs.json.{JsString, JsArray, JsObject, JsValue}
+import play.api.libs.json.{ JsString, JsArray, JsObject, JsValue }
 
 object JsonStringReplace {
   def replaceStringsInJson(json: JsValue, replace: (String => String)): JsValue = {

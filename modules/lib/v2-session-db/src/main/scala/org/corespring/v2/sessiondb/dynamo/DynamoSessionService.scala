@@ -4,19 +4,20 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.document.{ Item, Table }
 import com.amazonaws.services.dynamodbv2.model._
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.sessiondb.{SessionReportingUnsupported, SessionService}
+import org.corespring.v2.sessiondb.{ SessionReportingUnsupported, SessionService }
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import play.api.libs.json.{ Json, JsValue }
+import play.api.libs.json.{ JsValue, Json }
 
 import scala.collection.JavaConversions._
+import scala.concurrent.Future
 import scalaz.Validation
 
 /**
  * Writes/Reads session to db as (sessionId,itemId,json)
  */
 class DynamoSessionService(table: Table, client: AmazonDynamoDBClient) extends SessionService
-    with SessionReportingUnsupported {
+  with SessionReportingUnsupported {
 
   val itemIdKey = "itemId"
   val jsonKey = "json"
@@ -28,9 +29,8 @@ class DynamoSessionService(table: Table, client: AmazonDynamoDBClient) extends S
       .withIndexName("itemId-index")
       .withExclusiveStartKey(null)
       .withKeyConditions(Map("itemId" -> new Condition()
-      .withComparisonOperator(ComparisonOperator.EQ.toString)
-      .withAttributeValueList(new AttributeValue().withS(itemId.toString))
-    ))
+        .withComparisonOperator(ComparisonOperator.EQ.toString)
+        .withAttributeValueList(new AttributeValue().withS(itemId.toString))))
 
     val r = client.query(request)
     r.getCount.toLong
@@ -52,6 +52,8 @@ class DynamoSessionService(table: Table, client: AmazonDynamoDBClient) extends S
       case _ => None
     }
   }
+
+  override def loadMultiple(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = Future.successful(Nil)
 
   def save(sessionId: String, data: JsValue): Option[JsValue] = {
     val itemId = (data \ itemIdKey).asOpt[String].getOrElse("")

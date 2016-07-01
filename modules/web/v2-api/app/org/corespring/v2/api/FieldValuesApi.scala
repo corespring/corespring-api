@@ -4,22 +4,20 @@ import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services._
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.V2Error
+import org.corespring.v2.actions.V2Actions
 import play.api.libs.json._
-import play.api.mvc.{ Action, RequestHeader }
+import play.api.mvc.{ Action }
 
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
-import scalaz.Scalaz._
 
 class FieldValuesApi(
+  actions: V2Actions,
   indexService: ItemIndexService,
   v2ApiContext: V2ApiExecutionContext,
   standardService: StandardService,
   subjectService: SubjectService,
-  jsonFormatting: JsonFormatting,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  jsonFormatting: JsonFormatting) extends V2Api {
 
   import jsonFormatting._
 
@@ -37,10 +35,10 @@ class FieldValuesApi(
     val gradeLevel = "taskInfo.gradeLevel"
   }
 
-  private def get(field: String) = futureWithIdentity { (identity, _) =>
+  private def get(field: String) = actions.Org.async { request =>
     indexService.distinct(
       field,
-      identity.org.accessibleCollections.map(_.collectionId.toString)).map(_ match {
+      request.org.accessibleCollections.map(_.collectionId.toString)).map(_ match {
         case Success(contributors) => Ok(JsArray(contributors.map(JsString)))
         case Failure(error) => InternalServerError(error.getMessage)
       })
@@ -73,7 +71,7 @@ class FieldValuesApi(
   val subject = queryAction[SubjectQuery, Subject](subjectService)(_, _, _)
   val standard = queryAction[StandardQuery, Standard](standardService)(_, _, _)
 
-  def domain = futureWithIdentity { (_, _) =>
+  def domain = actions.Org.async { _ =>
     import jsonFormatting.writeStandardDomains
     standardService.domains.map { sd =>
       Ok(Json.toJson(sd))

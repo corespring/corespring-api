@@ -4,21 +4,21 @@ import org.bson.types.ObjectId
 import org.corespring.itemSearch._
 import org.corespring.models.auth.Permission
 import org.corespring.services.OrgCollectionService
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{ JsArray, Json }
+import org.corespring.v2.actions.{ OrgRequest, V2Actions }
 import play.api.libs.json.Json._
-import play.api.mvc.{ RequestHeader, Request, AnyContent, Controller }
-import org.corespring.v2.actions.V2Actions
+import play.api.libs.json.{ JsArray, Json }
+import play.api.mvc.{ AnyContent, Controller }
 import web.models.WebExecutionContext
+
 import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{ Failure, Success }
 
 case class ItemInfo(hit: ItemIndexHit, p: Option[Permission]) {
   def json = {
     val permissionJson = p.map { permission =>
       obj("permission" ->
-        obj("read" -> permission.read,
+        obj(
+          "read" -> permission.read,
           "write" -> permission.write,
           "clone" -> permission.canClone))
     }.getOrElse(Json.obj())
@@ -45,25 +45,23 @@ object ItemInfo {
 }
 
 class ItemSearch(
+  actions: V2Actions,
   searchService: ItemIndexService,
   orgCollectionService: OrgCollectionService,
-  webExecutionContext: WebExecutionContext,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends Controller with V2Actions {
+  webExecutionContext: WebExecutionContext) extends Controller {
 
-  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn(request)
+  implicit def ec: ExecutionContext = webExecutionContext.context
 
-  override implicit def ec: ExecutionContext = webExecutionContext.context
+  def search(query: Option[String]) = actions.Org.async { (request: OrgRequest[AnyContent]) =>
 
-  def search(query: Option[String]) = OrgAction { (orgAndOpts: OrgAndOpts, request: Request[AnyContent]) =>
-
-    QueryStringParser.scopedSearchQuery(query, orgAndOpts.org.accessibleCollections.map(_.collectionId)) match {
+    QueryStringParser.scopedSearchQuery(query, request.org.accessibleCollections.map(_.collectionId)) match {
       case Success(q) => {
 
-        val ids = orgAndOpts.org.accessibleCollections.map(_.collectionId)
+        val ids = request.org.accessibleCollections.map(_.collectionId)
 
         //Note: calling the future within a for-comprehension causes the execution to be sequential - we want parallel
         val futureSearchResult = searchService.search(q)
-        val futurePermissions = orgCollectionService.getPermissions(orgAndOpts.org.id, ids: _*)
+        val futurePermissions = orgCollectionService.getPermissions(request.org.id, ids: _*)
 
         for {
           searchResult <- futureSearchResult

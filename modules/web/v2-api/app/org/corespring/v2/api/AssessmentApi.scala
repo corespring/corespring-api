@@ -2,31 +2,29 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.{ Answer, Assessment }
-import org.corespring.models.json.{ JsonFormatting }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.services.assessment.AssessmentService
-import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.actions.{ OrgRequest, V2Actions }
 import org.corespring.v2.errors.Errors._
-import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{ JsObject, JsSuccess, Json }
 import play.api.libs.json.Json._
-import play.api.mvc.{ RequestHeader, SimpleResult, AnyContent, Request }
+import play.api.libs.json.{ JsObject, JsSuccess, Json }
+import play.api.mvc.{ AnyContent, Request, SimpleResult }
 
 import scala.concurrent.ExecutionContext
-import scalaz.Validation
 
 class AssessmentApi(
+  actions: V2Actions,
   assessmentService: AssessmentService,
   jsonFormatting: JsonFormatting,
-  v2ApiContext: V2ApiExecutionContext,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  v2ApiContext: V2ApiExecutionContext)
   extends V2Api {
 
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
   import jsonFormatting._
 
-  def create() = withIdentity { (identity, request) =>
-    val json = getAssessmentJson(identity, request)
+  def create() = actions.Org { request: OrgRequest[AnyContent] =>
+    val json = getAssessmentJson(request.org.id, request)
     Json.fromJson[Assessment](json)(jsonFormatting.formatAssessment) match {
       case JsSuccess(jsonAssessment, _) => {
         val assessment = new Assessment().merge(jsonAssessment)
@@ -37,9 +35,9 @@ class AssessmentApi(
     }
   }
 
-  def getByIds(assessmentIds: String) = withIdentity { (identity, _) =>
+  def getByIds(assessmentIds: String) = actions.Org { request: OrgRequest[AnyContent] =>
     val ids = assessmentIds.split(",").map(id => new ObjectId(id.trim)).toList
-    val assessments = assessmentService.findByIds(ids, identity.org.id)
+    val assessments = assessmentService.findByIds(ids, request.org.id)
     ids.length match {
       case 1 => assessments.length match {
         case 1 => Ok(toJson(assessments.head))
@@ -49,15 +47,15 @@ class AssessmentApi(
     }
   }
 
-  def get(authorId: Option[String]) = withIdentity { (identity, _) =>
+  def get(authorId: Option[String]) = actions.Org { request: OrgRequest[AnyContent] =>
     authorId match {
-      case Some(authorId) => getByAuthorId(authorId, identity.org.id)
-      case _ => Ok(toJson(assessmentService.findAllByOrgId(identity.org.id)))
+      case Some(authorId) => getByAuthorId(authorId, request.org.id)
+      case _ => Ok(toJson(assessmentService.findAllByOrgId(request.org.id)))
     }
   }
 
-  def update(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, identity, request) =>
-    val json = getAssessmentJson(identity, request)
+  def update(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, request) =>
+    val json = getAssessmentJson(request.org.id, request)
     Json.fromJson[Assessment](json) match {
       case JsSuccess(jsonAssessment, _) => {
         val newAssessment = assessment.merge(jsonAssessment)
@@ -68,12 +66,12 @@ class AssessmentApi(
     }
   })
 
-  def delete(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, _, _) =>
+  def delete(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, _) =>
     assessmentService.remove(assessment)
     Ok(toJson(assessment))
   })
 
-  def addParticipants(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, identity, request) =>
+  def addParticipants(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, request) =>
     request.body.asJson match {
       case Some(json) => {
         (json \ "ids").asOpt[Seq[String]] match {
@@ -89,7 +87,7 @@ class AssessmentApi(
   })
 
   def addAnswer(assessmentId: ObjectId, externalId: Option[String]) =
-    withAssessment(assessmentId, { (assessment, identity, request) =>
+    withAssessment(assessmentId, { (assessment, request) =>
       externalId match {
         case Some(id) => {
           (try {
@@ -116,16 +114,16 @@ class AssessmentApi(
   private def getByAuthorId(authorId: String, organizationId: ObjectId) =
     Ok(toJson(assessmentService.findByAuthorAndOrg(authorId, organizationId)))
 
-  private def getAssessmentJson(identity: OrgAndOpts, request: Request[AnyContent]): JsObject = (try {
+  private def getAssessmentJson(orgId: ObjectId, request: Request[AnyContent]): JsObject = (try {
     request.body.asJson.map(_.asInstanceOf[JsObject])
   } catch {
     case e: Exception => None
-  }).getOrElse(Json.obj()) ++ Json.obj("orgId" -> identity.org.id.toString)
+  }).getOrElse(Json.obj()) ++ Json.obj("orgId" -> orgId.toString)
 
-  private def withAssessment(assessmentId: ObjectId, block: ((Assessment, OrgAndOpts, Request[AnyContent]) => SimpleResult)) =
-    withIdentity { (identity, request) =>
-      assessmentService.findByIdAndOrg(assessmentId, identity.org.id) match {
-        case Some(assessment) => block(assessment, identity, request)
+  private def withAssessment(assessmentId: ObjectId, block: ((Assessment, OrgRequest[AnyContent]) => SimpleResult)) =
+    actions.Org { request: OrgRequest[AnyContent] =>
+      assessmentService.findByIdAndOrg(assessmentId, request.org.id) match {
+        case Some(assessment) => block(assessment, request)
         case _ => cantFindAssessmentWithId(assessmentId).toResult
       }
     }

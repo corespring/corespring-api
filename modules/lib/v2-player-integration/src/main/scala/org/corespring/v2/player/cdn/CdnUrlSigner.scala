@@ -26,14 +26,14 @@ class CdnUrlSigner(
 
   private lazy val privateKey: PrivateKey = {
     (getPrivateKey(StandardCharsets.UTF_8).orElse(getPrivateKey(StandardCharsets.ISO_8859_1)))
-        .getOrElse(throw new RuntimeException(s"Unable to read private key from $privateKeyString"))
+      .getOrElse(throw new RuntimeException(s"Unable to read private key from $privateKeyString"))
   }
 
   private def getPrivateKey(encoding: Charset) = {
     Try(PEM.readPrivateKey(asInputStream(privateKeyString, encoding)))
   }
 
-  private def asInputStream(s: String, encoding:Charset) = {
-     new ByteArrayInputStream(s.getBytes(encoding))
+  private def asInputStream(s: String, encoding: Charset) = {
+    new ByteArrayInputStream(s.getBytes(encoding))
   }
 }

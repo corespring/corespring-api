@@ -133,6 +133,7 @@ private class V2MongoSessionHelper(tableName: String) extends V2SessionHelper {
       case Some(o) => baseSession ++ MongoDBObject("identity" -> MongoDBObject("orgId" -> o.toString))
       case _ => baseSession
     }
+
     db(tableName).insert(session)
     oid
   }
