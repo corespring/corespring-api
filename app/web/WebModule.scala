@@ -71,6 +71,7 @@ trait WebModule {
     apiClientService)
 
   lazy val publicSite = new PublicSite(publicSiteConfig.url, webModuleConfig.mode)
+  lazy val systemCheck = new SystemCheck()
 
-  lazy val webControllers = Seq(showResource, webMain, publicSite, partials, itemSearch)
+  lazy val webControllers = Seq(showResource, webMain, publicSite, partials, itemSearch, systemCheck)
 }
