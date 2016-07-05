@@ -5,6 +5,23 @@ import scala.reflect.macros.Context
 
 object DescribeMacro {
 
+  /**
+   * A macro to generate a string with information about the given context.
+   * Useful for logging.
+   * {{{
+   *   import org.corespring.macros.DescribeMacro.describe
+   *
+   *   class Foo{
+   *     def bar(baz:String) : Unit = {
+   *       println(describe(baz))
+   *     }
+   *   }
+   *
+   *   new Foo().bar("hi") // prints: function=bar, baz=hi
+   * }}}
+   * @param params
+   * @return
+   */
   def describe(params: Any*): String = macro describe_impl
 
   def describe_impl(c: Context)(params: c.Expr[Any]*): c.Expr[String] = {
