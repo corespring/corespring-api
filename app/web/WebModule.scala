@@ -11,7 +11,6 @@ import org.corespring.services.{ OrgCollectionService, OrganizationService, User
 import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.web.common.controllers.deployment.AssetsLoader
-import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Mode.Mode
 import web.controllers._
 import web.models.WebExecutionContext
@@ -41,7 +40,6 @@ trait WebModule {
   def defaultOrgs: DefaultOrgs
   def bucket: Bucket
   def publicSiteConfig: PublicSiteConfig
-  def buildInfo: BuildInfo
   def assetsLoader: AssetsLoader
 
   def itemIndexService: ItemIndexService
@@ -66,7 +64,6 @@ trait WebModule {
     containerVersionInfo,
     webExecutionContext,
     playerTokenService,
-    buildInfo,
     assetsLoader)
 
   lazy val publicSite = new PublicSite(publicSiteConfig.url, webModuleConfig.mode)
