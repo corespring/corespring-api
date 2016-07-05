@@ -34,12 +34,15 @@ object Dependencies {
   val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "1.2.0-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val grizzledLog = "org.clapper" %% "grizzled-slf4j" % "1.0.2"
   val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val jodaConvert = "org.joda" % "joda-convert" % "1.2"
   val jodaTime = "joda-time" % "joda-time" % "2.2"
+  val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
+  val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
   val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
   val macWireMacro = "com.softwaremill.macwire" %% "macros" % "0.7.3"
   val macWireRuntime = "com.softwaremill.macwire" %% "runtime" % "0.7.3"
@@ -64,32 +67,27 @@ object Dependencies {
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val scalazContrib = "org.typelevel" %% "scalaz-contrib-210" % "0.1.5"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
+  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.4"
+  val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.2.2" // "3.6.2"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
-  val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
-  val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "1.2.0-PLAY22").exclude("org.mongodb", "mongo-java-driver")
-  val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
-  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.4"
-
   val ztZip = "org.zeroturnaround" % "zt-zip" % "1.8" % "it"
 
   object Resolvers {
 
     val corespringPublicSnapshots = "Corespring Public Artifactory Snapshots" at "http://repository.corespring.org/artifactory/public-ivy-snapshots"
-    val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
-    val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
-    val sonatypeSnapshots = "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-    val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
-    val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
-    val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
     val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
-    val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
     val ivyLocal = Resolver.file("ivyLocal", file(Path.userHome.absolutePath + "/.ivy2/local"))(Resolver.ivyStylePatterns)
-
+    val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
+    val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
+    val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     val scalazBintray = "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+    val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
+    val sonatypeSnapshots = "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+    val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
+    val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
 
     val all: Seq[Resolver] = Seq(
       scalazBintray,
