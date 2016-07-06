@@ -3,18 +3,17 @@ package web.controllers
 import java.util.Date
 
 import org.bson.types.ObjectId
+import org.corespring.csApi.buildInfo.BuildInfo
 import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.models.User
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.FieldValueService
 import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.web.common.controllers.deployment.AssetsLoader
-import org.corespring.web.common.views.helpers.BuildInfo
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import play.api.Logger
@@ -38,7 +37,6 @@ class Main(
   containerVersionInfo: VersionInfo,
   webExecutionContext: WebExecutionContext,
   playerTokenService: PlayerTokenService,
-  buildInfo: BuildInfo,
   assetsLoader: AssetsLoader) extends Controller {
 
   implicit val context = webExecutionContext.context
@@ -63,7 +61,7 @@ class Main(
 
   def version = Action.async {
     Future {
-      val json = buildInfo.json.deepMerge(Json.obj("container" -> containerVersionInfo.json))
+      val json = Json.parse(BuildInfo.toJson).as[JsObject].deepMerge(obj("container" -> containerVersionInfo.json))
       Ok(json)
     }
   }
