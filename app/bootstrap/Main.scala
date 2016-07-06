@@ -24,6 +24,7 @@ import org.corespring.container.client.{ NewRelicRumConfig, V2PlayerConfig, Vers
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
+import org.corespring.csApi.buildInfo.BuildInfo
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
@@ -55,8 +56,7 @@ import org.corespring.v2.player.cdn._
 import org.corespring.v2.player.hooks.StandardsTree
 import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService, MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService }
 import org.corespring.v2.sessiondb._
-import org.corespring.web.common.controllers.deployment.AssetsLoader
-import org.corespring.web.common.views.helpers.BuildInfo
+import org.corespring.web.common.controllers.deployment.{ AssetsLoader, BranchAndHash }
 import org.corespring.web.user.SecureSocial
 import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
@@ -139,8 +139,6 @@ class Main(
 
   override lazy val publicSiteConfig: PublicSiteConfig = PublicSiteConfig(appConfig.publicSite)
 
-  override lazy val buildInfo = BuildInfo(resourceLoader.loadPath)
-
   private def ecLookup(id: String) = {
     def hasEnabledAkkaConfiguration(id: String) = {
       (for {
@@ -176,7 +174,7 @@ class Main(
   override lazy val scoreServiceExecutionContext = ScoreServiceExecutionContext(scoringApiExecutionContext.contextForScoring)
 
   private def mainAppVersion(): String = {
-    val commit = buildInfo.commitHashShort
+    val commit = BuildInfo.commitHash
     val versionOverride = appConfig.appVersionOverride
     val result = commit + versionOverride
     logger.trace(s"AppVersion $result hash ${commit} override ${versionOverride}")
@@ -444,7 +442,9 @@ class Main(
 
   override lazy val playerJsonToItem: PlayerJsonToItem = new PlayerJsonToItem(jsonFormatting)
 
-  override lazy val assetsLoader: AssetsLoader = new AssetsLoader(playMode, configuration, s3, buildInfo)
+  override lazy val assetsLoader: AssetsLoader = new AssetsLoader(playMode, configuration, s3, BranchAndHash(
+    BuildInfo.branch,
+    BuildInfo.commitHash))
 
   initServiceLookup()
   componentLoader.reload
