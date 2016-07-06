@@ -19,6 +19,7 @@ import org.corespring.services.item.ItemCount
 import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
+import org.corespring.macros.DescribeMacro.{ describe => ds }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz._
@@ -47,7 +48,8 @@ class ItemService(
     val collectionId = otherCollectionId.map(_.toString).getOrElse(item.collectionId)
     val itemClone = item.cloneItem(collectionId)
     val result: Validation[CloneError, Item] = assets.cloneStoredFiles(item, itemClone)
-    logger.debug(s"clone itemId=${item.id} result=$result")
+
+    logger.debug(ds(item.id, result))
 
     result.bimap(
       failure => {
@@ -60,7 +62,7 @@ class ItemService(
   }
 
   override def publish(id: VersionedId[ObjectId]): Boolean = {
-    logger.trace(s"function=publish, id=$id")
+    logger.trace(ds(id))
     val update = MongoDBObject("$set" -> MongoDBObject(Keys.published -> true))
     val result = dao.update(id, update, false)
     result.isRight
@@ -95,8 +97,7 @@ class ItemService(
     //TODO It was writing to data.playerDefinition before. Is that correct?
     val update = MongoDBObject("$addToSet" -> MongoDBObject("playerDefinition.files" -> dbo))
     val result = dao.update(itemId, update, false)
-
-    logger.trace(s"function=addFileToPlayerDefinition, itemId=$itemId, docsChanged=${result}")
+    logger.trace(ds(itemId, result))
     Validation.fromEither(result).map(id => true)
   }
 
@@ -106,8 +107,7 @@ class ItemService(
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
     val update = MongoDBObject("$pull" -> MongoDBObject("playerDefinition.files" -> dbo))
     val result = dao.update(itemId, update, false)
-
-    logger.trace(s"function=removeFileFromPlayerDefinition, itemId=$itemId, docsChanged=${result}")
+    logger.trace(ds(itemId, result))
     Validation.fromEither(result).map(id => true)
   }
 
@@ -120,7 +120,7 @@ class ItemService(
   // TODO if any of these three things fail, the database and s3 revert back to previous state
   override def save(item: Item, createNewVersion: Boolean = false): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
 
-    logger.trace(s"function=save, createNewVersion=$createNewVersion, item=$item")
+    logger.trace(ds(createNewVersion, item))
 
     import scala.language.implicitConversions
 
@@ -135,7 +135,8 @@ class ItemService(
     if (createNewVersion) {
       val newItem = dao.findOneById(VersionedId(item.id.id)).get
       val result: Validation[CloneError, Item] = assets.cloneStoredFiles(item, newItem)
-      logger.trace(s"function=save, cloneStoredFilesResult=$result")
+      logger.trace(ds(result))
+
       result match {
         case Success(updatedItem) => dao.save(updatedItem, createNewVersion = false).leftMap(e => GeneralError(e, None))
         case Failure(err) =>
@@ -218,15 +219,15 @@ class ItemService(
           }
         }
 
-        logger.trace(s"function=isAuthorizedBatch, idAndPermissions=$idAndPermissions")
+        logger.trace(ds(idAndPermissions))
 
         for {
           collectionIdToVidMap <- futureItemAndCollectionIds
-          _ <- Future.successful(logger.trace(s"function=isAuthorizedBatch, collectionIdToViewMap=$collectionIdToVidMap"))
+          _ <- Future.successful(logger.trace(ds(collectionIdToVidMap)))
           collectionResults <- orgCollectionService.isAuthorizedBatch(orgId, collectionIdToVidMap.keys.toSeq.distinct: _*)
         } yield {
 
-          logger.trace(s"function=isAuthorizedBatch, collectionResults=$collectionResults, collectionIdToVidMap=$collectionIdToVidMap")
+          logger.trace(ds(collectionResults, collectionIdToVidMap))
           idAndPermissions.map {
             case (vid, p) =>
               val collectionIdToVid = collectionIdToVidMap.find {
@@ -237,7 +238,7 @@ class ItemService(
 
               collectionIdToVid.map {
                 case (collectionIdPermission, itemIds) => {
-                  logger.trace(s"function=isAuthorizedBatch, collectionIdPermission=$collectionIdPermission, itemIds=$itemIds")
+                  logger.trace(ds(collectionIdPermission, itemIds))
                   val authorized = collectionResults.find {
                     case ((idp, authorized)) if (idp == collectionIdPermission) => authorized
                     case _ => false
@@ -261,20 +262,20 @@ class ItemService(
       .filterNot(_ == archiveConfig.contentCollectionId)
       .map(_.toString)
 
-    logger.trace(s"function=contributorsForOrg readableCollectionIds=$readableCollectionIds")
+    logger.trace(ds(readableCollectionIds))
 
     val filter = baseQuery ++ MongoDBObject(
       Keys.collectionId -> MongoDBObject("$in" -> readableCollectionIds))
     //TODO: RF - include versioned content?
 
-    logger.trace(s"distinct.filter=$filter")
-    dao.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
+    logger.trace(ds(filter))
+    dao.distinct("contributorDetails.contributor", filter).map(_.toString)
   }
 
   //TODO - would db("content").group be quicker?
   override def countItemsInCollections(collectionIds: ObjectId*): Future[Seq[ItemCount]] = Future {
 
-    logger.debug(s"function=countItemsInCollections, collectionIds=$collectionIds")
+    logger.debug(ds(collectionIds))
 
     def toItemCount(dbo: DBObject): Option[ItemCount] = {
       for {
@@ -291,17 +292,18 @@ class ItemService(
     val group = MongoDBObject("$group" -> MongoDBObject("_id" -> "$collectionId", "count" -> MongoDBObject("$sum" -> 1)))
     val output = currentCollection.aggregate(Seq(matchQuery, group))
     val foundCounts = output.results.toSeq.flatMap(toItemCount)
-    logger.trace(s"function=countItemsInCollections, foundCounts=$foundCounts")
+    logger.trace(ds(foundCounts))
     val emptyCounts = collectionIds.filterNot(id => foundCounts.exists(_.collectionId == id)).map(toEmptyItemCount)
-    logger.trace(s"function=countItemsInCollections, emptyCounts=$emptyCounts")
+    logger.trace(ds(emptyCounts))
     val out = foundCounts ++ emptyCounts
-    logger.trace(s"function=countItemsInCollections, out=$out")
+    logger.trace(ds(out))
 
     require(collectionIds.length == out.length, "Missing item counts")
     out.sortBy(_.collectionId)
   }
 
   override def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId] = {
+
     dao.findDbo(itemId.copy(version = None), MongoDBObject(Keys.collectionId -> 1)).flatMap {
       dbo =>
         try {
@@ -322,11 +324,11 @@ class ItemService(
     val fields = MongoDBObject("taskInfo.title" -> 1, Keys.standards -> 1)
     for {
       dbo <- dao.findDbo(itemId, fields)
-      _ <- Some(logger.debug(s"function=findItemStandards, dbo=$dbo"))
+      _ <- Some(logger.debug(ds(dbo)))
       title <- dbo.expand[String]("taskInfo.title")
-      _ <- Some(logger.trace(s"function=findItemStandards, title=$title"))
+      _ <- Some(logger.trace(ds(title)))
       standards <- dbo.expand[Seq[String]](Keys.standards)
-      _ <- Some(logger.trace(s"function=findItemStandards, standards=$standards"))
+      _ <- Some(logger.trace(ds(standards)))
     } yield ItemStandards(title, standards, itemId)
   }
 
@@ -336,17 +338,17 @@ class ItemService(
       case Nil => Future.successful(Nil)
       case _ => {
 
-        logger.debug(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids")
+        logger.debug(ds(orgId, ids))
         isAuthorizedBatch(orgId, ids.map(id => (id, Permission.Read)): _*).map { ids =>
 
-          logger.trace(s"function=findMultiplePlayerDefinitions, ids=$ids")
+          logger.trace(ds(ids))
 
           val (valid, invalid) = ids.partition(_._2)
 
           val validIds = valid.map(t => t._1._1)
           val invalidResults = invalid.map(_._1._1 -> Failure(PlatformServiceError("Not authorized to access")))
 
-          logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, ids=$ids, validIds=$validIds")
+          logger.trace(ds(orgId, ids, validIds))
 
           import scalaz.Scalaz._
 
@@ -356,7 +358,7 @@ class ItemService(
           } else {
             dao.findDbos(validIds, MongoDBObject(Keys.playerDefinition -> 1))
               .map(dbo => {
-                logger.trace(s"function=findMultiplePlayerDefinitions, orgId=$orgId, dbo=$dbo")
+                logger.trace(ds(orgId, dbo))
                 val idDbo = dbo.get("_id").asInstanceOf[DBObject]
                 val vid = toVid(idDbo)
                 val definition = dbo.get("playerDefinition").asInstanceOf[DBObject]

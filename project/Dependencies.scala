@@ -34,6 +34,7 @@ object Dependencies {
   val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
+  val corespringMacros = "org.corespring" %% "macros" % "1.1.0"
   val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "1.2.0-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val grizzledLog = "org.clapper" %% "grizzled-slf4j" % "1.0.2"
