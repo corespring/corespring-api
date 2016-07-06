@@ -60,8 +60,7 @@ object Build extends sbt.Build {
 
   lazy val coreUtils = builders.lib("utils", "core", publish = true)
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test"),
-      libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _))
+      libraryDependencies ++= Seq(specs2 % "test"))
 
   lazy val coreLegacy = builders.lib("legacy", "core")
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, securesocial, playFramework, specs2 % "test", playS3))
