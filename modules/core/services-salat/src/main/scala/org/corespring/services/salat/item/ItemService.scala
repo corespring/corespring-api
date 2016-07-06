@@ -303,6 +303,7 @@ class ItemService(
   }
 
   override def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId] = {
+
     dao.findDbo(itemId.copy(version = None), MongoDBObject(Keys.collectionId -> 1)).flatMap {
       dbo =>
         try {
