@@ -1,7 +1,7 @@
 package org.corespring.v2.player.cdn
 
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.models.item.resource.{BaseFile, StoredFile}
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.v2.player.hooks.PlayerItemProcessor
 import play.api.libs.json._
@@ -31,20 +31,17 @@ class CdnPlayerItemProcessor(
         playerDefinitionJson
       } else {
         val resolve = itemAssetResolver.resolve(maybeItemId.get)_
-
+        def replacers(file: BaseFile) = Seq(
+          (input: String) => new Regex("\"" + file.name + "\"").replaceAllIn(input, "\"" + resolve(file.name) + "\""),
+          (input: String) => new Regex("^" + file.name + "$").replaceAllIn(input, resolve(file.name)))
         storedFiles.foldLeft(playerDefinitionJson) { (json, file) =>
-          Seq(
-            (input: String) => new Regex("\"" + file.name + "\"").replaceAllIn(input, "\"" + resolve(file.name) + "\""),
-            (input: String) => new Regex("^" + file.name + "$").replaceAllIn(input , resolve(file.name))
-          ).foldLeft(json) { (json, matchAndReplace) =>
+          replacers(file).foldLeft(json) { (json, matchAndReplace) =>
             replaceStringsInJson(json, matchAndReplace);
           }
         }
       }
     }
   }
-
-
 
   //Ensure that only the requested properties are returned
   private def reducedPlayerDefinitionJson(playerDefinition: PlayerDefinition): JsValue = {
