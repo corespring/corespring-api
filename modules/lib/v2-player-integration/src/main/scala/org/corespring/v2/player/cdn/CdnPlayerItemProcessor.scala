@@ -1,10 +1,9 @@
 package org.corespring.v2.player.cdn
 
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.models.item.resource.StoredFile
+import org.corespring.models.item.resource.{BaseFile, StoredFile}
 import org.corespring.models.json.JsonFormatting
 import org.corespring.v2.player.hooks.PlayerItemProcessor
-
 import play.api.libs.json._
 
 import scala.util.matching.Regex
@@ -23,6 +22,7 @@ class CdnPlayerItemProcessor(
     require(playerDefinition.isDefined, "playerDefinition cannot be empty")
     val storedFiles = playerDefinition.get.files.filter(_.isInstanceOf[StoredFile])
     val playerDefinitionJson = reducedPlayerDefinitionJson(playerDefinition.get)
+
     if (storedFiles.length == 0) {
       playerDefinitionJson
     } else {
@@ -31,18 +31,20 @@ class CdnPlayerItemProcessor(
         playerDefinitionJson
       } else {
         val resolve = itemAssetResolver.resolve(maybeItemId.get)_
-        val result = storedFiles.foldLeft(playerDefinitionJson) { (json, file) =>
-          val fileMatcher = new Regex("\"" + file.name + "\"")
-          val resolvedFile = "\"" + resolve(file.name) + "\""
-          def resolveFile(file: String): String = {
-            fileMatcher.replaceAllIn(file, resolvedFile)
+
+        storedFiles.foldLeft(playerDefinitionJson) { (json, file) =>
+          Seq(
+            (input: String) => new Regex("\"" + file.name + "\"").replaceAllIn(input, "\"" + resolve(file.name) + "\""),
+            (input: String) => new Regex("^" + file.name + "$").replaceAllIn(input , resolve(file.name))
+          ).foldLeft(json) { (json, matchAndReplace) =>
+            replaceStringsInJson(json, matchAndReplace);
           }
-          replaceStringsInJson(json, resolveFile);
         }
-        result
       }
     }
   }
+
+
 
   //Ensure that only the requested properties are returned
   private def reducedPlayerDefinitionJson(playerDefinition: PlayerDefinition): JsValue = {

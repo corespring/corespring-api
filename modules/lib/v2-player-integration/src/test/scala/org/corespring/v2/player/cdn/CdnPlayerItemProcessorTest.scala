@@ -35,14 +35,20 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
       def playerDefinition = Some(PlayerDefinition(
         files = Seq(StoredFile("FigurePattern2.png", "image/png")),
         xhtml = "<img src=\"FigurePattern2.png\"></img>",
-        components = Json.obj("model" -> Json.obj("answer" -> "<img src=\"FigurePattern2.png\"></img>")),
+        components = Json.obj(
+          "1" -> Json.obj("model" -> Json.obj("answer" -> "<img src=\"FigurePattern2.png\"></img>")),
+          "2" -> Json.obj("fileName" -> "FigurePattern2.png")
+        ),
         summaryFeedback = "this is some text with an image <img src=\"FigurePattern2.png\"></img>",
         customScoring = None))
 
       def unresolvedPlayerDefinitionJson = Json.parse(
         """{
         "xhtml":"<img src=\"FigurePattern2.png\"></img>",
-        "components":{"model":{"answer":"<img src=\"FigurePattern2.png\"></img>"}},
+        "components": {
+          "1": {"model":{"answer":"<img src=\"FigurePattern2.png\"></img>"}},
+          "2": {"fileName": "FigurePattern2.png"}
+        },
         "summaryFeedback":"this is some text with an image <img src=\"FigurePattern2.png\"></img>"
         }""")
 
@@ -58,9 +64,14 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
       (json \ "summaryFeedback").as[String] must_== "this is some text with an image <img src=\"//CDN/FigurePattern2.png\"></img>"
     }
 
-    "replace url in components" in new scope {
+    "replace url in xml in component model" in new scope {
       val json = sut.makePlayerDefinitionJson(session, playerDefinition)
-      (json \ "components" \ "model" \ "answer").as[String] must_== "<img src=\"//CDN/FigurePattern2.png\"></img>"
+      (json \ "components" \ "1" \ "model" \ "answer").as[String] must_== "<img src=\"//CDN/FigurePattern2.png\"></img>"
+    }
+
+    "replace url in value of component model" in new scope {
+      val json = sut.makePlayerDefinitionJson(session, playerDefinition)
+      (json \ "components" \ "2" \ "fileName").as[String] must_== "//CDN/FigurePattern2.png"
     }
 
     "fail if playerDefinition is not defined" in new scope {
