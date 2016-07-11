@@ -3,8 +3,10 @@ package web.controllers
 import java.util.concurrent.TimeUnit
 import java.lang.StringBuilder
 
+//import scala.reflect.ClassTag
+
 import scala.{Right, Some}
-import scala.concurrent.Future
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
 
 import global.Global.main
@@ -14,19 +16,17 @@ import com.amazonaws.services.s3.AmazonS3Client
 
 import com.mongodb.casbah.{ MongoURI, MongoDB, MongoConnection }
 import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.BasicDBObject
 
+import org.corespring.elasticsearch.ElasticSearchClient
 
-import org.corespring.itemSearch
-import org.corespring.itemSearch.ItemIndexService
-import org.corespring.itemSearch.ItemIndexQuery
-
-import org.corespring.elasticsearch.ContentIndexer
 import org.corespring.models.error.CorespringInternalError
 
 import play.api.Play.current
 import play.api.cache.Cache
 import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.ws.Response
 import play.api.libs.json.{JsObject, JsString}
 import play.api.mvc.{Action, Controller}
 
@@ -56,36 +56,23 @@ class SystemCheck() extends Controller {
     }
   }
 
-
   def checkDatabase(): Either[CorespringInternalError, Unit] = {
 
-    lazy val mainDb = main.db
-    
-    /*
-    lazy val mongoUri = "mongodb://corespring:cccrcId4d@ds035160-a0.mongolab.com:35160,ds035160-a1.mongolab.com:35160/corespring-qa"
-    lazy val uri = MongoURI(mongoUri)
-    lazy val connection: MongoConnection = MongoConnection(uri)
-    lazy val db: MongoDB = connection.getDB(uri.database.get)
-    
-    db.collectionNames.foreach { n =>
-      println(n)
-    }
-    */
-    
+    val mainDb = main.db
     val dbmodels = Seq(
       "accessTokens",
       "apiClients",
       "contentcolls",
       "fieldValues",
-      "itemSessions",
+      "itemsessions",
       "orgs",
       "subjects",
-      "users")
-
+      "users"
+    )
     dbmodels.foldRight[Either[CorespringInternalError, Unit]](Right(()))((dbmodel, result) => {
       if (result.isRight) {
-        mainDb.getCollection(dbmodel).findOne(MongoDBObject()) match {
-          case _: MongoDBObject => Right(())
+        mainDb.getCollection(dbmodel).findOne() match {
+          case _: BasicDBObject => Right(())
           case _ => Left(CorespringInternalError("could not find collection: " + dbmodel))
         }
       } else result
@@ -94,15 +81,18 @@ class SystemCheck() extends Controller {
 
   def checkElasticSearch(): Either[CorespringInternalError, Unit] = {
     val cfg = main.elasticSearchConfig
-    //println(cfg.url)
-    //println(cfg.mongoUri)
-    //println(cfg.componentPath)
-    val query = ItemIndexQuery(text = Some("test-cluster"), collections = Seq(collectionId.toString))
-    val itemIndexService = main.itemIndexService
-    println (itemIndexService)
-
-    Right(())
+    val elasticSearchClient = ElasticSearchClient(cfg.url)
+    val elasticClientResult = elasticSearchClient.authed("_cluster/health").get.flatMap[Either[CorespringInternalError, Unit]]( response => Future {
+        response.status match {
+          case 200 => Right(())
+          case _ => Left(CorespringInternalError("could not connect to ElasticSearch provider"))
+        }
+      } recover {
+        case timeout: java.util.concurrent.TimeoutException => Left(CorespringInternalError("Timed out while connecting to ElasticSearch cluster"))
+    })
+    Await.result(elasticClientResult, Duration(5, TimeUnit.SECONDS));
   }
+
 
   def index = Action.async {
 
@@ -112,8 +102,8 @@ class SystemCheck() extends Controller {
       val results = List(
         checkS3(),
         checkCache(),
-        checkDatabase()
-        //,checkElasticSearch()
+        checkDatabase(),
+        checkElasticSearch()
       )
 
       def isAnError(result: Either[CorespringInternalError, Unit]) = result match {
@@ -130,6 +120,7 @@ class SystemCheck() extends Controller {
               case Left(x) => {
                 sb.append(x.message + "; ")
               }
+              case _ => Ok
             }
         }
         Left(CorespringInternalError(sb.toString()))
