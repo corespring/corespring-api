@@ -124,8 +124,8 @@ class Main(
     player = V2PlayerConfig(
       rootUrl = configuration.getString("container.rootUrl"),
       newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))),
-    uploadAudioMaxSizeKb = configuration.getLong("editor.upload.audio.maxSizeKb").getOrElse(16 * 1024),
-    uploadImageMaxSizeKb = configuration.getLong("editor.upload.image.maxSizeKb").getOrElse(500))
+    uploadAudioMaxSizeKb = configuration.getLong("container.editor.upload.audio.maxSizeKb").getOrElse(16 * 1024 -1),
+    uploadImageMaxSizeKb = configuration.getLong("container.editor.upload.image.maxSizeKb").getOrElse(500))
 
   logger.info(s"containerConfig: $containerConfig")
 
