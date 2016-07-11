@@ -2,11 +2,20 @@ package org.corespring.models
 
 import play.api.libs.json._
 
-case class ColorPalette(correctBackground: String, correctForeground: String, partiallyCorrectBackground: String,
-                        partiallyCorrectForeground: String, incorrectBackground: String, incorrectForeground: String,
-                        hideShowBackground: String, hideShowForeground: String, warningBackground: String,
-                        warningForeground: String, warningBlockBackground: String, warningBlockForeground: String,
-                        mutedBackground: String, mutedForeground: String)
+case class ColorPalette(correctBackground: String = ColorPalette.Defaults.correctBackground,
+                        correctForeground: String = ColorPalette.Defaults.correctForeground,
+                        partiallyCorrectBackground: String = ColorPalette.Defaults.partiallyCorrectBackground,
+                        partiallyCorrectForeground: String = ColorPalette.Defaults.partiallyCorrectForeground,
+                        incorrectBackground: String = ColorPalette.Defaults.incorrectBackground,
+                        incorrectForeground: String = ColorPalette.Defaults.incorrectForeground,
+                        hideShowBackground: String = ColorPalette.Defaults.hideShowBackground,
+                        hideShowForeground: String = ColorPalette.Defaults.hideShowForeground,
+                        warningBackground: String = ColorPalette.Defaults.warningBackground,
+                        warningForeground: String = ColorPalette.Defaults.warningForeground,
+                        warningBlockBackground: String = ColorPalette.Defaults.warningBlockBackground,
+                        warningBlockForeground: String = ColorPalette.Defaults.warningBlockForeground,
+                        mutedBackground: String = ColorPalette.Defaults.mutedBackground,
+                        mutedForeground: String = ColorPalette.Defaults.mutedForeground)
 
 object ColorPalette {
 
