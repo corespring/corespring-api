@@ -72,4 +72,4 @@ GET         /authenticate/:provider                                   securesoci
 POST        /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticateByPost(provider)
 
 # System Health check
-GET         /benka		                                              @web.controllers.SystemCheck.index()
+GET         /healthcheck                                              @web.controllers.SystemCheck.index()
