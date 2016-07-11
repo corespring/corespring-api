@@ -55,7 +55,7 @@ object Dependencies {
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
-  val playS3 = "org.corespring" %% "s3-play-plugin" % "1.1.0"
+  val playS3 = "org.corespring" %% "s3-play-plugin" % "1.2.1"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
   val qti = "org.corespring" %% "corespring-qti" % qtiVersion
   val qtiConverter = "org.corespring" %% "qti-corespring-converter" % qtiVersion
