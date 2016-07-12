@@ -32,8 +32,6 @@ import play.api.mvc.{Action, Controller}
 
 class SystemCheck() extends Controller {
 
-  implicit val as = Akka.system
-
   def checkCache(): Either[CorespringInternalError, Unit] = {
     Cache.set("test", "test")
     Cache.get("test") match {
