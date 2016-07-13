@@ -15,7 +15,6 @@ import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.MockFactory
 import org.corespring.web.common.controllers.deployment.AssetsLoader
-import org.corespring.web.common.views.helpers.BuildInfo
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -87,8 +86,6 @@ class MainTest extends Specification with Mockito with PlaySpecification with Mo
 
     lazy val webExecutionContext = WebExecutionContext(ExecutionContext.global)
 
-    val buildInfo = BuildInfo("hash", "date", "branch", "version")
-
     val assetsLoader = mock[AssetsLoader]
 
     lazy val orgAndOpts = V2ActionsFactory.orgAndOpts
@@ -105,7 +102,6 @@ class MainTest extends Specification with Mockito with PlaySpecification with Mo
       containerVersion,
       webExecutionContext,
       playerTokenService,
-      buildInfo,
       assetsLoader)
   }
 
