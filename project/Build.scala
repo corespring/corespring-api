@@ -75,7 +75,7 @@ object Build extends sbt.Build {
 
   lazy val coreServicesSalat = builders.lib("services-salat", "core", publish = true)
     .settings(
-      libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws))
+      libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws, corespringMacros))
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(
@@ -113,8 +113,6 @@ object Build extends sbt.Build {
 
   lazy val commonViews = builders.web("common-views")
     .settings(
-      BuildInfo.buildInfoTask,
-      (packagedArtifacts) <<= (packagedArtifacts) dependsOn BuildInfo.buildInfo,
       libraryDependencies ++= Seq(playJson % "test", assetsLoader, aws))
     .dependsOn(assets, itemSearch)
 
@@ -238,6 +236,8 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
+  import buildInfo.Implicits._
+
   val main = builders.web("root", Some(file(".")), disablePackaging = false)
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
@@ -273,6 +273,7 @@ object Build extends sbt.Build {
     .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
     .settings(AccessToken.cleanupTask)
+    .addBuildInfo()
     .dependsOn(
       apiUtils,
       coreModels,
