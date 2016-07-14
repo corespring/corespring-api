@@ -24,6 +24,7 @@ import org.corespring.container.client.{ NewRelicRumConfig, V2PlayerConfig, Vers
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
+import org.corespring.csApi.buildInfo.BuildInfo
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
@@ -32,7 +33,7 @@ import org.corespring.importing.validation.ItemSchema
 import org.corespring.importing.{ ImportingExecutionContext, ItemImportModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
-import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
+import org.corespring.models.appConfig._
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
@@ -43,6 +44,7 @@ import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
+import org.corespring.v2.actions.{ DefaultV2Actions, V2ActionExecutionContext }
 import org.corespring.v2.api._
 import org.corespring.v2.api.services.{ BasicScoreService, OrgScoringExecutionContext, ScoreService, ScoreServiceExecutionContext }
 import org.corespring.v2.auth.identifiers.{ PlayerTokenConfig, UserSessionOrgIdentity }
@@ -54,8 +56,7 @@ import org.corespring.v2.player.cdn._
 import org.corespring.v2.player.hooks.StandardsTree
 import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService, MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService }
 import org.corespring.v2.sessiondb._
-import org.corespring.web.common.controllers.deployment.AssetsLoader
-import org.corespring.web.common.views.helpers.BuildInfo
+import org.corespring.web.common.controllers.deployment.{ AssetsLoader, BranchAndHash }
 import org.corespring.web.user.SecureSocial
 import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
@@ -65,9 +66,9 @@ import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 import se.radley.plugin.salat.SalatPlugin
 import web.models.WebExecutionContext
-import web.{ DefaultOrgs, PublicSiteConfig, WebModule, WebModuleConfig }
+import web.{ PublicSiteConfig, WebModule, WebModuleConfig, WebV2Actions }
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Validation
 
 object Main {
@@ -111,7 +112,7 @@ class Main(
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  private lazy val logger = Logger(classOf[Main])
+  private lazy val logger = Logger(this.getClass)
 
   lazy val appConfig = AppConfig(configuration)
 
@@ -122,15 +123,13 @@ class Main(
     components = ComponentsConfig.fromConfig(mode, configuration.getConfig("container.components").getOrElse(Configuration.empty)),
     player = V2PlayerConfig(
       rootUrl = configuration.getString("container.rootUrl"),
-      newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))))
+      newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))),
+    uploadAudioMaxSizeKb = configuration.getLong("container.editor.upload.audio.maxSizeKb").getOrElse(16 * 1024 -1),
+    uploadImageMaxSizeKb = configuration.getLong("container.editor.upload.image.maxSizeKb").getOrElse(500))
 
   logger.info(s"containerConfig: $containerConfig")
 
-  override lazy val versionInfo: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
-
   logger.info(s"versionInfo: $versionInfo")
-
-  override lazy val rootOrgId: ObjectId = appConfig.rootOrgId
 
   override lazy val accessSettingsCheckConfig: AccessSettingsCheckConfig = AccessSettingsCheckConfig(appConfig.allowAllSessions)
 
@@ -139,8 +138,6 @@ class Main(
   override lazy val defaultOrgs: DefaultOrgs = DefaultOrgs(appConfig.v2playerOrgIds, appConfig.rootOrgId)
 
   override lazy val publicSiteConfig: PublicSiteConfig = PublicSiteConfig(appConfig.publicSite)
-
-  override lazy val buildInfo = BuildInfo(resourceLoader.loadPath)
 
   private def ecLookup(id: String) = {
     def hasEnabledAkkaConfiguration(id: String) = {
@@ -171,12 +168,13 @@ class Main(
   override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ecLookup("akka.v2-api"))
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ecLookup("akka.v2-player"))
   override lazy val webExecutionContext: WebExecutionContext = WebExecutionContext(ecLookup("akka.web"))
+  lazy val v2ActionContext: V2ActionExecutionContext = V2ActionExecutionContext(ecLookup("akka.v2-actions"))
   override lazy val sessionServiceExecutionContext: SessionServiceExecutionContext = SessionServiceExecutionContext(sessionExecutionContext.heavyLoad)
   override lazy val orgScoringExecutionContext: OrgScoringExecutionContext = OrgScoringExecutionContext(scoringApiExecutionContext.contextForScoring)
   override lazy val scoreServiceExecutionContext = ScoreServiceExecutionContext(scoringApiExecutionContext.contextForScoring)
 
   private def mainAppVersion(): String = {
-    val commit = buildInfo.commitHashShort
+    val commit = BuildInfo.commitHash
     val versionOverride = appConfig.appVersionOverride
     val result = commit + versionOverride
     logger.trace(s"AppVersion $result hash ${commit} override ${versionOverride}")
@@ -313,6 +311,8 @@ class Main(
 
   override lazy val accessTokenConfig = AccessTokenConfig()
 
+  override lazy val allowExpiredTokens = AllowExpiredTokens(appConfig.allowExpiredTokens)
+
   override lazy val transferManager: TransferManager = new TransferManager(s3)
 
   override lazy val s3: AmazonS3 = {
@@ -442,12 +442,33 @@ class Main(
 
   override lazy val playerJsonToItem: PlayerJsonToItem = new PlayerJsonToItem(jsonFormatting)
 
-  override lazy val assetsLoader: AssetsLoader = new AssetsLoader(playMode, configuration, s3, buildInfo)
+  override lazy val assetsLoader: AssetsLoader = new AssetsLoader(playMode, configuration, s3, BranchAndHash(
+    BuildInfo.branch,
+    BuildInfo.commitHash))
 
   initServiceLookup()
   componentLoader.reload
 
-  override lazy val containerVersion: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
+  lazy val futureAuth = (request: RequestHeader) => Future { getOrgAndOptsFn(request) }(v2ApiExecutionContext.context)
+
+  override lazy val versionInfo: VersionInfo = VersionInfo(configuration.getConfig("container").getOrElse(Configuration.empty))
+
+  override def webV2Actions: WebV2Actions = WebV2Actions(new DefaultV2Actions(
+    defaultOrgs,
+    rh => Future { userSessionOrgIdentity.apply(rh) }(webExecutionContext.context),
+    apiClientService,
+    v2ActionContext))
+
+  override lazy val v2ApiActions: V2ApiActions = V2ApiActions(new DefaultV2Actions(
+    defaultOrgs,
+
+    /**
+     * TODO: We have to support userSession here because legacy v1 api endpoints are used in the cms
+     * These are routed to v2.
+     */
+    rh => Future { requestIdentifiers.allIdentifiers(rh) }(v2ApiExecutionContext.context),
+    apiClientService,
+    v2ActionContext))
 
   override lazy val webModuleConfig: WebModuleConfig = WebModuleConfig(mode)
 

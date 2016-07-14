@@ -218,7 +218,8 @@ class ItemFileConverterTest extends Specification with Mockito {
       def kv(s: String) = StringKeyValue(s, s)
 
       override def fieldValue: FieldValue = FieldValue(
-        credentials = Seq(kv("State Department of Education"),
+        credentials = Seq(
+          kv("State Department of Education"),
           kv("State of New Jersey Department of Education")),
         bloomsTaxonomy = Seq(kv("Analyzing")),
         gradeLevels = Seq(kv("03")))

@@ -20,6 +20,10 @@ class FutureValidationTest extends Specification {
     s"success: $v"
   }
 
+  def gotWhatLeftMap(v: String): String = {
+    s"failure: $v"
+  }
+
   "flatMap" should {
     "return a FutureValidation[EE,B] Success" in {
       FutureValidation(suc).flatMap(gotWhat).future must equalTo(Success("success: success")).await
@@ -37,6 +41,16 @@ class FutureValidationTest extends Specification {
 
     "return a FutureValidation[E,B] Failure" in {
       FutureValidation(fai).map(gotWhatMap).future must equalTo(fai).await
+    }
+  }
+
+  "leftMap" should {
+    "return a FutureValidation[EE,B] Success" in {
+      FutureValidation(suc).leftMap(gotWhatLeftMap).future must equalTo(suc).await
+    }
+
+    "return a FutureValidation[EE,B] Failure" in {
+      FutureValidation(fai).leftMap(gotWhatLeftMap).future must equalTo(Failure(gotWhatLeftMap("failure"))).await
     }
   }
 }

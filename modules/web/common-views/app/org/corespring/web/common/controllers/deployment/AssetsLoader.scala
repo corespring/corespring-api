@@ -5,32 +5,18 @@ import com.ee.assets.Loader
 import com.ee.assets.deployment.Deployer
 import com.google.javascript.jscomp.CompilerOptions
 import org.apache.commons.lang3.StringUtils
-import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Mode.Mode
 import play.api.{ Configuration, Mode, Logger }
 
-private[deployment] object ValidBucketName {
+case class BranchAndHash(branch: String, hash: String)
 
-  val bucketNameLengthMax = 63
-  val base = "corespring-public-assets"
-
-  def apply(env: String, branch: String): String = {
-    val bucketCompliantBranchName = branch.replaceAll("feature", "").replaceAll("hotfix", "").replaceAll("/", "-")
-    val raw = Seq(base, env, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase.replaceAll("--", "-")
-    val trimmed = raw.take(bucketNameLengthMax)
-    if (trimmed.endsWith("-")) {
-      StringUtils.substringBeforeLast(trimmed, "-")
-    } else {
-      trimmed
-    }
-  }
-}
-
-class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildInfo: BuildInfo) {
+class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, branchAndHash: BranchAndHash) {
 
   private[this] val logger = Logger(classOf[AssetsLoader])
 
   private def isProd: Boolean = mode == Mode.Prod
+
+  val bucketNameLengthMax = 63
 
   lazy val closureOptions = {
     val o = new CompilerOptions()
@@ -40,9 +26,9 @@ class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildI
 
   lazy val loader: Loader = if (isProd) {
 
-    lazy val branch: String = if (buildInfo.branch.isEmpty || buildInfo.branch == "?") "no-branch" else buildInfo.branch
+    lazy val branch: String = if (branchAndHash.branch.isEmpty || branchAndHash.branch == "?") "no-branch" else branchAndHash.branch
 
-    val commitHash = buildInfo.commitHashShort
+    val commitHash = branchAndHash.hash
 
     lazy val releaseRoot: String = if (commitHash.isEmpty || commitHash == "?") {
       val format = new java.text.SimpleDateFormat("yyyy-MM-dd--HH-mm")
@@ -52,9 +38,13 @@ class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildI
     }
 
     val bucketName: String = {
+      val publicAssets = "corespring-public-assets"
       if (isProd) {
         val envName = config.getString("ENV_NAME").getOrElse("")
-        ValidBucketName(envName, branch)
+        val bucketCompliantBranchName = branch.replaceAll("feature", "").replaceAll("hotfix", "").replaceAll("/", "-")
+        val raw = Seq(publicAssets, envName, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase
+        val trimmed = raw.take(bucketNameLengthMax)
+        StringUtils.substringBeforeLast(trimmed, "-")
       } else {
         "corespring-dev-tmp-assets"
       }

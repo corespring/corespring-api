@@ -1,23 +1,22 @@
 package org.corespring.v2.api
 
 import org.corespring.models.Organization
-import org.corespring.models.auth.ApiClient
+import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
-import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ encryptionFailed, noJson }
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.{ Controller, RequestHeader, Action }
+import play.api.mvc.Controller
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.Validation
 
 class PlayerTokenApi(
+  actions: V2Actions,
   tokenService: PlayerTokenService,
-  v2ApiContext: V2ApiExecutionContext,
-  val identifyFn: RequestHeader => Validation[V2Error, (OrgAndOpts, ApiClient)])
+  v2ApiContext: V2ApiExecutionContext)
   extends Controller
   with ValidationToResultLike {
 
@@ -40,38 +39,36 @@ class PlayerTokenApi(
   def createPlayerToken = createToken("playerToken")
 
   /**
-    * Creates a browser token.
-    * param json - access settings in the json body
-    * If the json doesn't specify any of the AccessSetting properties, an error will be returned.
-    * If they specify at a minimum the required 'expires' property,
-    * The remaining properties will be set to a wildcard value.
-    * return json - browserToken, clientId and accessSettings used
-    *
-    * @see PlayerAccessSettings
-    */
+   * Creates a browser token.
+   * param json - access settings in the json body
+   * If the json doesn't specify any of the AccessSetting properties, an error will be returned.
+   * If they specify at a minimum the required 'expires' property,
+   * The remaining properties will be set to a wildcard value.
+   * return json - browserToken, clientId and accessSettings used
+   *
+   * @see PlayerAccessSettings
+   */
   def createBrowserToken = createToken("browserToken")
 
-  private def createToken(kind: String) = Action.async { request =>
+  private def createToken(kind: String) = actions.OrgAndApiClient.async { request =>
     Future {
 
       logger.debug(s"function=createToken $kind")
 
       val out: Validation[V2Error, CreateTokenResult] = for {
-        client <- identifyFn(request).map(_._2)
         json <- request.body.asJson.toSuccess(noJson)
-        result <- tokenService.createToken(client, json)
+        result <- tokenService.createToken(request.apiClient, json)
       } yield result
 
-      validationToResult[CreateTokenResult] {
+      out.map {
         case CreateTokenResult(apiClient, token, json) => {
-          val response = Json.obj(
+          logger.debug(s"function=createPlayerToken apiClient=$apiClient accessSettings=${Json.stringify(json)} token=$token")
+          Json.obj(
             kind -> token,
             "apiClient" -> apiClient,
             "accessSettings" -> json)
-          logger.debug(s"function=createToken $kind response=${Json.stringify(response)}")
-          Ok(response)
         }
-      }(out)
+      }.toSimpleResult()
     }
   }
 

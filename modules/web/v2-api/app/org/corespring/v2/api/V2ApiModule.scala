@@ -5,11 +5,14 @@ import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.itemSearch.ItemIndexService
+import org.corespring.models.appConfig.DefaultOrgs
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.{ ComponentType, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.drafts.item.ItemDraftsModule
+import org.corespring.v2.api.services.{ PlayerTokenService, ScoreService }
 import org.corespring.v2.api.services.{ CachingPlayerDefinitionService, _ }
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -24,11 +27,18 @@ import scalaz.Validation
 
 case class V2ApiExecutionContext(context: ExecutionContext)
 
+case class V2ApiActions(actions: V2Actions)
+
 trait V2ApiModule
   extends ItemDraftsModule
   with org.corespring.services.bootstrap.Services {
 
   import com.softwaremill.macwire.MacwireMacros._
+
+  /** Allow v2 api actions to be separate */
+  def v2ApiActions: V2ApiActions
+
+  def defaultOrgs: DefaultOrgs
 
   def mainSessionService: SessionService
 
@@ -62,7 +72,7 @@ trait V2ApiModule
 
   def sessionServices: SessionServices
 
-  def rootOrgId: ObjectId
+  private lazy val apiV2Actions = v2ApiActions.actions
 
   def scoreServiceExecutionContext: ScoreServiceExecutionContext
 

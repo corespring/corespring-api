@@ -2,6 +2,7 @@ package bootstrap
 
 import com.softwaremill.macwire.MacwireMacros._
 import org.corespring.encryption.apiClient.ApiClientEncryptionService
+import org.corespring.models.appConfig.AllowExpiredTokens
 import org.corespring.models.auth.ApiClient
 import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.corespring.services.{ OrganizationService, UserService }
@@ -26,7 +27,8 @@ class RequestIdentifiers(
   tokenService: AccessTokenService,
   apiClientService: ApiClientService,
   apiClientEncryptionService: ApiClientEncryptionService,
-  playerTokenConfig: PlayerTokenConfig) {
+  playerTokenConfig: PlayerTokenConfig,
+  allowExpiredTokens: AllowExpiredTokens) {
 
   /** A token only based auth */
   def accessTokenToOrgAndApiClient: (RequestHeader) => Validation[V2Error, (OrgAndOpts, ApiClient)] =

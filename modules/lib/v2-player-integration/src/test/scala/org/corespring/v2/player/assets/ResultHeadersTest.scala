@@ -13,15 +13,15 @@ class ResultHeadersTest extends Specification with ResultHeaders with Mockito wi
       val result = Ok.withContentHeaders("my-svg.svgx")
 
       "include Content-Type 'image/svg+xml'" in {
-        result.header.headers.get("Content-Type") must be equalTo(Some("image/svg+xml"))
+        result.header.headers.get("Content-Type") must be equalTo (Some("image/svg+xml"))
       }
 
       "include Content-Encoding 'gzip'" in {
-        result.header.headers.get("Content-Encoding") must be equalTo(Some("gzip"))
+        result.header.headers.get("Content-Encoding") must be equalTo (Some("gzip"))
       }
 
       "include Vary 'Accept-Encoding'" in {
-        result.header.headers.get("Vary") must be equalTo(Some("Accept-Encoding"))
+        result.header.headers.get("Vary") must be equalTo (Some("Accept-Encoding"))
       }
 
     }
