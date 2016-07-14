@@ -3,8 +3,6 @@ package web.controllers
 import java.util.concurrent.TimeUnit
 import java.lang.StringBuilder
 
-//import scala.reflect.ClassTag
-
 import scala.{Right, Some}
 import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
@@ -18,7 +16,7 @@ import com.mongodb.casbah.{ MongoURI, MongoDB, MongoConnection }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.BasicDBObject
 
-import org.corespring.elasticsearch.ElasticSearchClient
+import org.corespring.elasticsearch._
 
 import org.corespring.models.error.CorespringInternalError
 
@@ -77,7 +75,7 @@ class SystemCheck() extends Controller {
     })
   }
 
-  def checkElasticSearch(): Either[CorespringInternalError, Unit] = {
+  /*def checkElasticSearch(): Either[CorespringInternalError, Unit] = {
     val cfg = main.elasticSearchConfig
     val elasticSearchClient = ElasticSearchClient(cfg.url)
     val elasticClientResult = elasticSearchClient.authed("_cluster/health").get.flatMap[Either[CorespringInternalError, Unit]]( response => Future {
@@ -89,7 +87,7 @@ class SystemCheck() extends Controller {
         case timeout: java.util.concurrent.TimeoutException => Left(CorespringInternalError("Timed out while connecting to ElasticSearch cluster"))
     })
     Await.result(elasticClientResult, Duration(5, TimeUnit.SECONDS));
-  }
+  }*/
 
 
   def index = Action.async {
@@ -100,8 +98,8 @@ class SystemCheck() extends Controller {
       val results = List(
         checkS3(),
         checkCache(),
-        checkDatabase(),
-        checkElasticSearch()
+        checkDatabase()/*,
+        checkElasticSearch()*/
       )
 
       def isAnError(result: Either[CorespringInternalError, Unit]) = result match {
