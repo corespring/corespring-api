@@ -71,3 +71,5 @@ POST        /password                                                 securesoci
 GET         /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticate(provider)
 POST        /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticateByPost(provider)
 
+# System Health check
+GET         /healthcheck                                              @web.controllers.SystemCheck.index()
