@@ -3,8 +3,6 @@ package web.controllers
 import java.util.concurrent.TimeUnit
 import java.lang.StringBuilder
 
-//import scala.reflect.ClassTag
-
 import scala.{Right, Some}
 import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
@@ -18,7 +16,7 @@ import com.mongodb.casbah.{ MongoURI, MongoDB, MongoConnection }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.BasicDBObject
 
-import org.corespring.elasticsearch.ElasticSearchClient
+import org.corespring.elasticsearch.WSClient
 
 import org.corespring.models.error.CorespringInternalError
 
@@ -49,8 +47,7 @@ class SystemCheck() extends Controller {
       val getS3Object = client.getObject(testBucket, testObject)
       Right(())
     } catch {
-        case e: Throwable => false
-        Left(CorespringInternalError("S3 is not available"))
+        case e: Throwable => Left(CorespringInternalError("S3 is not available"))
     }
   }
 
@@ -78,9 +75,10 @@ class SystemCheck() extends Controller {
   }
 
   def checkElasticSearch(): Either[CorespringInternalError, Unit] = {
+
     val cfg = main.elasticSearchConfig
-    val elasticSearchClient = ElasticSearchClient(cfg.url)
-    val elasticClientResult = elasticSearchClient.authed("_cluster/health").get.flatMap[Either[CorespringInternalError, Unit]]( response => Future {
+    val elasticSearchClient = WSClient(cfg.url)
+    val elasticClientResult = elasticSearchClient.request("_cluster/health").get.flatMap[Either[CorespringInternalError, Unit]]( response => Future {
         response.status match {
           case 200 => Right(())
           case _ => Left(CorespringInternalError("could not connect to ElasticSearch provider"))
