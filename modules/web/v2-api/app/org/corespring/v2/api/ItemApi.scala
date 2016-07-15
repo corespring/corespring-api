@@ -1,6 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.futureValidation.FutureValidation
 import org.corespring.itemSearch._
 import org.corespring.futureValidation.FutureValidation._
 import org.corespring.models.item.{ ComponentType, Item }
@@ -8,6 +9,7 @@ import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.corespring.services.{ CloneItemService, OrgCollectionService, OrganizationService }
+import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -26,6 +28,7 @@ import scalaz.{ Failure, Success, Validation }
 case class ItemApiExecutionContext(context: ExecutionContext)
 
 class ItemApi(
+  actions: V2Actions,
   itemService: ItemService,
   orgService: OrganizationService,
   orgCollectionService: OrgCollectionService,
@@ -36,8 +39,7 @@ class ItemApi(
   scoreService: ScoreService,
   val jsonFormatting: JsonFormatting,
   apiContext: ItemApiExecutionContext,
-  sessionService: SessionService,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api with JsonUtil {
+  sessionService: SessionService) extends V2Api with JsonUtil {
 
   implicit val itemFormat = jsonFormatting.item
 
@@ -60,29 +62,29 @@ class ItemApi(
    * adding an `access_token` query parameter to the call
    * adding `apiClient` and `playerToken` query parameter to the call
    */
-  def create = Action.async { implicit request =>
+  def create = actions.Org.async { request =>
     import scalaz.Scalaz._
     Future {
 
       logger.trace(s"function=create jsonBody=${request.body.asJson}")
 
       val out = for {
-        identity <- getOrgAndOptions(request)
-        dc <- orgCollectionService.getDefaultCollection(identity.org.id).leftMap(e => generalError(e.message))
+        dc <- orgCollectionService.getDefaultCollection(request.org.id).leftMap(e => generalError(e.message))
         json <- loadJson(dc.id)(request)
         validJson <- validatedJson(dc.id)(json).toSuccess(incorrectJsonFormat(json))
         collectionId <- (validJson \ "collectionId").asOpt[String].toSuccess(invalidJson("no collection id specified"))
-        canCreate <- itemAuth.canCreateInCollection(collectionId)(identity)
+        canCreate <- itemAuth.canCreateInCollection(collectionId)(request.orgAndOpts)
         item <- validJson.asOpt[Item].toSuccess(invalidJson("can't parse json as Item"))
         vid <- if (canCreate) {
           logger.trace(s"function=create, inserting item, json=${validJson}")
-          itemAuth.insert(item)(identity).toSuccess(errorSaving)
+          itemAuth.insert(item)(request.orgAndOpts).toSuccess(errorSaving)
         } else Failure(errorSaving("creation denied"))
       } yield {
         logger.trace(s"new item id: $vid")
         item.copy(id = vid)
       }
-      validationToResult[Item](i => Ok(Json.toJson(i)))(out)
+
+      out.map(i => Json.toJson(i)).toSimpleResult()
     }
   }
 
@@ -93,14 +95,14 @@ class ItemApi(
     }
   }
 
-  def search(query: Option[String]) = futureWithIdentity { (identity, request) =>
+  def search(query: Option[String]) = actions.Org.async { request =>
     logger.debug(s"function=search, query=$query")
-    searchWithQueryAndCollections(query, identity.org.accessibleCollections.map(_.collectionId): _*) { r => toJson(r) }
+    searchWithQueryAndCollections(query, request.org.accessibleCollections.map(_.collectionId): _*) { r => toJson(r) }
   }
 
   def searchByCollectionId(
     collectionId: ObjectId,
-    q: Option[String] = None) = futureWithIdentity(BAD_REQUEST) { (identity, request) =>
+    q: Option[String] = None) = actions.OrgWithStatusCode(BAD_REQUEST).async { _ =>
     searchWithQueryAndCollections(q, collectionId) { searchResult =>
       implicit val f = ItemIndexHit.Format
       toJson(searchResult.hits)
@@ -126,7 +128,7 @@ class ItemApi(
       }
   }
 
-  def delete(itemId: String) = Action.async { implicit request =>
+  def delete(itemId: String) = actions.Org.async { implicit request =>
     import scalaz.Scalaz._
 
     def moveItemToArchive(id: VersionedId[ObjectId]): Validation[V2Error, Boolean] = {
@@ -143,15 +145,15 @@ class ItemApi(
 
     Future {
       val out = for {
-        identity <- getOrgAndOptions(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         collectionId <- itemService.collectionIdForItem(vid).toSuccess(cantFindItemWithId(vid))
-        canDelete <- itemAuth.canCreateInCollection(collectionId.toString)(identity)
+        canDelete <- itemAuth.canCreateInCollection(collectionId.toString)(request.orgAndOpts)
         result <- moveItemToArchive(vid)
       } yield {
         result
       }
-      validationToResult[Boolean](i => Ok(""))(out)
+
+      out.map(_ => Json.obj()).toSimpleResult()
     }
   }
 
@@ -163,40 +165,38 @@ class ItemApi(
    * @param itemId
    * @return
    */
-  def checkScore(itemId: String): Action[AnyContent] = Action.async { implicit request =>
+  def checkScore(itemId: String): Action[AnyContent] = actions.Org.async { implicit request =>
 
     logger.trace(s"function=checkScore itemId=$itemId jsonBody=${request.body.asJson}")
 
     Future {
       val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
         answers <- request.body.asJson.toSuccess(noJson)
-        item <- itemAuth.loadForRead(itemId)(identity)
+        item <- itemAuth.loadForRead(itemId)(request.orgAndOpts)
         playerDef <- item.playerDefinition.toSuccess(noPlayerDefinition(item.id))
         score <- scoreService.score(playerDef, answers)
       } yield score
 
-      validationToResult[JsValue](j => Ok(j))(out)
+      out.toSimpleResult()
     }
   }
 
   def getFull(itemId: String) = get(itemId, Some("full"))
 
-  def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
+  def get(itemId: String, detail: Option[String] = None) = actions.Org.async { implicit request =>
     import scalaz.Scalaz._
 
     Future {
       val out = for {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        identity <- getOrgAndOptions(request)
-        item <- itemAuth.loadForRead(itemId)(identity)
+        item <- itemAuth.loadForRead(itemId)(request.orgAndOpts)
       } yield jsonFormatting.itemSummary.write(item, detail)
 
-      validationToResult[JsValue](i => Ok(i))(out)
+      out.toSimpleResult()
     }
   }
 
-  def cloneItem(id: String) = futureWithIdentity((identity, request) => {
+  def cloneItem(id: String) = actions.Org.async { request =>
 
     lazy val targetCollectionId: Validation[V2Error, Option[ObjectId]] = {
       val rawId: Option[String] = request.body.asJson.flatMap { j =>
@@ -212,46 +212,41 @@ class ItemApi(
       }.getOrElse(Success(None))
     }
 
-    VersionedId(id).map { vid =>
-      targetCollectionId match {
-        case Success(collectionId) => {
-          cloneItemService.cloneItem(vid, identity.org.id, collectionId).future.map { v =>
-            val asJson = v.bimap(
-              e => generalError(s"Error cloning item with id: $id: ${e.message}"),
-              id => Json.obj("id" -> id.toString))
-            validationToResult[JsValue](i => Ok(i))(asJson)
-          }
-        }
-        case Failure(e) => Future(e.toResult)
-      }
-    }.getOrElse(Future(cantParseItemId(id).toResult))
-  })
+    val v: FutureValidation[V2Error, VersionedId[ObjectId]] = for {
+      vid <- fv(VersionedId(id).toSuccess(cantParseItemId(id)))
+      collectionId <- fv(targetCollectionId)
+      r <- cloneItemService.cloneItem(vid, request.org.id, collectionId).leftMap(e => generalError(e.message))
+    } yield r
 
-  def publish(id: String) = Action.async { implicit request =>
+    v.map { vid =>
+      Json.obj("id" -> vid.toString)
+    }.future.toSimpleResult()
+
+  }
+
+  def publish(id: String) = actions.Org.async { request =>
     Future {
       val out = for {
-        _ <- getOrgAndOptions(request)
         vid <- VersionedId(id).toSuccess(cantParseItemId(id))
         published <- Success(itemService.publish(vid))
       } yield Json.obj("id" -> id, "published" -> published)
 
-      validationToResult[JsValue](i => Ok(i))(out)
+      out.toSimpleResult()
     }
   }
 
-  def saveNewVersion(id: String) = Action.async { implicit request =>
+  def saveNewVersion(id: String) = actions.Org.async { request =>
     Future {
       val out = for {
-        _ <- getOrgAndOptions(request)
         vid <- VersionedId(id).toSuccess(cantParseItemId(id))
         newId <- itemService.saveNewUnpublishedVersion(vid).toSuccess(generalError(s"Error saving new version of $id"))
       } yield Json.obj("id" -> newId.toString)
 
-      validationToResult[JsValue](i => Ok(i))(out)
+      out.toSimpleResult()
     }
   }
 
-  def countSessions(itemId: VersionedId[ObjectId]) = Action.async { implicit request =>
+  def countSessions(itemId: VersionedId[ObjectId]) = actions.Org.async { _ =>
     Future {
       val count = sessionService.sessionCount(itemId)
       Ok(Json.obj("sessionCount" -> count))

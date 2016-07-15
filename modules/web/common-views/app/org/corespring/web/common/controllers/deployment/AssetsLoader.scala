@@ -5,11 +5,12 @@ import com.ee.assets.Loader
 import com.ee.assets.deployment.Deployer
 import com.google.javascript.jscomp.CompilerOptions
 import org.apache.commons.lang3.StringUtils
-import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.Mode.Mode
 import play.api.{ Configuration, Mode, Logger }
 
-class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildInfo: BuildInfo) {
+case class BranchAndHash(branch: String, hash: String)
+
+class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, branchAndHash: BranchAndHash) {
 
   private[this] val logger = Logger(classOf[AssetsLoader])
 
@@ -25,9 +26,9 @@ class AssetsLoader(mode: Mode, config: Configuration, s3Client: AmazonS3, buildI
 
   lazy val loader: Loader = if (isProd) {
 
-    lazy val branch: String = if (buildInfo.branch.isEmpty || buildInfo.branch == "?") "no-branch" else buildInfo.branch
+    lazy val branch: String = if (branchAndHash.branch.isEmpty || branchAndHash.branch == "?") "no-branch" else branchAndHash.branch
 
-    val commitHash = buildInfo.commitHashShort
+    val commitHash = branchAndHash.hash
 
     lazy val releaseRoot: String = if (commitHash.isEmpty || commitHash == "?") {
       val format = new java.text.SimpleDateFormat("yyyy-MM-dd--HH-mm")

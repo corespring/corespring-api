@@ -3,6 +3,7 @@ package org.corespring.v2.auth.identifiers
 import org.bson.types.ObjectId
 import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.Organization
+import org.corespring.models.appConfig.AllowExpiredTokens
 import org.corespring.models.auth.{ ApiClient, AccessToken }
 import org.corespring.services.OrganizationService
 import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
@@ -54,6 +55,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
       }
 
       val identifier = new TokenOrgIdentity(
+        allowExpiredTokens = AllowExpiredTokens(true),
         tokenService,
         orgService,
         apiClientService)

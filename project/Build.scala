@@ -75,7 +75,7 @@ object Build extends sbt.Build {
 
   lazy val coreServicesSalat = builders.lib("services-salat", "core", publish = true)
     .settings(
-      libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws))
+      libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws, corespringMacros))
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(
@@ -113,8 +113,6 @@ object Build extends sbt.Build {
 
   lazy val commonViews = builders.web("common-views")
     .settings(
-      BuildInfo.buildInfoTask,
-      (packagedArtifacts) <<= (packagedArtifacts) dependsOn BuildInfo.buildInfo,
       libraryDependencies ++= Seq(playJson % "test", assetsLoader, aws))
     .dependsOn(assets, itemSearch)
 
@@ -156,7 +154,7 @@ object Build extends sbt.Build {
 
   lazy val v2Actions = builders.lib("v2-actions")
     .settings(
-      libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
+      libraryDependencies ++= Seq(playFramework, securesocial)).dependsOn(v2Auth % "compile->compile;test->test")
 
   lazy val apiTracking = builders.lib("api-tracking")
     .settings(
@@ -192,7 +190,8 @@ object Build extends sbt.Build {
       coreJson,
       qtiToV2,
       draftsApi,
-      futureValidation)
+      futureValidation,
+      v2Actions % "test->test;compile->compile")
     .aggregate(draftsApi)
 
   lazy val v1Api = builders.web("v1-api")
@@ -237,6 +236,8 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
+  import buildInfo.Implicits._
+
   val main = builders.web("root", Some(file(".")), disablePackaging = false)
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
@@ -272,6 +273,7 @@ object Build extends sbt.Build {
     .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
     .settings(AccessToken.cleanupTask)
+    .addBuildInfo()
     .dependsOn(
       apiUtils,
       coreModels,
@@ -284,7 +286,7 @@ object Build extends sbt.Build {
       commonViews,
       testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
-      v2Actions,
+      v2Actions % "test->test;compile->compile",
       v1Api,
       v2Api,
       v2SessionDb,

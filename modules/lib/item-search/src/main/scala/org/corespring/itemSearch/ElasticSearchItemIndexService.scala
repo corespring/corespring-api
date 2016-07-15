@@ -9,6 +9,7 @@ import org.corespring.elasticsearch._
 import org.corespring.models.item.ComponentType
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json._
+import play.api.libs.json.Json._
 
 import scala.concurrent._
 import scalaz._
@@ -158,7 +159,11 @@ class ElasticSearchItemIndexService(
           versionedDenormalized <- versionedDbo.map { v =>
             contentDenormalizer.denormalize(Json.parse(v.toString)).map(Some(_))
           }.getOrElse(Future.successful(None))
-          result <- contentIndex.bulkAdd(true, ItemData(mainDenormalized, versionedDenormalized))
+          result <- {
+            logger.trace(s"function=reindex, id=$id, main=${prettyPrint(mainDenormalized.denormalized)}")
+            logger.trace(s"function=reindex, id=$id, versioned=${prettyPrint(versionedDenormalized.map(_.denormalized).getOrElse(obj("empty" -> true)))}")
+            contentIndex.bulkAdd(true, ItemData(mainDenormalized, versionedDenormalized))
+          }
         } yield result.map(_.result).headOption.getOrElse(Failure(new Error("reindex failed")))
       }
     }

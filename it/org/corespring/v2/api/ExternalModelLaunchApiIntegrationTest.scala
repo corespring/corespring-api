@@ -1,6 +1,5 @@
 package org.corespring.v2.api
 
-import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.scopes.{ WithV2SessionHelper, orgWithAccessToken }
@@ -20,6 +19,7 @@ class ExternalModelLaunchApiIntegrationTest extends IntegrationSpecification {
       "accessSettings" -> Json.obj(
         "expires" -> 0))
     val launchResult = route(FakeRequest(launchCall.method, s"${launchCall.url}?access_token=$accessToken", FakeHeaders(), AnyContentAsJson(json))).get
+
     lazy val launchJson = contentAsJson(launchResult)
     lazy val sessionId = (launchJson \ "sessionId").as[String]
     lazy val playerToken = (launchJson \ "playerToken").as[String]
@@ -47,7 +47,6 @@ class ExternalModelLaunchApiIntegrationTest extends IntegrationSpecification {
   "ExternalModelLaunchApi" should {
     "allow you to create an item and load it in the player" in new launchExternalAndLoadPlayer {
       status(playerResult) === OK
-      println(contentAsString(loadItemAndSessionResult))
       (contentAsJson(loadItemAndSessionResult) \ "item" \ "xhtml").as[String] === "<h1>Hello World</h1>"
     }
   }

@@ -1,14 +1,19 @@
 package org.corespring.itemSearch
 
+import java.net.URL
+
 import org.bson.types.ObjectId
-import org.corespring.it.helpers.ItemHelper
+import org.corespring.elasticsearch.WSClient
+import org.corespring.it.helpers.{ ItemHelper, StandardHelper }
 import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
 import org.corespring.itemSearch.SearchMode.SearchMode
+import org.corespring.models.Standard
 import org.corespring.models.item.{ Item, StandardCluster, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
 
 import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
 class ItemSearchIntegrationTest extends IntegrationSpecification {
@@ -102,6 +107,72 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
   "search" should {
 
+    "by dotNotation" should {
+
+      trait dotNotation
+        extends orgWithAccessTokenAndItem
+        with ItemIndexCleaner {
+
+        logger.info(s"before - remove data and clean the index...")
+        removeData()
+        cleanIndex()
+        logger.info(s"before - remove data and clean the index.. DONE.")
+
+        val itemIndexService = main.itemIndexService
+        val itemService = main.itemService
+
+        val standards = (0 to 4).map { index =>
+
+          val s = Standard(
+            standard = Some(s"standard-$index"),
+            dotNotation = Some(s"DN.AB.$index"),
+            category = Some(s"category-$index"),
+            subCategory = Some(s"subCategory-$index"),
+            subject = Some(s"category-$index"))
+          StandardHelper.create(s)
+          s
+        }
+
+        val item = {
+          val i = Item(collectionId = collectionId.toString, standards = standards.flatMap(_.dotNotation))
+          itemService.insert(i)
+          i
+        }
+
+        override def after = {
+          logger.info("after.. cleaning up..")
+          removeData()
+          cleanIndex()
+        }
+      }
+
+      "find 1 item by the starting term of the dotNotation" in new dotNotation {
+
+        lazy val result = {
+          val query = ItemIndexQuery(
+            text = Some("DN"),
+            collections = Seq(collectionId.toString))
+          Await.result(itemIndexService.search(query), 5.seconds).toOption.get
+        }
+
+        result.total must_== 1
+        result.hits(0).id must_== item.id.toString
+      }
+
+      "find 1 item by the middle term of the dotNotation" in new dotNotation {
+
+        lazy val result = {
+          val query = ItemIndexQuery(
+            text = Some("AB"),
+            collections = Seq(collectionId.toString))
+          Await.result(itemIndexService.search(query), 5.seconds).toOption.get
+        }
+
+        result.total must_== 1
+        result.hits(0).id must_== item.id.toString
+      }
+    }
+
     "by cluster" should {
       "find item by standardCluster" in new scope {
 
@@ -155,7 +226,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
       "return the 2 latest items" in new emptyQuery {
         result.total must_== 2
-        result.hits.map(_.id) must_== Seq(itemWithClusterId.toString, unpublishedItem.id.toString)
+        result.hits.map(_.id).toSet must_== Set(itemWithClusterId.toString, unpublishedItem.id.toString)
       }
     }
 

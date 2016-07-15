@@ -24,7 +24,7 @@ trait V1ApiModule {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  def bucket : Bucket
+  def bucket: Bucket
 
   def v1ApiExecutionContext: V1ApiExecutionContext
 

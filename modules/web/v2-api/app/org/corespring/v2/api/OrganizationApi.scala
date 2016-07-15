@@ -3,20 +3,17 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.models.Organization
 import org.corespring.models.auth.Permission
-import org.corespring.services.{ OrgCollectionService }
-import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.services.OrgCollectionService
+import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.errors.Errors.generalError
-import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{ JsArray, JsValue, Json }
-import play.api.mvc.RequestHeader
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.Validation
 
 class OrganizationApi(
+  actions: V2Actions,
   orgCollectionService: OrgCollectionService,
-  v2ApiContext: V2ApiExecutionContext,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  v2ApiContext: V2ApiExecutionContext) extends V2Api {
 
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
@@ -25,10 +22,10 @@ class OrganizationApi(
    * @param collectionId
    * @return
    */
-  def getOrgsWithSharedCollection(collectionId: ObjectId) = futureWithIdentity { (identity, request) =>
+  def getOrgsWithSharedCollection(collectionId: ObjectId) = actions.Org.async { request =>
     Future {
-      val result = orgCollectionService.ownsCollection(identity.org, collectionId).map { _ =>
-        orgCollectionService.getOrgsWithAccessTo(collectionId).filterNot(_.id == identity.org.id)
+      val result = orgCollectionService.ownsCollection(request.org, collectionId).map { _ =>
+        orgCollectionService.getOrgsWithAccessTo(collectionId).filterNot(_.id == request.org.id)
       }
 
       def toNameAndPermission(o: Organization): Option[JsValue] = {

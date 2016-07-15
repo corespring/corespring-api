@@ -5,7 +5,7 @@ import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.{ Item, FieldValue, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.v2.auth.ItemAuth
+import org.corespring.v2.auth.{ItemAuth,PlayerDefinitionLoader}
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models._
 import org.corespring.v2.errors.Errors.{cannotLoadSessionCount, noItemIdInSession, cantLoadSession, generalError}
@@ -100,12 +100,17 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         override def has(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = Success(true)
       }
 
-      val auth = new SessionAuthWired(
+      val pdLoader:PlayerDefinitionLoader = new PlayerDefinitionLoaderWired(
         itemTransformer,
         jsonFormatting,
         itemAuth,
-        sessionServices,
-        perms)
+        perms
+      )
+
+      val auth = new SessionAuthWired(
+        itemAuth,
+        pdLoader,
+        sessionServices)
     }
 
     def getEmptyPlayerDefinition: PlayerDefinition = PlayerDefinition(

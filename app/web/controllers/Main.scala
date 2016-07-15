@@ -3,33 +3,31 @@ package web.controllers
 import java.util.Date
 
 import org.bson.types.ObjectId
+import org.corespring.csApi.buildInfo.BuildInfo
 import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
-import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
+import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
+import org.corespring.models.User
 import org.corespring.models.json.JsonFormatting
-import org.corespring.models.{ User }
-import org.corespring.services.auth.ApiClientService
-import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.services.item.FieldValueService
+import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.services.PlayerTokenService
-import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.web.common.controllers.deployment.AssetsLoader
-import org.corespring.web.common.views.helpers.BuildInfo
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import play.api.Logger
-import play.api.libs.json.{ Json, JsObject }
-import play.api.mvc._
 import play.api.libs.json.Json._
-import securesocial.core.SecuredRequest
-import web.models.{ WebExecutionContext }
-import scalaz.Scalaz._
+import play.api.libs.json.{ JsObject, Json }
+import play.api.mvc._
+import web.models.WebExecutionContext
 
 import scala.concurrent.Future
-import scalaz.Success
-import scalaz.Failure
+import scalaz.Scalaz._
+import scalaz.{ Failure, Success }
 
 class Main(
+  actions: V2Actions,
   fieldValueService: FieldValueService,
   jsonFormatting: JsonFormatting,
   userService: UserService,
@@ -39,10 +37,7 @@ class Main(
   containerVersionInfo: VersionInfo,
   webExecutionContext: WebExecutionContext,
   playerTokenService: PlayerTokenService,
-  userSessionOrgIdentity: UserSessionOrgIdentity,
-  buildInfo: BuildInfo,
-  assetsLoader: AssetsLoader,
-  apiClientService: ApiClientService) extends Controller with securesocial.core.SecureSocial {
+  assetsLoader: AssetsLoader) extends Controller {
 
   implicit val context = webExecutionContext.context
 
@@ -66,20 +61,18 @@ class Main(
 
   def version = Action.async {
     Future {
-      val json = buildInfo.json.deepMerge(Json.obj("container" -> containerVersionInfo.json))
+      val json = Json.parse(BuildInfo.toJson).as[JsObject].deepMerge(obj("container" -> containerVersionInfo.json))
       Ok(json)
     }
   }
 
-  def sampleLaunchCode(id: String) = Action.async {
+  def sampleLaunchCode(id: String) = actions.OrgAndApiClient.async {
     request =>
       Future {
 
         val token = for {
-          maybeUser <- userSessionOrgIdentity(request).map(_.user)
-          user <- maybeUser.toSuccess("could not find user")
-          apiClient <- apiClientService.getOrCreateForOrg(user.org.orgId)
-          token <- playerTokenService.createToken(apiClient, Json.obj(
+          user <- request.orgAndOpts.user.toSuccess("could not find user")
+          token <- playerTokenService.createToken(request.apiClient, Json.obj(
             "expires" -> (new Date().getTime + 60 * 60 * 1000),
             "itemId" -> id))
         } yield token
@@ -94,54 +87,37 @@ class Main(
       }
   }
 
-  def sessions(orgId: String, month: Option[String]) = AdminAction { request =>
-    userSessionOrgIdentity(request) match {
-      case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => {
-        val m: DateTime = month.map(dateString => {
-          val Array(year, month) = dateString.split("-")
-          new DateTime().withYear(year.toInt).withMonthOfYear(month.toInt)
-        }).getOrElse(new DateTime())
-        val monthString = DateTimeFormat.forPattern("MMMM, yyyy").print(m)
-        val apiKey = DateTimeFormat.forPattern("MM-yyyy").print(m)
-        val organization = orgService.findOneById(new ObjectId(orgId)).map(_.name).getOrElse("--")
-        Ok(web.views.html.sessions(monthString = monthString, apiKey = apiKey, organization = organization, orgId = orgId))
-      }
-      case _ => Unauthorized("Please contact a CoreSpring representative for access to monthly session data.")
-    }
+  def sessions(orgId: String, month: Option[String]) = actions.RootOrg { request =>
+    val m: DateTime = month.map(dateString => {
+      val Array(year, month) = dateString.split("-")
+      new DateTime().withYear(year.toInt).withMonthOfYear(month.toInt)
+    }).getOrElse(new DateTime())
+    val monthString = DateTimeFormat.forPattern("MMMM, yyyy").print(m)
+    val apiKey = DateTimeFormat.forPattern("MM-yyyy").print(m)
+    val organization = orgService.findOneById(new ObjectId(orgId)).map(_.name).getOrElse("--")
+    Ok(web.views.html.sessions(monthString = monthString, apiKey = apiKey, organization = organization, orgId = orgId))
   }
 
-  private def AdminAction(block: SecuredRequest[AnyContent] => SimpleResult) = SecuredAction {
-    implicit request: SecuredRequest[AnyContent] =>
-      {
-        userSessionOrgIdentity(request) match {
-          case Success(orgAndOpts) if (orgAndOpts.org.id == jsonFormatting.rootOrgId.toString) => block(request)
-          case _ => Unauthorized("Please contact a CoreSpring representative for access.")
-        }
-      }
-  }
-
-  def index = SecuredAction {
-    implicit request: SecuredRequest[AnyContent] =>
+  def index = actions.SecuredAction {
+    implicit request =>
 
       val uri: Option[String] = play.api.Play.current.configuration.getString("mongodb.default.uri")
       val (dbServer, dbName) = getDbName(uri)
-      val userId = request.user.identityId
-      val user: User = userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
       implicit val writesOrg = jsonFormatting.writeOrg
       implicit val writesRef = jsonFormatting.writeContentCollRef
 
-      (for {
-        fv <- defaultValues
-        org <- orgService.findOneById(user.org.orgId)
-      } yield {
+      defaultValues.map { fv =>
         //Add old 'collections' field
+        val user: User = userService.getUser(request.user.identityId.userId, request.user.identityId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
+        val org = orgService.findOneById(user.org.orgId).get
         val legacyJson = Json.obj("collections" -> toJson(org.contentcolls)) ++ toJson(org).as[JsObject]
         val userOrgString = stringify(legacyJson)
         val html = web.views.html.index(dbServer, dbName, user, userOrgString, fv, assetsLoader)
         Ok(html)
-      }).getOrElse {
+      }.getOrElse {
         InternalServerError("could not find organization of user")
       }
+
   }
 
   private def getDbName(uri: Option[String]): (String, String) = uri match {

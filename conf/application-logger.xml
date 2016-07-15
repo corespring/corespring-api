@@ -7,19 +7,24 @@
             <pattern>%d{HH:mm:ss.SSS} %coloredLevel %logger{55} - %message%n%xException{5}</pattern>
         </encoder>
     </appender>
+
     <logger name="bootstrap" level="TRACE"/>
-    <logger name="VersionInfo" level="OFF"/>
-    <logger name="filters" level="TRACE"/>
     <logger name="ch.qos.logback" level="WARN"/>
-    <logger name="org.corespring.assets.EncodedKeyS3Client" level="TRACE"/>
-    <logger name="org.corespring.v2.api.ItemApi" level="TRACE"/>
-    <logger name="org.corespring.v2.player.hooks" level="TRACE"/>
-    <logger name="org.corespring.v2.player.assets" level="TRACE"/>
-    <logger name="org.corespring.itemSearch.ElasticSearchItemIndexService" level="TRACE"/>
-    <logger name="org.corespring.itemSearch.ContentIndexHelper" level="TRACE"/>
+    <logger name="filters" level="TRACE"/>
     <logger name="org.corespring.assets.DoubleKeyCheckS3Service" level="DEBUG"/>
+    <logger name="org.corespring.assets.EncodedKeyS3Client" level="TRACE"/>
+    <logger name="org.corespring.itemSearch.ContentIndexHelper" level="TRACE"/>
+    <logger name="org.corespring.itemSearch.ElasticSearchItemIndexService" level="TRACE"/>
     <logger name="org.corespring.services.salat.ServicesContext" level="OFF"/>
+    <logger name="org.corespring.v2.api.ItemApi" level="TRACE"/>
+    <logger name="org.corespring.v2.api.services.CachingPlayerDefinitionService" level="TRACE"/>
+    <logger name="org.corespring.v2.player.assets" level="TRACE"/>
+    <logger name="org.corespring.v2.player.hooks" level="TRACE"/>
+    <logger name="s3-play-plugin" level="TRACE"/>
+    <logger name="VersionInfo" level="OFF"/>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
+
 </configuration>

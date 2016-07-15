@@ -61,6 +61,10 @@ class ItemIndexingDao(
     underlying.findDbo(id)
   }
 
+  override def findDbos(ids: Seq[VersionedId[ObjectId]], fields: DBObject): Stream[DBObject] = {
+    underlying.findDbos(ids, fields)
+  }
+
   override def getCurrentVersion(id: VersionedId[Imports.ObjectId]): Long = {
     underlying.getCurrentVersion(id)
   }
@@ -107,12 +111,22 @@ class ItemIndexingDao(
         result match {
           case Success(anything) => itemIndexService.refresh()
           case Failure(error) => Future {
+            logger.error(s"function=synchronousReindex, id=$id, error=$error")
+            if (logger.isErrorEnabled) {
+              error.printStackTrace()
+            }
             Failure(error)
           }
         }
       }), Duration(20, SECONDS))
     } catch {
-      case e: Exception => Failure(new Error(e.getMessage))
+      case e: Exception => {
+        logger.error(s"function=synchronousReindex, id=$id, e=$e")
+        if (logger.isErrorEnabled) {
+          e.printStackTrace()
+        }
+        Failure(new Error(e.getMessage))
+      }
     }
   }
 

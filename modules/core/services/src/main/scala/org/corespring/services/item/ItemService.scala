@@ -17,7 +17,12 @@ trait ItemServiceClient {
 
 case class ItemCount(collectionId: ObjectId, count: Long)
 
-trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
+trait PlayerDefinitionService {
+  def findMultiplePlayerDefinitions(orgId: ObjectId, ids: VersionedId[ObjectId]*): Future[Seq[(VersionedId[ObjectId], Validation[PlatformServiceError, PlayerDefinition])]]
+}
+
+trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]]
+  with PlayerDefinitionService {
 
   def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean]
 

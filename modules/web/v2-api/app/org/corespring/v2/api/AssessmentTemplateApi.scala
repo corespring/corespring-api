@@ -4,33 +4,31 @@ import org.bson.types.ObjectId
 import org.corespring.models.assessment.AssessmentTemplate
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.assessment.AssessmentTemplateService
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ incorrectJsonFormat, cantFindAssessmentTemplateWithId }
-import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{ JsError, JsSuccess, JsObject, Json }
-import play.api.mvc.{ RequestHeader, Request, AnyContent }
+import org.corespring.v2.actions.{ OrgRequest, V2Actions }
+import org.corespring.v2.errors.Errors.{ cantFindAssessmentTemplateWithId, incorrectJsonFormat }
+import play.api.libs.json.{ JsError, JsObject, JsSuccess, Json }
+import play.api.mvc.{ AnyContent, Request }
 
 import scala.concurrent.ExecutionContext
-import scalaz.Validation
 
 class AssessmentTemplateApi(
+  actions: V2Actions,
   assessmentTemplateService: AssessmentTemplateService,
   jsonFormatting: JsonFormatting,
-  v2ApiContext: V2ApiExecutionContext,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  v2ApiContext: V2ApiExecutionContext)
   extends V2Api {
 
   override def ec: ExecutionContext = v2ApiContext.context
 
   implicit val AssessmentTemplateFormat = jsonFormatting.formatAssessmentTemplate
 
-  def get = withIdentity { (identity, _) =>
-    val t = assessmentTemplateService.findByOrg(identity.org.id)
+  def get = actions.Org { request: OrgRequest[AnyContent] =>
+    val t = assessmentTemplateService.findByOrg(request.org.id)
     Ok(Json.toJson(t))
   }
 
-  def getById(assessmentTemplateId: ObjectId) = withIdentity { (identity, _) =>
-    val t = assessmentTemplateService.findOneByIdAndOrg(assessmentTemplateId, identity.org.id)
+  def getById(assessmentTemplateId: ObjectId) = actions.Org { request: OrgRequest[AnyContent] =>
+    val t = assessmentTemplateService.findOneByIdAndOrg(assessmentTemplateId, request.org.id)
 
     t match {
       case Some(dbResult) => Ok(Json.toJson(t))
@@ -38,8 +36,8 @@ class AssessmentTemplateApi(
     }
   }
 
-  def create() = withIdentity { (identity, request) =>
-    val json = getJson(identity, request)
+  def create() = actions.Org { request: OrgRequest[AnyContent] =>
+    val json = getJson(request.org.id, request)
     Json.fromJson[AssessmentTemplate](json) match {
       case JsSuccess(jsonAssessment, _) => {
         val assessmentTemplate = new AssessmentTemplate().merge(jsonAssessment)
@@ -50,12 +48,12 @@ class AssessmentTemplateApi(
     }
   }
 
-  def update(assessmentTemplateId: ObjectId) = withIdentity { (identity, request) =>
-    val json = getJson(identity, request)
+  def update(assessmentTemplateId: ObjectId) = actions.Org { request: OrgRequest[AnyContent] =>
+    val json = getJson(request.org.id, request)
     Json.fromJson[AssessmentTemplate](json) match {
       case JsSuccess(jsonAssessment, _) => {
         //TODO: RF: Low-Priority: could $set or update work here?
-        assessmentTemplateService.findOneByIdAndOrg(assessmentTemplateId, identity.org.id) match {
+        assessmentTemplateService.findOneByIdAndOrg(assessmentTemplateId, request.org.id) match {
           case Some(dbResult) => {
             val updatedAssessment = dbResult.merge(jsonAssessment)
             assessmentTemplateService.save(updatedAssessment)
@@ -68,10 +66,10 @@ class AssessmentTemplateApi(
     }
   }
 
-  private def getJson(identity: OrgAndOpts, request: Request[AnyContent]): JsObject = (try {
+  private def getJson(orgId: ObjectId, request: Request[AnyContent]): JsObject = (try {
     request.body.asJson.map(_.asInstanceOf[JsObject])
   } catch {
     case e: Exception => None
-  }).getOrElse(Json.obj()) ++ Json.obj("orgId" -> identity.org.id.toString)
+  }).getOrElse(Json.obj()) ++ Json.obj("orgId" -> orgId.toString)
 
 }

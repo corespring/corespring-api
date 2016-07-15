@@ -39,6 +39,8 @@ class MainTest extends Specification with Mockito {
     "container.editor.autosave.debounceInMillis" -> 1000,
     "ELASTIC_SEARCH_URL" -> "http://elastic-search.com",
     "container.editor.autosave.debounceInMillis" -> 500,
+    "container.upload.audio.maxSizeKb" -> 400,
+    "container.upload.image.maxSizeKb" -> 300,
     "container.common.DEV_TOOLS_ENABLED" -> false,
     "container.cdn.domain" -> domain,
     "container.components.path" -> "path",
@@ -50,7 +52,8 @@ class MainTest extends Specification with Mockito {
 
   "Main" should {
     "use new CacheFilter" in {
-      val main = new Main(db,
+      val main = new Main(
+        db,
         Configuration.from(config),
         Mode.Test,
         this.getClass.getClassLoader,
@@ -89,7 +92,7 @@ class MainTest extends Specification with Mockito {
         mainConfig ++ iarConfig
       }
 
-      def mkMain(config:Map[String, Any]) = {
+      def mkMain(config: Map[String, Any]) = {
         new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       }
     }

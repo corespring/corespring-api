@@ -21,7 +21,11 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
     "when loading a session" should {
 
       s"return $UNAUTHORIZED for unknown user" in new unknownUser_getSession {
-        val e = noToken(req)
+        val e = compoundError("Failed to identify an Organization from the request",
+          Seq(
+            invalidQueryStringParameter("apiClientId", "apiClient"),
+            noToken(req),
+            noUserSession(req)), UNAUTHORIZED)
         contentAsJson(result) === e.json
         status(result) === e.statusCode
       }
@@ -31,8 +35,8 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
         contentAsJson(result) === Json.obj("id" -> sessionId.toString(), "itemId" -> itemId.toString())
       }
 
-      s"return $UNAUTHORIZED for client id and player token" in new clientIdAndPlayerToken_getSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), true) {
-        status(result) === UNAUTHORIZED
+      s"return $OK for client id and player token" in new clientIdAndPlayerToken_getSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), true) {
+        status(result) === OK
       }
 
     }
@@ -40,7 +44,12 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
     "when creating a session" should {
 
       s"return $BAD_REQUEST for unknown user" in new unknownUser_createSession {
-        val e = noToken(req)
+        //        val e = noToken(req)
+        val e = compoundError("Failed to identify an Organization from the request",
+          Seq(
+            invalidQueryStringParameter("apiClientId", "apiClient"),
+            noToken(req),
+            noUserSession(req)), UNAUTHORIZED)
         status(result) === e.statusCode
         contentAsJson(result) === e.json
       }
@@ -61,9 +70,9 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
         status(result) === OK
       }
 
-      s"return $UNAUTHORIZED for client id and player token" in new clientIdAndPlayerToken_createSession(
+      s"return $OK for client id and player token" in new clientIdAndPlayerToken_createSession(
         Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
-        status(result) === UNAUTHORIZED
+        status(result) === OK
       }
 
       s"adds identity data to the session" in new token_createSession {
@@ -76,124 +85,6 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
         (identity \ "authMode") === JsNumber(AuthMode.AccessToken.id)
         (identity \ "apiClient") === JsString(apiClient.clientId.toString)
       }
-    }
-
-    def playerDef(customScoring: Option[String] = None) = PlayerDefinition(
-      Seq.empty,
-      "html",
-      Json.obj(
-        "1" -> Json.obj(
-          "componentType" -> "corespring-multiple-choice",
-          "correctResponse" -> Json.obj("value" -> Json.arr("carrot")),
-          "model" -> Json.obj(
-            "config" -> Json.obj(
-              "singleChoice" -> true),
-            "prompt" -> "Carrot?",
-            "choices" -> Json.arr(
-              Json.obj("label" -> "carrot", "value" -> "carrot"),
-              Json.obj("label" -> "banana", "value" -> "banana"))))),
-      "",
-      customScoring)
-
-    "when calling load score" should {
-
-      s"1: return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
-
-        val item = itemService.findOneById(itemId).get
-        //Note: We have to remove the qti or else the ItemTransformer will overrwrite the v2 data
-        val update = item.copy(data = None, playerDefinition = Some(playerDef()))
-        val resultString = s"""{"summary":{"maxPoints":1,"points":1.0,"percentage":100.0},"components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}}"""
-        val resultJson = Json.parse(resultString)
-        itemService.save(update)
-        println(s"playerDefinition: ${update.playerDefinition}")
-        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
-          "1" -> Json.obj("answers" -> Json.arr("carrot")))))
-        status(result) === OK
-        contentAsJson(result) === resultJson
-      }
-
-      s"2: return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
-        val item = itemService.findOneById(itemId).get
-        val update = item.copy(data = None, playerDefinition = Some(playerDef()))
-        val resultString = s"""{"summary":{"maxPoints":1,"points":0.0,"percentage":0.0},"components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}}"""
-        val resultJson = Json.parse(resultString)
-        itemService.save(update)
-        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
-          "1" -> Json.obj("answers" -> Json.arr("banana")))))
-        status(result) === OK
-        contentAsJson(result) === resultJson
-      }
-    }
-
-    "when calling load score with a custom scoring item" should {
-
-      val customScoring = """
-      exports.process = function(item, session, outcomes){
-        if(session.components[1].answers.indexOf('carrot') !== -1){
-          return { summary: { numcorrect: 1, score: 1.0}};
-        } else {
-          return { summary: { numcorrect: 0, score: 0}};
-        }
-      }
-      """
-
-      s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
-
-        val item = itemService.findOneById(itemId).get
-        val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
-        itemService.save(update)
-
-        val resultString =
-          s"""{ "components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}, "summary":{"numcorrect" : 1, "score" : 1.0}}"""
-        val resultJson = Json.parse(resultString)
-
-        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
-          "1" -> Json.obj("answers" -> Json.arr("carrot")))))
-        contentAsJson(result) === resultJson
-        status(result) === OK
-      }
-
-    }
-
-    "when calling load score with a custom scoring that uses outcomes" should {
-
-      val customScoring = """
-      exports.process = function(item, session, outcomes){
-        if(outcomes["1"].correctness === "correct"){
-          return { summary: { numcorrect: 1, score: 1.0}};
-        } else {
-          return { summary: { numcorrect: 0, score: 0}};
-        }
-      }
-      """
-      s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
-
-        val item = itemService.findOneById(itemId).get
-        val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
-        val resultString =
-          s"""{ "components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}, "summary":{"numcorrect" : 1, "score" : 1.0}}"""
-        val resultJson = Json.parse(resultString)
-        itemService.save(update)
-        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
-          "1" -> Json.obj("answers" -> Json.arr("carrot")))))
-        contentAsJson(result) === resultJson
-        status(result) === OK
-      }
-
-      s"return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
-
-        val item = itemService.findOneById(itemId).get
-        val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
-        val resultString =
-          s"""{ "components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}, "summary":{"numcorrect" : 0, "score" : 0}}"""
-        val resultJson = Json.parse(resultString)
-        itemService.save(update)
-        v2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
-          "1" -> Json.obj("answers" -> Json.arr("banana")))))
-        status(result) === OK
-        contentAsJson(result) === resultJson
-      }
-
     }
   }
 
@@ -242,11 +133,6 @@ class ItemSessionApiIntegrationTest extends IntegrationSpecification with WithV2
 
   class token_getSession extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
     override def getCall(sessionId: ObjectId): Call = Routes.get(sessionId.toString)
-  }
-
-  class token_loadScore(json: AnyContent) extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
-    override def getCall(sessionId: ObjectId): Call = Routes.loadScore(sessionId.toString)
-    override def requestBody = json
   }
 
   class clientIdAndPlayerToken_getSession(val playerToken: String, val skipDecryption: Boolean = true)
