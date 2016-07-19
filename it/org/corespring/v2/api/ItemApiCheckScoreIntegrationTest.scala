@@ -42,7 +42,8 @@ class ItemApiCheckScoreIntegrationTest extends IntegrationSpecification {
                     Json.obj("label" -> "carrot", "value" -> "carrot"),
                     Json.obj("label" -> "banana", "value" -> "banana"))))),
             "",
-            None)))
+            None,
+            Json.obj())))
 
         itemService.save(update)
         val call = routes.checkScore(itemId.toString)

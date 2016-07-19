@@ -8,8 +8,8 @@ import org.joda.time.DateTime
 case class ItemStandards(title: String, standards: Seq[String], id: VersionedId[ObjectId])
 
 case class Item(
-  clonedFromId: Option[VersionedId[ObjectId]] = None,
   collectionId: String,
+  clonedFromId: Option[VersionedId[ObjectId]] = None,
   contentType: String = Item.contentType,
   contributorDetails: Option[ContributorDetails] = None,
   data: Option[Resource] = None,

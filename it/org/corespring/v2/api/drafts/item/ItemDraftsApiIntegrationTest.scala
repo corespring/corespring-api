@@ -78,7 +78,7 @@ class ItemDraftsApiIntegrationTest extends IntegrationSpecification with PlaySpe
 
         private def addFile(key: String)(pd: PlayerDefinition): PlayerDefinition = {
           val files = pd.files :+ StoredFile("ervin.png", "image/png", false)
-          PlayerDefinition(files, pd.xhtml, pd.components, pd.summaryFeedback, pd.customScoring)
+          PlayerDefinition(files, pd.xhtml, pd.components, pd.summaryFeedback, pd.customScoring, pd.config)
         }
 
         lazy val updatedItem = {
