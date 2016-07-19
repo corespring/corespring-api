@@ -1,1 +1,1 @@
-libraryDependencies ++= Seq("org.corespring" %% "elasticsearch-play-ws" % "1.2.0-PLAY22")
+libraryDependencies ++= Seq("org.corespring" %% "elasticsearch-play-ws" % "1.3.0-PLAY22-SNAPSHOT")

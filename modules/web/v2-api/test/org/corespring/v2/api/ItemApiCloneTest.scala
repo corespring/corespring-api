@@ -39,7 +39,7 @@ class ItemApiCloneTest extends ItemApiSpec {
           FutureValidation(if (itemServiceClones) Success(clonedId) else Failure(PlatformServiceError("cloneItem failed")))
         }
 
-        itemIndexService.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult.empty) }
+        itemIndexService.search(any[ItemIndexQuery], any[Option[String]]) returns future { Success(ItemIndexSearchResult.empty) }
 
         def result(r: Request[AnyContent]) = api.cloneItem(vid.toString)(r)
       }

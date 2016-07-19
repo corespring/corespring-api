@@ -28,7 +28,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     lazy val orgId = OrganizationHelper.create("test-org")
     lazy val collectionId = CollectionHelper.create(orgId)
     lazy val query = ItemIndexQuery(widgets = Seq("corespring-calculator"))
-    lazy val searchResult = Await.result(main.itemIndexService.unboundedSearch(query), 1.second)
+    lazy val searchResult = Await.result(main.itemIndexService.unboundedSearch(query, None), 1.second)
 
     override def after = {
       logger.debug(" ----------- >> after.. cleaning up..")
