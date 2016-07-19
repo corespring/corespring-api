@@ -21,7 +21,8 @@ class PlayerJsonToItemTest extends Specification {
     "xhtml",
     obj(),
     "summaryFeedback",
-    Some("customScoring"))
+    Some("customScoring"),
+    obj())
 
   val item = Item(
     collectionId = ObjectId.get.toString,

@@ -55,19 +55,24 @@ class BaseItemHooksTest extends V2PlayerIntegrationSpec {
     }
   }
 
-  "saveXhtmlAndComponents" should {
+  "saveConfigXhtmlAndComponents" should {
 
-    trait saveXhtmlAndComponents extends scope {
+    trait saveConfigXhtmlAndComponents extends scope {
       val comps = Json.obj("1" -> Json.obj("componentType" -> "comp"))
-      saveXhtmlAndComponents("id", "<div>hi</div>", Json.obj("1" -> Json.obj("componentType" -> "comp")))
+      val config = Json.obj("scoringType" -> "weighted")
+      saveConfigXhtmlAndComponents("id", config, "<div>hi</div>", comps)
     }
 
-    "update the xhtml" in new saveXhtmlAndComponents {
+    "update the xhtml" in new saveConfigXhtmlAndComponents {
       updatedItem.playerDefinition.get.xhtml must_== "<div>hi</div>"
     }
 
-    "update the components" in new saveXhtmlAndComponents {
+    "update the components" in new saveConfigXhtmlAndComponents {
       updatedItem.playerDefinition.get.components must_== comps
+    }
+
+    "update the config" in new saveConfigXhtmlAndComponents {
+      updatedItem.playerDefinition.get.config must_== config
     }
   }
 

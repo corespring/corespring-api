@@ -88,21 +88,21 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
       "return 201" in new apiScope(
         clonedSession = Success(new ObjectId()),
-        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        sessionAndItem = Success((Json.obj(), PlayerDefinition.empty))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
         status(result) === CREATED
       }
 
       "return apiClient" in new apiScope(
         clonedSession = Success(new ObjectId()),
-        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        sessionAndItem = Success((Json.obj(), PlayerDefinition.empty))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
         (contentAsJson(result) \ "apiClient").asOpt[String] === Some(V2ActionsFactory.apiClient.clientId.toString)
       }
 
       "return cloned session options decryptable by apiClient" in new apiScope(
         clonedSession = Success(new ObjectId()),
-        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        sessionAndItem = Success((Json.obj(), PlayerDefinition.empty))) {
         val encryptedData = "encrypted"
         mockEncryptionService.encrypt(any[ApiClient], any[String]) returns Some(EncryptionSuccess("clientId", encryptedData))
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
@@ -144,7 +144,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       }
 
       "work" in new apiScope(
-        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        sessionAndItem = Success((Json.obj(), PlayerDefinition.empty))) {
         val result = api.get("sessionId")(FakeRequest("", ""))
         status(result) === OK
       }

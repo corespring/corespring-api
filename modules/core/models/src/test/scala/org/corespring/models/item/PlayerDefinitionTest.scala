@@ -13,14 +13,16 @@ class PlayerDefinitionTest extends Specification {
       "main-xhtml",
       obj(),
       "main-summaryFeedback",
-      Some("main-custom-scoring"))
+      Some("main-custom-scoring"),
+      obj())
 
     val other = PlayerDefinition(
       Seq.empty,
       "other-xhtml",
       obj("componentType" -> "component-type"),
       "other-summaryFeedback",
-      Some("other-custom-scoring"))
+      Some("other-custom-scoring"),
+      obj("prop" -> "value"))
 
     val merged = main.mergeAllButFiles(other)
 
@@ -29,5 +31,6 @@ class PlayerDefinitionTest extends Specification {
     "merge components" in { merged.components must_== other.components }
     "merge summaryFeedback" in { merged.summaryFeedback must_== other.summaryFeedback }
     "merge customScoring" in { merged.customScoring must_== other.customScoring }
+    "merge config" in { merged.config must_== other.config }
   }
 }

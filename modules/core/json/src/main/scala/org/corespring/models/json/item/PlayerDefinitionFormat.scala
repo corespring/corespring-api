@@ -14,7 +14,9 @@ object PlayerDefinitionFormat extends Format[PlayerDefinition] {
       "xhtml" -> o.xhtml,
       "files" -> o.files.map(f => Json.toJson(f)),
       "components" -> o.components,
-      "summaryFeedback" -> o.summaryFeedback) ++ o.customScoring.map { cs => Json.obj("customScoring" -> cs) }.getOrElse(Json.obj())
+      "config" -> o.config,
+      "summaryFeedback" -> o.summaryFeedback) ++
+      o.customScoring.map { cs => Json.obj("customScoring" -> cs) }.getOrElse(Json.obj())
   }
 
   override def reads(json: JsValue): JsResult[PlayerDefinition] = json match {
@@ -24,7 +26,8 @@ object PlayerDefinitionFormat extends Format[PlayerDefinition] {
         (json \ "xhtml").as[String],
         (json \ "components").asOpt[JsValue].getOrElse(Json.obj()),
         (json \ "summaryFeedback").asOpt[String].getOrElse(""),
-        (json \ "customScoring").asOpt[String]))
+        (json \ "customScoring").asOpt[String],
+        (json \ "config").asOpt[JsObject].getOrElse(Json.obj())))
     }
     case _ => JsError("empty object")
   }

@@ -74,7 +74,7 @@ class ItemDraftHooks(
   }
 
   override protected def update(draftId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
-    logger.debug(s"update draftId=$draftId")
+    logger.debug(s"update draftId=$draftId json=$json")
     for {
       draftAndIdentity <- loadDraftAndIdentity(draftId, backend.load(_)(_))
       draft <- Success(draftAndIdentity._1)

@@ -28,6 +28,7 @@ class PlayerDefinitionTransformer(fileTransformer: FileTransformer) extends Cust
 
     builder += "files" -> MongoDBList(preppedFiles: _*)
     builder += "xhtml" -> a.xhtml
+    builder += "config" -> ToDBObject(a.config)
     builder += "components" -> ToDBObject(a.components)
     builder += "summaryFeedback" -> a.summaryFeedback
     a.customScoring.foreach { cs =>
@@ -48,7 +49,8 @@ class PlayerDefinitionTransformer(fileTransformer: FileTransformer) extends Cust
 
     logger.trace(s"deserialize: ${b}")
 
-    val json: JsValue = if (b.get("components") == null) Json.obj() else ToJsValue(b.get("components"))
+    val components: JsValue = if (b.get("components") == null) Json.obj() else ToJsValue(b.get("components"))
+    val config: JsValue = if (b.get("config") == null) Json.obj() else ToJsValue(b.get("config"))
 
     val files = if (b.get("files") == null || !b.get("files").isInstanceOf[BasicDBList]) {
       Seq.empty
@@ -66,9 +68,10 @@ class PlayerDefinitionTransformer(fileTransformer: FileTransformer) extends Cust
     new PlayerDefinition(
       files,
       xhtml,
-      json,
+      components,
       summaryFeedback,
-      customScoring)
+      customScoring,
+      config)
   } catch {
     case e: Throwable => {
       logger.error(e.getMessage)

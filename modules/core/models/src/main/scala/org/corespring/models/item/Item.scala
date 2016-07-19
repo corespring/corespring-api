@@ -8,21 +8,21 @@ import org.joda.time.DateTime
 case class ItemStandards(title: String, standards: Seq[String], id: VersionedId[ObjectId])
 
 case class Item(
+  clonedFromId: Option[VersionedId[ObjectId]] = None,
   collectionId: String,
   contentType: String = Item.contentType,
   contributorDetails: Option[ContributorDetails] = None,
   data: Option[Resource] = None,
   dateModified: Option[DateTime] = Some(new DateTime()),
   id: VersionedId[ObjectId] = VersionedId(ObjectId.get(), Some(0)),
-  clonedFromId: Option[VersionedId[ObjectId]] = None,
   lexile: Option[String] = None,
   otherAlignments: Option[Alignments] = None,
-  pValue: Option[String] = None,
   playerDefinition: Option[PlayerDefinition] = None,
   priorGradeLevels: Seq[String] = Seq(),
   priorUse: Option[String] = None,
   priorUseOther: Option[String] = None,
   published: Boolean = false,
+  pValue: Option[String] = None,
   reviewsPassed: Seq[String] = Seq(),
   reviewsPassedOther: Option[String] = None,
   sharedInCollections: Seq[ObjectId] = Seq(),

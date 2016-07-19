@@ -35,7 +35,7 @@ class ItemAssetServiceTest extends Specification with Mockito {
         val item = Item(
           id = id,
           collectionId = "collectionId",
-          playerDefinition = Some(PlayerDefinition(files, "", Json.obj(), "", None)),
+          playerDefinition = Some(PlayerDefinition(files, "", Json.obj(), "", None, Json.obj())),
           supportingMaterials = supportingMaterials,
           data = data)
         item

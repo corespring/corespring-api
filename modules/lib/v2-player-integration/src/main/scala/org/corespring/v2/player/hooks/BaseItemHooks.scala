@@ -23,7 +23,7 @@ trait BaseItemHooks
 
   protected def update(id: String, json: JsValue, updateFn: (Item, JsValue) => Item)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]]
 
-  private def baseDefinition(playerDef: Option[PlayerDefinition]): JsObject = Json.toJson(playerDef.getOrElse(new PlayerDefinition(Seq.empty, "", Json.obj(), "", None))).as[JsObject]
+  private def baseDefinition(playerDef: Option[PlayerDefinition]): JsObject = Json.toJson(playerDef.getOrElse(PlayerDefinition.empty)).as[JsObject]
 
   private def savePartOfPlayerDef(id: String, json: JsObject)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     update(id, json, (i, _) => playerJsonToItem.playerDef(i, baseDefinition(i.playerDefinition) ++ json))(header)
@@ -49,9 +49,9 @@ trait BaseItemHooks
 
     def updateCustomScoring(item: Item, json: JsValue): Item = {
       val updatedDefinition = item.playerDefinition.map { pd =>
-        new PlayerDefinition(pd.files, pd.xhtml, pd.components, pd.summaryFeedback, Some(customScoring))
+        new PlayerDefinition(pd.files, pd.xhtml, pd.components, pd.summaryFeedback, Some(customScoring), pd.config)
       }.getOrElse {
-        PlayerDefinition(Seq.empty, "", Json.obj(), "", Some(customScoring))
+        PlayerDefinition(Seq.empty, "", Json.obj(), "", Some(customScoring), Json.obj())
       }
       item.copy(playerDefinition = Some(updatedDefinition))
     }
@@ -59,12 +59,16 @@ trait BaseItemHooks
     update(id, Json.obj("customScoring" -> customScoring), updateCustomScoring)
   }
 
-  override final def saveXhtmlAndComponents(id: String, xhtml: String, components: JsValue)(implicit rh: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    savePartOfPlayerDef(id, Json.obj("xhtml" -> xhtml, "components" -> components))
+  override final def saveConfigXhtmlAndComponents(id: String, config: JsValue, xhtml: String, components: JsValue)(implicit rh: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    savePartOfPlayerDef(id, Json.obj("config" -> config, "xhtml" -> xhtml, "components" -> components))
   }
 
   override final def saveComponents(id: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     savePartOfPlayerDef(id, Json.obj("components" -> json))
+  }
+
+  override final def saveConfig(id: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    savePartOfPlayerDef(id, Json.obj("config" -> json))
   }
 
   override final def saveSummaryFeedback(id: String, feedback: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
