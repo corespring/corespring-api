@@ -97,23 +97,23 @@ class ItemApi(
 
   def search(query: Option[String]) = actions.Org.async { request =>
     logger.debug(s"function=search, query=$query")
-    searchWithQueryAndCollections(query, request.org.accessibleCollections.map(_.collectionId): _*) { r => toJson(r) }
+    searchWithQueryAndCollections(query, Some(request.org.name), request.org.accessibleCollections.map(_.collectionId): _*) { r => toJson(r) }
   }
 
   def searchByCollectionId(
     collectionId: ObjectId,
-    q: Option[String] = None) = actions.OrgWithStatusCode(BAD_REQUEST).async { _ =>
-    searchWithQueryAndCollections(q, collectionId) { searchResult =>
+    q: Option[String] = None) = actions.OrgWithStatusCode(BAD_REQUEST).async { request =>
+    searchWithQueryAndCollections(q, Some(request.org.name), collectionId) { searchResult =>
       implicit val f = ItemIndexHit.Format
       toJson(searchResult.hits)
     }
   }
 
-  private def searchWithQueryAndCollections(query: Option[String], collectionIds: ObjectId*)(mkJson: ItemIndexSearchResult => JsValue): Future[SimpleResult] = {
+  private def searchWithQueryAndCollections(query: Option[String], preference: Option[String], collectionIds: ObjectId*)(mkJson: ItemIndexSearchResult => JsValue): Future[SimpleResult] = {
     (for {
       sq <- fv(QueryStringParser.scopedSearchQuery(query, collectionIds))
       _ <- fv(Success(logger.debug(s"function=searchWithQueryAndCollection, sq=$sq")))
-      results <- fv(itemIndexService.search(sq))
+      results <- fv(itemIndexService.search(sq, preference))
     } yield results).future.map { v =>
       v.fold(e => BadRequest(e.getMessage), results => Ok(mkJson(results)))
     }
