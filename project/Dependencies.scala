@@ -4,8 +4,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "3.4.0-SNAPSHOT"
-
+  val containerVersion = "3.5.0-SNAPSHOT"
   val qtiVersion = "0.16"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
@@ -19,10 +18,10 @@ object Dependencies {
     val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", RepoAuthPlugin.releases)
   }
 
-  val componentLoader = toModule("component-loader")
-  val componentModel = toModule("component-model")
   val containerClientWeb = toModule("container-client-web")
   val containerJsProcessing = toModule("js-processing")
+  val componentModel = toModule("component-model")
+  val componentLoader = toModule("component-loader")
   val mongoJsonService = toModule("mongo-json-service")
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"

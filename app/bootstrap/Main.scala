@@ -92,7 +92,7 @@ class Main(
   val db: MongoDB,
   //TODO: rm Configuration (needed for [[HasConfig]]) and use appConfig + containerConfig instead.
   val configuration: Configuration,
-  val mode: PlayMode,
+  val inputMode: PlayMode,
   classLoader: ClassLoader,
   resourceAsURL: String => Option[URL])
   extends SalatServices
@@ -114,13 +114,17 @@ class Main(
 
   private lazy val logger = Logger(this.getClass)
 
+  override def playMode: PlayMode = {
+    configuration.getString("APP_MODE_OVERRIDE").map(Mode.withName).getOrElse(inputMode)
+  }
+
   lazy val appConfig = AppConfig(configuration)
 
   override lazy val containerConfig: ContainerConfig = ContainerConfig(
-    mode = mode,
-    showNonReleasedComponents = configuration.getBoolean("container.components.showNonReleasedComponents").getOrElse(mode == Mode.Dev),
+    mode = playMode,
+    showNonReleasedComponents = configuration.getBoolean("container.components.showNonReleasedComponents").getOrElse(playMode == Mode.Dev),
     editorDebounceInMillis = configuration.getLong("container.editor.autosave.debounceInMillis").getOrElse(5000),
-    components = ComponentsConfig.fromConfig(mode, configuration.getConfig("container.components").getOrElse(Configuration.empty)),
+    components = ComponentsConfig.fromConfig(playMode, configuration.getConfig("container.components").getOrElse(Configuration.empty)),
     player = V2PlayerConfig(
       rootUrl = configuration.getString("container.rootUrl"),
       newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))),
@@ -192,7 +196,7 @@ class Main(
 
     override def s3: AmazonS3 = Main.this.s3
 
-    override def intercept(path: String) = path.contains("component-sets")
+    override def intercept(path: String) = path.contains("component-sets") && !path.contains(".less")
 
     override val gzipEnabled = containerConfig.components.gzip
 
@@ -225,7 +229,7 @@ class Main(
   override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
   override lazy val itemAssetResolver: ItemAssetResolver = {
-    val config = ItemAssetResolverConfig(configuration, mode)
+    val config = ItemAssetResolverConfig(configuration, playMode)
     if (config.enabled) {
       val version = if (config.addVersionAsQueryParam) Some(mainAppVersion) else None
       val cdnResolver: CdnResolver = if (config.signUrls) {
@@ -290,7 +294,7 @@ class Main(
   override lazy val userSessionOrgIdentity: UserSessionOrgIdentity = requestIdentifiers.userSession
 
   private lazy val playerTokenConfig: PlayerTokenConfig = {
-    PlayerTokenConfig(mode == Mode.Dev || mode == Mode.Test)
+    PlayerTokenConfig(canSkipDecryption = playMode == Mode.Dev || playMode == Mode.Test)
   }
 
   private lazy val requestIdentifiers: RequestIdentifiers = wire[RequestIdentifiers]
@@ -346,7 +350,7 @@ class Main(
 
     private lazy val fieldValueLoadedOnce = fieldValueService.get.get
 
-    override def fieldValue: FieldValue = if (mode == Mode.Prod) {
+    override def fieldValue: FieldValue = if (playMode == Mode.Prod) {
       fieldValueLoadedOnce
     } else {
       fieldValueService.get.get
@@ -395,8 +399,6 @@ class Main(
     StandardsTree(json)
   }
 
-  override def playMode: PlayMode = mode
-
   lazy val itemAssetKeys = ItemAssetKeys
   lazy val draftAssetKeys = DraftAssetKeys
 
@@ -419,7 +421,7 @@ class Main(
   lazy val apiTracking: ApiTracking = {
 
     lazy val logRequests = {
-      val out = configuration.getBoolean("api.log-requests").getOrElse(mode == Mode.Dev)
+      val out = configuration.getBoolean("api.log-requests").getOrElse(playMode == Mode.Dev)
       logger.info(s"Log api requests? $out")
       out
     }
@@ -470,6 +472,6 @@ class Main(
     apiClientService,
     v2ActionContext))
 
-  override lazy val webModuleConfig: WebModuleConfig = WebModuleConfig(mode)
+  override lazy val webModuleConfig: WebModuleConfig = WebModuleConfig(playMode)
 
 }

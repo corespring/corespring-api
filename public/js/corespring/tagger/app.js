@@ -6,6 +6,7 @@
     ['cs',
       'tagger.directives',
       'tagger.services',
+      'customColors.directives',
       'angularBootstrap',
       'buttonToggle',
       'templates',

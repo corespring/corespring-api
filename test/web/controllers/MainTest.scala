@@ -89,7 +89,7 @@ class MainTest extends Specification with Mockito with PlaySpecification with Mo
     val assetsLoader = mock[AssetsLoader]
 
     lazy val orgAndOpts = V2ActionsFactory.orgAndOpts
-    lazy val actions = V2ActionsFactory.apply
+    lazy val actions = V2ActionsFactory.apply()
 
     val main = new Main(
       actions,

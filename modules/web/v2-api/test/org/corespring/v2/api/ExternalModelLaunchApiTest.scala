@@ -37,7 +37,7 @@ class ExternalModelLaunchApiTest extends V2ApiSpec {
     lazy val config = ExternalModelLaunchConfig("/v2/player/player.js")
 
     lazy val api = new ExternalModelLaunchApi(
-      V2ActionsFactory.apply,
+      V2ActionsFactory.apply(),
       tokenService,
       sessionServices,
       config,

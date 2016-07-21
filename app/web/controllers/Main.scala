@@ -6,6 +6,11 @@ import org.bson.types.ObjectId
 import org.corespring.csApi.buildInfo.BuildInfo
 import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
+import org.corespring.itemSearch.AggregateType.{WidgetType, ItemType}
+import org.corespring.models.json.JsonFormatting
+import org.corespring.models.{User}
+import org.corespring.services.auth.ApiClientService
+import org.corespring.services.{OrganizationService, UserService}
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.models.User
 import org.corespring.models.json.JsonFormatting
@@ -17,6 +22,12 @@ import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import play.api.Logger
+import play.api.libs.json.{Json, JsObject}
+import play.api.mvc._
+import play.api.libs.json.Json._
+import securesocial.core.SecuredRequest
+import web.models.{WebExecutionContext}
+import scalaz.Scalaz._
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsObject, Json }
 import play.api.mvc._
@@ -64,6 +75,12 @@ class Main(
       val json = Json.parse(BuildInfo.toJson).as[JsObject].deepMerge(obj("container" -> containerVersionInfo.json))
       Ok(json)
     }
+  }
+
+  def iconsAndColorsPage() = actions.SecuredAction {
+    implicit request: SecuredRequest[AnyContent] =>
+      val html = web.views.html.iconsAndColorsPage()
+      Ok(html)
   }
 
   def sampleLaunchCode(id: String) = actions.OrgAndApiClient.async {
