@@ -65,7 +65,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
     val apiContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
 
     val api = new ItemSessionApi(
-      V2ActionsFactory.apply,
+      V2ActionsFactory.apply(),
       mockSessionAuth,
       mockOrgService,
       mockEncryptionService,

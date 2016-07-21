@@ -36,7 +36,7 @@ class PlayerTokenApiTest extends Specification
       m
     }
 
-    val api = new PlayerTokenApi(V2ActionsFactory.apply, tokenService, V2ApiExecutionContext(ExecutionContext.global))
+    val api = new PlayerTokenApi(V2ActionsFactory.apply(), tokenService, V2ApiExecutionContext(ExecutionContext.global))
   }
 
   "PlayerTokenApi" should {

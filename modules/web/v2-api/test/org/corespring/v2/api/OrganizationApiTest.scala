@@ -51,7 +51,7 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
 
     val api = new OrganizationApi(
       orgService,
-      V2ActionsFactory.apply,
+      V2ActionsFactory.apply(mockedOrgAndOpts),
       orgCollectionService,
       v2ApiContext)
 

@@ -1,7 +1,7 @@
 package org.corespring.v2.actions
 
 import org.bson.types.ObjectId
-import org.corespring.v2.auth.models.MockFactory
+import org.corespring.v2.auth.models.{OrgAndOpts, MockFactory}
 import org.specs2.mock.Mockito
 import play.api.mvc._
 
@@ -21,7 +21,7 @@ object V2ActionsFactory extends Mockito with MockFactory {
     }
   }
 
-  def apply: V2Actions = {
+  def apply(orgAndOpts: OrgAndOpts = mockOrgAndOpts(collections = orgCollections)): V2Actions = {
 
     val m = mock[V2Actions]
 
