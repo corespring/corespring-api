@@ -21,7 +21,7 @@ object V2ActionsFactory extends Mockito with MockFactory {
     }
   }
 
-  def apply(orgAndOpts: OrgAndOpts = mockOrgAndOpts(collections = orgCollections)): V2Actions = {
+  def apply(orgAndOpts: OrgAndOpts = orgAndOpts): V2Actions = {
 
     val m = mock[V2Actions]
 
