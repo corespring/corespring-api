@@ -8,10 +8,11 @@ import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.{ CloneItemService, OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
+import org.corespring.services.{ CloneItemService, OrgCollectionService, OrganizationService }
+import org.corespring.v2.actions.V2ActionsFactory
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
-import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.SessionService
 import org.specs2.matcher.{ Expectable, MatchResult, Matcher, ThrownExpectations }
 import org.specs2.mock.Mockito
@@ -22,13 +23,13 @@ import play.api.mvc.{ AnyContentAsJson, SimpleResult }
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.{ Success, Validation }
+import scalaz.Success
 
 private[api] case class beCodeAndJson(code: Int, json: JsValue) extends Matcher[Future[SimpleResult]] {
 
   def apply[S <: Future[SimpleResult]](t: Expectable[S]): MatchResult[S] = {
 
-    import play.api.test.Helpers.{ status, contentAsJson }
+    import play.api.test.Helpers.{ contentAsJson, status }
 
     import scala.concurrent.duration._
     implicit val timeout = new akka.util.Timeout(10.second)
@@ -85,8 +86,6 @@ private[api] trait ItemApiScope
 
   lazy val collectionId = ObjectId.get
 
-  def orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts())
-
   lazy val itemService: ItemService = mock[ItemService]
 
   lazy val scoreService: ScoreService = {
@@ -130,6 +129,7 @@ private[api] trait ItemApiScope
   lazy val apiContext = ItemApiExecutionContext(ExecutionContext.Implicits.global)
 
   lazy val api = new ItemApi(
+    V2ActionsFactory.apply,
     itemService,
     orgService,
     orgCollectionService,
@@ -140,6 +140,5 @@ private[api] trait ItemApiScope
     scoreService,
     jsonFormatting,
     apiContext,
-    sessionService,
-    getOrgAndOptionsFn)
+    sessionService)
 }

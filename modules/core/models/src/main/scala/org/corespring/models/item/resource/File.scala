@@ -13,37 +13,42 @@ object BaseFile {
 
   object ContentTypes {
 
-    val JPEG: String = "image/jpeg"
-    val PNG: String = "image/png"
-    val GIF: String = "image/gif"
-    val DOC: String = "application/msword"
-    val PDF: String = "application/pdf"
-    val XML: String = "text/xml"
     val CSS: String = "text/css"
+    val DOC: String = "application/msword"
+    val GIF: String = "image/gif"
     val HTML: String = "text/html"
-    val TXT: String = "text/plain"
+    val JPEG: String = "image/jpeg"
     val JS: String = "text/javascript"
     val JSON: String = "application/json"
+    val MP3: String = "audio/mp3"
+    val OGG: String = "audio/ogg"
+    val PDF: String = "application/pdf"
+    val PNG: String = "image/png"
+    val TXT: String = "text/plain"
     val UNKNOWN: String = "unknown"
+    val XML: String = "text/xml"
 
     lazy val textTypes = Seq(XML, CSS, HTML, TXT, JS, JSON, UNKNOWN)
-    lazy val binaryTypes = Seq(JPEG, PNG, GIF, DOC, PDF)
+    lazy val binaryTypes = Seq(DOC, PDF, JPEG, PNG, GIF, MP3, OGG)
   }
 
   val SuffixToContentTypes = Map(
-    "jpg" -> ContentTypes.JPEG,
-    "jpeg" -> ContentTypes.JPEG,
-    "png" -> ContentTypes.PNG,
-    "gif" -> ContentTypes.GIF,
+    "css" -> ContentTypes.CSS,
     "doc" -> ContentTypes.DOC,
     "docx" -> ContentTypes.DOC,
-    "pdf" -> ContentTypes.PDF,
-    "xml" -> ContentTypes.XML,
-    "css" -> ContentTypes.CSS,
+    "gif" -> ContentTypes.GIF,
     "html" -> ContentTypes.HTML,
-    "txt" -> ContentTypes.TXT,
+    "jpeg" -> ContentTypes.JPEG,
+    "jpg" -> ContentTypes.JPEG,
+    "js" -> ContentTypes.JS,
     "json" -> ContentTypes.JSON,
-    "js" -> ContentTypes.JS)
+    "mp3" -> ContentTypes.MP3,
+    "ogg" -> ContentTypes.OGG,
+    "pdf" -> ContentTypes.PDF,
+    "png" -> ContentTypes.PNG,
+    "txt" -> ContentTypes.TXT,
+    "xml" -> ContentTypes.XML
+  )
 
   def isValidContentType(t: String): Boolean = {
     (BaseFile.ContentTypes.binaryTypes ++ BaseFile.ContentTypes.textTypes).contains(t)

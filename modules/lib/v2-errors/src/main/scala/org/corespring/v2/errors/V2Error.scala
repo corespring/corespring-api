@@ -1,6 +1,7 @@
 package org.corespring.v2.errors
 
 import org.bson.types.ObjectId
+import org.corespring.models.Organization
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -31,6 +32,8 @@ case class Field(name: String, fieldType: String)
 sealed abstract class identificationFailed(override val title: String, override val description: String, rh: RequestHeader, msg: String = "Failed to identify an organization for request") extends V2Error(title, description, s"${rh.path} - $msg", UNAUTHORIZED)
 
 object Errors {
+
+  case class notRootOrg(o: Organization) extends V2Error(s"Not a root org: ${o.name}", "The org is not a root org.", "not a root org.", statusCode = UNAUTHORIZED)
 
   case class invalidObjectId(id: String, context: String) extends V2Error("Invalid Object Id", "The provided object id was not valid.", s"Invalid object id: $id, context: $context")
 

@@ -1,20 +1,21 @@
 import sbt._
-
 object Dependencies {
 
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "3.3.5-REDESIGN-SNAPSHOT"
+  val containerVersion = "3.4.0-mikl-SNAPSHOT"
   val qtiVersion = "0.16"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
   object ModuleConfigurations {
 
-    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, Resolvers.corespringSnapshots))
+    import org.corespring.sbt.repo.RepoAuthPlugin
+
+    val chainedSnapshots = ChainedResolver("chained", Seq(Resolver.defaultLocal, RepoAuthPlugin.snapshots))
     val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", chainedSnapshots)
-    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
+    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", RepoAuthPlugin.releases)
   }
 
   val containerClientWeb = toModule("container-client-web")
@@ -32,7 +33,8 @@ object Dependencies {
   val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.23-PLAY22").exclude("org.mongodb", "mongo-java-driver")
+  val corespringMacros = "org.corespring" %% "macros" % "1.1.0"
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "2.0.0-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val grizzledLog = "org.clapper" %% "grizzled-slf4j" % "1.0.2"
   val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
@@ -52,7 +54,7 @@ object Dependencies {
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
-  val playS3 = "org.corespring" %% "s3-play-plugin" % "1.1.0"
+  val playS3 = "org.corespring" %% "s3-play-plugin" % "1.2.1"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
   val qti = "org.corespring" %% "corespring-qti" % qtiVersion
   val qtiConverter = "org.corespring" %% "qti-corespring-converter" % qtiVersion
@@ -69,34 +71,28 @@ object Dependencies {
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.2.2" // "3.6.2"
-  //val specs2Mock = "org.specs2" %% "specs2-mock" % "2.2.2" //"3.6.2"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val ztZip = "org.zeroturnaround" % "zt-zip" % "1.8" % "it"
 
   object Resolvers {
 
-    val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots"
-    val corespringReleases = "Corespring Artifactory Releases" at "http://repository.corespring.org/artifactory/ivy-releases"
     val corespringPublicSnapshots = "Corespring Public Artifactory Snapshots" at "http://repository.corespring.org/artifactory/public-ivy-snapshots"
-    val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
-    val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
-    val sonatypeSnapshots = "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-    val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
-    val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
-    val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
     val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
-    val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
     val ivyLocal = Resolver.file("ivyLocal", file(Path.userHome.absolutePath + "/.ivy2/local"))(Resolver.ivyStylePatterns)
-
+    val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
+    val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
+    val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     val scalazBintray = "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+    val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
+    val sonatypeSnapshots = "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+    val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
+    val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
 
     val all: Seq[Resolver] = Seq(
       scalazBintray,
       sonatypeSnapshots,
       typesafe,
-      corespringSnapshots,
-      corespringReleases,
       corespringPublicSnapshots,
       spy,
       sbtPluginSnapshots,

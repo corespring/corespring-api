@@ -6,15 +6,14 @@ import org.corespring.futureValidation.FutureValidation
 import org.corespring.itemSearch.{ ItemIndexQuery, ItemIndexSearchResult }
 import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
+import org.corespring.v2.auth.models.AuthMode
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
-import org.corespring.v2.errors.V2Error
 import play.api.libs.json.Json
-import play.api.mvc.{Request, AnyContent, AnyContentAsJson}
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.mvc.{ AnyContent, AnyContentAsJson, Request }
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.concurrent._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{ Failure, Success }
 
 class ItemApiCloneTest extends ItemApiSpec {
 
@@ -26,15 +25,13 @@ class ItemApiCloneTest extends ItemApiSpec {
 
     "when calling clone" should {
 
-      lazy val orgAndOpts = mockOrgAndOpts(AuthMode.UserSession)
-
       lazy val vid = VersionedId(ObjectId.get)
       lazy val clonedId = VersionedId(ObjectId.get)
 
       lazy val clonedItem: Item = Item(id = clonedId, collectionId = ObjectId.get.toString)
 
-      case class ItemApiCloneScope(vid: String = vid.toString,
-        id: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
+      case class ItemApiCloneScope(
+        vid: String = vid.toString,
         itemServiceClones: Boolean = true,
         item: Option[Item] = Some(clonedItem)) extends ItemApiScope {
 
@@ -42,11 +39,9 @@ class ItemApiCloneTest extends ItemApiSpec {
           FutureValidation(if (itemServiceClones) Success(clonedId) else Failure(PlatformServiceError("cloneItem failed")))
         }
 
-        itemIndexService.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult.empty) }
+        itemIndexService.search(any[ItemIndexQuery], any[Option[String]]) returns future { Success(ItemIndexSearchResult.empty) }
 
-        override val orgAndOpts: Validation[V2Error, OrgAndOpts] = id
-
-        def result(r:Request[AnyContent]) = api.cloneItem(vid.toString)(r)
+        def result(r: Request[AnyContent]) = api.cloneItem(vid.toString)(r)
       }
 
       "return 200" in new ItemApiCloneScope {
@@ -65,10 +60,6 @@ class ItemApiCloneTest extends ItemApiSpec {
 
       val testError = generalError("test error")
 
-      "fail if there's no identity" in new ItemApiCloneScope(id = Failure(testError)) {
-        status(result(req)) === testError.statusCode
-      }
-
       "fail if the item id is unparseable" in new ItemApiCloneScope(vid = "?") {
         val r = result(req)
         status(r) === testError.statusCode
@@ -79,7 +70,7 @@ class ItemApiCloneTest extends ItemApiSpec {
         val r = result(req)
         status(r) === testError.statusCode
         val json = contentAsJson(r)
-        (json \ "message").as[String] must contain("Error cloning")
+        (json \ "message").as[String] must_== "cloneItem failed"
       }
     }
   }

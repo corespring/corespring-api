@@ -84,7 +84,6 @@ class PlayerAssetHelperIntegrationTest extends IntegrationSpecification {
       result.header.status === 200
     }
 
-
   }
 
   "PlayerAssetHelper.loadFile" should {
@@ -124,6 +123,5 @@ class PlayerAssetHelperIntegrationTest extends IntegrationSpecification {
     }
 
   }
-
 
 }

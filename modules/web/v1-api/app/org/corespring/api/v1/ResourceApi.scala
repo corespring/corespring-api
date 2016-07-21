@@ -261,8 +261,8 @@ class ResourceApi(
   private def applyUpdate(update: BaseFile, file: BaseFile): BaseFile = {
     if (file.name == update.name) {
       (update, file) match {
-        case (up:StoredFile, old:StoredFile) => up.copy(storageKey = old.storageKey)
-        case (up:VirtualFile, old:VirtualFile) => up
+        case (up: StoredFile, old: StoredFile) => up.copy(storageKey = old.storageKey)
+        case (up: VirtualFile, old: VirtualFile) => up
         case _ => file
       }
     } else {

@@ -11,6 +11,7 @@ case class S3Config(credentials: AWSCredentials, bucket: String, endpoint: Optio
 private[bootstrap] case class AppConfig(
   s3Config: S3Config,
   allowAllSessions: Boolean,
+  allowExpiredTokens: Boolean,
   appVersionOverride: String,
   demoOrgId: ObjectId,
   dynamoDbActivate: Boolean,
@@ -34,7 +35,7 @@ object AppConfig {
 
   private object Key extends Enumeration {
     type Key = Value
-    val ALLOW_ALL_SESSIONS, AMAZON_ACCESS_KEY, AMAZON_ACCESS_SECRET, AMAZON_ASSETS_BUCKET, AMAZON_ENDPOINT, APP_VERSION_OVERRIDE, DEMO_ORG_ID, DYNAMO_DB_ACTIVATE, DYNAMO_DB_LOCAL_INIT, DYNAMO_DB_LOCAL_PORT, DYNAMO_DB_USE_LOCAL, ELASTIC_SEARCH_URL, ENV_NAME, ROOT_ORG_ID, V2_PLAYER_ORG_IDS, COMPONENT_FILTERING_ENABLED, SESSION_SERVICE, SESSION_SERVICE_URL, SESSION_SERVICE_AUTHTOKEN = Value
+    val ALLOW_ALL_SESSIONS, ALLOW_EXPIRED_TOKENS, AMAZON_ACCESS_KEY, AMAZON_ACCESS_SECRET, AMAZON_ASSETS_BUCKET, AMAZON_ENDPOINT, APP_VERSION_OVERRIDE, DEMO_ORG_ID, DYNAMO_DB_ACTIVATE, DYNAMO_DB_LOCAL_INIT, DYNAMO_DB_LOCAL_PORT, DYNAMO_DB_USE_LOCAL, ELASTIC_SEARCH_URL, ENV_NAME, ROOT_ORG_ID, V2_PLAYER_ORG_IDS, COMPONENT_FILTERING_ENABLED, SESSION_SERVICE, SESSION_SERVICE_URL, SESSION_SERVICE_AUTHTOKEN = Value
   }
 
   import Key._
@@ -62,6 +63,7 @@ object AppConfig {
     AppConfig(
       s3Config,
       allowAllSessions = config.getBoolean(ALLOW_ALL_SESSIONS).getOrElse(false),
+      allowExpiredTokens = config.getBoolean(ALLOW_EXPIRED_TOKENS).getOrElse(false),
       appVersionOverride = config.getString(APP_VERSION_OVERRIDE).getOrElse(""),
       demoOrgId = config.getString(DEMO_ORG_ID).map(new ObjectId(_)).getOrElse(throw new RuntimeException("demoOrgId - Not found")),
       dynamoDbActivate = config.getBoolean(DYNAMO_DB_ACTIVATE).getOrElse(false),

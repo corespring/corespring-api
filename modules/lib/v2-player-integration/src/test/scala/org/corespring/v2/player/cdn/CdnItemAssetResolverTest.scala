@@ -2,7 +2,7 @@ package org.corespring.v2.player.cdn
 
 import java.util.Date
 
-import org.specs2.matcher.{Expectable, Matcher}
+import org.specs2.matcher.{ Expectable, Matcher }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -13,7 +13,7 @@ class CdnItemAssetResolverTest extends Specification with Mockito {
 
     trait withoutSigning extends Scope {
 
-      val cdnResolver= new CdnResolver(Some("//blah"), None)
+      val cdnResolver = new CdnResolver(Some("//blah"), None)
 
       val sut = new CdnItemAssetResolver(cdnResolver)
     }

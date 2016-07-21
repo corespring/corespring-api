@@ -2,10 +2,9 @@ package org.corespring.v2.api
 
 import com.fasterxml.jackson.core.JsonParseException
 import org.corespring.itemSearch.ItemIndexService
-import org.corespring.models.{ Subject, Standard }
-import org.corespring.services.{ StandardQuery, SubjectQuery, SubjectService, StandardService }
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.V2Error
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.services.{ StandardQuery, StandardService, SubjectQuery, SubjectService }
+import org.corespring.v2.actions.V2ActionsFactory
 import org.mockito.Matchers
 import org.specs2.specification.{ Fragment, Scope }
 import play.api.libs.json.Json
@@ -13,7 +12,7 @@ import play.api.mvc.{ Action, AnyContent }
 import play.api.test.FakeRequest
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.{ Failure, Success, Validation }
+import scalaz.Success
 
 class FieldValuesApiTest extends V2ApiSpec {
 
@@ -22,7 +21,7 @@ class FieldValuesApiTest extends V2ApiSpec {
   val contributorValues = Seq("these", "are", "contributors")
   val gradeValues = Seq("these are grades")
 
-  class scope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts())) extends Scope with V2ApiScope {
+  class scope extends Scope with V2ApiScope {
 
     lazy val itemIndexService = {
       val m = mock[ItemIndexService]
@@ -46,12 +45,12 @@ class FieldValuesApiTest extends V2ApiSpec {
     }
 
     val api = new FieldValuesApi(
+      V2ActionsFactory.apply,
       itemIndexService,
       v2ApiContext,
       standardService,
       subjectService,
-      jsonFormatting,
-      getOrgAndOptionsFn)
+      jsonFormatting)
 
     val req = FakeRequest("", "")
   }
@@ -105,13 +104,6 @@ class FieldValuesApiTest extends V2ApiSpec {
       val json = contentAsJson(api.contributors()(FakeRequest()))
       json.as[Seq[String]] === contributorValues
     }
-
-    "user not authenticated" should {
-
-      s"return ${testError.statusCode}" in new scope(orgAndOpts = Failure(testError)) {
-        status(api.contributors()(FakeRequest())) === testError.statusCode
-      }
-    }
   }
 
   "gradeLevels" should {
@@ -124,13 +116,5 @@ class FieldValuesApiTest extends V2ApiSpec {
       val json = contentAsJson(api.gradeLevels()(FakeRequest()))
       json.as[Seq[String]] === gradeValues
     }
-
-    "user not authenticated" should {
-
-      s"return ${testError.statusCode}" in new scope(orgAndOpts = Failure(testError)) {
-        status(api.gradeLevels()(FakeRequest())) === testError.statusCode
-      }
-    }
   }
-
 }

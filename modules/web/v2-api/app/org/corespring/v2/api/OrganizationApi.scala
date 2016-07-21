@@ -9,15 +9,17 @@ import org.corespring.v2.errors.Errors.{noJson, invalidJson, generalError}
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{JsSuccess, JsArray, JsValue, Json}
 import play.api.mvc.RequestHeader
-
+import org.corespring.v2.actions.V2Actions
+import org.corespring.v2.errors.Errors.generalError
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{Failure, Success, Validation}
 
+
 class OrganizationApi(
   organizationService: OrganizationService,
+  actions: V2Actions,
   orgCollectionService: OrgCollectionService,
-  v2ApiContext: V2ApiExecutionContext,
-  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+  v2ApiContext: V2ApiExecutionContext) extends V2Api {
 
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
@@ -26,10 +28,10 @@ class OrganizationApi(
    * @param collectionId
    * @return
    */
-  def getOrgsWithSharedCollection(collectionId: ObjectId) = futureWithIdentity { (identity, request) =>
+  def getOrgsWithSharedCollection(collectionId: ObjectId) = actions.Org.async { request =>
     Future {
-      val result = orgCollectionService.ownsCollection(identity.org, collectionId).map { _ =>
-        orgCollectionService.getOrgsWithAccessTo(collectionId).filterNot(_.id == identity.org.id)
+      val result = orgCollectionService.ownsCollection(request.org, collectionId).map { _ =>
+        orgCollectionService.getOrgsWithAccessTo(collectionId).filterNot(_.id == request.org.id)
       }
 
       def toNameAndPermission(o: Organization): Option[JsValue] = {
@@ -46,19 +48,19 @@ class OrganizationApi(
     }
   }
 
-  def getDisplayConfig = futureWithIdentity { (identity, request) =>
+  def getDisplayConfig = actions.Org.async { request =>
     implicit val Writes = DisplayConfig.Writes
-    Future.successful(Ok(Json.prettyPrint(Json.toJson(identity.org.displayConfig))))
+    Future.successful(Ok(Json.prettyPrint(Json.toJson(request.org.displayConfig))))
   }
 
-  def updateDisplayConfig = futureWithIdentity { (identity, request) =>
+  def updateDisplayConfig = actions.Org.async { request =>
     implicit val Writes = DisplayConfig.Writes
-    implicit val Reads = new DisplayConfig.Reads(identity.org.displayConfig)
+    implicit val Reads = new DisplayConfig.Reads(request.org.displayConfig)
 
     Future.successful(request.body.asJson match {
       case Some(json) => Json.fromJson[DisplayConfig](json) match {
         case JsSuccess(displayConfig, _) =>
-          organizationService.save(identity.org.copy(displayConfig = displayConfig)).v2Error.map(org =>
+          organizationService.save(request.org.copy(displayConfig = displayConfig)).v2Error.map(org =>
             Json.toJson(org.displayConfig)).toSimpleResult()
         case _ => invalidJson(request.body.asText.getOrElse("")).toResult
       }
@@ -66,7 +68,7 @@ class OrganizationApi(
     })
   }
 
-  def displayConfigDefault = futureWithIdentity { (identity, request) =>
+  def displayConfigDefault = actions.Org.async { request =>
     implicit val Writes = DisplayConfig.Writes
     Future.successful(Ok(Json.prettyPrint(Json.toJson(DisplayConfig.default))))
   }

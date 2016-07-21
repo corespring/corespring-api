@@ -2,7 +2,7 @@ package org.corespring.itemSearch
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
-import org.corespring.elasticsearch.ContentIndexer
+import org.corespring.elasticsearch.{ BatchConfig, BatchContentIndexer }
 import org.corespring.it.helpers._
 import org.corespring.it.{ FieldValuesIniter, IntegrationSpecification, ItemIndexCleaner }
 import org.corespring.models.item.Item
@@ -28,7 +28,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     lazy val orgId = OrganizationHelper.create("test-org")
     lazy val collectionId = CollectionHelper.create(orgId)
     lazy val query = ItemIndexQuery(widgets = Seq("corespring-calculator"))
-    lazy val searchResult = Await.result(main.itemIndexService.unboundedSearch(query), 1.second)
+    lazy val searchResult = Await.result(main.itemIndexService.unboundedSearch(query, None), 1.second)
 
     override def after = {
       logger.debug(" ----------- >> after.. cleaning up..")
@@ -89,7 +89,11 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
       val cfg = main.elasticSearchConfig
       //Run the indexer
       logger.info(s"config: $cfg")
-      val result = ContentIndexer.reindex(cfg.url, cfg.mongoUri, cfg.componentPath)(ExecutionContext.Implicits.global)
+      val batchConfig = BatchConfig(
+        cfg.mongoUri,
+        cfg.url.toString,
+        cfg.componentPath)
+      val result = BatchContentIndexer.reindex(batchConfig)(ExecutionContext.global)
       logger.info(s"result? $result")
       /**
        * Note: We have to give the indexer a little bit more time before we search.
