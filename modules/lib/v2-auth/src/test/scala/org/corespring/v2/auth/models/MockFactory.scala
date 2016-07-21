@@ -22,10 +22,6 @@ trait MockFactory {
     ApiClient(orgAndOpts.org.id, ObjectId.get, "clientSecret")
   }
 
-  def mockApiClient(orgAndOpts: OrgAndOpts) = {
-    ApiClient(orgAndOpts.org.id, ObjectId.get, "clientSecret")
-  }
-
   def mockCollectionId() = ObjectId.get
   def mockItem = Item(collectionId = mockCollectionId().toString)
 }
