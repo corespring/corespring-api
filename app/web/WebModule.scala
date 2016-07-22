@@ -1,8 +1,10 @@
 package web
+import com.amazonaws.services.s3.AmazonS3
+import com.mongodb.casbah.MongoDB
 import org.corespring.amazon.s3.S3Service
 import org.corespring.container.client.VersionInfo
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
-import org.corespring.itemSearch.ItemIndexService
+import org.corespring.itemSearch.{ ElasticSearchConfig, ItemIndexService }
 import org.corespring.models.appConfig.{ Bucket, DefaultOrgs }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.auth.ApiClientService
@@ -42,6 +44,10 @@ trait WebModule {
   def publicSiteConfig: PublicSiteConfig
   def assetsLoader: AssetsLoader
 
+  def elasticSearchConfig: ElasticSearchConfig
+  def s3: AmazonS3
+  def db: MongoDB
+
   def itemIndexService: ItemIndexService
   def orgCollectionService: OrgCollectionService
 
@@ -67,7 +73,7 @@ trait WebModule {
     assetsLoader)
 
   lazy val publicSite = new PublicSite(publicSiteConfig.url, webModuleConfig.mode)
-  lazy val systemCheck = new SystemCheck()
+  lazy val systemCheck = new SystemCheck(s3, db, elasticSearchConfig)
 
   lazy val webControllers = Seq(showResource, webMain, publicSite, partials, itemSearch, systemCheck)
 }
