@@ -19,8 +19,8 @@ trait ItemIndexService {
   def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]]
   def refresh(): Future[Validation[Error, String]]
 
-  def componentTypes: Future[Validation[Error, Map[String, String]]]
-  def widgetTypes: Future[Validation[Error, Map[String, String]]]
+  def componentTypes(collections: Seq[String]): Future[Validation[Error, Map[String, String]]]
+  def widgetTypes(collections: Seq[String]): Future[Validation[Error, Map[String, String]]]
 
 }
 
