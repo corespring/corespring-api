@@ -273,6 +273,7 @@ object Build extends sbt.Build {
     .settings(ComponentsBuilder.settings: _*)
     .settings(Indexing.indexTask)
     .settings(AccessToken.cleanupTask)
+    .enablePlugins(org.corespring.triggerComponentSets.TriggerComponentSetsPlugin)
     .addBuildInfo()
     .dependsOn(
       apiUtils,
