@@ -67,13 +67,13 @@ class MainTest extends Specification with Mockito with PlaySpecification with Mo
 
     lazy val itemType = {
       val m = mock[ItemType]
-      m.all(Seq.empty) returns Json.arr()
+      m.all() returns Json.arr()
       m
     }
 
     lazy val widgetType = {
       val m = mock[WidgetType]
-      m.all(Seq.empty) returns Json.arr()
+      m.all() returns Json.arr()
       m
     }
 
