@@ -120,16 +120,24 @@ class Main(
 
   lazy val appConfig = AppConfig(configuration)
 
-  override lazy val containerConfig: ContainerConfig = ContainerConfig(
-    mode = playMode,
-    showNonReleasedComponents = configuration.getBoolean("container.components.showNonReleasedComponents").getOrElse(playMode == Mode.Dev),
-    editorDebounceInMillis = configuration.getLong("container.editor.autosave.debounceInMillis").getOrElse(5000),
-    components = ComponentsConfig.fromConfig(playMode, configuration.getConfig("container.components").getOrElse(Configuration.empty)),
-    player = V2PlayerConfig(
+  override lazy val containerConfig: ContainerConfig = {
+    val newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))
+
+    val launchTimeout: Int = configuration.getInt("container.launchTimeout").getOrElse(0)
+    val playerConfig = V2PlayerConfig(
       rootUrl = configuration.getString("container.rootUrl"),
-      newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))),
-    uploadAudioMaxSizeKb = configuration.getLong("container.editor.upload.audio.maxSizeKb").getOrElse(16 * 1024 -1),
-    uploadImageMaxSizeKb = configuration.getLong("container.editor.upload.image.maxSizeKb").getOrElse(500))
+      newRelicRumConfig = newRelicRumConfig,
+      launchTimeout)
+
+    ContainerConfig(
+      mode = playMode,
+      showNonReleasedComponents = configuration.getBoolean("container.components.showNonReleasedComponents").getOrElse(playMode == Mode.Dev),
+      editorDebounceInMillis = configuration.getLong("container.editor.autosave.debounceInMillis").getOrElse(5000),
+      components = ComponentsConfig.fromConfig(playMode, configuration.getConfig("container.components").getOrElse(Configuration.empty)),
+      player = playerConfig,
+      uploadAudioMaxSizeKb = configuration.getLong("container.editor.upload.audio.maxSizeKb").getOrElse(16 * 1024 - 1),
+      uploadImageMaxSizeKb = configuration.getLong("container.editor.upload.image.maxSizeKb").getOrElse(500))
+  }
 
   logger.info(s"containerConfig: $containerConfig")
 
