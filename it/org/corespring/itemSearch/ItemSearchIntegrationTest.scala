@@ -46,7 +46,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
 
     protected def search(text: Option[String]): ItemIndexSearchResult = {
       val query = ItemIndexQuery(text = text, collections = Seq(collectionId.toString))
-      val futureResult = itemIndexService.search(query)
+      val futureResult = itemIndexService.search(query, None)
       Await.result(futureResult, Duration.Inf).toOption.get
     }
 
@@ -86,7 +86,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
         mode = mode)
       println("pause - allow index to prepare itself")
       Thread.sleep(1000)
-      Await.result(itemIndexService.search(query), 5.seconds).toOption.get
+      Await.result(itemIndexService.search(query, None), 5.seconds).toOption.get
     }
   }
 
@@ -152,7 +152,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
           val query = ItemIndexQuery(
             text = Some("DN"),
             collections = Seq(collectionId.toString))
-          Await.result(itemIndexService.search(query), 5.seconds).toOption.get
+          Await.result(itemIndexService.search(query, None), 5.seconds).toOption.get
         }
 
         result.total must_== 1
@@ -165,7 +165,7 @@ class ItemSearchIntegrationTest extends IntegrationSpecification {
           val query = ItemIndexQuery(
             text = Some("AB"),
             collections = Seq(collectionId.toString))
-          Await.result(itemIndexService.search(query), 5.seconds).toOption.get
+          Await.result(itemIndexService.search(query, None), 5.seconds).toOption.get
         }
 
         result.total must_== 1

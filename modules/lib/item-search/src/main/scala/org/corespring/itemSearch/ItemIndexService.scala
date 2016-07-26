@@ -13,8 +13,8 @@ trait ItemIndexService {
    * @param query
    * @return
    */
-  def search(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]]
-  def unboundedSearch(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]]
+  def search(query: ItemIndexQuery, preference: Option[String]): Future[Validation[Error, ItemIndexSearchResult]]
+  def unboundedSearch(query: ItemIndexQuery, preference: Option[String]): Future[Validation[Error, ItemIndexSearchResult]]
   def distinct(field: String, collections: Seq[String] = Seq.empty): Future[Validation[Error, Seq[String]]]
   def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]]
   def refresh(): Future[Validation[Error, String]]

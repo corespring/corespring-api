@@ -21,8 +21,8 @@ class AssessmentApiTest extends V2ApiSpec {
     authorId: Option[String] = None,
     participants: Seq[String] = Seq.empty[String]) extends Scope with V2ApiScope {
 
-    lazy val v2Actions = V2ActionsFactory.apply
     lazy val orgAndOpts = V2ActionsFactory.orgAndOpts
+    lazy val v2Actions = V2ActionsFactory.apply(orgAndOpts)
 
     val orgId = Some(orgAndOpts.org.id)
 

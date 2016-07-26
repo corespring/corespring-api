@@ -36,7 +36,7 @@ class ElasticSearchItemIndexService(
 
   private val logger = Logger(classOf[ElasticSearchItemIndexService])
 
-  override def unboundedSearch(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
+  override def unboundedSearch(query: ItemIndexQuery, preference: Option[String]): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
 
       implicit val QueryWrites = ItemIndexQuery.ElasticSearchWrites
@@ -45,7 +45,7 @@ class ElasticSearchItemIndexService(
       val queryJson = Json.toJson(query)
       logger.trace(s"function=unboundedSearch\n\tquery=$query\n\tqueryJson=${Json.prettyPrint(queryJson)}")
 
-      contentIndex.search(queryJson)
+      contentIndex.search(queryJson, preference)
         .map { result =>
           val resultJson = Json.parse(result.body)
           logger.trace(s"function=unboundedSearch, resultJson=${Json.prettyPrint(resultJson)}")
@@ -62,9 +62,9 @@ class ElasticSearchItemIndexService(
     }
   }
 
-  def search(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = query.collections match {
+  def search(query: ItemIndexQuery, preference: Option[String]): Future[Validation[Error, ItemIndexSearchResult]] = query.collections match {
     case Nil => Future(Success(ItemIndexSearchResult(total = 0, hits = Seq.empty)))
-    case _ => unboundedSearch(query)
+    case _ => unboundedSearch(query, preference)
   }
 
   def distinct(field: String, collectionIds: Seq[String]): Future[Validation[Error, Seq[String]]] = {
@@ -76,7 +76,7 @@ class ElasticSearchItemIndexService(
       val searchQuery = Json.toJson(agg)
       logger.trace(s"function=distinct, field=$field, searchQuery=$searchQuery")
 
-      contentIndex.search(searchQuery)
+      contentIndex.search(searchQuery, None)
         .map(result => {
 
           val resultJson = Json.parse(result.body)

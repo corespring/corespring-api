@@ -62,7 +62,7 @@ class MetadataApiTest extends V2ApiSpec {
     }
 
     val v2ApiContext = V2ApiExecutionContext(ExecutionContext.global)
-    val metadataApi = new MetadataApi(V2ActionsFactory.apply, metadataSetService, metadataService, v2ApiContext)
+    val metadataApi = new MetadataApi(V2ActionsFactory.apply(), metadataSetService, metadataService, v2ApiContext)
   }
 
   val metadata = Map("this" -> Map("is" -> "the"), "form" -> Map("of" -> "metadata"))
