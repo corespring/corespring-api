@@ -84,12 +84,22 @@ object Main {
         }
     }
 
-    new Main(db, app.configuration, app.mode, app.classloader, app.resource)
+    lazy val archiveDb: MongoDB =
+      app.plugins
+        .find(p => classOf[SalatPlugin].isAssignableFrom(p.getClass))
+        .map(_.asInstanceOf[SalatPlugin])
+        .map(_.db("archive"))
+        .getOrElse {
+        throw new RuntimeException("Can't find SalatPlugin so can't load the db")
+      }
+
+    new Main(db, archiveDb, app.configuration, app.mode, app.classloader, app.resource)
   }
 }
 
 class Main(
   val db: MongoDB,
+  archive: MongoDB,
   //TODO: rm Configuration (needed for [[HasConfig]]) and use appConfig + containerConfig instead.
   val configuration: Configuration,
   val inputMode: PlayMode,
@@ -119,6 +129,11 @@ class Main(
   }
 
   lazy val appConfig = AppConfig(configuration)
+
+  lazy val archiveDb = appConfig.sessionServiceArchiveEnabled match {
+    case true => Some(archive)
+    case _ => None
+  }
 
   override lazy val containerConfig: ContainerConfig = ContainerConfig(
     mode = playMode,

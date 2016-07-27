@@ -10,10 +10,10 @@ case class SessionServiceExecutionContext(ec: ExecutionContext)
 
 trait SessionService extends SessionReporting {
   def sessionCount(itemId: VersionedId[ObjectId]): Long
-  def create(data: JsValue): Option[ObjectId]
   def load(id: String): Option[JsValue]
   def loadMultiple(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]]
   def save(id: String, data: JsValue): Option[JsValue]
+  def create(data: JsValue): Option[ObjectId]
 }
 
 case class SessionServices(preview: SessionService, main: SessionService)
