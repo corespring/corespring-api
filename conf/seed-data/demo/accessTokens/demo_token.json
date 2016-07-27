@@ -5,6 +5,9 @@
   "organization": {
     "$oid": "51114b307fc1eaa866444648"
   },
+  "apiClientId" : {
+    "$oid" : "502e46ce0364068384f217f5"
+  },
   "tokenId": "demo_token",
   "scope": "demo_user",
   "neverExpire" : true
