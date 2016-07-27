@@ -14,7 +14,7 @@ object DisplayConfig {
   }
 
   object Defaults {
-    val iconSet = "emoji"
+    val iconSet = "check"
     val colors = ColorPalette.default
   }
 
