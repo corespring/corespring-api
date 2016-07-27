@@ -45,7 +45,7 @@ class FieldValuesApiTest extends V2ApiSpec {
     }
 
     val api = new FieldValuesApi(
-      V2ActionsFactory.apply,
+      V2ActionsFactory.apply(),
       itemIndexService,
       v2ApiContext,
       standardService,

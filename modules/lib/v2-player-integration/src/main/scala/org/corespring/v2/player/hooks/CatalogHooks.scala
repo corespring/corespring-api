@@ -1,15 +1,16 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.container.client.hooks.{ CatalogHooks => ContainerCatalogHooks }
+import org.corespring.container.client.hooks.Hooks._
+import org.corespring.container.client.hooks.{CatalogHooks => ContainerCatalogHooks}
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
+import org.corespring.v2.auth.models.{DisplayConfigJson, OrgAndOpts}
+import org.corespring.v2.auth.{ItemAuth, LoadOrgAndOptions}
 import org.corespring.v2.errors.V2Error
 import play.api.http.Status._
-import play.api.libs.json.JsValue
+import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -30,31 +31,32 @@ class CatalogHooks(
 
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
-  override def load(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  override def load(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
     val result = for {
       oid <- VersionedId(itemId).toSuccess("Invalid object id")
       identity <- getOrgAndOptions(header)
       item <- auth.loadForRead(itemId)(identity)
-    } yield item
+    } yield (item, identity)
 
     result match {
-      case Success(item) => {
+      case Success(result) => {
+        val (item, identity) = result
         val pocJson = transformer.transformToV2Json(item)
-        Right(pocJson)
+        Right((pocJson, DisplayConfigJson(identity)))
       }
       case Failure(message) => Left(BAD_REQUEST -> "Not found: $itemId")
     }
   }
 
-  override def showCatalog(itemId: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
+  override def showCatalog(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
     val result = for {
       identity <- getOrgAndOptions(header)
       item <- auth.loadForRead(itemId)(identity)
-    } yield item
+    } yield (item, identity)
 
     result match {
-      case Success(item) => None
-      case Failure(e) => Some((UNAUTHORIZED, e.message))
+      case Success(itemAndIdentity) => Right(DisplayConfigJson(itemAndIdentity._2))
+      case Failure(e) => Left((UNAUTHORIZED, e.message))
     }
   }
 

@@ -129,7 +129,7 @@ private[api] trait ItemApiScope
   lazy val apiContext = ItemApiExecutionContext(ExecutionContext.Implicits.global)
 
   lazy val api = new ItemApi(
-    V2ActionsFactory.apply,
+    V2ActionsFactory.apply(),
     itemService,
     orgService,
     orgCollectionService,

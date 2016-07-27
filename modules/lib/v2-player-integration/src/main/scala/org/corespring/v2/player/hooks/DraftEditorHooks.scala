@@ -3,20 +3,20 @@ package org.corespring.v2.player.hooks
 import org.apache.commons.httpclient.util.URIUtil
 import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
-import org.corespring.container.client.hooks.{ UploadResult, DraftEditorHooks => ContainerDraftEditorHooks }
+import org.corespring.container.client.hooks.{UploadResult, DraftEditorHooks => ContainerDraftEditorHooks}
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.{ DraftAssetKeys, ItemDrafts, MakeDraftId, S3Paths }
+import org.corespring.drafts.item.{DraftAssetKeys, ItemDrafts, MakeDraftId, S3Paths}
 import org.corespring.models.appConfig.Bucket
-import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.models.item.resource.{BaseFile, StoredFile}
 import org.corespring.v2.auth.LoadOrgAndOptions
-import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.models.{DisplayConfigJson, OrgAndOpts}
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.assets.S3PathResolver
 import play.api.Logger
-import play.api.libs.json.JsValue
+import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -55,12 +55,14 @@ class DraftEditorHooks(
     d <- backend.loadOrCreate(identity)(draftId, ignoreConflict = true).leftMap(e => generalError(e.msg))
   } yield d
 
-  override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
     logger.trace(s"function=load id=$id")
     for {
+      identity <- getOrgAndOptions(header)
       d <- loadDraft(id)
+      identity <- getOrgAndOptsFn(header)
       item <- Success(d.change.data)
-    } yield transformer.transformToV2Json(item)
+    } yield (transformer.transformToV2Json(item), DisplayConfigJson(identity))
   }
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {

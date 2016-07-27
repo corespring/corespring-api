@@ -96,7 +96,7 @@ class CollectionApiTest extends V2ApiSpec {
     }
 
     val api = new CollectionApi(
-      V2ActionsFactory.apply,
+      V2ActionsFactory.apply(),
       shareItemWithCollectionService,
       orgCollectionService,
       contentCollectionService,

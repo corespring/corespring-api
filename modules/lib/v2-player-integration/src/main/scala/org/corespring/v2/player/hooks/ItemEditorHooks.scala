@@ -5,21 +5,21 @@ import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
-import org.corespring.container.client.hooks.{ ItemEditorHooks => ContainerItemEditorHooks, UploadResult }
+import org.corespring.container.client.hooks.{UploadResult, ItemEditorHooks => ContainerItemEditorHooks}
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.S3Paths
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.Item
-import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.models.item.resource.{BaseFile, StoredFile}
 import org.corespring.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
-import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
+import org.corespring.v2.auth.models.{DisplayConfigJson, OrgAndOpts}
+import org.corespring.v2.auth.{ItemAuth, LoadOrgAndOptions}
+import org.corespring.v2.errors.Errors.{cantParseItemId, generalError}
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -51,13 +51,13 @@ class ItemEditorHooks(
   private def loadItem(id: String)(implicit header: RequestHeader) = for {
     o <- getOrgAndOptions(header)
     i <- itemAuth.loadForWrite(id)(o)
-  } yield i
+  } yield (i, o)
 
-  override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
     logger.trace(s"function=load id=$id")
     for {
-      item <- loadItem(id)
-    } yield transformer.transformToV2Json(item)
+      itemAndIdentity <- loadItem(id)
+    } yield (transformer.transformToV2Json(itemAndIdentity._1), DisplayConfigJson(itemAndIdentity._2))
   }
 
   private def getVid(id: String): Validation[V2Error, VersionedId[ObjectId]] = {
@@ -135,7 +135,7 @@ class ItemEditorHooks(
 
     def loadItemPredicate(rh: RequestHeader): Either[SimpleResult, Item] = {
       predicate(rh).fold(
-        loadItem(id)(rh).leftMap { e => Results.Status(e.statusCode)(e.message) }.toEither)(Left(_))
+        loadItem(id)(rh).leftMap { e => Results.Status(e.statusCode)(e.message) }.rightMap(_._1).toEither)(Left(_))
     }
 
     def addFileToData(item: Item, key: String) = {

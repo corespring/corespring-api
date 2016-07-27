@@ -53,7 +53,7 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
       m
     }
 
-    val v2Actions = V2ActionsFactory.apply
+    val v2Actions = V2ActionsFactory.apply()
 
     val api = new ScoringApi(v2Actions, apiContext, orgScoringService)
   }

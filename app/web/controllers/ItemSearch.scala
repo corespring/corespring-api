@@ -60,7 +60,7 @@ class ItemSearch(
         val ids = request.org.accessibleCollections.map(_.collectionId)
 
         //Note: calling the future within a for-comprehension causes the execution to be sequential - we want parallel
-        val futureSearchResult = searchService.search(q)
+        val futureSearchResult = searchService.search(q, None)
         val futurePermissions = orgCollectionService.getPermissions(request.org.id, ids: _*)
 
         for {

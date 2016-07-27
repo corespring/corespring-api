@@ -1,0 +1,90 @@
+.navbar-inner {
+  height: 40px;
+  padding-right: 20px;
+  padding-left: 20px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  background: #f8f8f8;
+  -moz-box-shadow: 0 0 3px 3px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 3px 3px rgba(0, 0, 0, 0.3);
+}
+
+
+.switcher {
+  width: 800px;
+  margin: 50px auto;
+}
+
+.header {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.icon-set-header {
+  background-image: none;
+  display: inline;
+}
+
+.switcher label select {
+  display: inline;
+}
+
+.resets {
+  list-style-type: none;
+  padding: 0;
+  margin: 20px;
+  width: 100%;
+  text-align: right;
+}
+
+.swatches {
+  list-style-type: none;
+  padding: 0;
+}
+
+.swatches > div {
+  text-align: center;
+  min-height: 80px;
+}
+
+.swatches div * {
+  vertical-align: middle;
+}
+
+.swatches span {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.icon-holder {
+  width: 110px;
+  text-align: center;
+  margin-right: 40px;
+  background-image: none;
+  height: 50px;
+}
+
+.background, .foreground {
+  width: 200px;
+}
+
+.icon-holder, .background, .foreground {
+  display: inline-block;
+}
+
+.cs-icon {
+  margin: 0 auto;
+  width: 32px;
+  height: auto;
+}
+
+button.btn {
+  display: inline-block;
+  margin: 5px 0;
+}
+
+.save-btn {
+  float: right;
+}
