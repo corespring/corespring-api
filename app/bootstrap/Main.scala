@@ -129,7 +129,7 @@ class Main(
   }
 
   lazy val appConfig = AppConfig(configuration)
-  
+
   lazy val archiveDb = appConfig.sessionServiceArchiveEnabled match {
     case true => Some(archive)
     case _ => None

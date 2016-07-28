@@ -21,12 +21,15 @@ class MainTest extends Specification with Mockito {
    */
 
   val uri = "mongodb://localhost/cs-api-main-test-mock"
+  val archiveUri = "mongodb://localhost/cs-api-archive-test-mock"
 
   val db = {
     val u = MongoURI(uri)
     val conn = MongoConnection(u)
     conn("cs-api-main-test-mock")
   }
+
+  val archiveDb = MongoConnection(MongoURI(archiveUri))("cs-api-archive-test-mock")
 
   def mkConfig(domain: String, queryParam: Boolean) = Map(
     "DEMO_ORG_ID" -> ObjectId.get.toString,
@@ -54,6 +57,7 @@ class MainTest extends Specification with Mockito {
     "use new CacheFilter" in {
       val main = new Main(
         db,
+        archiveDb,
         Configuration.from(config),
         Mode.Test,
         this.getClass.getClassLoader,
@@ -63,6 +67,7 @@ class MainTest extends Specification with Mockito {
 
     "should use play mode from config" in {
       val main = new Main(db,
+        archiveDb,
         Configuration.from(config + ("APP_MODE_OVERRIDE" -> "Prod")),
         Mode.Test,
         this.getClass.getClassLoader,
@@ -72,6 +77,7 @@ class MainTest extends Specification with Mockito {
 
     "should use play mode from arguments, when mode is not set in config" in {
       val main = new Main(db,
+        archiveDb,
         Configuration.from(config),
         Mode.Test,
         this.getClass.getClassLoader,
@@ -84,12 +90,12 @@ class MainTest extends Specification with Mockito {
 
     "return the path directly if no cdn is configured" in {
       val minusCdn = config - "container.cdn.domain"
-      val main = new Main(db, Configuration.from(minusCdn), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
+      val main = new Main(db, archiveDb, Configuration.from(minusCdn), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       main.resolveDomain("hi") must_== "hi"
     }
 
     "return the path with the cdn prefixed if the cdn is configured" in {
-      val main = new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
+      val main = new Main(db, archiveDb, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       main.resolveDomain("hi") must_== "//blah.com/hi"
     }
   }
@@ -111,7 +117,7 @@ class MainTest extends Specification with Mockito {
       }
 
       def mkMain(config: Map[String, Any]) = {
-        new Main(db, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
+        new Main(db, archiveDb, Configuration.from(config), Mode.Test, this.getClass.getClassLoader, resourceAsUrl _)
       }
     }
     "return the file when enabled is false" in new scope {
