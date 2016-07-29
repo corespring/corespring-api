@@ -74,24 +74,16 @@ import scalaz.Validation
 object Main {
   def apply(app: play.api.Application): Main = {
 
-    lazy val db: MongoDB = {
-      app.plugins
-        .find(p => classOf[SalatPlugin].isAssignableFrom(p.getClass))
-        .map(_.asInstanceOf[SalatPlugin])
-        .map(_.db("default"))
-        .getOrElse {
-          throw new RuntimeException("Can't find SalatPlugin so can't load the db")
-        }
-    }
-
-    lazy val archiveDb: MongoDB =
-      app.plugins
-        .find(p => classOf[SalatPlugin].isAssignableFrom(p.getClass))
-        .map(_.asInstanceOf[SalatPlugin])
-        .map(_.db("archive"))
-        .getOrElse {
+    def salatDb(dbName: String) = app.plugins
+      .find(p => classOf[SalatPlugin].isAssignableFrom(p.getClass))
+      .map(_.asInstanceOf[SalatPlugin])
+      .map(_.db(dbName))
+      .getOrElse {
         throw new RuntimeException("Can't find SalatPlugin so can't load the db")
       }
+
+    lazy val db: MongoDB = salatDb("default")
+    lazy val archiveDb: MongoDB = salatDb("archive")
 
     new Main(db, archiveDb, app.configuration, app.mode, app.classloader, app.resource)
   }

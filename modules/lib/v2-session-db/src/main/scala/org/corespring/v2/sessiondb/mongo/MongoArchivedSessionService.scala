@@ -18,7 +18,9 @@ class MongoArchivedSessionService(primarySessionService: MongoSessionService, ar
 
   override def loadMultiple(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = {
     implicit val ec = context.ec
-    Future.sequence(Seq(primarySessionService.loadMultiple(ids), archivedService.loadMultiple(ids))).map(_.flatten)
+    primarySessionService.loadMultiple(ids).flatMap{ loaded =>
+      archivedService.loadMultiple(loaded.filter(_._2.isEmpty).map(_._1)).map { loaded ++ _ }
+    }
   }
 
   override def load(id: String): Option[JsValue] = primarySessionService.load(id) match {
@@ -26,10 +28,11 @@ class MongoArchivedSessionService(primarySessionService: MongoSessionService, ar
     case _ => archivedService.load(id)
   }
 
-  override def save(id: String, data: JsValue): Option[JsValue] = primarySessionService.load(id) match {
-    case Some(session) => primarySessionService.save(id, data)
-    case _ => archivedService.save(id, data)
-  }
+  override def save(id: String, data: JsValue, upsert: Boolean = false): Option[JsValue] =
+    primarySessionService.save(id, data, upsert = false) match {
+      case Some(session) => Some(session)
+      case _ => archivedService.save(id, data)
+    }
 
   override def create(data: JsValue): Option[ObjectId] = primarySessionService.create(data)
 

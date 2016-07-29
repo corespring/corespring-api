@@ -37,7 +37,7 @@ class RemoteSessionService(client: SessionServiceClient) extends SessionService 
 
   override def loadMultiple(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = Future.successful(Nil)
 
-  override def save(id: String, data: JsValue): Option[JsValue] =
+  override def save(id: String, data: JsValue, upsert: Boolean = true): Option[JsValue] =
     Await.result(client.update(new ObjectId(id), data), REMOTE_TIMEOUT) match {
       case Success(maybeJson) => Some(maybeJson)
       case Failure(error) => {
