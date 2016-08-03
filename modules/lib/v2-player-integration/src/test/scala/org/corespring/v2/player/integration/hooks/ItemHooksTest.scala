@@ -102,7 +102,7 @@ class ItemHooksTest extends V2PlayerIntegrationSpec with NoTimeConversions {
     authResult: Validation[V2Error, Item] = Failure(defaultFailure))
     extends baseContext[StatusMessage, JsValue](itemId, authResult) {
 
-    val result: Future[Either[StatusMessage, JsValue]] = hooks.load(itemId)
+    val result: Future[Either[StatusMessage, (JsValue, JsValue)]] = hooks.load(itemId)
   }
 
   def returnError[D](e: V2Error) = returnStatusMessage[D](e.statusCode, e.message)
@@ -143,7 +143,8 @@ class ItemHooksTest extends V2PlayerIntegrationSpec with NoTimeConversions {
 
     "return an item" in new loadContext(
       authResult = Success(Item(collectionId = ObjectId.get.toString))) {
-      result must equalTo(Right(Json.obj("transformed-item" -> true))).await
+      val resultRight = Await.result(result, Duration.Inf)
+      resultRight.right.get._1 must equalTo(Json.obj("transformed-item" -> true))
       there was one(itemTransformer).transformToV2Json(any[Item])
     }
   }

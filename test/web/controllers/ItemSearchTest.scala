@@ -64,7 +64,7 @@ class ItemSearchTest extends Specification with Mockito with MockFactory {
 
     lazy val webExecutionContext = WebExecutionContext(ExecutionContext.Implicits.global)
 
-    lazy val actions = V2ActionsFactory.apply
+    lazy val actions = V2ActionsFactory.apply()
 
     val controller = new ItemSearch(
       actions,

@@ -93,7 +93,7 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
     }
 
     "load calls transform" in new scope(transformResult = Json.obj("transformed" -> true)) {
-      hooks.load("itemId").map(_.right.get) must equalTo(transformResult).await(timeout = 2.seconds)
+      hooks.load("itemId").map(_.right.get._1) must equalTo(transformResult).await(timeout = 2.seconds)
     }
 
     "return the itemAuth.loadForWrite error" in new scope() {

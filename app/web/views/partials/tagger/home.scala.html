@@ -142,22 +142,20 @@
 
 <!-- Preview Modal -->
 <div ng-class="{'window-up': showPopup}">
-    <div class="window-overlay">
-        <div class="window" style="top: 50px; display: block;" onclick="var event = arguments[0] || window.event; event.stopPropagation();">
-            <a class="focus-dummy" href="#"></a>
-            <div class="window-wrapper clearfix" style="">
-                <div class="clearfix">
-                    <div id="preloader" class="preloader" style="height: 600px">
+  <div class="window-overlay">
+    <div class="window" style="top: 50px; display: block;" onclick="var event = arguments[0] || window.event; event.stopPropagation();">
+      <a class="focus-dummy" href="#"></a>
+      <div class="window-wrapper clearfix" style="">
+        <div class="clearfix">
+          <div id="preloader" class="preloader" style="height: 600px">
                     </div>
-                    <span profile-player="" id='player' style="display: block; width: 1024px; margin-left:-5px; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/></span>
+          <span profile-player="" id='player' style="display: block; width: 1024px; margin-left:-5px; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/></span>
 
-                </div>
-            </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
-<!-- //Preview Modal -->
-
 
 <!-- Filter Nav Bar -->
         <div class="navbar-filter navbar-filter-top" ng-controller="tagger.SubNavController">
@@ -183,13 +181,13 @@
                           <b>{{o.name}}</b> <br/>
                           <span ng-show="o.collections.length == 0">You don't have any collections yet</span>
                           <div ng-repeat="c in o.collections">
-                              
+
                               <span ng-show="c.enabled">
                                   <label>
-                                    <input 
-                                      type="checkbox" 
-                                      ng-model="selectedArr[c.${uidKey}]" 
-                                      id="{{ 'collections-' + $index }}" 
+                                    <input
+                                      type="checkbox"
+                                      ng-model="selectedArr[c.${uidKey}]"
+                                      id="{{ 'collections-' + $index }}"
                                       ng-click="toggleItem(c)"/>
                                     {{c.name}}
                                     <span ng-show="c.isPublic">(public)</span>

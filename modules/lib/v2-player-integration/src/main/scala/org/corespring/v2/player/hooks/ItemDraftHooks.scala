@@ -1,29 +1,30 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
+import org.corespring.container.client.hooks.Hooks.{R, StatusMessage}
 import org.corespring.container.client.integration.ContainerExecutionContext
-import org.corespring.container.client.{ hooks => containerHooks }
-import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
+import org.corespring.container.client.{hooks => containerHooks}
+import org.corespring.conversion.qti.transformers.{ItemTransformer, PlayerJsonToItem}
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
-import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.drafts.item.{MakeDraftId, ItemDrafts => DraftsBackend}
+import org.corespring.models.DisplayConfig
+import org.corespring.models.item.{PlayerDefinition, Item => ModelItem}
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.services.{OrgCollectionService, OrganizationService}
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.drafts.item.json.CommitJson
 import org.corespring.v2.auth.LoadOrgAndOptions
-import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.models.{DisplayConfigJson, OrgAndOpts}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
-import play.api.libs.json.{ JsValue, Json, _ }
+import play.api.libs.json.{JsValue, Json, _}
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
 import scala.language.implicitConversions
 import scalaz.Scalaz._
-import scalaz.{ Success, Validation }
+import scalaz.{Success, Validation}
 
 trait DraftHelper {
   implicit def validationToEither[A](v: Validation[V2Error, A]): Either[StatusMessage, A] = v.leftMap { e => e.statusCode -> e.message }.toEither
@@ -49,15 +50,16 @@ class ItemDraftHooks(
 
   private lazy val logger = Logger(classOf[ItemHooks])
 
+
   //TODO: Why do we load the draft twice? Once in DraftEditorHooks and once here
-  override def load(draftId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  override def load(draftId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
     for {
-      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate(_)(_, ignoreConflict = true))
-      draft <- Success(draftAndIdentity._1)
+      identity <- getOrgAndOptions(header)
+      draft <- loadDraft(draftId, identity, backend.loadOrCreate(_)(_, ignoreConflict = true))
       json <- Success(transformer.transformToV2Json(draft.change.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
-      json
+      (json, DisplayConfigJson(identity))
     }
   }
 
@@ -71,6 +73,15 @@ class ItemDraftHooks(
     draft <- loadFn(identity, draftId).v2Error
   } yield {
     (draft, identity)
+  }
+
+  private def loadDraft(id: String, identity: OrgAndOpts, loadFn: (OrgAndUser, DraftId) => Validation[DraftError, ItemDraft])(implicit rh: RequestHeader): Validation[V2Error, ItemDraft] = {
+    val simpleIdentity = OrgAndUser(SimpleOrg.fromOrganization(identity.org), identity.user.map(SimpleUser.fromUser))
+    for {
+      identity <- getOrgAndUser(rh)
+      draftId <- mkDraftId(simpleIdentity, id).v2Error
+      draft <- loadFn(simpleIdentity, draftId).v2Error
+    } yield draft
   }
 
   override protected def update(draftId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {

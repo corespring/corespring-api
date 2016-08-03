@@ -9,24 +9,25 @@ import org.corespring.container.client.hooks.UploadResult
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.{ DraftAssetKeys, ItemDrafts, S3Paths }
+import org.corespring.drafts.item.{DraftAssetKeys, ItemDrafts, S3Paths}
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
-import org.corespring.models.item.resource.{ BaseFile, StoredFile }
-import org.corespring.models.{ User, UserOrg }
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
+import org.corespring.models.item.resource.{BaseFile, StoredFile}
+import org.corespring.models.{DisplayConfig, User, UserOrg}
+import org.corespring.v2.auth.models.{AuthMode, OrgAndOpts}
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.corespring.v2.player.assets.S3PathResolver
 import org.specs2.specification.Scope
-import play.api.libs.iteratee.{ Input, Iteratee, Step }
-import play.api.mvc.{ BodyParser, RequestHeader, SimpleResult }
+import play.api.libs.iteratee.{Input, Iteratee, Step}
+import play.api.libs.json.{Json, Writes}
+import play.api.mvc.{BodyParser, RequestHeader, SimpleResult}
 import play.api.test.FakeRequest
 
-import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.{ Failure, Success, Validation }
+import scala.concurrent.{ExecutionContext, Future}
+import scalaz.{Failure, Success, Validation}
 
 trait BodyParserHelper {
 
@@ -151,6 +152,17 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
 
       f.map(_.isRight) must equalTo(true).await
       there was one(itemDrafts).loadOrCreate(ou)(draftId, true)
+    }
+
+    "return correct player skin" in new scope {
+      override lazy val loadOrCreateResult = Success(ItemDraft(draftId, item, ou))
+      val ou = orgAndUser(orgAndOpts.toOption.get)
+      val draftId = hooks.mkDraftId(ou, s"$itemId:0").toOption.get
+
+      val f = hooks.load(s"$itemId:0")(FakeRequest("", ""))
+      val r = await(f)
+
+      r.right.get._2 must equalTo(DisplayConfig.Writes.writes(DisplayConfig.default))
     }
   }
 

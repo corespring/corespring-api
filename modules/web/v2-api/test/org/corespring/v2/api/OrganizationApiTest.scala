@@ -1,6 +1,10 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.models._
+import org.corespring.models.auth.Permission
+import org.corespring.services.{OrganizationService, OrgCollectionService}
+import org.corespring.v2.auth.models.{ AuthMode, MockFactory }
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, Organization }
 import org.corespring.services.OrgCollectionService
@@ -22,8 +26,16 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
 
     val collectionId = ObjectId.get
 
+    val colorPalette =
+      ColorPalette("#AAAAAA", "#BBBBBB", "#CCCCCC", "#DDDDDD", "#EEEEEE", "#111111", "#222222", "#333333", "#444444",
+        "#121212", "#212121", "#444222", "#222999")
+    val displayConfig = DisplayConfig(iconSet = "check", colors = colorPalette)
+
+    lazy val mockedOrgAndOpts = mockOrgAndOpts(AuthMode.UserSession, displayConfig = displayConfig)
+    lazy val orgAndOptsResult = Success(mockedOrgAndOpts)
+
     protected def mkOrg(id: ObjectId, p: Permission) = {
-      Organization("test-org", contentcolls = Seq(ContentCollRef(id, p.value, true)))
+      Organization("test-org", contentcolls = Seq(ContentCollRef(id, p.value, true)), displayConfig = displayConfig)
     }
 
     lazy val orgCollectionService = {
@@ -33,10 +45,13 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
       m
     }
 
+    val orgService = mock[OrganizationService]
+
     val v2ApiContext = V2ApiExecutionContext(ExecutionContext.Implicits.global)
 
     val api = new OrganizationApi(
-      V2ActionsFactory.apply,
+      orgService,
+      V2ActionsFactory.apply(mockedOrgAndOpts),
       orgCollectionService,
       v2ApiContext)
 
@@ -68,4 +83,42 @@ class OrganizationApiTest extends Specification with MockFactory with Mockito {
           "permission" -> Permission.Write.name))
     }
   }
+
+  "getDisplayConfig" should {
+
+    implicit val reads = new DisplayConfig.Reads(DisplayConfig.default)
+
+    "return colorPalette from current org" in new scope {
+      val result = api.getDisplayConfig(FakeRequest())
+      val config = Json.fromJson[DisplayConfig](contentAsJson(result))
+        .getOrElse(throw new Exception("Could not deserialize result"))
+      config must be equalTo(displayConfig)
+    }
+
+  }
+
+  "setDisplayConfig" should {
+
+    implicit val writes = DisplayConfig.Writes
+
+    val updatedDisplayConfig =
+      DisplayConfig(
+        iconSet = "emoji",
+        colors = ColorPalette("#444444", "#333333", "#222222", "#111111", "#EEEEEE", "#DDDDDD", "#CCCCCC", "#BBBBBB",
+          "#AAAAAA", "#ABABAB", "#BABABA", "#CDCDCD", "#FAFAFA")
+      )
+    val json = Json.toJson(updatedDisplayConfig)
+
+    "return updated colorPalette" in new scope {
+      orgService.save(any[Organization]) answers { (obj, mock) =>
+        val arr = obj.asInstanceOf[Array[Any]]
+        val d = arr(0).asInstanceOf[Organization]
+        Success(d)
+      }
+      val result = api.updateDisplayConfig(FakeRequest().withJsonBody(json))
+      contentAsJson(result) must be equalTo(json)
+    }
+
+  }
+
 }

@@ -113,8 +113,8 @@ class ElasticSearchItemIndexService(
 
   def refresh() = contentIndex.refresh()
 
-  private def getTypes(key: String) = {
-    val types: Future[Validation[Error, Seq[String]]] = distinct(key)
+  private def getTypes(key: String, collections: Seq[String]) = {
+    val types: Future[Validation[Error, Seq[String]]] = distinct(key, collections)
 
     types.map { v =>
       v.map { itemTypes =>
@@ -127,8 +127,8 @@ class ElasticSearchItemIndexService(
     }
   }
 
-  override def componentTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.itemTypes")
-  override def widgetTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.widgets")
+  override def componentTypes(collections: Seq[String]): Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.itemTypes", collections)
+  override def widgetTypes(collections: Seq[String]): Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.widgets", collections)
 
   /**
    * TODO: Big tech debt. This *must* be replaced with a rabbitmq/amqp solution.

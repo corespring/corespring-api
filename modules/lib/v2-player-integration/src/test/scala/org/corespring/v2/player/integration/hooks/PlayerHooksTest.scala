@@ -117,7 +117,7 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
       "return the session and item" in new createSessionScope() {
         val future = hooks.createSessionForItem(vid.toString)(FakeRequest("", ""))
         val either = Await.result(future, Duration(1, TimeUnit.SECONDS))
-        val (session, item) = either.right.get
+        val (session, item, colors) = either.right.get
         (session \ "id").asOpt[String] must beSome[String]
         (session \ "_id" \ "$oid").asOpt[String] must beNone
         (item \ "xhtml").asOpt[String] must_== Some("hi")

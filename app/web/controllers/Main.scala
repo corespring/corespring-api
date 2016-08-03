@@ -6,6 +6,11 @@ import org.bson.types.ObjectId
 import org.corespring.csApi.buildInfo.BuildInfo
 import org.corespring.common.url.BaseUrl
 import org.corespring.container.client.VersionInfo
+import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.models.{ User }
+import org.corespring.services.auth.ApiClientService
+import org.corespring.services.{ OrganizationService, UserService }
 import org.corespring.itemSearch.AggregateType.{ ItemType, WidgetType }
 import org.corespring.models.User
 import org.corespring.models.json.JsonFormatting
@@ -17,6 +22,12 @@ import org.corespring.web.common.controllers.deployment.AssetsLoader
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import play.api.Logger
+import play.api.libs.json.{ Json, JsObject }
+import play.api.mvc._
+import play.api.libs.json.Json._
+import securesocial.core.SecuredRequest
+import web.models.{ WebExecutionContext }
+import scalaz.Scalaz._
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsObject, Json }
 import play.api.mvc._
@@ -52,10 +63,10 @@ class Main(
       toJson(fv).as[JsObject]
   }
 
-  def defaultValues: Option[String] = fieldValues.map { fvJson =>
+  def defaultValues(collections: Seq[String] = Seq.empty): Option[String] = fieldValues.map { fvJson =>
     val values = fvJson.deepMerge(obj(
-      "v2ItemTypes" -> itemType.all,
-      "widgetTypes" -> widgetType.all))
+      "v2ItemTypes" -> itemType.all(collections),
+      "widgetTypes" -> widgetType.all(collections)))
     stringify(values)
   }
 
@@ -64,6 +75,12 @@ class Main(
       val json = Json.parse(BuildInfo.toJson).as[JsObject].deepMerge(obj("container" -> containerVersionInfo.json))
       Ok(json)
     }
+  }
+
+  def iconsAndColorsPage() = actions.SecuredAction {
+    implicit request: SecuredRequest[AnyContent] =>
+      val html = web.views.html.iconsAndColorsPage()
+      Ok(html)
   }
 
   def sampleLaunchCode(id: String) = actions.OrgAndApiClient.async {
@@ -106,18 +123,18 @@ class Main(
       implicit val writesOrg = jsonFormatting.writeOrg
       implicit val writesRef = jsonFormatting.writeContentCollRef
 
-      defaultValues.map { fv =>
-        //Add old 'collections' field
-        val user: User = userService.getUser(request.user.identityId.userId, request.user.identityId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
-        val org = orgService.findOneById(user.org.orgId).get
-        val legacyJson = Json.obj("collections" -> toJson(org.contentcolls)) ++ toJson(org).as[JsObject]
-        val userOrgString = stringify(legacyJson)
-        val html = web.views.html.index(dbServer, dbName, user, userOrgString, fv, assetsLoader)
-        Ok(html)
-      }.getOrElse {
-        InternalServerError("could not find organization of user")
-      }
+      val maybeHtml = for {
+        user <- userService.getUser(request.user.identityId.userId, request.user.identityId.providerId)
+        org <- orgService.findOneById(user.org.orgId)
+        fv <- defaultValues(org.contentcolls.map(_.collectionId.toString))
+        legacyJson <- Some(Json.obj("collections" -> toJson(org.contentcolls)) ++ toJson(org).as[JsObject])
+        userOrgString <- Some(stringify(legacyJson))
+        html <- Some(web.views.html.index(dbServer, dbName, user, userOrgString, fv, assetsLoader))
+      } yield html
 
+      maybeHtml.map { html =>
+        Ok(html)
+      }.getOrElse(InternalServerError("could not find organization of user"))
   }
 
   private def getDbName(uri: Option[String]): (String, String) = uri match {
