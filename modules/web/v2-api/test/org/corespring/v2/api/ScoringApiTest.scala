@@ -60,7 +60,7 @@ class ScoringApiTest extends Specification with Mockito with MockFactory {
 
   "V2 - ScoringApi" should {
 
-    def emptyPlayerDefinition = PlayerDefinition(Seq.empty, "", Json.obj(), "", None)
+    def emptyPlayerDefinition = PlayerDefinition.empty
 
     "when calling loadScore" should {
 

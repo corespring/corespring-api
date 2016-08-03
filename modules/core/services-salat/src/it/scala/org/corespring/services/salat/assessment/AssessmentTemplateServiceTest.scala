@@ -15,7 +15,7 @@ class AssessmentTemplateServiceTest extends ServicesSalatIntegrationTest {
     val orgOne = insertOrg("org-1")
     val orgTwo = insertOrg("org-2")
     val collectionOne = insertCollection("coll-1", orgOne)
-    val itemOne = new Item(
+    val itemOne = Item(
       collectionOne.id.toString,
       standards = Seq("item-standard-1", "item-standard-2"),
       taskInfo = Some(TaskInfo(title = Some("item-title-1"))))

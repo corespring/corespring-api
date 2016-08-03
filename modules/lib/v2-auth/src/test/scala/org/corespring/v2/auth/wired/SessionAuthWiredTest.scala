@@ -113,12 +113,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         sessionServices)
     }
 
-    def getEmptyPlayerDefinition: PlayerDefinition = PlayerDefinition(
-      Seq.empty,
-      "",
-      Json.obj(),
-      "",
-      None)
+    def getEmptyPlayerDefinition: PlayerDefinition = PlayerDefinition.empty
 
     "can create" should {
       "fail" in new authScope(itemLoadForRead = false) {

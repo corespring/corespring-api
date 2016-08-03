@@ -77,7 +77,7 @@ class ItemHooks(
 
   override def createItem(collectionId: Option[String])(implicit header: RequestHeader): R[String] = {
     createItem(header, collectionId) { (collectionId, orgAndOpts) =>
-      val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
+      val definition = PlayerDefinition("<div>I'm a new item</div>")
       val item = ModelItem(
         collectionId = collectionId,
         playerDefinition = Some(definition))

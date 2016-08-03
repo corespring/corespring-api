@@ -196,6 +196,7 @@ class ItemDrafts(
     val pValue = a.pValue != b.pValue
     val lexile = a.lexile != b.lexile
 
+
     logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials, collectionId=$collectionId")
     Seq(taskInfo, playerDef, supportingMaterials, collectionId, standards,
       reviewsPassed, reviewsPassedOther, otherAlignments, contributorDetails,

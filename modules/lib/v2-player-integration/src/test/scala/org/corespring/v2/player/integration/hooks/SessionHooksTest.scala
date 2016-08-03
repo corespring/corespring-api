@@ -78,7 +78,9 @@ class SessionHooksTest extends V2PlayerIntegrationSpec {
         Seq(StoredFile("test.js", "text/javascript", false, "key")),
         "",
         Json.obj(),
-        "", Some("function(){}"))
+        "",
+        Some("function(){}"),
+        Json.obj())
 
       Success((session, playerDef))
     }

@@ -40,7 +40,8 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
           "2" -> Json.obj("fileName" -> "FigurePattern2.png")
         ),
         summaryFeedback = "this is some text with an image <img src=\"FigurePattern2.png\"></img>",
-        customScoring = None))
+        customScoring = None,
+        config = Json.obj()))
 
       def unresolvedPlayerDefinitionJson = Json.parse(
         """{
@@ -90,7 +91,8 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
         xhtml = pd.xhtml,
         components = pd.components,
         summaryFeedback = pd.summaryFeedback,
-        customScoring = pd.customScoring))
+        customScoring = pd.customScoring,
+        config = pd.config))
       sut.makePlayerDefinitionJson(session, emptyFiles) must_== unresolvedPlayerDefinitionJson
     }
 
@@ -103,7 +105,8 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
         xhtml = xhtml,
         components = pd.components,
         summaryFeedback = pd.summaryFeedback,
-        customScoring = pd.customScoring))
+        customScoring = pd.customScoring,
+        config = pd.config))
       val jsonResult = sut.makePlayerDefinitionJson(session, multipleFiles)
       (jsonResult \ "xhtml") must_== JsString("<img src=\"//CDN/FigurePattern2.png\"></img> <img src=\"//CDN/Pattern2.png\"></img>")
     }

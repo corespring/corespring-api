@@ -73,7 +73,7 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
   }
 
   class hooksScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
-    loadForReadResult: Validation[V2Error, (JsValue, PlayerDefinition)] = Success(Json.obj() -> PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))
+    loadForReadResult: Validation[V2Error, (JsValue, PlayerDefinition)] = Success(Json.obj() -> PlayerDefinition.empty))
     extends defaultScope(orgAndOptsResult) {
 
     sessionAuth.loadForRead(any[String])(any[OrgAndOpts]) returns loadForReadResult

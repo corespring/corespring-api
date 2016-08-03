@@ -33,7 +33,8 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
               Json.obj("label" -> "carrot", "value" -> "carrot"),
               Json.obj("label" -> "banana", "value" -> "banana"))))),
       "",
-      customScoring)
+      customScoring,
+      Json.obj("prop" -> "value"))
 
     "when calling load score" should {
 

@@ -36,13 +36,14 @@ class UpdateItemIntegrationTest extends IntegrationSpecification {
     }
   }
 
-  "saveXhtmlAndComponents" should {
+  "saveConfigXhtmlAndComponents" should {
 
-    trait saveXhtmlAndComponents extends scope {
-      lazy val call = org.corespring.container.client.controllers.resources.routes.Item.saveXhtmlAndComponents(itemId.toString)
+    trait saveConfigXhtmlAndComponents extends scope {
+      lazy val call = org.corespring.container.client.controllers.resources.routes.Item.saveConfigXhtmlAndComponents(itemId.toString)
       val components = Json.obj("1" -> Json.obj("componentType" -> "my-comp"))
-      val xhtml = "<div>hi there</div><div id=\"1\"></div>"
-      lazy val request: Request[AnyContentAsJson] = makeJsonRequest(call, Json.obj("xhtml" -> xhtml, "components" -> components))
+      val config = Json.obj("prop" -> "value")
+      val xhtml = "<div id=\"1\">hi there</div>"
+      lazy val request: Request[AnyContentAsJson] = makeJsonRequest(call, Json.obj("config" -> config, "xhtml" -> xhtml, "components" -> components))
       logger.debug(s"request: $request")
       logger.debug(s"body: ${request.body.json}")
       lazy val result = route(request)(writeableOf_AnyContentAsJson).get
@@ -50,11 +51,15 @@ class UpdateItemIntegrationTest extends IntegrationSpecification {
       status(result) must_== OK
     }
 
-    "update the xhtml" in new saveXhtmlAndComponents {
+    "update the xhtml" in new saveConfigXhtmlAndComponents {
       ItemHelper.get(itemId).get.playerDefinition.map(_.xhtml) must_== Some(xhtml)
     }
 
-    "update the components" in new saveXhtmlAndComponents {
+    "update the config" in new saveConfigXhtmlAndComponents {
+      ItemHelper.get(itemId).get.playerDefinition.map(_.config) must_== Some(config)
+    }
+
+    "update the components" in new saveConfigXhtmlAndComponents {
       ItemHelper.get(itemId).get.playerDefinition.map(_.components) must_== Some(components)
     }
   }
