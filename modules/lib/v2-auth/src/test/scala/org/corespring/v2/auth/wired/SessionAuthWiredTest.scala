@@ -86,7 +86,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         val m = mock[SessionService]
         m.load(anyString) returns session.map(s => Json.obj("service" -> key) ++ s.as[JsObject])
         m.create(any[JsValue]) returns Some(savedId)
-        m.save(anyString, any[JsValue]).answers { (args, value) =>
+        m.save(anyString, any[JsValue], any[Boolean]).answers { (args, value) =>
           {
             Some(args.asInstanceOf[Array[Object]](1).asInstanceOf[JsValue])
           }
