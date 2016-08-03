@@ -32,7 +32,7 @@ class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchC
     try {
       val testBucket = "corespring-system-check"
       val testObject = "circle.png"
-      val getS3Object = s3.getObject(testBucket, testObject)
+      val checkS3Object = s3.doesObjectExist(testBucket, testObject)
       Right(())
     } catch {
       case e: Throwable => Left(CorespringInternalError("S3 is not available"))
