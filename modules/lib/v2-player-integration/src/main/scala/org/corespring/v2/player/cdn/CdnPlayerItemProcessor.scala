@@ -31,9 +31,20 @@ class CdnPlayerItemProcessor(
         playerDefinitionJson
       } else {
         val resolve = itemAssetResolver.resolve(maybeItemId.get)_
+
+        def replaceMatchingInput(r: Regex, replacement: => String): String => String = {
+          (input: String) =>
+            {
+              if (input.matches(r.toString)) {
+                r.replaceAllIn(input, replacement)
+              } else input
+            }
+        }
+
         def replacers(file: BaseFile) = Seq(
-          (input: String) => new Regex("\"" + file.name + "\"").replaceAllIn(input, "\"" + resolve(file.name) + "\""),
-          (input: String) => new Regex("^" + file.name + "$").replaceAllIn(input, resolve(file.name)))
+          replaceMatchingInput(new Regex("\"" + file.name + "\""), s"""\"${resolve(file.name)}\""""),
+          replaceMatchingInput(s"^${file.name}$$".r, resolve(file.name)))
+
         storedFiles.foldLeft(playerDefinitionJson) { (json, file) =>
           replacers(file).foldLeft(json) { (json, matchAndReplace) =>
             replaceStringsInJson(json, matchAndReplace);
