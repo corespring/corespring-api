@@ -1,7 +1,7 @@
 import sbt._
 object Dependencies {
 
-  val playVersion = "2.2.1"
+  val playVersion = "2.2.2"
 
   //V2 Player
   val containerVersion = "4.1.0-SNAPSHOT"
