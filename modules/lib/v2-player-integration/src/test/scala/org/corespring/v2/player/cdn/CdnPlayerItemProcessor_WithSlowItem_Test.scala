@@ -21,10 +21,12 @@ class CdnPlayerItemProcessor_WithSlowItem_Test extends Specification with Mockit
         m
       }
 
-      val mockItemAssetResolver = new ItemAssetResolver {
-        override def resolve(itemId: String)(file: String): String = {
-          return "CDN/" + file
+      val mockItemAssetResolver = {
+        val m = mock[ItemAssetResolver]
+        m.resolve(anyString)(anyString).answers { (args, value) =>
+          "CDN/" + args.asInstanceOf[Array[Object]](1).asInstanceOf[String]
         }
+        m
       }
 
       val sut = new CdnPlayerItemProcessor(mockItemAssetResolver, mockJsonFormatting)
@@ -347,6 +349,11 @@ class CdnPlayerItemProcessor_WithSlowItem_Test extends Specification with Mockit
       (choices(1) \ "label" ).as[String] must_== "<img height=\"19\" width=\"65.0\" src=\"CDN/665010_p02_gi02.gif\"></img>"
       (choices(2) \ "label" ).as[String] must_== "<img height=\"22\" width=\"58.0\" src=\"CDN/665010_p02_gi03.gif\"></img>"
       (choices(3) \ "label" ).as[String] must_== "<img height=\"22\" width=\"59.0\" src=\"CDN/665010_p02_gi04.gif\"></img>"
+    }
+
+    "call resolve 5 times only" in new scope {
+      val json = sut.makePlayerDefinitionJson(session, playerDefinition)
+      there was 5.times(mockItemAssetResolver).resolve(anyString)(anyString)
     }
 
 
