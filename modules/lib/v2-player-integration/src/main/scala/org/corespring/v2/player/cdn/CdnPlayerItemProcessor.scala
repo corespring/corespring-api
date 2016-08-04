@@ -46,13 +46,13 @@ class CdnPlayerItemProcessor(
           (input: String) => new Regex("\"" + file.name + "\"").replaceAllIn(input, m => "\"" + resolve(file.name) + "\""),
           (input: String) => new Regex("^" + file.name + "$").replaceAllIn(input, m => resolve(file.name)))
 
-        replaceStringsInJson(playerDefinitionJson, (src) => {
+        replaceStringsInJson(playerDefinitionJson) { (src) =>
           storedFiles.foldLeft(src) { (src, file) =>
             replacers(file).foldLeft(src) { (src, replacer) =>
               replacer(src)
             }
           }
-        })
+        }
       }
     }
   }
