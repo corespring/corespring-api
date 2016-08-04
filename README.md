@@ -1,4 +1,4 @@
-![corespring](public/images/logo2015.png)
+``![corespring](public/images/logo2015.png)
 
 This project contains the api rest layer and web ui for administering corespring items.
 
@@ -30,12 +30,18 @@ After downloading the corespring-api repository, run the following commands to i
     git clone git@github.com:corespring/corespring-api.git
 
 * Install mongodb
-* Install [play 2.2.1](http://downloads.typesafe.com/play/2.2.1/play-2.2.1.zip)
+* Install [play 2.2.2](http://downloads.typesafe.com/play/2.2.2/play-2.2.2.zip)
 * Install elasticsearch
 * Install sbt (using brew or download zip)
 * For running tests install phantomjs
 
 ### SBT Configuration
+
+You'll have to force the sbt scala version by exporting the env var below. [See this issue > comment.](https://github.com/sbt/sbt/issues/1739#issuecomment-63909370)
+
+```shell
+export SBT_SCALA_VERSION=2.10.4
+```
 
 We use a private repo for our assets. Because of this you will need to define your credentials in a file located at:
 
