@@ -1,14 +1,14 @@
 package org.corespring.v2.player.cdn
 
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.models.item.resource.{BaseFile, StoredFile}
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.v2.player.hooks.PlayerItemProcessor
 import play.api.Logger
 import play.api.libs.json._
 
 import scala.util.matching.Regex
-import org.corespring.macros.DescribeMacro.{describe => ds}
+import org.corespring.macros.DescribeMacro.{ describe => ds }
 
 import scala.collection.mutable
 
@@ -36,9 +36,9 @@ class CdnPlayerItemProcessor(
       if (!maybeItemId.isDefined) {
         playerDefinitionJson
       } else {
-        val resolveCache = new mutable.HashMap[String,String]()
+        val resolveCache = new mutable.HashMap[String, String]()
 
-        def resolve(file:String):String = {
+        def resolve(file: String): String = {
           resolveCache.getOrElseUpdate(file, itemAssetResolver.resolve(maybeItemId.get)(file))
         }
 

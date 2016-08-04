@@ -1,4 +1,4 @@
-// Comment to get more information during initialization
+//Comment to get more information during initialization
 logLevel := Level.Warn
 
 resolvers ++= Seq(
@@ -7,5 +7,5 @@ resolvers ++= Seq(
 )
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.1")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.2")
 
