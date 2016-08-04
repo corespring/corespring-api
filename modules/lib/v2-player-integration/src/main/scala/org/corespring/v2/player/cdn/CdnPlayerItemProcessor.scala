@@ -1,14 +1,16 @@
 package org.corespring.v2.player.cdn
 
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.models.item.resource.{BaseFile, StoredFile}
 import org.corespring.models.json.JsonFormatting
 import org.corespring.v2.player.hooks.PlayerItemProcessor
 import play.api.Logger
 import play.api.libs.json._
 
 import scala.util.matching.Regex
-import org.corespring.macros.DescribeMacro.{ describe => ds }
+import org.corespring.macros.DescribeMacro.{describe => ds}
+
+import scala.collection.mutable
 
 /**
  * Add cdn to all files used in the item
@@ -34,17 +36,19 @@ class CdnPlayerItemProcessor(
       if (!maybeItemId.isDefined) {
         playerDefinitionJson
       } else {
-        logger.trace(ds(maybeItemId))
-        val resolve = itemAssetResolver.resolve(maybeItemId.get)_
+        val resolveCache = new mutable.HashMap[String,String]()
+
+        def resolve(file:String):String = {
+          resolveCache.getOrElseUpdate(file, itemAssetResolver.resolve(maybeItemId.get)(file))
+        }
 
         def replacers(file: BaseFile) = Seq(
           (input: String) => new Regex("\"" + file.name + "\"").replaceAllIn(input, m => "\"" + resolve(file.name) + "\""),
           (input: String) => new Regex("^" + file.name + "$").replaceAllIn(input, m => resolve(file.name)))
 
         storedFiles.foldLeft(playerDefinitionJson) { (json, file) =>
-          replacers(file).foldLeft(json) { (json, matchAndReplace) =>
-            logger.trace(ds(file.name))
-            replaceStringsInJson(json, matchAndReplace);
+          replacers(file).foldLeft(json) { (json, replacer) =>
+            replaceStringsInJson(json, replacer);
           }
         }
       }
