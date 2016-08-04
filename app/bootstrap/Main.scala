@@ -74,22 +74,24 @@ import scalaz.Validation
 object Main {
   def apply(app: play.api.Application): Main = {
 
-    lazy val db: MongoDB = {
-      app.plugins
-        .find(p => classOf[SalatPlugin].isAssignableFrom(p.getClass))
-        .map(_.asInstanceOf[SalatPlugin])
-        .map(_.db("default"))
-        .getOrElse {
-          throw new RuntimeException("Can't find SalatPlugin so can't load the db")
-        }
-    }
+    def salatDb(dbName: String) = app.plugins
+      .find(p => classOf[SalatPlugin].isAssignableFrom(p.getClass))
+      .map(_.asInstanceOf[SalatPlugin])
+      .map(_.db(dbName))
+      .getOrElse {
+        throw new RuntimeException("Can't find SalatPlugin so can't load the db")
+      }
 
-    new Main(db, app.configuration, app.mode, app.classloader, app.resource)
+    lazy val db: MongoDB = salatDb("default")
+    lazy val archiveDb: MongoDB = salatDb("archive")
+
+    new Main(db, archiveDb, app.configuration, app.mode, app.classloader, app.resource)
   }
 }
 
 class Main(
   val db: MongoDB,
+  archive: MongoDB,
   //TODO: rm Configuration (needed for [[HasConfig]]) and use appConfig + containerConfig instead.
   val configuration: Configuration,
   val inputMode: PlayMode,
@@ -119,6 +121,11 @@ class Main(
   }
 
   lazy val appConfig = AppConfig(configuration)
+
+  lazy val archiveDb = appConfig.sessionServiceArchiveEnabled match {
+    case true => Some(archive)
+    case _ => None
+  }
 
   override lazy val containerConfig: ContainerConfig = {
     val newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))

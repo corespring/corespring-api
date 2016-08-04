@@ -29,13 +29,14 @@ private[bootstrap] case class AppConfig(
   componentFilteringEnabled: Boolean,
   sessionService: String,
   sessionServiceUrl: String,
-  sessionServiceAuthToken: String)
+  sessionServiceAuthToken: String,
+  sessionServiceArchiveEnabled: Boolean)
 
 object AppConfig {
 
   private object Key extends Enumeration {
     type Key = Value
-    val ALLOW_ALL_SESSIONS, ALLOW_EXPIRED_TOKENS, AMAZON_ACCESS_KEY, AMAZON_ACCESS_SECRET, AMAZON_ASSETS_BUCKET, AMAZON_ENDPOINT, APP_VERSION_OVERRIDE, DEMO_ORG_ID, DYNAMO_DB_ACTIVATE, DYNAMO_DB_LOCAL_INIT, DYNAMO_DB_LOCAL_PORT, DYNAMO_DB_USE_LOCAL, ELASTIC_SEARCH_URL, ENV_NAME, ROOT_ORG_ID, V2_PLAYER_ORG_IDS, COMPONENT_FILTERING_ENABLED, SESSION_SERVICE, SESSION_SERVICE_URL, SESSION_SERVICE_AUTHTOKEN = Value
+    val ALLOW_ALL_SESSIONS, ALLOW_EXPIRED_TOKENS, AMAZON_ACCESS_KEY, AMAZON_ACCESS_SECRET, AMAZON_ASSETS_BUCKET, AMAZON_ENDPOINT, APP_VERSION_OVERRIDE, DEMO_ORG_ID, DYNAMO_DB_ACTIVATE, DYNAMO_DB_LOCAL_INIT, DYNAMO_DB_LOCAL_PORT, DYNAMO_DB_USE_LOCAL, ELASTIC_SEARCH_URL, ENV_NAME, ROOT_ORG_ID, V2_PLAYER_ORG_IDS, COMPONENT_FILTERING_ENABLED, SESSION_SERVICE, SESSION_SERVICE_URL, SESSION_SERVICE_AUTHTOKEN, SESSION_SERVICE_ARCHIVE_ENABLED = Value
   }
 
   import Key._
@@ -81,7 +82,8 @@ object AppConfig {
       componentFilteringEnabled = config.getBoolean(COMPONENT_FILTERING_ENABLED).getOrElse(notFound(COMPONENT_FILTERING_ENABLED)),
       sessionService = config.getString(SESSION_SERVICE).getOrElse("?"),
       sessionServiceUrl = config.getString(SESSION_SERVICE_URL).getOrElse("?"),
-      sessionServiceAuthToken = config.getString(SESSION_SERVICE_AUTHTOKEN).getOrElse("?"))
+      sessionServiceAuthToken = config.getString(SESSION_SERVICE_AUTHTOKEN).getOrElse("?"),
+      sessionServiceArchiveEnabled = config.getBoolean(SESSION_SERVICE_ARCHIVE_ENABLED).getOrElse(false))
   }
 }
 
