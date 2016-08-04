@@ -33,12 +33,11 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
       def session = Json.obj("id" -> "sessionId", "itemId" -> "itemId")
 
       def playerDefinition = Some(PlayerDefinition(
-        files = Seq(StoredFile("FigurePattern2.png", "image/png")),
+        files = Seq(StoredFile("FigurePattern2.png", "image/png"), StoredFile("Pattern2.png", "image/png")),
         xhtml = "<img src=\"FigurePattern2.png\"></img>",
         components = Json.obj(
           "1" -> Json.obj("model" -> Json.obj("answer" -> "<img src=\"FigurePattern2.png\"></img>")),
-          "2" -> Json.obj("fileName" -> "FigurePattern2.png")
-        ),
+          "2" -> Json.obj("fileName" -> "FigurePattern2.png")),
         summaryFeedback = "this is some text with an image <img src=\"FigurePattern2.png\"></img>",
         customScoring = None,
         config = Json.obj()))
@@ -98,10 +97,9 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
 
     "not replace an image twice if its name is contained in an already replaced one" in new scope {
       val pd = playerDefinition.get
-      val files = Seq(StoredFile("FigurePattern2.png", "image/png"), StoredFile("Pattern2.png", "image/png"))
       val xhtml = "<img src=\"FigurePattern2.png\"></img> <img src=\"Pattern2.png\"></img>"
       val multipleFiles = Some(PlayerDefinition(
-        files = files,
+        files = pd.files,
         xhtml = xhtml,
         components = pd.components,
         summaryFeedback = pd.summaryFeedback,
@@ -109,6 +107,16 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
         config = pd.config))
       val jsonResult = sut.makePlayerDefinitionJson(session, multipleFiles)
       (jsonResult \ "xhtml") must_== JsString("<img src=\"//CDN/FigurePattern2.png\"></img> <img src=\"//CDN/Pattern2.png\"></img>")
+    }
+
+    "call resolve once only if the image is used" in new scope {
+      sut.makePlayerDefinitionJson(session, playerDefinition)
+      there was one(mockItemAssetResolver).resolve("itemId")("FigurePattern2.png")
+    }
+
+    "not call resolve when the image is not used" in new scope {
+      sut.makePlayerDefinitionJson(session, playerDefinition)
+      there was no(mockItemAssetResolver).resolve("itemId")("Pattern2.png")
     }
 
   }

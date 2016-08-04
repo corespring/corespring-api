@@ -225,6 +225,7 @@ object Build extends sbt.Build {
         mongoJsonService,
         playS3,
         httpClient,
+        corespringMacros,
         macWireMacro))
     .dependsOn(
       qtiToV2,
