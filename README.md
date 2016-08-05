@@ -30,7 +30,7 @@ After downloading the corespring-api repository, run the following commands to i
     git clone git@github.com:corespring/corespring-api.git
 
 * Install mongodb
-* Install [play 2.2.2](http://downloads.typesafe.com/play/2.2.2/play-2.2.2.zip)
+* Install [play 2.2.6](http://downloads.typesafe.com/play/2.2.6/play-2.2.6.zip)
 * Install elasticsearch
 * Install sbt (using brew or download zip)
 * For running tests install phantomjs
