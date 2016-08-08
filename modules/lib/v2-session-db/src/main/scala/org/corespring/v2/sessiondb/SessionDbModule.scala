@@ -6,7 +6,7 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB
 import com.mongodb.casbah.MongoDB
 import org.corespring.sessions.SessionServiceClient
 import org.corespring.v2.sessiondb.dynamo.{ DynamoSessionDbTableHelper, DynamoSessionService }
-import org.corespring.v2.sessiondb.mongo.MongoSessionService
+import org.corespring.v2.sessiondb.mongo.{MongoSessionService, MongoArchivedSessionService}
 import org.corespring.v2.sessiondb.webservice.RemoteSessionService
 import play.api.Logger
 
@@ -17,6 +17,7 @@ trait SessionDbModule {
   def sessionDbConfig: SessionDbConfig
 
   def db: MongoDB
+  def archiveDb: Option[MongoDB]
 
   def awsCredentials: AWSCredentials
 
@@ -39,7 +40,12 @@ trait SessionDbModule {
         new RemoteSessionService(client)
       }
       case "dynamo" => new DynamoSessionService(dynamoDB.getTable(table), dbClient)
-      case _ => new MongoSessionService(db(table), sessionServiceExecutionContext)
+      case _ => {
+        val sessionService = new MongoSessionService(db(table), sessionServiceExecutionContext)
+        archiveDb.map(archiveDb =>
+          new MongoArchivedSessionService(sessionService, archiveDb(table), sessionServiceExecutionContext)
+        ).getOrElse(sessionService)
+      }
     }
   }
 

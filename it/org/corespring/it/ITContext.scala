@@ -25,7 +25,13 @@ object ITContext {
       "mongodb://localhost/api-it-tests")
   }
 
+  private lazy val mongoArchiveUri = {
+    sys.env.get("IT_MONGO_ARCHIVE_URI").getOrElse(
+      "mongodb://localhost/api-it-tests")
+  }
+
   println(s"[ITContext] > mongoUri=$mongoUri")
+  println(s"[ITContext] > mongoArchiveUri=$mongoArchiveUri")
 
   private def dropDb = {
     logger.info(s"drop db: $mongoUri")
@@ -100,7 +106,7 @@ object ITContext {
     println(s"[ITContext] setup")
     dropDb
     cleanBucketIfExists(s3Bucket)
-    PlaySingleton.start(mongoUri, s3Bucket)
+    PlaySingleton.start(mongoUri, mongoArchiveUri, s3Bucket)
   }
 
   def cleanup = {
@@ -117,11 +123,12 @@ private object PlaySingleton {
 
   private lazy val logger = Logger(PlaySingleton.getClass)
 
-  def start(mongoUri: String, bucket: String) = Play.maybeApplication.map(_ => Unit).getOrElse {
+  def start(mongoUri: String, mongoArchiveUri: String, bucket: String) = Play.maybeApplication.map(_ => Unit).getOrElse {
     logger.info(s"starting app ${new File(".").getAbsolutePath}")
 
     val config = Map(
       "mongodb.default.uri" -> mongoUri,
+      "mongodb.archive.uri" -> mongoArchiveUri,
       "AMAZON_ASSETS_BUCKET" -> bucket,
       "logger" -> Map("resource" -> "/logback.xml"),
       "api.log-requests" -> false)
