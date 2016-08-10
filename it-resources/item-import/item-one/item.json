@@ -3,5 +3,8 @@
     "ervin.png"
   ],
   "components" : {},
-  "xhtml" : "<div>This is a test import</div>"
+  "xhtml" : "<div>This is a test import</div>",
+  "config" : {
+    "scoringType" : "allOrNothing"
+  }
 }

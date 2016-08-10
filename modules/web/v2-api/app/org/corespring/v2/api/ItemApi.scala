@@ -4,11 +4,11 @@ import org.bson.types.ObjectId
 import org.corespring.futureValidation.FutureValidation
 import org.corespring.itemSearch._
 import org.corespring.futureValidation.FutureValidation._
-import org.corespring.models.item.{ ComponentType, Item }
-import org.corespring.models.json.{ JsonFormatting, JsonUtil }
+import org.corespring.models.item.{ComponentType, Item, PlayerDefinition}
+import org.corespring.models.json.{JsonFormatting, JsonUtil}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
-import org.corespring.services.{ CloneItemService, OrgCollectionService, OrganizationService }
+import org.corespring.services.{CloneItemService, OrgCollectionService, OrganizationService}
 import org.corespring.v2.actions.V2Actions
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
@@ -23,7 +23,7 @@ import play.api.mvc._
 
 import scala.concurrent._
 import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{Failure, Success, Validation}
 
 case class ItemApiExecutionContext(context: ExecutionContext)
 
@@ -42,6 +42,7 @@ class ItemApi(
   sessionService: SessionService) extends V2Api with JsonUtil {
 
   implicit val itemFormat = jsonFormatting.item
+  implicit val pdFormat = jsonFormatting.formatPlayerDefinition
 
   override implicit def ec: ExecutionContext = apiContext.context
 
@@ -255,11 +256,7 @@ class ItemApi(
 
   private def defaultItem(collectionId: ObjectId): JsValue = validatedJson(collectionId)(Json.obj()).get
 
-  lazy val defaultPlayerDefinition = Json.obj(
-    "components" -> Json.obj(),
-    "files" -> JsArray(Seq.empty),
-    "xhtml" -> "<div></div>",
-    "summaryFeedback" -> "")
+  lazy val defaultPlayerDefinition = Json.toJson(PlayerDefinition("<div></div>"))
 
   private def addIfNeeded[T](json: JsObject, prop: String, defaultValue: JsValue)(implicit r: Format[T]): JsObject = {
     (json \ prop).asOpt[T]

@@ -34,12 +34,7 @@ class BasicScoreServiceTest extends Specification with Mockito with PlaySpecific
 
   trait scope extends Scope {
 
-    val playerDefinition = PlayerDefinition(
-      files = Seq.empty,
-      xhtml = "<html/>",
-      components = Json.obj(),
-      summaryFeedback = "",
-      customScoring = None)
+    val playerDefinition = PlayerDefinition.empty
 
     lazy val playerDefJson = toJson(playerDefinition)
     val answers = Json.obj("these" -> "are", "the" -> "answers")

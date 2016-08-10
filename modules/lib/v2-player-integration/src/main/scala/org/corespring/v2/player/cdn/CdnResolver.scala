@@ -3,7 +3,7 @@ package org.corespring.v2.player.cdn
 import play.api.Logger
 
 class CdnResolver(domain: Option[String], version: Option[String]) {
-  lazy val logger = Logger(classOf[CdnResolver])
+  private lazy val logger = Logger(this.getClass)
 
   lazy val cdnDomain = domain.flatMap { d =>
     if (!d.startsWith("//")) {

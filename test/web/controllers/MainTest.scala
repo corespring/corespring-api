@@ -67,13 +67,15 @@ class MainTest extends Specification with Mockito with PlaySpecification with Mo
 
     lazy val itemType = {
       val m = mock[ItemType]
-      m.all returns Json.arr()
+      m.all() returns Json.arr()
+      m.all(Seq.empty) returns Json.arr()
       m
     }
 
     lazy val widgetType = {
       val m = mock[WidgetType]
-      m.all returns Json.arr()
+      m.all() returns Json.arr()
+      m.all(Seq.empty) returns Json.arr()
       m
     }
 
@@ -108,11 +110,12 @@ class MainTest extends Specification with Mockito with PlaySpecification with Mo
   "defaultValues" should {
 
     "return updated widgetTypes from widgetTypes.all" in new scope {
-      val result = main.defaultValues.map(s => Json.parse(s)).get
+      val result = main.defaultValues().map(s => Json.parse(s)).get
       (result \ "widgetTypes").as[JsArray] === Json.arr()
+
       val widgets = Json.arr(Json.obj("key" -> "widget", "value" -> "Widget"))
-      widgetType.all returns widgets
-      val secondResult = main.defaultValues.map(s => Json.parse(s)).get
+      widgetType.all(Seq.empty) returns widgets
+      val secondResult = main.defaultValues().map(s => Json.parse(s)).get
       (secondResult \ "widgetTypes").as[JsArray] === widgets
     }
   }

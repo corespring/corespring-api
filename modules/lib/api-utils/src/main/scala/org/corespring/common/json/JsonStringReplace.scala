@@ -3,7 +3,8 @@ package org.corespring.common.json
 import play.api.libs.json.{ JsString, JsArray, JsObject, JsValue }
 
 object JsonStringReplace {
-  def replaceStringsInJson(json: JsValue, replace: (String => String)): JsValue = {
+
+  def replaceStringsInJson(json: JsValue)(replace: (String => String)): JsValue = {
     def recurse(input: JsValue): JsValue = {
       if (input.isInstanceOf[JsObject]) {
         JsObject(input.as[JsObject].fields.map(kv => (kv._1, recurse(kv._2))))

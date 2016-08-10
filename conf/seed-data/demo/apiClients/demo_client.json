@@ -1,0 +1,6 @@
+{
+    "_id" : { "$oid" : "56e95371d4c6b388323a11c1"} ,
+    "orgId" : {"$oid" : "51114b307fc1eaa866444648"},
+    "clientId" : { "$oid" : "502e46ce0364068384f217f5"},
+    "clientSecret" : "byzq4j0jpsjxmbnqk8w7wif4v"
+}

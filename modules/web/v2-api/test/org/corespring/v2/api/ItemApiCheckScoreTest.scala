@@ -44,7 +44,7 @@ class ItemApiCheckScoreTest extends ItemApiSpec {
       }
 
       "fail if there is no player definition" in new checkScoreScope(
-        loadForReadResult = Success(Item(collectionId.toString, id = itemId))) {
+        loadForReadResult = Success(Item(collectionId = collectionId.toString, id = itemId))) {
         val e = api.noPlayerDefinition(itemId)
         api.checkScore("itemId")(jsonReq) must beCodeAndJson(e.statusCode, e.json)
       }

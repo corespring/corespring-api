@@ -23,5 +23,5 @@ trait MockFactory {
   }
 
   def mockCollectionId() = ObjectId.get
-  def mockItem = Item(collectionId = mockCollectionId().toString)
+  def mockItem = Item(mockCollectionId().toString)
 }
