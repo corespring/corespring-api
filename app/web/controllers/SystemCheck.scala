@@ -16,10 +16,12 @@ import play.api.mvc.{ Action, Controller }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
+import scala.util.{ Success, Failure }
+//import scala.util.Failure
 
 class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchConfig) extends Controller {
 
-  def checkCache(): Either[CorespringInternalError, Unit] = {
+  def checkCache(): Future[Either[CorespringInternalError, Unit]] = Future {
     Cache.set("test", "test")
     Cache.get("test") match {
       case Some(test) => if (test == "test") Right(())
@@ -28,10 +30,11 @@ class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchC
     }
   }
 
-  def checkS3(): Either[CorespringInternalError, Unit] = {
+  def checkS3(): Future[Either[CorespringInternalError, Unit]] = Future {
+    val testBucket = "corespring-system-check"
+    val testObject = "circle.png"
+
     try {
-      val testBucket = "corespring-system-check"
-      val testObject = "circle.png"
       val checkS3Object = s3.doesObjectExist(testBucket, testObject)
       Right(())
     } catch {
@@ -39,7 +42,7 @@ class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchC
     }
   }
 
-  def checkDatabase(): Either[CorespringInternalError, Unit] = {
+  def checkDatabase(): Future[Either[CorespringInternalError, Unit]] = Future {
 
     val mainDb = db
     val dbmodels = Seq(
@@ -61,8 +64,7 @@ class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchC
     })
   }
 
-  def checkElasticSearch(): Either[CorespringInternalError, Unit] = {
-
+  def checkElasticSearch(): Future[Either[CorespringInternalError, Unit]] = Future {
     val cfg = elasticSearchConfig
     val elasticSearchClient = WSClient(cfg.url)
     val elasticClientResult = elasticSearchClient.request("_cluster/health").get.flatMap[Either[CorespringInternalError, Unit]](response => Future {
@@ -81,16 +83,24 @@ class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchC
     val timeout = play.api.libs.concurrent.Promise.timeout("Oops", Duration(6, TimeUnit.SECONDS))
 
     val runChecks: Future[Either[CorespringInternalError, Unit]] = scala.concurrent.Future {
+
+      val fCheckCache = checkCache()
+      val fCheckS3 = checkS3()
+      val fCheckElasticSearch = checkElasticSearch()
+      val fCheckDatabase = checkDatabase()
+
       val results = List(
-        checkS3(),
-        checkCache(),
-        checkDatabase(),
-        checkElasticSearch())
+        Await.result(fCheckS3, Duration(5, TimeUnit.SECONDS)),
+        Await.result(fCheckCache, Duration(5, TimeUnit.SECONDS)),
+        Await.result(fCheckElasticSearch, Duration(5, TimeUnit.SECONDS)),
+        Await.result(fCheckDatabase, Duration(5, TimeUnit.SECONDS))
+      )
 
       def isAnError(result: Either[CorespringInternalError, Unit]) = result match {
         case Left(_) => true
         case Right(_) => false
       }
+      
       val errors = results.filter(isAnError)
 
       if (errors.length == 0) Right()
