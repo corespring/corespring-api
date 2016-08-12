@@ -16,8 +16,6 @@ import play.api.mvc.{ Action, Controller }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
-import scala.util.{ Success, Failure }
-//import scala.util.Failure
 
 class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchConfig) extends Controller {
 
@@ -84,16 +82,11 @@ class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchC
 
     val runChecks: Future[Either[CorespringInternalError, Unit]] = scala.concurrent.Future {
 
-      val fCheckCache = checkCache()
-      val fCheckS3 = checkS3()
-      val fCheckElasticSearch = checkElasticSearch()
-      val fCheckDatabase = checkDatabase()
-
       val results = List(
-        Await.result(fCheckS3, Duration(5, TimeUnit.SECONDS)),
-        Await.result(fCheckCache, Duration(5, TimeUnit.SECONDS)),
-        Await.result(fCheckElasticSearch, Duration(5, TimeUnit.SECONDS)),
-        Await.result(fCheckDatabase, Duration(5, TimeUnit.SECONDS))
+        Await.result(checkS3(), Duration(5, TimeUnit.SECONDS)),
+        Await.result(checkCache(), Duration(5, TimeUnit.SECONDS)),
+        Await.result(checkElasticSearch(), Duration(5, TimeUnit.SECONDS)),
+        Await.result(checkDatabase(), Duration(5, TimeUnit.SECONDS))
       )
 
       def isAnError(result: Either[CorespringInternalError, Unit]) = result match {
