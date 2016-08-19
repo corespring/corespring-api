@@ -25,45 +25,36 @@ class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchC
 
   val timeUnit = Duration(5, TimeUnit.SECONDS)
 
-  def checkCache(): Future[Either[CorespringInternalError, Unit]] = Future {
-    Cache.set("test", "test")
-    Cache.get("test") match {
+  def checkCache(setCache: String, getCache: String): Future[Either[CorespringInternalError, Unit]] = Future {
+    Cache.set(setCache, setCache)
+    Cache.get(getCache) match {
       case Some(test) => if (test == "test") Right(())
       else Left(CorespringInternalError("did not retrieve correct value from cache"))
       case None => Left(CorespringInternalError("could not retrieve any value from cache"))
     }
   }
 
-  def checkS3(): Future[Either[CorespringInternalError, Unit]] = Future {
+  def checkS3(_s3: AmazonS3, bucket: String): Future[Either[CorespringInternalError, Unit]] = Future {
     try {
-      val testBucket = new HeadBucketRequest("corespring-system-check")
-      s3.headBucket(testBucket)
+      val testBucket = new HeadBucketRequest(bucket)
+      _s3.headBucket(testBucket)
       Right(())
     } catch {
       case e: Throwable => Left(CorespringInternalError("S3 / Bucket is not available"))
     }
   }
 
-  def checkDatabase(): Future[Either[CorespringInternalError, Unit]] = Future {
-    val dbmodels = Seq(
-      "accessTokens",
-      "apiClients",
-      "contentcolls",
-      "fieldValues",
-      "itemsessions",
-      "orgs",
-      "subjects",
-      "users")
+  def checkDatabase(_db: MongoDB, dbmodels: Seq[String]): Future[Either[CorespringInternalError, Unit]] = Future {
     dbmodels.foldRight[Either[CorespringInternalError, Unit]](Right(()))((dbmodel, result) => {
       if (result.isRight) {
-        if (db.collectionExists(dbmodel)) Right(())
+        if (_db.collectionExists(dbmodel)) Right(())
         else Left(CorespringInternalError("could not find collection: " + dbmodel))
       } else result
     })
   }
 
-  def checkElasticSearch(): Future[Either[CorespringInternalError, Unit]] = Future {
-    val elasticSearchClient = WSClient(elasticSearchConfig.url)
+  def checkElasticSearch(_elasticSearchConfig: ElasticSearchConfig): Future[Either[CorespringInternalError, Unit]] = Future {
+    val elasticSearchClient = WSClient(_elasticSearchConfig.url)
     val elasticClientResult = elasticSearchClient.request("_cluster/health").get.flatMap[Either[CorespringInternalError, Unit]](response => Future {
       response.status match {
         case 200 => Right(())
@@ -82,10 +73,22 @@ class SystemCheck(s3: AmazonS3, db: MongoDB, elasticSearchConfig: ElasticSearchC
       case timeout: String =>  Left(CorespringInternalError("Timed out"))
     }
 
-    val futureCheckCache = checkCache()
-    val futureCheckS3 = checkS3()
-    val futureCheckDatabase = checkDatabase()
-    val futureCheckElasticSearch = checkElasticSearch()
+    val testCache = "test"
+    val bucket = "corespring-system-check"
+    val dbmodels = Seq(
+      "accessTokens",
+      "apiClients",
+      "contentcolls",
+      "fieldValues",
+      "itemsessions",
+      "orgs",
+      "subjects",
+      "users")
+
+    val futureCheckCache = checkCache(testCache,testCache)
+    val futureCheckS3 = checkS3(s3, bucket)
+    val futureCheckDatabase = checkDatabase(db, dbmodels)
+    val futureCheckElasticSearch = checkElasticSearch(elasticSearchConfig)
 
     def isAnError(result: Either[CorespringInternalError, Unit]) = result match {
       case Left(_) => true
