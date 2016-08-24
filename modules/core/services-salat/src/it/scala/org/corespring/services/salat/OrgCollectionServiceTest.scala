@@ -434,6 +434,11 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       val otherOrg = insertOrg("otherOrg")
       val rootOne = insertCollection("one", root)
       val otherOrgOne = insertCollection("other-org-one", otherOrg)
+      val archiveCollection = insertCollection("archive", root, false, id = archiveContentCollectionId)
+    }
+
+    "return Some(Read) permission for archived collection" in new getPermission {
+      service.getPermission(org.id, archiveContentCollectionId) must_== Some(Permission.Read)
     }
 
     "return Permission.Write for a public collection that an org has write access to" in new getPermission {
@@ -584,4 +589,5 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
 
     }
   }
+
 }
