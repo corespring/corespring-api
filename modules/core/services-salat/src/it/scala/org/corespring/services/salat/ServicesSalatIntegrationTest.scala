@@ -63,9 +63,9 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
       services.orgCollectionService.grantAccessToCollection(org.id, collection.id, p)
     }
 
-    def insertCollection(name: String, org: Organization, isPublic: Boolean = false) = {
+    def insertCollection(name: String, org: Organization, isPublic: Boolean = false, id: ObjectId = new ObjectId()) = {
       val result = services.contentCollectionService.insertCollection(
-        ContentCollection(name, org.id, isPublic = isPublic))
+        ContentCollection(name, org.id, isPublic = isPublic, id = id))
 
       logger.debug(s"function=mkCollection, result=$result")
       result.toOption.get
