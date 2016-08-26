@@ -37,8 +37,7 @@ class CdnPlayerItemProcessorTest extends Specification with Mockito {
         xhtml = "<img src=\"FigurePattern2.png\"></img>",
         components = Json.obj(
           "1" -> Json.obj("model" -> Json.obj("answer" -> "<img src=\"FigurePattern2.png\"></img>")),
-          "2" -> Json.obj("fileName" -> "FigurePattern2.png")
-        ),
+          "2" -> Json.obj("fileName" -> "FigurePattern2.png")),
         summaryFeedback = "this is some text with an image <img src=\"FigurePattern2.png\"></img>",
         customScoring = None,
         config = Json.obj()))
