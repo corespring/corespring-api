@@ -21,19 +21,19 @@ class JsonStringReplaceTest extends Specification {
       json === Json.obj("o" -> Json.obj("s" -> "Xhi"))
     }
     "replace string in nested array" in {
-      val json = replaceStringsInJson(Json.obj("o" -> Json.arr("hi")))( addX)
+      val json = replaceStringsInJson(Json.obj("o" -> Json.arr("hi")))(addX)
       json === Json.obj("o" -> Json.arr("Xhi"))
     }
     "not change booleans" in {
-      val json = replaceStringsInJson(Json.obj("o" -> true))( addX)
+      val json = replaceStringsInJson(Json.obj("o" -> true))(addX)
       json === Json.obj("o" -> true)
     }
     "not change numbers" in {
-      val json = replaceStringsInJson(Json.obj("o" -> 56))( addX)
+      val json = replaceStringsInJson(Json.obj("o" -> 56))(addX)
       json === Json.obj("o" -> 56)
     }
     "not change nulls" in {
-      val json = replaceStringsInJson(Json.obj("o" -> JsNull))( addX)
+      val json = replaceStringsInJson(Json.obj("o" -> JsNull))(addX)
       json === Json.obj("o" -> JsNull)
     }
   }
