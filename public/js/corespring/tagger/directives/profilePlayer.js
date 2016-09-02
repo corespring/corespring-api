@@ -11,15 +11,17 @@ angular.module('tagger')
       var catalogInstance;
 
       function removeCatalog(){
-        catalogInstance && catalogInstance.remove();
-        catalogInstance = undefined;
+        if(catalogInstance) {
+          console.debug('removeCatalog');
+          catalogInstance.remove();
+          catalogInstance = undefined;
+        }
       }
 
-      scope.$on('$destroy', removeCatalog);
-
       scope.hidePopup = function() {
-        scope.$parent.hidePopup();
+        console.debug('hidePopup');
         removeCatalog();
+        scope.$parent.hidePopup();
       };
 
       scope.$watch("itemId", function (val) {
