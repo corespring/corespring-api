@@ -28,7 +28,7 @@ object Build extends sbt.Build {
 
   lazy val apiUtils = builders.lib("api-utils")
     .settings(
-      libraryDependencies ++= Seq(aws, specs2 % "test", playFramework, salatPlay, playJson % "test"),
+      libraryDependencies ++= Seq(aws, specs2 % "test", playFramework, salatPlay, playJson % "test", httpClient),
       Keys.fork in Test := builders.forkInTests)
 
   /** Any shared test helpers in here */
@@ -228,6 +228,7 @@ object Build extends sbt.Build {
         corespringMacros,
         macWireMacro))
     .dependsOn(
+      apiUtils,
       qtiToV2,
       testLib,
       v2Auth % "test->test;compile->compile",
