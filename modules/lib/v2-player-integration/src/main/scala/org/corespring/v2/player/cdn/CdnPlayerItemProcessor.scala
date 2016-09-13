@@ -44,18 +44,12 @@ class CdnPlayerItemProcessor(
 
         def replacers(file: BaseFile) = Seq(
           (input: String) => new Regex("\"" + file.name + "\"").replaceAllIn(input, m => "\"" + resolve(file.name) + "\""),
-          (input: String) => {
-            val matches = new Regex("^" + file.name + "$").findFirstIn(input)
-            println(s"replace ${file.name} $input $matches")
-            new Regex("^" + file.name + "$").replaceAllIn(input, m => resolve(file.name))
-          })
+          (input: String) => new Regex("^" + file.name + "$").replaceAllIn(input, m => resolve(file.name)))
 
         replaceStringsInJson(playerDefinitionJson) { (src) =>
           storedFiles.foldLeft(src) { (src, file) =>
             replacers(file).foldLeft(src) { (src, replacer) =>
-              val result = replacer(src)
-              println(s"src $src $result")
-              result
+              replacer(src)
             }
           }
         }
