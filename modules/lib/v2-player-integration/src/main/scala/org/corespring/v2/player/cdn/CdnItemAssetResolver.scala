@@ -1,6 +1,6 @@
 package org.corespring.v2.player.cdn
 
-import org.corespring.assets.EncodingHelper
+import org.corespring.common.url.EncodingHelper
 import org.corespring.drafts.item.S3Paths
 import org.corespring.platform.data.mongo.models.VersionedId
 

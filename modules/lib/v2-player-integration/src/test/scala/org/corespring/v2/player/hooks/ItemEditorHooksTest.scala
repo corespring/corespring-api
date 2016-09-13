@@ -5,6 +5,7 @@ import org.apache.commons.httpclient.util.URIUtil
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
+import org.corespring.common.url.EncodingHelper
 import org.corespring.container.client.hooks.UploadResult
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.S3Paths
@@ -33,6 +34,11 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
   val mockOrgAndOptsForSpecs = mockOrgAndOpts(AuthMode.AccessToken)
   val vid = VersionedId(ObjectId.get, Some(0))
   val vidNoVersion = vid.copy(version = None)
+  val encodingHelper = new EncodingHelper();
+
+  def urlEncode(s: String): String = {
+    encodingHelper.encodedOnce(s)
+  }
 
   private class scope(
     val transformResult: JsValue = Json.obj(),
@@ -168,7 +174,7 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
     trait upload extends scope with BodyParserHelper {
       val mockItem = Item(collectionId = ObjectId.get.toString)
-      val mockKey = "some/mock-key with a space.png"
+      val mockKey = "some/mock-key with a space%20.png"
 
       playS3.s3ObjectAndData(any[String], any[Item => String])(any[RequestHeader => Either[SimpleResult, Item]]) returns {
         val s3o = mock[S3Object]
@@ -183,15 +189,15 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
     }
 
     "returns the path in an UploadResult" in new upload {
-      out must equalTo(Some(UploadResult(URIUtil.encodePath(mockKey)))).await
+      out must equalTo(Some(UploadResult(urlEncode(mockKey)))).await
     }
 
     "makeKey should return the full s3 key" in new upload {
       val captor = capture[Item => String]
-      val expectedKey = URIUtil.encodePath(mockKey)
+      val expectedKey = urlEncode(mockKey)
       out must equalTo(Some(UploadResult(expectedKey))).await
       there was one(playS3).s3ObjectAndData(any[String], captor)(any[RequestHeader => Either[SimpleResult, Item]])
-      captor.value.apply(item) must_== URIUtil.encodePath(S3Paths.itemFile(item.id, mockKey))
+      captor.value.apply(item) must_== urlEncode(S3Paths.itemFile(item.id, mockKey))
     }
 
     "call itemService.addFileToPlayerDefinition" in new upload {
