@@ -4,7 +4,7 @@ object Dependencies {
   val playVersion = "2.2.6"
 
   //V2 Player
-  val containerVersion = "5.2.0-SNAPSHOT"
+  val containerVersion = "5.2.0-MONGO-SNAPSHOT"
   val qtiVersion = "0.16"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
@@ -27,7 +27,7 @@ object Dependencies {
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5").exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.10.0"
-  val casbah = "org.mongodb" %% "casbah" % "2.6.3"
+  val casbah = "org.mongodb" %% "casbah" % "2.8.2"
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ()).exclude("args4j", "args4j").exclude("com.google.guava", "guava").exclude("org.json", "json").exclude("com.google.protobuf", "protobuf-java").exclude("org.apache.ant", "ant").exclude("com.google.code.findbugs", "jsr305").exclude("com.googlecode.jarjar", "jarjar").exclude("junit", "junit")
   val commonsCodec = "commons-codec" % "commons-codec" % "1.10"
   val commonsIo = "commons-io" % "commons-io" % "2.4"
@@ -60,9 +60,9 @@ object Dependencies {
   val qtiConverter = "org.corespring" %% "qti-corespring-converter" % qtiVersion
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
-  val salat = "com.novus" %% "salat" % "1.9.4"
+  val salat = "com.github.salat" %% "salat" % "1.10.0-SNAPSHOT"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.21.0"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.22.0-MONGO-SNAPSHOT"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val scalazContrib = "org.typelevel" %% "scalaz-contrib-210" % "0.1.5"

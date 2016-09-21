@@ -22,7 +22,7 @@
     <logger name="s3-play-plugin" level="TRACE"/>
     <logger name="VersionInfo" level="OFF"/>
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>
 
