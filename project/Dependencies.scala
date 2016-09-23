@@ -60,7 +60,7 @@ object Dependencies {
   val qtiConverter = "org.corespring" %% "qti-corespring-converter" % qtiVersion
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
-  val salat = "com.github.salat" %% "salat" % "1.10.0-SNAPSHOT"
+  val salat = "com.github.salat" %% "salat" % "1.10.0"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
   val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.22.0-MONGO-SNAPSHOT"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
