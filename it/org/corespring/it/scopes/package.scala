@@ -3,7 +3,7 @@ package org.corespring.it
 import global.Global.main
 import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
+import salat.Context
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.ItemDraftHelper
@@ -239,7 +239,7 @@ package object scopes {
     val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/materials/$materialName/$fileName"
     val sf = StoredFile(name = fileName, contentType = "image/png", storageKey = key)
     val resource = Resource(name = materialName, files = Seq(sf))
-    val dbo = com.novus.salat.grater[Resource].asDBObject(resource)
+    val dbo = salat.grater[Resource].asDBObject(resource)
 
     itemCollection.update(
       MongoDBObject("_id._id" -> itemId.id, "_id.version" -> itemId.version.getOrElse(0)),

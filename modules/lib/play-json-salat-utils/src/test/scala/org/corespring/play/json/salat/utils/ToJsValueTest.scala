@@ -4,7 +4,7 @@ import java.net.URL
 import java.util.Date
 
 import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
-import com.novus.salat.json.JSONConfig
+import salat.json.JSONConfig
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.specs2.mutable.Specification

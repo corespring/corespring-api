@@ -2,8 +2,8 @@ package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAO
+import salat.Context
+import salat.dao.SalatDAO
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
@@ -262,7 +262,7 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
       import org.corespring.common.mongo.ExpandableDbo.ExpandableDbo
       for {
         dboRef <- dbo.expandPath(OrgKeys.contentcolls + ".0")
-        ref <- Some(com.novus.salat.grater[ContentCollRef].asObject(new MongoDBObject(dboRef)))
+        ref <- Some(salat.grater[ContentCollRef].asObject(new MongoDBObject(dboRef)))
       } yield ref
     }
 

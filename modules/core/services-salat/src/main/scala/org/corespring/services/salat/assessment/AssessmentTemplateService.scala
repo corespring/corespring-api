@@ -2,8 +2,8 @@ package org.corespring.services.salat.assessment
 
 import com.mongodb.{ BasicDBObject, DBObject }
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAO
+import salat.Context
+import salat.dao.SalatDAO
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.AssessmentTemplate
 import org.corespring.models.assessment.AssessmentTemplate.Keys

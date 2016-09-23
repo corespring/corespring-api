@@ -2,7 +2,7 @@ package org.corespring.services.salat.serialization
 
 import com.mongodb.casbah.Implicits.wrapDBObj
 import com.mongodb.casbah.Imports._
-import com.novus.salat.json.JSONConfig
+import salat.json.JSONConfig
 import java.text.DateFormat
 import java.util.Date
 import org.bson.types.BSONTimestamp

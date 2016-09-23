@@ -3,8 +3,8 @@ package org.corespring.api.v1
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatInsertError
+import salat.Context
+import salat.dao.SalatInsertError
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.conversion.qti.transformers.ItemTransformer
@@ -143,7 +143,7 @@ class ItemApi(
       import com.mongodb.casbah.Imports._
 
       service.findFieldsById(id, fields)
-        .map(dbo => com.novus.salat.grater[Item].asObject[Imports.DBObject](dbo))
+        .map(dbo => salat.grater[Item].asObject[Imports.DBObject](dbo))
         .map(i => Ok(Json.toJson(i).as[JsObject] + ("latest" -> JsNumber(latestVersion(id)))))
         .getOrElse(NotFound)
   }

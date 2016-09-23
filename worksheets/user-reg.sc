@@ -8,7 +8,7 @@ import java.io.File
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3}
 import com.mongodb.casbah.{MongoConnection, MongoURI, MongoDB}
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.hash.BCryptHasher
 import org.corespring.models.appConfig.{ArchiveConfig, Bucket, AccessTokenConfig}

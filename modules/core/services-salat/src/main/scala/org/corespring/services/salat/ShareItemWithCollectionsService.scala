@@ -1,7 +1,7 @@
 package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports._
-import com.novus.salat.dao.SalatDAOUpdateError
+import salat.dao.SalatDAOUpdateError
 import grizzled.slf4j.Logger
 import org.corespring.errors._
 import org.corespring.errors.collection.OrgNotAuthorized

@@ -1,7 +1,7 @@
 package org.corespring.services.salat.item
 
 import com.mongodb.casbah.MongoCollection
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.appConfig.ArchiveConfig

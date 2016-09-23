@@ -1,8 +1,8 @@
 package org.corespring.services.salat.registration
 
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAO
+import salat.Context
+import salat.dao.SalatDAO
 import org.bson.types.ObjectId
 import org.corespring.models.registration.RegistrationToken
 import org.corespring.{services => interface}

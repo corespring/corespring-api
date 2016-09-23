@@ -2,7 +2,7 @@ package org.corespring.v2.api.drafts.item
 
 import com.amazonaws.services.s3.AmazonS3
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
-import com.novus.salat.Context
+import salat.Context
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.services.ItemDraftConfig.CollectionNames
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }

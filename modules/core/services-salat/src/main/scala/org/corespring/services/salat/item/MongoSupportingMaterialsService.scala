@@ -2,7 +2,7 @@ package org.corespring.platform.core.services.item
 
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.Logger
-import com.novus.salat.{Context, grater}
+import salat.{Context, grater}
 import org.corespring.common.mongo.ExpandableDbo._
 import org.corespring.models.item.resource.{StoredFileDataStream, BaseFile, Resource, StoredFile}
 import org.corespring.platform.core.services.item.MongoSupportingMaterialsService.Errors

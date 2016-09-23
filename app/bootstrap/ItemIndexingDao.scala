@@ -2,7 +2,7 @@ package bootstrap
 
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
-import com.novus.salat.dao.SalatMongoCursor
+import salat.dao.SalatMongoCursor
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.item.Item
 import org.corespring.platform.data.VersioningDao

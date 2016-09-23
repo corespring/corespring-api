@@ -1,7 +1,7 @@
 package org.corespring.itemSearch
 
 import com.mongodb.casbah.Imports._
-import com.novus.salat.Context
+import salat.Context
 import org.corespring.elasticsearch.{ BatchConfig, BatchContentIndexer }
 import org.corespring.it.helpers._
 import org.corespring.it.{ FieldValuesIniter, IntegrationSpecification, ItemIndexCleaner }
@@ -68,7 +68,7 @@ class IndexCalculatorIntegrationTest extends IntegrationSpecification {
     val dbo = com.mongodb.util.JSON.parse(jsonString).asInstanceOf[DBObject]
     logger.info(s"dbo: $dbo")
     implicit val nc: Context = main.context
-    val dboItem = com.novus.salat.grater[Item].asObject(dbo)
+    val dboItem = salat.grater[Item].asObject(dbo)
     val item = dboItem.copy(collectionId = collectionId.toString)
   }
 

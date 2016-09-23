@@ -8,7 +8,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.s3.transfer.TransferManager
 import com.amazonaws.services.s3.{AmazonS3, S3ClientOptions}
 import com.mongodb.casbah.MongoDB
-import com.novus.salat.Context
+import salat.Context
 import developer.{DeveloperConfig, DeveloperModule}
 import filters.{BlockingFutureQueuer, CacheFilter, FutureQueuer}
 import org.bson.types.ObjectId

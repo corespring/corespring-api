@@ -2,7 +2,7 @@ package org.corespring.services.salat
 
 import com.amazonaws.services.s3.AmazonS3
 import com.mongodb.casbah.MongoDB
-import com.novus.salat.Context
+import salat.Context
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission

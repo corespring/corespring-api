@@ -1,7 +1,7 @@
 package org.corespring.v2.player.services.item
 
 import com.mongodb.casbah.Imports._
-import com.novus.salat.Context
+import salat.Context
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.models.appConfig.Bucket
 import org.corespring.mongo.IdConverters
@@ -27,7 +27,7 @@ class MongoDraftSupportingMaterialsService(val collection: MongoCollection,
   val assets: SupportingMaterialsAssets[DraftId])(implicit val ctx: Context)
   extends DraftSupportingMaterialsService with MongoSupportingMaterialsService[DraftId] {
   override def idToDbo(id: DraftId): DBObject = {
-    val dbo = com.novus.salat.grater[DraftId].asDBObject(id)
+    val dbo = salat.grater[DraftId].asDBObject(id)
     MongoDBObject("_id" -> dbo)
   }
   override def bucket: String = bucketConfig.bucket

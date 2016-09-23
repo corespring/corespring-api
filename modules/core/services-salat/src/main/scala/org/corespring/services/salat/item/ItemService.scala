@@ -1,7 +1,7 @@
 package org.corespring.services.salat.item
 
 import com.mongodb.casbah.Imports._
-import com.novus.salat._
+import salat._
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.errors.item.{ ItemNotFound, OrgNotAuthorized }
@@ -93,7 +93,7 @@ class ItemService(
   }
 
   override def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
-    val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+    val dbo = salat.grater[StoredFile].asDBObject(file)
     //TODO It was writing to data.playerDefinition before. Is that correct?
     val update = MongoDBObject("$addToSet" -> MongoDBObject("playerDefinition.files" -> dbo))
     val result = dao.update(itemId, update, false)
@@ -104,7 +104,7 @@ class ItemService(
   override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = addFileToPlayerDefinition(item.id, file)
 
   override def removeFileFromPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
-    val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+    val dbo = salat.grater[StoredFile].asDBObject(file)
     val update = MongoDBObject("$pull" -> MongoDBObject("playerDefinition.files" -> dbo))
     val result = dao.update(itemId, update, false)
     logger.trace(ds(itemId, result))
@@ -190,7 +190,7 @@ class ItemService(
     }
   }
 
-  private def toVid(dbo: DBObject): VersionedId[ObjectId] = com.novus.salat.grater[VersionedId[ObjectId]].asObject(dbo)
+  private def toVid(dbo: DBObject): VersionedId[ObjectId] = salat.grater[VersionedId[ObjectId]].asObject(dbo)
 
   type CollToVidMap = Map[CollectionIdPermission, Seq[VersionedId[ObjectId]]]
 
@@ -366,7 +366,7 @@ class ItemService(
                   (vid -> Failure(PlatformServiceError("No player definition")))
                 } else {
                   val maybeDef = try {
-                    Some(com.novus.salat.grater[PlayerDefinition].asObject(definition))
+                    Some(salat.grater[PlayerDefinition].asObject(definition))
                   } catch {
                     case t: Throwable => {
                       logger.error(t)

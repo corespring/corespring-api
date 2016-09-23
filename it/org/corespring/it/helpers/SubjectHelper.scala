@@ -2,7 +2,7 @@ package org.corespring.it.helpers
 
 import global.Global.main
 import com.mongodb.casbah.Imports
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.models.Subject
 import org.corespring.services.salat.bootstrap.CollectionNames

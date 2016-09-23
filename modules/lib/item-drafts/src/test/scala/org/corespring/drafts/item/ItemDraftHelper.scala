@@ -1,7 +1,7 @@
 package org.corespring.drafts.item
 
 import com.mongodb.casbah.Imports._
-import com.novus.salat.Context
+import salat.Context
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.models.Organization
@@ -22,7 +22,7 @@ trait ItemDraftHelper {
   def create(id: DraftId, itemId: VersionedId[ObjectId], org: Organization): DraftId = {
     itemService.findOneById(itemId).map { item =>
       val draft = ItemDraft(id, item, OrgAndUser(SimpleOrg(org.id, org.name), None))
-      val dbo = com.novus.salat.grater[ItemDraft].asDBObject(draft)
+      val dbo = salat.grater[ItemDraft].asDBObject(draft)
 
       logger.debug(s"function=create, collection=${collection.name}")
       logger.trace(s"function=create, dbo=$dbo")
@@ -40,7 +40,7 @@ trait ItemDraftHelper {
     collection
       .findOne(MongoDBObject("_id.itemId" -> id.itemId))
       .map { dbo =>
-        val out = com.novus.salat.grater[ItemDraft].asObject(dbo)
+        val out = salat.grater[ItemDraft].asObject(dbo)
         out
       }
   }

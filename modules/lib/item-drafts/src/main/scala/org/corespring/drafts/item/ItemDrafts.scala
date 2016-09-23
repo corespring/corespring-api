@@ -2,7 +2,7 @@ package org.corespring.drafts.item
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ CommandResult, WriteResult }
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
@@ -30,7 +30,7 @@ class ItemDrafts(
   draftService: ItemDraftService,
   commitService: CommitService,
   assets: ItemDraftAssets,
-  implicit val context: com.novus.salat.Context)
+  implicit val context: salat.Context)
 
   extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate]
   with ItemDraftDbUtils {
@@ -265,7 +265,7 @@ class ItemDrafts(
 
   def addFileToChangeSet(draft: ItemDraft, f: StoredFile): Boolean = {
     val query = idToDbo(draft.id)
-    val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
+    val dbo = salat.grater[StoredFile].asDBObject(f)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
     val result = draftService.collection.update(query, update, false, false)
     logger.trace(s"function=addFileToChangeSet, draftId=${draft.id}, docsChanged=${result.getN}")
@@ -275,7 +275,7 @@ class ItemDrafts(
 
   def removeFileFromChangeSet(draftId: DraftId, f: StoredFile): Boolean = {
     val query = idToDbo(draftId)
-    val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
+    val dbo = salat.grater[StoredFile].asDBObject(f)
     val update = MongoDBObject("$pull" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
     val result = draftService.collection.update(query, update, false, false)
     logger.trace(s"function=removeFileFromChangeSet, draftId=${draftId}, docsChanged=${result.getN}")
