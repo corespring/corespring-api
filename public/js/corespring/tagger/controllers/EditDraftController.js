@@ -248,6 +248,10 @@
         hideSaveButton: true
       };
 
+      if (!_.isUndefined($routeParams.showQuestionTab)) {
+        opts.tabs = {question: $routeParams.showQuestionTab === 'true'};
+      }
+
       return new org.corespring.players.DraftEditor($scope.containerClassName, opts, function(e) {
         Logger.error(e);
       });
