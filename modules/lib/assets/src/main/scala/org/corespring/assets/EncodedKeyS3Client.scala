@@ -3,6 +3,7 @@ package org.corespring.assets
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model._
+import org.corespring.common.url.EncodingHelper
 import play.api.Logger
 
 /**

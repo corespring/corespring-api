@@ -129,6 +129,7 @@ class ItemTransformer(val itemService: BaseFindAndSaveService[Item, VersionedId[
 
     val out = root ++ Json.obj(
       "itemId" -> Json.toJson(item.id.toString()),
+      "apiVersion" -> item.createdByApiVersion,
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials),
       "collection" -> collectionJs)

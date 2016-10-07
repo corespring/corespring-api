@@ -1,4 +1,4 @@
-package org.corespring.assets
+package org.corespring.common.url
 
 import org.apache.commons.httpclient.util.URIUtil
 

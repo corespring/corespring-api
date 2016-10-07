@@ -7,7 +7,20 @@ angular.module('tagger')
     template: '<div class="modal-content"><div class="modal-header"><span class="close close-window-button" ng-click="hidePopup()">&times;</span><h4 class="modal-title">Question Information</h4></div><div id="content"></div></div>',
     scope: {itemId: '@itemId', onItemLoad: '&onItemLoad'},
     link: function (scope, element, attrs) {
+
+      var catalogInstance;
+
+      function removeCatalog(){
+        if(catalogInstance) {
+          console.debug('removeCatalog');
+          catalogInstance.remove();
+          catalogInstance = undefined;
+        }
+      }
+
       scope.hidePopup = function() {
+        console.debug('hidePopup');
+        removeCatalog();
         scope.$parent.hidePopup();
       };
 
@@ -29,11 +42,11 @@ angular.module('tagger')
           scope.onItemLoad();
         };
 
-        new org.corespring.players.ItemCatalog(
+        catalogInstance = new org.corespring.players.ItemCatalog(
           angular.element(element).find('#content')[0],
           options, 
           function(error){
-            console.error("error creating catalog " + error);
+            console.error("error creating catalog ", error);
           });
 
         //0.24 of the container catalog doesn't have an onLoad callback,
