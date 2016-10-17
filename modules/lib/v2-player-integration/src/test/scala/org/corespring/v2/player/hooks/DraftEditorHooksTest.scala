@@ -5,29 +5,30 @@ import org.apache.commons.httpclient.util.URIUtil
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
+import org.corespring.common.url.EncodingHelper
 import org.corespring.container.client.hooks.UploadResult
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.{DraftAssetKeys, ItemDrafts, S3Paths}
+import org.corespring.drafts.item.{ DraftAssetKeys, ItemDrafts, S3Paths }
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
-import org.corespring.models.item.resource.{BaseFile, StoredFile}
-import org.corespring.models.{DisplayConfig, User, UserOrg}
-import org.corespring.v2.auth.models.{AuthMode, OrgAndOpts}
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.models.{ DisplayConfig, User, UserOrg }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.corespring.v2.player.assets.S3PathResolver
 import org.specs2.specification.Scope
-import play.api.libs.iteratee.{Input, Iteratee, Step}
-import play.api.libs.json.{Json, Writes}
-import play.api.mvc.{BodyParser, RequestHeader, SimpleResult}
+import play.api.libs.iteratee.{ Input, Iteratee, Step }
+import play.api.libs.json.{ Json, Writes }
+import play.api.mvc.{ BodyParser, RequestHeader, SimpleResult }
 import play.api.test.FakeRequest
 
-import scala.concurrent.{ExecutionContext, Future}
-import scalaz.{Failure, Success, Validation}
+import scala.concurrent.{ ExecutionContext, Future }
+import scalaz.{ Failure, Success, Validation }
 
 trait BodyParserHelper {
 
@@ -45,10 +46,16 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
   val item = Item(collectionId = ObjectId.get.toString)
   val orgId = ObjectId.get
 
-  val path = "path.png"
+  val path = "pa%20th.png"
   val itemDraft: ItemDraft = {
     val m = mock[ItemDraft]
     m.id.returns(DraftId(item.id.id, "draft", orgId))
+  }
+
+  val encodingHelper = new EncodingHelper();
+
+  def urlEncode(s: String): String = {
+    encodingHelper.encodedOnce(s)
   }
 
   trait scope extends Scope with BodyParserHelper {
@@ -123,21 +130,21 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
       }
     }
 
-    "returns the path param in an UploadResult" in new upload {
+    "return the path param in an UploadResult" in new upload {
       out must equalTo(Some(UploadResult(path))).await
     }
 
-    "calls drafts.addFileToChangeSet" in new upload {
+    "call drafts.addFileToChangeSet" in new upload {
       await(out)
       there was one(itemDrafts).addFileToChangeSet(any[ItemDraft], any[StoredFile])
     }
 
     "makeKey should return the full s3 key" in new upload {
       val captor = capture[ItemDraft => String]
-      val expectedKey = URIUtil.encodePath(path)
+      val expectedKey = urlEncode(path)
       out must equalTo(Some(UploadResult(expectedKey))).await
       there was one(playS3).s3ObjectAndData(any[String], captor)(any[RequestHeader => Either[SimpleResult, ItemDraft]])
-      captor.value.apply(itemDraft) must_== URIUtil.encodePath(S3Paths.draftFile(itemDraft.id, path))
+      captor.value.apply(itemDraft) must_== urlEncode(S3Paths.draftFile(itemDraft.id, path))
     }
 
   }

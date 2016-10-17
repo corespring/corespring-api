@@ -6,7 +6,7 @@
 
 module Utils
 
-  REGEX = /.*[M|A]\s(.*\.scala)/
+  REGEX = /.*[M|A]\s(.*\.scala$)/
 
   def self.get_scala_changes(log)
     lines = log.split("\n")

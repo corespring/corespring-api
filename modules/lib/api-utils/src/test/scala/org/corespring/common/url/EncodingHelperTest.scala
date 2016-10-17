@@ -1,4 +1,4 @@
-package org.corespring.assets
+package org.corespring.common.url
 
 import org.specs2.mutable.Specification
 import org.apache.commons.httpclient.util.URIUtil

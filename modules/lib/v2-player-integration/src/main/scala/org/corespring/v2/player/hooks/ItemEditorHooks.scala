@@ -5,21 +5,22 @@ import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
-import org.corespring.container.client.hooks.{UploadResult, ItemEditorHooks => ContainerItemEditorHooks}
+import org.corespring.common.url.EncodingHelper
+import org.corespring.container.client.hooks.{ UploadResult, ItemEditorHooks => ContainerItemEditorHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.S3Paths
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.Item
-import org.corespring.models.item.resource.{BaseFile, StoredFile}
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.{DisplayConfigJson, OrgAndOpts}
-import org.corespring.v2.auth.{ItemAuth, LoadOrgAndOptions}
-import org.corespring.v2.errors.Errors.{cantParseItemId, generalError}
+import org.corespring.v2.auth.models.{ DisplayConfigJson, OrgAndOpts }
+import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
+import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -43,6 +44,8 @@ class ItemEditorHooks(
   import V2ErrorToTuple._
 
   private lazy val logger = Logger(classOf[ItemEditorHooks])
+
+  private lazy val encodingHelper = new EncodingHelper()
 
   private val bucket = awsConfig.bucket
 
@@ -144,6 +147,10 @@ class ItemEditorHooks(
       itemService.addFileToPlayerDefinition(item, newFile)
     }
 
+    def urlEncode(s: String): String = {
+      encodingHelper.encodedOnce(s)
+    }
+
     playS3.s3ObjectAndData[Item](bucket, i => {
 
       if (i.id.version.isEmpty) {
@@ -151,14 +158,14 @@ class ItemEditorHooks(
       }
       val vid: VersionedId[ObjectId] = i.id.copy(version = i.id.version.orElse(Some(itemService.currentVersion(i.id))))
       val p = S3Paths.itemFile(vid, path)
-      URIUtil.encodePath(p)
+      urlEncode(p)
     })(loadItemPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, item) = tuple
         val key = s3Object.getKey
         addFileToData(item, key)
         IOUtils.closeQuietly(s3Object)
-        UploadResult(URIUtil.encodePath(path))
+        UploadResult(urlEncode(path))
       }
     }
   }

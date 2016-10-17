@@ -1,1 +1,409 @@
-!function(a){function b(){var a=(new Date).getTime(),b=function(b){var c=(a+16*Math.random())%16|0;return a=Math.floor(a/16),("x"==b?c:3&c|8).toString(16)},c="xxxxxxxxxxxx".replace(/[xy]/g,b);return c}function c(a,b,c){if(!b.postMessage)throw a+" - source doesn't have postMessage";if(!c.postMessage)throw a+" - source doesn't have postMessage"}function d(a,b){try{return JSON.parse(a)}catch(c){return b&&b.warn("error parsing event data"),{}}}function e(a,b){return Array.prototype.slice.call(a,b||0)}function f(a,b){var c=function(c){var d=function(){if(b&&b.logger&&b.logger[c])b.logger[c].bind(null,a).apply(null,arguments);else if(window.console&&window.console[c]){var d=e(arguments);d.unshift(a);var f=window.console[c];f.apply?f.apply(window.console,d):alert(d.join(", "))}};return b&&(b.enableLogging||b.logger)?d:function(){}};this.debug=c("debug"),this.log=c("log"),this.warn=c("warn"),this.info=c("info")}function g(a){var b=null;this.add=function(c){b&&this.remove(),a[e()](d(),c),b=c},this.remove=function(){a[c()](d(),b,!1)};var c=function(){return a.removeEventListener?"removeEventListener":"detachEvent"},d=function(){return a.addEventListener?"message":"onmessage"},e=function(){return a.addEventListener?"addEventListener":"attachEvent"}}function h(a,h,i){c("msgr.Dispatcher",a,h);var j=new f(b()+" - msgr.Dispatcher",i),k=new g(a),l=[];j.debug("new instance");var m=!1;j.debug("receiver ready: ",m),j.debug("source: ",a),j.debug("target: ",h);var n=function(){for(var a=0;a<l.length;a++){var b=l[a];this.send(b.messageType,b.data,b.callback)}l=[]},o={},p=function(a){if(j.log("handlePostMessage",a.data),a.source!==h)return void j.warn("not the source - ignore");var b=d(a.data,j);"receiver-ready"===b.mode&&(m?j.debug("receiver ready already"):(j.debug("receiver is ready - flush the queue..."),m=!0,h.postMessage(JSON.stringify({mode:"dispatcher-ready"}),"*"),n.bind(this)())),o[b.uid]?(o[b.uid](b.err,b.result),o[b.uid]=null):j.warn("no callback set for: ",b.uid)};k.add(p.bind(this)),this.send=function(){var a,c,d=e(arguments,0),f=d[0];if("function"==typeof d[1]?(a=null,c=d[1]):(a=d[1],c=d[2]),m){var g=b();if(j.log("send:",f,g),o[g])throw"uid already exists: "+g;o[g]=c;var i={messageType:f,mode:"request",uid:g};a&&(i.data=a),h.postMessage(JSON.stringify(i),"*")}else j.debug("receiver not ready yet, add to pendingMessages"),l.push({messageType:f,data:a,callback:c})},this.remove=function(){k.remove()}}function i(a,b,h){var i=new f("msgr.Receiver",h),j=new g(a);if(c("msgr.Receiver",a,b),i.debug("new instance"),a===b)return i.warn("the source and target are the same - nothing to listen to"),void(this.on=function(){throw"source === target - using a no-op function"});var k={},l=!1,m=function(a){function c(a,c){var d=(e(arguments,0),{messageType:f.messageType,uid:f.uid,mode:"response",err:a,result:c}),g=b;i.log("Receiver - return result: ",JSON.stringify(d)),g.postMessage(JSON.stringify(d),"*")}i.log("handlePostMessage: ",JSON.stringify(a.data));var f=d(a.data,i);if(a.source!==b)return void i.warn("not the source - ignore");if(i.log("data:",f),"dispatcher-ready"===f.mode&&(l?i.debug("dispatcher ready already"):(i.debug("dispatcher is ready now."),l=!0)),i.log("data message type: ",f.messageType),f.messageType)if(k.allMessageTypes&&!k[f.messageType])i.log("using the * handler for",f.messageType),k.allMessageTypes(f.messageType,f.data,c);else if(k[f.messageType])for(var g=0;g<k[f.messageType].length;g++)i.log("call the handler for",f.messageType),k[f.messageType][g](f.data,c)};i.log("add [handlePostMessage] to ",a.location.pathname),j.add(m.bind(this)),this.on=function(a,b){"*"===a?k.allMessageTypes=b:(k[a]=k[a]||[],k[a].push(b),i.log(".on - add handler for",a,"no of handlers:",k[a].length))},this.remove=function(){j.remove()},function(){function a(){i.log("sendReceiverReady",l),l||(i.log("sending receiver-ready"),b.postMessage(JSON.stringify({mode:"receiver-ready"}),"*"),setTimeout(a,300))}a()}()}function j(a,b,c){var d=new h(a,b,c),f=new i(a,b,c);this.send=function(){d.send.apply(d,e(arguments,0))},this.on=function(){f.on.apply(f,e(arguments,0))},this.remove=function(){d.remove(),f.remove()}}if(!JSON)throw"JSON is undefined, if you are using ie8 be sure to define a doctype eg: <!DOCTYPE html>";Function.prototype.bind||(Function.prototype.bind=function(a){if("function"!=typeof this)throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");var b=e(arguments,1),c=this,d=function(){},f=function(){return c.apply(this instanceof d&&a?this:a,b.concat(e(arguments)))};return d.prototype=this.prototype,f.prototype=new d,f}),a.msgr=a.msgr||{},a.msgr.Receiver=i,a.msgr.Dispatcher=h,a.msgr.Channel=j,a.msgr.utils={getUid:b}}(this);
+(function(root) {
+
+  function getUid() {
+    var d = new Date().getTime();
+
+    var gen = function(c){
+      var r = (d + Math.random()*16)%16 | 0;
+      d = Math.floor(d/16);
+      return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    };
+    var uuid = 'xxxxxxxxxxxx'.replace(/[xy]/g, gen);
+    return uuid;
+  }
+
+
+  function validateSourceAndTarget(name, source,target){
+    if(!source.postMessage) {
+      throw name + ' - source doesn\'t have postMessage';
+    }
+
+    if(!target.postMessage) {
+      throw name + ' - source doesn\'t have postMessage';
+    }
+  }
+
+  /**
+   * This lib supports ie8
+   * Because if this the following cruft has been added:
+   * - JSON.stringify/parse of all data
+   * - MessageListener to allow browser safe listener attachment.
+   * - JSON check
+   * - Function.bind shim
+   * - setTimeout on 'receiver-ready'
+   * - log handling
+   */
+  if(!JSON){
+    throw "JSON is undefined, if you are using ie8 be sure to define a doctype eg: <!DOCTYPE html>";
+  }
+
+  function parseJson(json, logger) {
+    try {
+      return JSON.parse(json);
+    } catch (e) {
+      if (logger) {
+        logger.warn('error parsing event data');
+      }
+      return {};
+    }
+  }
+
+  function argsToArray(args, startPos) {
+    return Array.prototype.slice.call(args, startPos || 0);
+  }
+
+  if (!Function.prototype.bind) {
+    Function.prototype.bind = function(oThis) {
+      if (typeof this !== 'function') {
+        // closest thing possible to the ECMAScript 5
+        // internal IsCallable function
+        throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
+      }
+
+      var aArgs   = argsToArray(arguments, 1),
+          fToBind = this,
+          fNOP    = function() {},
+          fBound  = function() {
+            return fToBind.apply(this instanceof fNOP && oThis ? this : oThis, aArgs.concat(argsToArray(arguments)));
+          };
+
+      fNOP.prototype = this.prototype;
+      fBound.prototype = new fNOP();
+
+      return fBound;
+    };
+  }
+
+  function Logger(name, options) {
+
+    var handle = function(level){
+
+      var logHandler = function(){
+        if (options && options.logger && options.logger[level]) {
+          options.logger[level].bind(null, name).apply(null, arguments);
+        } else {
+          if (window.console && window.console[level] ) {
+            var args = argsToArray(arguments); // Make real array from arguments
+            args.unshift(name);
+            var fn = window.console[level];
+            if(fn.apply){
+              fn.apply(window.console, args);
+            } else {
+              alert(args.join(', '));
+            }
+          }
+        }
+      };
+
+      if(options && (options.enableLogging || options.logger) ){
+        return logHandler;
+      } else {
+        return function(){};
+      }
+    };
+
+    this.debug = handle('debug');
+    this.log = handle('log');
+    this.warn = handle('warn');
+    this.info = handle('info');
+  }
+
+  function MessageListener(win){
+
+    var currentHandler = null;
+
+    this.add = function(callback) {
+      if(currentHandler) {
+        this.remove();
+      }
+      win[addEventFunctionName()](eventName(), callback);
+      currentHandler = callback;
+    };
+
+    this.remove = function(){
+      win[removeEventFunctionName()](eventName(), currentHandler, false);
+    };
+
+    var removeEventFunctionName = function(){
+      return win.removeEventListener ? 'removeEventListener' : 'detachEvent';
+    };
+
+    var eventName = function () {
+      return win.addEventListener ? 'message' : 'onmessage';
+    };
+
+    var addEventFunctionName = function () {
+      return win.addEventListener ? 'addEventListener' : 'attachEvent';
+    };
+  }
+
+  function Dispatcher(source, target, options) {
+
+    validateSourceAndTarget('msgr.Dispatcher', source, target);
+
+    var logger = new Logger( getUid() + ' - msgr.Dispatcher', options);
+    var messageListener = new MessageListener(source);
+    /** queue of pending messages that need to be send once the receiver is ready */
+    var pendingMessages = [];
+
+    logger.debug('new instance');
+
+    /** Will be set to true, if receiver-ready is received **/
+    var receiverReady = false;
+
+    logger.debug('receiver ready: ', receiverReady);
+    logger.debug('source: ', source);
+    logger.debug('target: ', target);
+
+    var flushPendingMessages = function(){
+      for(var i = 0; i < pendingMessages.length; i++){
+        var pm = pendingMessages[i];
+        this.send(pm.messageType, pm.data, pm.callback);
+      }
+      pendingMessages = [];
+    };
+
+    var callbacks = {};
+
+    /**
+    Handle all messages to the source window
+    */
+    var handlePostMessage = function(event) {
+
+      logger.log('handlePostMessage', event.data);
+
+      if(event.source !== target){
+        logger.warn('not the source - ignore');
+        return;
+      }
+
+      var data = parseJson(event.data, logger);
+
+      //Note that data.mode is used, so we don't need a listener
+      if(data.mode === 'receiver-ready'){
+        if(receiverReady){
+          logger.debug('receiver ready already');
+        } else {
+          logger.debug('receiver is ready - flush the queue...');
+          receiverReady = true;
+
+          //Note that data.mode is used, so we don't need a listener
+          target.postMessage(JSON.stringify({mode:'dispatcher-ready'}), '*');
+          flushPendingMessages.bind(this)();
+        }
+      }
+
+      if (callbacks[data.uid]) {
+        callbacks[data.uid](data.err, data.result);
+        callbacks[data.uid] = null;
+      } else {
+        logger.warn('no callback set for: ', data.uid);
+      }
+    };
+
+    messageListener.add(handlePostMessage.bind(this));
+
+    /**
+     * Send a message to the target.
+     * @param name - the name of the message
+     * @param data (optional) - a serializeable object to send with the message
+     * @param callback (optional) - a callback function of the form:
+     *     function(err, result){
+     *        //...
+     *     }
+     * Note: if you don't have any data to send you can supply the callback
+     * as the 2nd argument.
+     */
+    this.send = function() {
+      var args = argsToArray(arguments, 0);
+      var messageType = args[0];
+      var data, callback;
+      if(typeof(args[1]) === 'function'){
+        data = null;
+        callback = args[1];
+      } else {
+        data = args[1];
+        callback = args[2];
+      }
+
+      if(receiverReady){
+        var messageUid = getUid();
+        logger.log('send:', messageType, messageUid);
+        if (callbacks[messageUid]) {
+          throw 'uid already exists: ' + messageUid;
+        }
+        callbacks[messageUid] = callback;
+
+        var msg = {
+          messageType: messageType,
+          mode: 'request',
+          uid: messageUid
+        };
+
+        if(data){
+          msg.data = data;
+        }
+        target.postMessage(JSON.stringify(msg), '*');
+      } else {
+        logger.debug('receiver not ready yet, add to pendingMessages');
+
+        pendingMessages.push({messageType: messageType, data: data, callback: callback});
+      }
+    };
+
+    /**
+     * Remove the dispatcher - it'll stop listening for messages on the source window.
+     */
+    this.remove = function(){
+      messageListener.remove();
+    };
+  }
+
+  function Receiver(source, target, options) {
+
+    var logger = new Logger('msgr.Receiver', options);
+    var messageListener = new MessageListener(source);
+
+    validateSourceAndTarget('msgr.Receiver', source, target);
+
+    logger.debug('new instance');
+
+    if(source === target){
+      logger.warn('the source and target are the same - nothing to listen to');
+      this.on = function(){
+        throw 'source === target - using a no-op function';
+      };
+      return;
+    }
+
+    var handlers = {};
+    var dispatcherReady = false;
+
+    var handlePostMessage = function(event) {
+
+      logger.log('handlePostMessage: ', JSON.stringify(event.data));
+
+      if(event.source !== target){
+        logger.warn('not the source - ignore');
+        return;
+      }
+
+      var data = parseJson(event.data, logger);
+      logger.log('data:', data);
+
+      function handleDone(err, result) {
+        var out = {
+          messageType: data.messageType,
+          uid: data.uid,
+          mode: 'response',
+          err: err,
+          result: result
+        };
+        var endpoint = target;
+        logger.log('Receiver - return result: ', JSON.stringify(out));
+        endpoint.postMessage(JSON.stringify(out), '*');
+      }
+
+      if(data.mode === 'dispatcher-ready'){
+        if(dispatcherReady){
+          logger.debug("dispatcher ready already");
+        } else {
+          logger.debug("dispatcher is ready now.");
+          dispatcherReady = true;
+        }
+      }
+
+      logger.log('data message type: ', data.messageType);
+      if(data.messageType) {
+        if(handlers.allMessageTypes && !handlers[data.messageType]){
+          logger.log('using the * handler for', data.messageType);
+          handlers.allMessageTypes(data.messageType, data.data, handleDone);
+        } else {
+          if (handlers[data.messageType]) {
+            for(var i = 0; i < handlers[data.messageType].length; i++){
+              logger.log('call the handler for', data.messageType);
+              handlers[data.messageType][i](data.data, handleDone);
+            }
+          }
+        }
+      }
+
+    };
+
+    logger.log('add [handlePostMessage] to ', source.location.pathname);
+    messageListener.add(handlePostMessage.bind(this));
+
+    /**
+    * listen for a message of the given type
+    * You can listen for specific types with a callback like:
+    *     function(data, done) {}
+    *
+    * Or you can listen for all types using * - the callback must be:
+    *     function(eventName, data, done)
+    *
+    * If you add both a specific and a * - the specific callback will be called still
+    */
+    this.on = function(messageType, callback) {
+      if(messageType === '*'){
+        handlers.allMessageTypes = callback;
+      } else {
+        handlers[messageType] = handlers[messageType] || [];
+        handlers[messageType].push(callback);
+        logger.log('.on - add handler for', messageType, 'no of handlers:', handlers[messageType].length);
+      }
+    };
+
+    this.remove = function(){
+      messageListener.remove();
+    };
+
+    //We expect that there is a root Dispatcher waiting for this receiver to
+    //be ready - inform it that we are now ready to take messages
+    (function() {
+      function sendReceiverReady() {
+        logger.log("sendReceiverReady", dispatcherReady);
+        if (!dispatcherReady) {
+          logger.log("sending receiver-ready");
+
+          //Note that data.mode is used, so we don't need a listener
+          target.postMessage(JSON.stringify({
+            mode: 'receiver-ready'
+          }), '*');
+
+          //start timeout in case the dispatcher is not ready yet
+          setTimeout(sendReceiverReady, 300);
+        }
+      }
+
+      sendReceiverReady();
+    })();
+  }
+
+  function Channel(source,target, options){
+    var dispatcher = new Dispatcher(source, target, options);
+    var receiver = new Receiver(source, target, options);
+
+    this.send = function(){
+      dispatcher.send.apply(dispatcher, argsToArray(arguments,0));
+    };
+
+    this.on = function(){
+      receiver.on.apply(receiver, argsToArray(arguments,0));
+    };
+
+    this.remove = function(){
+      dispatcher.remove();
+      receiver.remove();
+    };
+  }
+
+  root.msgr = root.msgr || {};
+  root.msgr.Receiver = Receiver;
+  root.msgr.Dispatcher = Dispatcher;
+  root.msgr.Channel = Channel;
+  root.msgr.MessageListener = MessageListener;
+  root.msgr.utils = {
+    getUid: getUid
+  };
+
+})(this);

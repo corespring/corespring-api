@@ -3,15 +3,16 @@ package org.corespring.v2.player.hooks
 import org.apache.commons.httpclient.util.URIUtil
 import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
-import org.corespring.container.client.hooks.{UploadResult, DraftEditorHooks => ContainerDraftEditorHooks}
+import org.corespring.common.url.EncodingHelper
+import org.corespring.container.client.hooks.{ UploadResult, DraftEditorHooks => ContainerDraftEditorHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.{DraftAssetKeys, ItemDrafts, MakeDraftId, S3Paths}
+import org.corespring.drafts.item.{ DraftAssetKeys, ItemDrafts, MakeDraftId, S3Paths }
 import org.corespring.models.appConfig.Bucket
-import org.corespring.models.item.resource.{BaseFile, StoredFile}
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.v2.auth.LoadOrgAndOptions
-import org.corespring.v2.auth.models.{DisplayConfigJson, OrgAndOpts}
+import org.corespring.v2.auth.models.{ DisplayConfigJson, OrgAndOpts }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.assets.S3PathResolver
@@ -40,6 +41,8 @@ class DraftEditorHooks(
   import scalaz._
 
   private lazy val logger = Logger(this.getClass)
+
+  private lazy val encodingHelper = new EncodingHelper()
 
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
@@ -156,16 +159,20 @@ class DraftEditorHooks(
       backend.addFileToChangeSet(draft, newFile)
     }
 
+    def urlEncode(s: String): String = {
+      encodingHelper.encodedOnce(s)
+    }
+
     playS3.s3ObjectAndData[ItemDraft](awsConfig.bucket, d => {
       val p = S3Paths.draftFile(d.id, path)
-      URIUtil.encodePath(p)
+      urlEncode(p)
     })(loadDraftPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, draft) = tuple
         val key = s3Object.getKey
         addFileToData(draft, key)
         IOUtils.closeQuietly(s3Object)
-        UploadResult(URIUtil.encodePath(path))
+        UploadResult(urlEncode(path))
       }
     }
   }
