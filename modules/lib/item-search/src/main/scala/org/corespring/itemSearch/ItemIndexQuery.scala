@@ -231,7 +231,7 @@ object ItemIndexQuery {
               "bool" -> obj(
                 "must" -> arr(
                   obj("match" -> obj("metadata.key" -> key)),
-                  obj("match" -> obj("metadata.value" -> value)))))))
+                  obj("match" -> obj("metadata.value" -> value.replaceAll("-", ""))))))))
         }
       }
 
@@ -276,7 +276,7 @@ object ItemIndexQuery {
       val shouldQuery = should(query).map(s => obj("bool" -> s)).toSeq
       val mustQuery = must(query, shouldQuery: _*)
 
-      partialObj(
+      val rv = partialObj(
         "from" -> Some(JsNumber(offset)),
         "size" -> Some(JsNumber(count)),
         "query" -> Some(obj("bool" -> mustQuery)),
@@ -302,6 +302,8 @@ object ItemIndexQuery {
           case true => Some(JsArray(query.sort.map(Json.toJson(_))))
           case _ => None
         }))
+      println(Json.prettyPrint(rv))
+      rv
     }
   }
 
