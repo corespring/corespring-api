@@ -276,7 +276,7 @@ object ItemIndexQuery {
       val shouldQuery = should(query).map(s => obj("bool" -> s)).toSeq
       val mustQuery = must(query, shouldQuery: _*)
 
-      val rv = partialObj(
+      partialObj(
         "from" -> Some(JsNumber(offset)),
         "size" -> Some(JsNumber(count)),
         "query" -> Some(obj("bool" -> mustQuery)),
@@ -302,8 +302,6 @@ object ItemIndexQuery {
           case true => Some(JsArray(query.sort.map(Json.toJson(_))))
           case _ => None
         }))
-      println(Json.prettyPrint(rv))
-      rv
     }
   }
 
