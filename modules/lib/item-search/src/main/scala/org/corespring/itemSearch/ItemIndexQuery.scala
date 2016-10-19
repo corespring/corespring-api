@@ -231,7 +231,7 @@ object ItemIndexQuery {
               "bool" -> obj(
                 "must" -> arr(
                   obj("match" -> obj("metadata.key" -> key)),
-                  obj("match" -> obj("metadata.value" -> value)))))))
+                  obj("match" -> obj("metadata.value" -> value.replaceAll("-", ""))))))))
         }
       }
 
