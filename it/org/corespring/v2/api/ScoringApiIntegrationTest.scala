@@ -14,7 +14,7 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
 
   lazy val itemService = main.itemService
 
-  "ScoringApi" should {
+//  "ScoringApi" should {
 
     def playerDef(customScoring: Option[String] = None) = PlayerDefinition(
       Seq.empty,
@@ -75,7 +75,6 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
         contentAsJson(result) === resultJson
       }
     }
-    */
 
     "when calling load score for extendedTextEntry" should {
 
@@ -98,7 +97,7 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
         contentAsJson(result) === resultJson
       }
     }
-    /*
+
     "when calling load score with a custom scoring item" should {
 
       val customScoring =
@@ -208,7 +207,7 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
       }
     }
   */
-  }
+//  }
 
   class token_loadScore(json: AnyContent) extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
     override def getCall(sessionId: ObjectId): Call = Routes.loadScore(sessionId.toString)
