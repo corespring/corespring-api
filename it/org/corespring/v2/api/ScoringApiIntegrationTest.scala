@@ -84,11 +84,11 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
           "componentType" -> "corespring-extended-text-entry"))
       val extendedTextEntryDef = PlayerDefinition("html", components)
 
-      "return OK and no score because it's not scorable" in new token_loadScore(AnyContentAsJson(obj())) {
+      "return OK and null score because it's not scorable" in new token_loadScore(AnyContentAsJson(obj())) {
         val item = itemService.findOneById(itemId).get
         //Note: We have to remove the qti or else the ItemTransformer will overrwrite the v2 data
         val update = item.copy(data = None, playerDefinition = Some(extendedTextEntryDef))
-        val resultString = s"""{"summary":{"maxPoints":1,"points":1.0,"percentage":100.0},"components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}}"""
+        val resultString = s"""{"summary":{"maxPoints":0,"points":0,"percentage":0.0},"components":{"1":{"weight":0,"score":null}}}"""
         val resultJson = Json.parse(resultString)
         itemService.save(update)
         println(s"playerDefinition: ${update.playerDefinition}")
