@@ -10,7 +10,9 @@ import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.helpers._
 import org.corespring.it.assets.{ ImageUtils, PlayerDefinitionImageUploader }
-import org.corespring.models.Organization
+import org.corespring.it.scopes.TokenRequest
+import org.corespring.models.auth.{ AccessToken, ApiClient }
+import org.corespring.models.{ Organization, User }
 import org.corespring.models.item.resource.{ Resource, StoredFile }
 import org.corespring.it.assets.{ ImageUtils, PlayerDefinitionImageUploader }
 import org.corespring.it.scopes.TokenRequest
