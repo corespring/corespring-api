@@ -48,11 +48,12 @@ trait ItemFormat extends Format[model.Item] with ValueGetter {
 
     val basics: Seq[Option[(String, JsValue)]] = Seq(
       Some(("id" -> Json.toJson(item.id))),
-      item.clonedFromId.map( c => "clonedFromId" -> Json.toJson(c)),
+      item.clonedFromId.map(c => "clonedFromId" -> Json.toJson(c)),
       Some(Keys.collectionId -> JsString(item.collectionId)),
       item.workflow.map((Keys.workflow -> Json.toJson(_))),
       item.data.map((Keys.data -> Json.toJson(_))),
       item.playerDefinition.map("playerDefinition" -> Json.toJson(_)),
+      item.originId.map(originId => "originId" -> JsString(originId)),
       Some(Keys.contentType -> JsString(Item.contentType)),
       Some(Keys.published -> JsBoolean(item.published)))
 
