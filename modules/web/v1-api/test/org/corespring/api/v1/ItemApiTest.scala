@@ -136,7 +136,7 @@ class ItemApiTest
 
       "call itemService.save with createNewVersion=true when item is published and has sessions" in new scope {
 
-        override def dbItem = defaultDbItem.copy(published = true)
+        override def dbItem = defaultDbItem.copy(published = Some(true))
         mockSessionServices.main.sessionCount(any) returns 1
 
         running(FakeApplication(withGlobal = Some(mockGlobal))) {

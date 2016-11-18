@@ -73,7 +73,7 @@ class ItemService(
    */
   override def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]] = {
     dao.get(id).flatMap { item =>
-      val update = item.copy(published = false)
+      val update = item.copy(published = Some(false))
       save(update, createNewVersion = true) match {
         case Failure(_) => None
         case Success(savedId) => Some(savedId)
