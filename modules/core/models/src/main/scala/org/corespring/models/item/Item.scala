@@ -98,6 +98,7 @@ object Item {
     val keySkills = "keySkills"
     val lexile = "lexile"
     val licenseType = "licenseType"
+    val originId = "originId"
     val otherAlignments = "otherAlignments"
     val playerDefinition = "playerDefinition"
     val pValue = "pValue"
