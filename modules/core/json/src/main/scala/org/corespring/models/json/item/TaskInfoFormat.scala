@@ -18,6 +18,7 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
     val standardClusters = "standardClusters"
     val subjects = "subjects"
     val title = "title"
+    val originId = "originId"
   }
 
   implicit def sf: Format[Subjects]
@@ -33,6 +34,7 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
       info.description.map((description -> JsString(_))),
       info.itemType.map((itemType -> JsString(_))),
       Some(domains -> JsArray(info.domains.toSeq.map(d => JsString(d)))),
+      info.originId.map((originId -> JsString(_))),
       Some(standardClusters -> JsArray(info.standardClusters.map(Json.toJson(_)))),
       if (info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))).flatten)
 
@@ -62,6 +64,7 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
       extended = getExtended(json),
       subjects = getSubjects(json),
       domains = getDomains(json),
+      originId = (json \ Keys.originId).asOpt[String],
       standardClusters = getStandardClusters(json),
       gradeLevel = getGradeLevel(json))
     JsSuccess(info)
