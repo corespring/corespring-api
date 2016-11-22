@@ -45,7 +45,7 @@ object ItemSearch extends Searchable {
           case `copyrightImageName` => toSearchFieldObj(searchFields, field, dbkey = contributorDetails + "." + ContributorDetails.Keys.copyright + "." + Copyright.Keys.imageName)
           case `lexile` => toSearchFieldObj(searchFields, field)
           case `depthOfKnowledge` => toSearchFieldObj(searchFields, field, dbkey = otherAlignments + "." + Alignments.Keys.depthOfKnowledge)
-          case `originId` => toSearchFieldObj(searchFields, field)
+          case `originId` => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + TaskInfo.Keys.originId)
           case `collectionId` => toSearchFieldObj(searchFields, field)
           case `contentType` => toSearchFieldObj(searchFields, field)
           case `pValue` => toSearchFieldObj(searchFields, field)

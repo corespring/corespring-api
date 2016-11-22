@@ -11,8 +11,7 @@ class TaskInfoFormatTest extends Specification {
 
   val fv = FieldValue(gradeLevels = Seq(
     StringKeyValue("03", "03"),
-    StringKeyValue("04", "04")
-  ))
+    StringKeyValue("04", "04")))
 
   implicit val tif: Format[TaskInfo] = new TaskInfoFormat {
     override implicit def scf: Format[StandardCluster] = Json.format[StandardCluster]
@@ -52,11 +51,19 @@ class TaskInfoFormatTest extends Specification {
 
     "parse standardClusters" in {
       val taskInfo = TaskInfo(standardClusters = Seq(
-        StandardCluster("cluster-a", false, "source-a" ),
-        StandardCluster("cluster-b", true, "source-b" )))
+        StandardCluster("cluster-a", false, "source-a"),
+        StandardCluster("cluster-b", true, "source-b")))
       val json = Json.toJson(taskInfo)
       val parsed = json.as[TaskInfo]
       parsed.standardClusters must equalTo(taskInfo.standardClusters)
+    }
+
+    "parse originId" in {
+      val originId = "1234"
+      val taskInfo = TaskInfo(originId = Some(originId))
+      val json = Json.toJson(taskInfo)
+      val parsed = json.as[TaskInfo]
+      parsed.originId must be equalTo (Some(originId))
     }
 
   }
