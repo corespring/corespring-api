@@ -3,13 +3,13 @@ package org.corespring.v2.sessiondb.mongo
 import com.mongodb.casbah.MongoCollection
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.sessiondb.{SessionServiceExecutionContext, SessionReportingUnsupported, SessionService}
+import org.corespring.v2.sessiondb.{ SessionServiceExecutionContext, SessionReportingUnsupported, SessionService }
 import play.api.libs.json.JsValue
 
 import scala.concurrent.Future
 
 class MongoArchivedSessionService(primarySessionService: MongoSessionService, archivedCollection: MongoCollection,
-                                  context: SessionServiceExecutionContext) extends SessionService with SessionReportingUnsupported {
+  context: SessionServiceExecutionContext) extends SessionService with SessionReportingUnsupported {
 
   val archivedService = new MongoSessionService(archivedCollection, context)
 
@@ -18,8 +18,9 @@ class MongoArchivedSessionService(primarySessionService: MongoSessionService, ar
 
   override def loadMultiple(ids: Seq[String]): Future[Seq[(String, Option[JsValue])]] = {
     implicit val ec = context.ec
-    primarySessionService.loadMultiple(ids).flatMap{ loaded =>
-      archivedService.loadMultiple(loaded.filter(_._2.isEmpty).map(_._1)).map { loaded ++ _ }
+    primarySessionService.loadMultiple(ids).flatMap { loaded =>
+      val notFound = loaded.filter(_._2.isEmpty)
+      archivedService.loadMultiple(notFound.map(_._1)).map { loaded.filter(_._2.nonEmpty) ++ _ }
     }
   }
 
