@@ -4,7 +4,7 @@ object Dependencies {
   val playVersion = "2.2.6"
 
   //V2 Player
-  val containerVersion = "5.3.4"
+  val containerVersion = "5.5.0-SNAPSHOT"
 
   val qtiVersion = "0.16"
 
@@ -35,7 +35,7 @@ object Dependencies {
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val corespringMacros = "org.corespring" %% "macros" % "1.1.0"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "4.2.0-PLAY22").exclude("org.mongodb", "mongo-java-driver")
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "4.2.1-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val grizzledLog = "org.clapper" %% "grizzled-slf4j" % "1.0.2"
   val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
