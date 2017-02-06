@@ -63,7 +63,9 @@ object CustomRelease {
         mergeCurrentBranchTo("master"),
         tagBranchWithReleaseTag("master")))
 
-      lazy val hotfixRelease = shared("hf", Seq(tagBranchWithReleaseTag("hf")))
+      lazy val hotfixRelease = shared("hf", Seq(
+        mergeCurrentBranchTo("master"),
+	tagBranchWithReleaseTag("master")))
 
       Git(bd).currentBranch match {
         case "rc" => regularRelease
