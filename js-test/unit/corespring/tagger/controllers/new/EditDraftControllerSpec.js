@@ -467,6 +467,8 @@ describe('tagger.controllers.new.EditDraftController', function() {
             draftName: jasmine.any(String),
             devEditor: showEditorFn === 'showDevEditor',
             onItemChanged: scope.onItemChanged,
+            onItemError: scope.onItemError,
+            onClearItemError: scope.onClearItemError,
             autosizeEnabled: true,
             iframeScrollingEnabled: false,
             hideSaveButton: true
