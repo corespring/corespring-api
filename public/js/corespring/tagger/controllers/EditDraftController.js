@@ -52,6 +52,8 @@
     $scope.initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem = initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem;
     $scope.loadDraftItem = loadDraftItem;
     $scope.onItemChanged = onItemChanged;
+    $scope.onItemError = onItemError;
+    $scope.onClearItemError = onClearItemError;
     $scope.publish = publish;
     $scope.saveBackToItem = saveBackToItem;
     $scope.showDevEditor = showDevEditor;
@@ -242,6 +244,8 @@
         itemId: $scope.itemId,
         draftName: $scope.draft.user,
         onItemChanged: $scope.onItemChanged,
+        onItemError: $scope.onItemError,
+        onClearItemError: $scope.onClearItemError,
         devEditor: devEditor,
         autosizeEnabled: true,
         iframeScrollingEnabled: false,
@@ -323,6 +327,14 @@
       $scope.$apply(function() {
         $scope.hasChanges = true;
       });
+    }
+
+    function onItemError(error) {
+      $scope.errorMessage = error;
+    }
+
+    function onClearItemError() {
+      $scope.errorMessage = undefined;
     }
 
   }
