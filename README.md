@@ -347,3 +347,6 @@ To target a specific database set ENV_MONGO_URI.
 If your db is not running locally you have to pass `-Dallow.remote.cleanup=true`  
 
   
+# Problems
+
+* nodename nor servname provided, or not known - when running `test` - run: `echo "127.0.0.1 HOSTNAME" | sudo tee -a /etc/hosts` - where HOSTNAME is the host name in the error
