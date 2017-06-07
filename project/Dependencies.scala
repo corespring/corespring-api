@@ -4,7 +4,7 @@ object Dependencies {
   val playVersion = "2.2.6"
 
   //V2 Player
-  val containerVersion = "5.6.0"
+  val containerVersion = "5.6.1"
 
   val qtiVersion = "0.16"
 
