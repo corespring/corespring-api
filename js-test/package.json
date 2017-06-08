@@ -1,0 +1,16 @@
+{
+  "name": "js-test",
+  "version": "1.0.0",
+  "description": "run tests in phantomjs",
+  "scripts": {
+    "test": "./node_modules/.bin/karma start --single-run"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jasmine-core": "^2.6.3",
+    "karma": "^1.7.0",
+    "karma-jasmine": "^0.1.0",
+    "karma-phantomjs-launcher": "^1.0.4"
+  }
+}
