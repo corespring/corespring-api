@@ -1,3 +1,0 @@
-#!/bin/bash
-cd js-test
-./phantomjs.runner.sh jasmine-junit-testrunner.html 

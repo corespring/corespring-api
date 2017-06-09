@@ -266,7 +266,11 @@ object Build extends sbt.Build {
       resolvers ++= Dependencies.Resolvers.all,
       Keys.fork.in(Test) := builders.forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
-      (test in Test) <<= (test in Test).map(Commands.runJsTests))
+      JsTest.runJsTestsTask,
+      JsTest.removeNodeModulesTask,
+      (test in Test) := Def.sequential(
+        (test in Test),
+        JsTest.runJsTests).value)
     .settings(rootSettings: _*)
     .settings(Seeding.settings: _*)
     .configs(IntegrationTest)
