@@ -4,6 +4,8 @@ import play.Project._
 
 object Build extends sbt.Build {
 
+  lazy val coreVersion = "8.0.0"
+
   import Dependencies._
   import ComponentsBuilder._
 
@@ -43,8 +45,6 @@ object Build extends sbt.Build {
       playS3,
       httpClient))
     .dependsOn(apiUtils)
-
-  lazy val coreVersion = "8.0.0-SNAPSHOT"
 
   def coreLib = (n: String) => "org.corespring" %% s"core-$n" % coreVersion
 
