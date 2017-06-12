@@ -44,58 +44,29 @@ object Build extends sbt.Build {
       httpClient))
     .dependsOn(apiUtils)
 
-  lazy val coreModels = builders.lib("models", "core", publish = true).settings(
-    libraryDependencies ++= Seq(casbah, salatVersioningDao, playJson, commonsLang, specs2 % "test"))
+  lazy val coreVersion = "8.0.0-SNAPSHOT"
 
-  lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
-    .settings(libraryDependencies ++= Seq(specs2 % "test"))
-
-  lazy val futureValidation = builders.lib("future-validation", "core", publish = true)
-    .settings(libraryDependencies ++= Seq(scalaz, specs2 % "test"))
-
-  lazy val coreServices = builders.lib("services", "core", publish = true)
-    .settings(
-      libraryDependencies ++= Seq(specs2 % "test"))
-    .dependsOn(coreModels, futureValidation)
-
-  lazy val coreUtils = builders.lib("utils", "core", publish = true)
-    .settings(
-      libraryDependencies ++= Seq(specs2 % "test"))
+  def coreLib = (n: String) => "org.corespring" %% s"core-$n" % coreVersion
 
   lazy val coreLegacy = builders.lib("legacy", "core")
-    .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, securesocial, playFramework, specs2 % "test", playS3))
-    .dependsOn(coreServices, coreModels, coreJson, qtiToV2)
+    .settings(libraryDependencies ++= Seq(
+      coreLib("models"),
+      coreLib("services"),
+      coreLib("json"),
+      macWireMacro,
+      macWireRuntime,
+      securesocial,
+      playFramework,
+      specs2 % "test",
+      playS3))
+    .dependsOn(qtiToV2)
 
   lazy val coreWeb = builders.lib("web", "core")
-    .settings(libraryDependencies ++= Seq(securesocial, playFramework))
-    .dependsOn(coreModels, coreServices)
-
-  lazy val coreSalatConfig = builders.lib("salat-config", "core", publish = true).settings(
-    libraryDependencies ++= Seq(salat))
-
-  lazy val coreServicesSalat = builders.lib("services-salat", "core", publish = true)
-    .settings(
-      libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws, corespringMacros))
-    .configs(IntegrationTest)
-    .settings(Defaults.itSettings: _*)
-    .settings(
-      Keys.parallelExecution in IntegrationTest := false,
-      Keys.fork in IntegrationTest := false,
-      Keys.logBuffered := false,
-      testOptions in IntegrationTest += Tests.Setup((loader: java.lang.ClassLoader) => {
-        loader.loadClass("org.corespring.services.salat.it.Setup").newInstance
-      }),
-      testOptions in IntegrationTest += Tests.Cleanup((loader: java.lang.ClassLoader) => {
-        loader.loadClass("org.corespring.services.salat.it.Cleanup").newInstance
-      }),
-      testOptions in IntegrationTest += Tests.Setup(() => println("---------> Setup Integration Test")),
-      testOptions in IntegrationTest += Tests.Cleanup(() => println("-----------> Cleanup Integration Test")))
-    .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", aws))
-    .dependsOn(coreSalatConfig, coreServices, coreUtils)
-
-  lazy val encryption = builders.lib("encryption", "core", publish = true)
-    .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro, jbcrypt, specs2 % "test"))
-    .dependsOn(coreServices, coreModels)
+    .settings(libraryDependencies ++= Seq(
+      coreLib("models"),
+      coreLib("services"),
+      securesocial,
+      playFramework))
 
   lazy val itemSearch = builders.lib("item-search")
     .settings(
@@ -108,8 +79,10 @@ object Build extends sbt.Build {
         jsoup,
         commonsCodec,
         grizzledLog,
-        macWireMacro))
-    .dependsOn(coreModels, coreJson, futureValidation)
+        macWireMacro,
+        coreLib("models"),
+        coreLib("json"),
+        coreLib("future-validation")))
 
   lazy val commonViews = builders.web("common-views")
     .settings(
@@ -122,22 +95,39 @@ object Build extends sbt.Build {
 
   lazy val itemDrafts = builders.lib("item-drafts")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", salatVersioningDao, macWireMacro))
-    .dependsOn(assets, coreSalatConfig % "compile->test", coreModels, coreServices, drafts, testLib)
-    .aggregate(coreModels, drafts)
+      libraryDependencies ++= Seq(
+        specs2 % "test",
+        salatVersioningDao,
+        macWireMacro,
+        coreLib("salat-config"),
+        coreLib("models"),
+        coreLib("services")))
+    .dependsOn(assets, drafts, testLib)
 
   lazy val qtiToV2 = builders.lib("qti-to-v2")
     .settings(
-      libraryDependencies ++= Seq(playJson, rhino % "test", qti, qtiConverter))
-    .dependsOn(coreModels, coreServices, coreUtils, coreJson, apiUtils, testLib % "test->compile")
+      libraryDependencies ++= Seq(
+        playJson,
+        rhino % "test",
+        qti,
+        qtiConverter,
+        coreLib("models"),
+        coreLib("services"),
+        coreLib("utils"),
+        coreLib("json")))
+    .dependsOn(apiUtils, testLib % "test->compile")
 
   /**
    * Error types
    */
   lazy val v2Errors = builders.lib("v2-errors")
     .settings(
-      libraryDependencies ++= Seq(scalaz, playTest, casbah, salatVersioningDao))
-    .dependsOn(coreModels)
+      libraryDependencies ++= Seq(
+        scalaz,
+        playTest,
+        casbah,
+        salatVersioningDao,
+        coreLib("models")))
 
   lazy val v2SessionDb = builders.lib("v2-session-db")
     .settings(
@@ -149,8 +139,17 @@ object Build extends sbt.Build {
    */
   lazy val v2Auth = builders.lib("v2-auth")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sprayCaching, grizzledLog))
-    .dependsOn(coreModels, coreServices, coreWeb, coreJson, testLib, v2Errors, qtiToV2, itemDrafts, v2SessionDb, encryption)
+      libraryDependencies ++= Seq(
+        specs2 % "test",
+        mockito, mongoJsonService,
+        scalaz,
+        sprayCaching,
+        grizzledLog,
+        coreLib("models"),
+        coreLib("services"),
+        coreLib("json"),
+        coreLib("encryption")))
+    .dependsOn(coreWeb, testLib, v2Errors, qtiToV2, itemDrafts, v2SessionDb)
 
   lazy val v2Actions = builders.lib("v2-actions")
     .settings(
@@ -158,17 +157,30 @@ object Build extends sbt.Build {
 
   lazy val apiTracking = builders.lib("api-tracking")
     .settings(
-      libraryDependencies ++= Seq(containerClientWeb, playFramework)).dependsOn(v2Auth)
-    .dependsOn(coreServices, v2Errors, testLib % "test->compile")
+      libraryDependencies ++= Seq(
+        containerClientWeb,
+        playFramework,
+        coreLib("services"))).dependsOn(v2Auth)
+    .dependsOn(v2Errors, testLib % "test->compile")
 
   lazy val itemImport = builders.web("item-import")
     .settings(
       libraryDependencies ++= Seq(
-        playJson, jsonValidator, salatVersioningDao, mockito, macWireMacro, macWireRuntime))
-    .dependsOn(coreJson, coreServices, v2Auth, testLib % "test->compile")
+        playJson,
+        jsonValidator,
+        salatVersioningDao,
+        mockito,
+        macWireMacro,
+        macWireRuntime,
+        coreLib("json"),
+        coreLib("services")))
+    .dependsOn(v2Auth, testLib % "test->compile")
 
   lazy val draftsApi = builders.web("v2-api-drafts")
-    .dependsOn(coreJson, itemDrafts, testLib % "test->test")
+    .settings(
+      libraryDependencies ++= Seq(
+        coreLib("json")))
+    .dependsOn(itemDrafts, testLib % "test->test")
 
   lazy val v2Api = builders.web("v2-api")
     .settings(
@@ -178,33 +190,35 @@ object Build extends sbt.Build {
         mongoJsonService,
         salatVersioningDao,
         componentModel,
-        macWireMacro),
+        macWireMacro,
+        coreLib("models"),
+        coreLib("services"),
+        coreLib("encryption"),
+        coreLib("json"),
+        coreLib("future-validation")),
       routesImport ++= customImports)
     .dependsOn(
       v2Auth % "test->test;compile->compile",
       v2SessionDb % "test->test;compile->compile",
-      coreModels,
-      coreServices,
-      encryption,
       itemSearch,
-      coreJson,
       qtiToV2,
       draftsApi,
-      futureValidation,
       v2Actions % "test->test;compile->compile")
     .aggregate(draftsApi)
 
   lazy val v1Api = builders.web("v1-api")
     .settings(
-      libraryDependencies ++= Seq(casbah, playS3),
+      libraryDependencies ++= Seq(
+        casbah,
+        playS3,
+        coreLib("json"),
+        coreLib("models"),
+        coreLib("services")),
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
     .dependsOn(
       assets,
-      coreJson,
       coreLegacy,
-      coreModels,
-      coreServices,
       coreWeb,
       qtiToV2,
       v2Api,
@@ -226,15 +240,15 @@ object Build extends sbt.Build {
         playS3,
         httpClient,
         corespringMacros,
-        macWireMacro))
+        macWireMacro,
+        coreLib("json"),
+        coreLib("models"),
+        coreLib("services-salat")))
     .dependsOn(
       apiUtils,
       qtiToV2,
       testLib,
       v2Auth % "test->test;compile->compile",
-      coreJson % "test->test;compile->compile",
-      coreModels,
-      coreServicesSalat,
       itemDrafts)
     .dependsOn(v2Api)
 
@@ -282,12 +296,7 @@ object Build extends sbt.Build {
     .addBuildInfo()
     .dependsOn(
       apiUtils,
-      coreModels,
-      coreServices,
-      coreServicesSalat,
-      coreSalatConfig,
       coreWeb,
-      coreJson,
       apiUtils,
       commonViews,
       testLib % "test->compile;test->test;it->test",
@@ -307,14 +316,7 @@ object Build extends sbt.Build {
       apiUtils,
       assets,
       commonViews,
-      coreJson,
-      coreModels,
-      coreSalatConfig,
-      coreServices,
-      coreServicesSalat,
-      coreUtils,
       coreWeb,
-      futureValidation,
       itemDrafts,
       itemImport,
       qtiToV2,
