@@ -3,7 +3,7 @@ package org.corespring.v2.player.hooks
 import com.amazonaws.services.s3.model.S3Object
 import org.apache.commons.httpclient.util.URIUtil
 import org.bson.types.ObjectId
-import org.corespring.amazon.s3.S3Service
+import org.corespring.amazon.s3.{ S3Service, Uploaded }
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.common.url.EncodingHelper
 import org.corespring.container.client.hooks.UploadResult
@@ -69,10 +69,8 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
     val playS3 = {
       val m = mock[S3Service]
 
-      m.s3ObjectAndData[ItemDraft](any[String], any[ItemDraft => String])(any[RequestHeader => Either[SimpleResult, ItemDraft]]) returns {
-        val s3o = mock[S3Object]
-        s3o.getKey returns "s3-key.png"
-        mkBodyParser(Future.successful(s3o, itemDraft))
+      m.uploadWithData[ItemDraft](any[String], any[ItemDraft => String])(any[RequestHeader => Either[SimpleResult, ItemDraft]]) returns {
+        mkBodyParser(Future.successful(Uploaded("bucket", "s3-key.png"), itemDraft))
       }
       m
     }
@@ -143,7 +141,7 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
       val captor = capture[ItemDraft => String]
       val expectedKey = urlEncode(path)
       out must equalTo(Some(UploadResult(expectedKey))).await
-      there was one(playS3).s3ObjectAndData(any[String], captor)(any[RequestHeader => Either[SimpleResult, ItemDraft]])
+      there was one(playS3).uploadWithData(any[String], captor)(any[RequestHeader => Either[SimpleResult, ItemDraft]])
       captor.value.apply(itemDraft) must_== urlEncode(S3Paths.draftFile(itemDraft.id, path))
     }
 
