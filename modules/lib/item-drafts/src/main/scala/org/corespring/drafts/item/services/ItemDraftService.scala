@@ -50,8 +50,13 @@ trait ItemDraftService extends ItemDraftDbUtils {
 
   import scala.language.implicitConversions
 
-  private def addExpires(q: MongoDBObject): MongoDBObject = {
-    q ++ (if (loadExpired) MongoDBObject() else ("expires" $lt DateTime.now()))
+  /**
+   * Add expires condition to query (if enabled), to only load drafts whose expires is in the future.
+   * @param q
+   * @return
+   */
+  private def addExpires(q: DBObject): DBObject = {
+    q ++ (if (loadExpired) MongoDBObject() else ("expires" $gte DateTime.now()))
   }
 
   def save(d: ItemDraft): WriteResult = {
