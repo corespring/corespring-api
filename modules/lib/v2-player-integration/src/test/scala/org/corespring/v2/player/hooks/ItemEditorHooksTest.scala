@@ -3,7 +3,7 @@ package org.corespring.v2.player.hooks
 import com.amazonaws.services.s3.model.S3Object
 import org.apache.commons.httpclient.util.URIUtil
 import org.bson.types.ObjectId
-import org.corespring.amazon.s3.S3Service
+import org.corespring.amazon.s3.{ S3Service, Uploaded }
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.common.url.EncodingHelper
 import org.corespring.container.client.hooks.UploadResult
@@ -46,8 +46,7 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
     lazy val itemService = mock[ItemService]
 
-    val s3o = mock[S3Object]
-    s3o.getKey returns "some/path.png"
+    val uploaded = Uploaded("bucket", "some/path.png")
 
     val item = Item(collectionId = ObjectId.get.toString)
 
@@ -60,8 +59,8 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
         r
       }
 
-      m.s3ObjectAndData(any[String], any[Item => String])(any[RequestHeader => Either[SimpleResult, Item]]) returns {
-        mkBodyParser(Future.successful(s3o, item))
+      m.uploadWithData(any[String], any[Item => String])(any[RequestHeader => Either[SimpleResult, Item]]) returns {
+        mkBodyParser(Future.successful(uploaded, item))
       }
       m
     }
@@ -176,10 +175,8 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       val mockItem = Item(collectionId = ObjectId.get.toString)
       val mockKey = "some/mock-key with a space%20.png"
 
-      playS3.s3ObjectAndData(any[String], any[Item => String])(any[RequestHeader => Either[SimpleResult, Item]]) returns {
-        val s3o = mock[S3Object]
-        s3o.getKey returns mockKey
-        mkBodyParser(Future.successful(s3o, mockItem))
+      playS3.uploadWithData(any[String], any[Item => String])(any[RequestHeader => Either[SimpleResult, Item]]) returns {
+        mkBodyParser(Future.successful(Uploaded("bucket", mockKey), mockItem))
       }
       lazy val bp = hooks.upload(vid.toString, mockKey)((rh: RequestHeader) => None)
       lazy val eitherResult = bp(FakeRequest()).run
@@ -196,7 +193,7 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       val captor = capture[Item => String]
       val expectedKey = urlEncode(mockKey)
       out must equalTo(Some(UploadResult(expectedKey))).await
-      there was one(playS3).s3ObjectAndData(any[String], captor)(any[RequestHeader => Either[SimpleResult, Item]])
+      there was one(playS3).uploadWithData(any[String], captor)(any[RequestHeader => Either[SimpleResult, Item]])
       captor.value.apply(item) must_== urlEncode(S3Paths.itemFile(item.id, mockKey))
     }
 
