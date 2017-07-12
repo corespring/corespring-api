@@ -41,6 +41,8 @@ trait ItemDraftService extends ItemDraftDbUtils {
     val itemId: String = "_id.itemId"
   }
 
+  def loadExpired: Boolean
+
   def collection: MongoCollection
 
   collection.ensureIndex(IdKeys.orgId)
@@ -48,14 +50,17 @@ trait ItemDraftService extends ItemDraftDbUtils {
 
   import scala.language.implicitConversions
 
+  private def addExpires(q: MongoDBObject): MongoDBObject = {
+    q ++ (if (loadExpired) MongoDBObject() else ("expires" $lt DateTime.now()))
+  }
+
   def save(d: ItemDraft): WriteResult = {
     collection.save(d)
   }
 
   def load(id: DraftId): Option[ItemDraft] = {
-    collection.findOne(idToDbo(id)).map(dbo => {
-      toDraft(dbo)
-    })
+    val query = addExpires(idToDbo(id))
+    collection.findOne(query).map(toDraft(_))
   }
 
   def owns(ou: OrgAndUser, id: DraftId) = {
@@ -78,7 +83,7 @@ trait ItemDraftService extends ItemDraftDbUtils {
   }
 
   def listByOrgAndVid(orgId: ObjectId, vid: VersionedId[ObjectId]) = {
-    val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> vid.id)
+    val query = addExpires(MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> vid.id))
     collection.find(query).map(toDraft)
   }
 
@@ -97,14 +102,14 @@ trait ItemDraftService extends ItemDraftDbUtils {
   }
 
   def listForOrg(orgId: ObjectId, limit: Int = 0, skip: Int = 0): Seq[ItemDraftHeader] = {
-    val query = MongoDBObject(IdKeys.orgId -> orgId)
+    val query = addExpires(MongoDBObject(IdKeys.orgId -> orgId))
     val fields = MongoDBObject("created" -> 1, "expires" -> 1, "user.user.userName" -> 1)
     val dbos = collection.find(query, fields).skip(0).limit(0)
     dbos.map(toHeader).toSeq
   }
 
   def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId): Seq[ItemDraftHeader] = {
-    val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> itemId.id)
+    val query = addExpires(MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> itemId.id))
     val fields = MongoDBObject("created" -> 1, "expires" -> 1, "user.user.userName" -> 1)
     logger.trace(s"function=listByItemAndOrgId, collection=${collection.name}, query=$query, fields=$fields")
     collection.find(query, fields).map(toHeader).toSeq
