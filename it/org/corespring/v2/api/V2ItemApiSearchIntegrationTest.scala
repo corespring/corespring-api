@@ -3,6 +3,7 @@ package org.corespring.v2.api
 import javax.transaction.Transaction
 
 import bootstrap.Main
+import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.it.contexts.OrgWithAccessToken
 import org.corespring.it.{ IntegrationSpecification, ItemIndexCleaner }
@@ -121,6 +122,63 @@ class V2ItemApiSearchIntegrationTest extends IntegrationSpecification {
         (head \ "id").as[String] must_== unpublishedItem.id.toString
         (head \ "published").as[Boolean] must_== false
       }
+    }
+  }
+
+  "search - metadata" should {
+
+    def mkMetadata() = new Fixture[OrgWithAccessToken] with ItemIndexCleaner {
+      def apply[R: AsResult](f: OrgWithAccessToken => R) = {
+
+        cleanIndex()
+        removeData()
+
+        val ctx: OrgWithAccessToken = OrgWithAccessToken.apply
+        val collectionId = CollectionHelper.create(ctx.org.id)
+
+        def addItem(index: Int) = {
+          val taskInfo = TaskInfo(
+            title = Some(s"Item index $index"),
+            extended = Map(
+              "progresstesting" -> MongoDBObject(
+                "sourceId" -> index.toString),
+              "kds" -> MongoDBObject(
+                "sourceId" -> index.toString)))
+
+          val item = Item(collectionId = collectionId.toString, taskInfo = Some(taskInfo))
+          ItemHelper.create(collectionId, item)
+        }
+
+        (0 to 2).map(addItem)
+        val r = f(ctx)
+        cleanIndex()
+        removeData()
+        AsResult(r)
+      }
+    }
+
+    "returns 1 kds.sourceId -> 1" in mkMetadata() { ctx =>
+      lazy val call = Routes.search(Some("""{"kds.sourceId": "1"}"""))
+      lazy val request = ctx.tokenRequestBuilder.makeRequest(call, AnyContentAsEmpty)
+      lazy val result = route(request).get
+      lazy val json = contentAsJson(result)
+      (json \ "total").as[Int] must_== 1
+    }
+
+    "returns 1 progresstesting.sourceId -> 1" in mkMetadata() { ctx =>
+      lazy val call = Routes.search(Some("""{"progresstesting.sourceId": "1"}"""))
+      lazy val request = ctx.tokenRequestBuilder.makeRequest(call, AnyContentAsEmpty)
+      lazy val result = route(request).get
+      lazy val json = contentAsJson(result)
+      (json \ "total").as[Int] must_== 1
+    }
+
+    "returns 0 progresstesting.sourceId -> 5" in mkMetadata() { ctx =>
+      lazy val call = Routes.search(Some("""{"progresstesting.sourceId": "5"}"""))
+      lazy val request = ctx.tokenRequestBuilder.makeRequest(call, AnyContentAsEmpty)
+      lazy val result = route(request).get
+      lazy val json = contentAsJson(result)
+      (json \ "total").as[Int] must_== 0
     }
   }
 
