@@ -151,7 +151,7 @@ class ItemEditorHooks(
       encodingHelper.encodedOnce(s)
     }
 
-    playS3.s3ObjectAndData[Item](bucket, i => {
+    playS3.uploadWithData[Item](bucket, i => {
 
       if (i.id.version.isEmpty) {
         logger.warn(s"[upload] The id is missing a version: ${i.id}")
@@ -161,10 +161,8 @@ class ItemEditorHooks(
       urlEncode(p)
     })(loadItemPredicate).map { f =>
       f.map { tuple =>
-        val (s3Object, item) = tuple
-        val key = s3Object.getKey
-        addFileToData(item, key)
-        IOUtils.closeQuietly(s3Object)
+        val (upload, item) = tuple
+        addFileToData(item, upload.key)
         UploadResult(urlEncode(path))
       }
     }

@@ -163,15 +163,13 @@ class DraftEditorHooks(
       encodingHelper.encodedOnce(s)
     }
 
-    playS3.s3ObjectAndData[ItemDraft](awsConfig.bucket, d => {
+    playS3.uploadWithData[ItemDraft](awsConfig.bucket, d => {
       val p = S3Paths.draftFile(d.id, path)
       urlEncode(p)
     })(loadDraftPredicate).map { f =>
       f.map { tuple =>
-        val (s3Object, draft) = tuple
-        val key = s3Object.getKey
-        addFileToData(draft, key)
-        IOUtils.closeQuietly(s3Object)
+        val (upload, draft) = tuple
+        addFileToData(draft, upload.key)
         UploadResult(urlEncode(path))
       }
     }
