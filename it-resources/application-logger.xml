@@ -8,9 +8,12 @@
   </appender>
 
   <logger name="ch.qos.logback" level="WARN"/>
+  <logger name="org.apache.http" level="WARN"/>
+  <logger name="com.amazonaws" level="WARN"/>
   <logger name="org.corespring.it.helpers" level="DEBUG"/>
   <logger name="org.corespring.it.IntegrationSpecification" level="DEBUG"/>
   <logger name="org.corespring.it.ItemIndexCleaner" level="DEBUG"/>
+ <logger name="org.corespring" level="WARN"/>
   <root level="WARN">
     <appender-ref ref="STDOUT" />
   </root>

@@ -2,20 +2,21 @@ package org.corespring.drafts.item
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ CommandResult, WriteResult }
-import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.services.{ ItemDraftDbUtils, CommitService, ItemDraftService }
+import org.corespring.drafts.item.services.{ CommitService, ItemDraftDbUtils, ItemDraftService }
 import org.corespring.drafts.{ Drafts, Src }
+import org.corespring.macros.DescribeMacro.describe
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.item.ItemService
 import org.corespring.services.{ OrgCollectionService, OrganizationService }
-import org.corespring.services.item.{ ItemService }
 import org.joda.time.DateTime
 import play.api.Logger
+
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
@@ -60,7 +61,7 @@ class ItemDrafts(
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 
   def removeByItemId(user: OrgAndUser)(itemId: ObjectId): Validation[DraftError, Int] = {
-    logger.debug(s"function=removeByItemId, itemId=$itemId")
+    logger.debug(describe(itemId))
     for {
       _ <- if (userCanDeleteDrafts(itemId, user)) {
         Success(true)
@@ -73,7 +74,7 @@ class ItemDrafts(
   }
 
   def remove(user: OrgAndUser)(id: DraftId, succeedIfDraftDoesNotExist: Boolean = false) = {
-    logger.debug(s"function=remove, id=$id")
+    logger.debug(describe(id))
     for {
       _ <- if (owns(user)(id)) {
         Success(true)
@@ -92,7 +93,7 @@ class ItemDrafts(
   def listForOrg(orgId: ObjectId) = draftService.listForOrg(orgId)
 
   def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = {
-    logger.trace(s"function=listByItemAndOrgId, itemId=$itemId, orgId=$orgId")
+    logger.trace(describe(itemId, orgId))
     draftService.listByItemAndOrgId(itemId, orgId)
   }
 
@@ -117,22 +118,21 @@ class ItemDrafts(
    */
   override def create(draftId: DraftId, user: OrgAndUser, expires: Option[DateTime]): Validation[DraftError, ItemDraft] = {
 
-    logger.debug(s"function=create, draftId=$draftId, user=$user, expires=$expires")
+    logger.debug(describe(draftId, user, expires))
 
     def mkDraft(id: DraftId, src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
       require(src.published == false, s"You can only create an ItemDraft from an unpublished item: ${src.id}")
       val draft = ItemDraft(draftId, src, user)
-      logger.trace(s"function=mkDraft, itemId=${src.id}, draftId=${draft.id}, copy item assets to draft")
+      logger.trace(describe(src.id, draft.id))
       assets.copyItemToDraft(src.id, draft.id).map { _ => draft }
     }
 
     for {
-      canCreate <-
-        if (userCanCreateDraft(draftId.itemId, user)) {
-          Success(true)
-        } else {
-          Failure(UserCantCreate(user, draftId.itemId))
-        }
+      canCreate <- if (userCanCreateDraft(draftId.itemId, user)) {
+        Success(true)
+      } else {
+        Failure(UserCantCreate(user, draftId.itemId))
+      }
       unpublishedItem <- itemService.getOrCreateUnpublishedVersion(
         new VersionedId[ObjectId](draftId.itemId, None)).toSuccess(GetUnpublishedItemError(draftId.itemId))
       draft <- mkDraft(draftId, unpublishedItem, user)
@@ -157,6 +157,8 @@ class ItemDrafts(
   /** load a draft for the src <VID> for that user if not conflicted, if not found create it */
   override def loadOrCreate(user: OrgAndUser)(id: DraftId, ignoreConflict: Boolean = false): Validation[DraftError, ItemDraft] = {
     val draft: Option[ItemDraft] = draftService.load(id)
+
+    logger.trace(describe(id, draft))
 
     def failIfConflicted(d: ItemDraft): Validation[DraftError, ItemDraft] = {
       itemService.getOrCreateUnpublishedVersion(d.parent.id).map { i =>
@@ -196,7 +198,6 @@ class ItemDrafts(
     val pValue = a.pValue != b.pValue
     val lexile = a.lexile != b.lexile
 
-
     logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials, collectionId=$collectionId")
     Seq(taskInfo, playerDef, supportingMaterials, collectionId, standards,
       reviewsPassed, reviewsPassedOther, otherAlignments, contributorDetails,
@@ -212,6 +213,7 @@ class ItemDrafts(
   }
 
   override def save(user: OrgAndUser)(d: ItemDraft): Validation[DraftError, DraftId] = {
+    logger.trace(describe(user, d))
     if (draftService.owns(user, d.id)) {
       draftService.save(d)
         .failed(e => SaveDataFailed(e.getErrorMessage))

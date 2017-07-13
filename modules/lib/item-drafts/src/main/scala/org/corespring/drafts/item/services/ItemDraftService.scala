@@ -1,7 +1,8 @@
 package org.corespring.drafts.item.services
 
 import com.mongodb.casbah.Imports._
-import org.corespring.drafts.item.models.{ ItemDraftHeader, DraftId, ItemDraft, OrgAndUser }
+import org.corespring.drafts.item.models.{ DraftId, ItemDraft, ItemDraftHeader, OrgAndUser }
+import org.corespring.macros.DescribeMacro.describe
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.Logger
@@ -16,6 +17,7 @@ object ItemDraftConfig {
 private[drafts] trait ItemDraftDbUtils {
   implicit def context: com.novus.salat.Context
   import com.novus.salat.grater
+
   import scala.language.implicitConversions
 
   protected def idToDbo(draftId: DraftId): DBObject = {
@@ -41,6 +43,8 @@ trait ItemDraftService extends ItemDraftDbUtils {
     val itemId: String = "_id.itemId"
   }
 
+  def loadExpired: Boolean
+
   def collection: MongoCollection
 
   collection.ensureIndex(IdKeys.orgId)
@@ -48,14 +52,23 @@ trait ItemDraftService extends ItemDraftDbUtils {
 
   import scala.language.implicitConversions
 
+  /**
+   * Add expires condition to query (if enabled), to only load drafts whose expires is in the future.
+   * @param q
+   * @return
+   */
+  private def addExpires(q: DBObject): DBObject = {
+    q ++ (if (loadExpired) MongoDBObject() else ("expires" $gte DateTime.now()))
+  }
+
   def save(d: ItemDraft): WriteResult = {
     collection.save(d)
   }
 
   def load(id: DraftId): Option[ItemDraft] = {
-    collection.findOne(idToDbo(id)).map(dbo => {
-      toDraft(dbo)
-    })
+    val query = addExpires(idToDbo(id))
+    logger.trace(describe(id, query))
+    collection.findOne(query).map(toDraft(_))
   }
 
   def owns(ou: OrgAndUser, id: DraftId) = {
@@ -78,7 +91,7 @@ trait ItemDraftService extends ItemDraftDbUtils {
   }
 
   def listByOrgAndVid(orgId: ObjectId, vid: VersionedId[ObjectId]) = {
-    val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> vid.id)
+    val query = addExpires(MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> vid.id))
     collection.find(query).map(toDraft)
   }
 
@@ -97,14 +110,14 @@ trait ItemDraftService extends ItemDraftDbUtils {
   }
 
   def listForOrg(orgId: ObjectId, limit: Int = 0, skip: Int = 0): Seq[ItemDraftHeader] = {
-    val query = MongoDBObject(IdKeys.orgId -> orgId)
+    val query = addExpires(MongoDBObject(IdKeys.orgId -> orgId))
     val fields = MongoDBObject("created" -> 1, "expires" -> 1, "user.user.userName" -> 1)
     val dbos = collection.find(query, fields).skip(0).limit(0)
     dbos.map(toHeader).toSeq
   }
 
   def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId): Seq[ItemDraftHeader] = {
-    val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> itemId.id)
+    val query = addExpires(MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> itemId.id))
     val fields = MongoDBObject("created" -> 1, "expires" -> 1, "user.user.userName" -> 1)
     logger.trace(s"function=listByItemAndOrgId, collection=${collection.name}, query=$query, fields=$fields")
     collection.find(query, fields).map(toHeader).toSeq

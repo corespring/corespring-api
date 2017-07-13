@@ -1,7 +1,8 @@
 package org.corespring.test.fakes
 
-import com.mongodb.casbah.{ MongoCollection => CasbahMongoCollection, MongoCursor }
-import com.mongodb.{ WriteConcern, WriteResult, _ }
+import com.mongodb.casbah.{ MongoCursor, MongoCollection => CasbahMongoCollection }
+import com.mongodb.{ CommandResult, WriteConcern, WriteResult }
+import com.mongodb.casbah.Imports._
 import org.specs2.mock.Mockito
 import org.specs2.mock.mockito.ArgumentCapture
 

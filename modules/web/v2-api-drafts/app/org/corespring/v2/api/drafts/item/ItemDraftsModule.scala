@@ -14,9 +14,13 @@ import org.corespring.services.item.ItemService
 import org.corespring.v2.api.drafts.item.json.ItemDraftJson
 import play.api.mvc.RequestHeader
 
+case class ItemDraftsConfig(loadExpired: Boolean)
+
 trait ItemDraftsModule {
 
   import com.softwaremill.macwire.MacwireMacros._
+
+  def itemDraftsConfig: ItemDraftsConfig
 
   def itemService: ItemService
 
@@ -29,6 +33,8 @@ trait ItemDraftsModule {
   def context: Context
 
   def draftService: ItemDraftService = new ItemDraftService {
+
+    val loadExpired = ItemDraftsModule.this.itemDraftsConfig.loadExpired
 
     override def collection: MongoCollection = db(CollectionNames.itemDrafts)
     override implicit def context: Context = ItemDraftsModule.this.context
