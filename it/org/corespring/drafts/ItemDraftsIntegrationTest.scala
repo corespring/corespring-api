@@ -15,12 +15,9 @@ import org.specs2.mutable.BeforeAfter
 
 import scalaz.{ Failure, Success }
 
-class ItemDraftsIntegrationTest extends IntegrationSpecification {
-
+class ItemDraftsIntegrationSpecification extends IntegrationSpecification {
   lazy val itemService = main.itemService
   lazy val draftService = main.draftService
-
-  def bump(vid: VersionedId[ObjectId], count: Int = 1) = vid.copy(version = vid.version.map(_ + count))
 
   trait orgAndUserAndItem extends userAndItem with BeforeAfter {
     lazy val orgAndUser: OrgAndUser = OrgAndUser(SimpleOrg(user.org.orgId, "?"), Some(SimpleUser.fromUser(user)))
@@ -48,6 +45,11 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification {
   def draftIdFromItemIdAndUser(itemId: VersionedId[ObjectId], o: OrgAndUser): DraftId = {
     DraftId(itemId.id, o.user.map(_.userName).getOrElse("test"), o.org.id)
   }
+}
+
+class ItemDraftsIntegrationTest extends ItemDraftsIntegrationSpecification {
+
+  def bump(vid: VersionedId[ObjectId], count: Int = 1) = vid.copy(version = vid.version.map(_ + count))
 
   "ItemDrafts" should {
 
@@ -249,7 +251,6 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification {
         }.getOrElse(failure("should have loaded the draft"))
       }
     }
-
 
     "listForOrg" should {
 

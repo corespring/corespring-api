@@ -1,7 +1,8 @@
 package org.corespring.drafts.item.services
 
 import com.mongodb.casbah.Imports._
-import org.corespring.drafts.item.models.{ ItemDraftHeader, DraftId, ItemDraft, OrgAndUser }
+import org.corespring.drafts.item.models.{ DraftId, ItemDraft, ItemDraftHeader, OrgAndUser }
+import org.corespring.macros.DescribeMacro.describe
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.Logger
@@ -16,6 +17,7 @@ object ItemDraftConfig {
 private[drafts] trait ItemDraftDbUtils {
   implicit def context: com.novus.salat.Context
   import com.novus.salat.grater
+
   import scala.language.implicitConversions
 
   protected def idToDbo(draftId: DraftId): DBObject = {
@@ -65,6 +67,7 @@ trait ItemDraftService extends ItemDraftDbUtils {
 
   def load(id: DraftId): Option[ItemDraft] = {
     val query = addExpires(idToDbo(id))
+    logger.trace(describe(id, query))
     collection.findOne(query).map(toDraft(_))
   }
 
