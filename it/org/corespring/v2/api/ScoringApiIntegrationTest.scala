@@ -5,7 +5,7 @@ import org.corespring.it.IntegrationSpecification
 import org.corespring.it.scopes._
 import org.corespring.models.item.PlayerDefinition
 import org.specs2.specification.BeforeAfter
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsNull, Json }
 import play.api.libs.json.Json._
 import play.api.mvc.{ AnyContent, AnyContentAsJson, Call }
 
@@ -14,7 +14,7 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
 
   lazy val itemService = main.itemService
 
-//  "ScoringApi" should {
+  "ScoringApi" should {
 
     def playerDef(customScoring: Option[String] = None) = PlayerDefinition(
       Seq.empty,
@@ -34,7 +34,7 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
       customScoring,
       obj("prop" -> "value"))
 
-    /*"when calling load score" should {
+    "when calling load score" should {
 
       s"1: return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(obj())) {
 
@@ -51,6 +51,7 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
         contentAsJson(result) === resultJson
       }
 
+      //TODO: why is this failing
       s"2: return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(obj())) {
         val item = itemService.findOneById(itemId).get
         val update = item.copy(data = None, playerDefinition = Some(playerDef()))
@@ -63,17 +64,155 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
             "1" -> obj(
               "weight" -> 0,
               "score" -> 0.0,
-              "weightedScore" -> 0.0
-              )
-          )
-        )
+              "weightedScore" -> 0.0)))
 
         itemService.save(update)
         v2SessionHelper.update(sessionId, obj("itemId" -> itemId.toString, "components" -> obj(
           "1" -> obj("answers" -> Json.arr("banana")))))
         status(result) === OK
         contentAsJson(result) === resultJson
-      }
+      }.pendingUntilFixed()
+    }
+
+    "when calling load score for match but with no components" in new token_loadScore(AnyContentAsJson(obj())) {
+
+      val matchJson = Json.parse(
+        """
+          | { "0" : {
+          |              "weight" : 1,
+          |              "componentType" : "corespring-match",
+          |              "title" : "Match component sample item",
+          |              "minimumWidth" : 300,
+          |              "correctResponse" : [
+          |                  {
+          |                      "id" : "row-1",
+          |                      "matchSet" : [
+          |                          true,
+          |                          false,
+          |                          false,
+          |                          false
+          |                      ]
+          |                  },
+          |                  {
+          |                      "id" : "row-2",
+          |                      "matchSet" : [
+          |                          false,
+          |                          false,
+          |                          true,
+          |                          false
+          |                      ]
+          |                  },
+          |                  {
+          |                      "id" : "row-3",
+          |                      "matchSet" : [
+          |                          false,
+          |                          false,
+          |                          false,
+          |                          true
+          |                      ]
+          |                  }
+          |              ],
+          |              "allowPartialScoring" : false,
+          |              "partialScoring" : {
+          |                  "sections" : [
+          |                      {
+          |                          "catId" : "row-1",
+          |                          "label" : "Row 1",
+          |                          "partialScoring" : [
+          |                              {
+          |                                  "numberOfCorrect" : 1,
+          |                                  "scorePercentage" : 0
+          |                              }
+          |                          ],
+          |                          "numberOfCorrectResponses" : 1,
+          |                          "maxNumberOfScoringScenarios" : 1,
+          |                          "canAddScoringScenario" : false,
+          |                          "canRemoveScoringScenario" : false
+          |                      },
+          |                      {
+          |                          "catId" : "row-2",
+          |                          "label" : "Row 2",
+          |                          "partialScoring" : [
+          |                              {
+          |                                  "numberOfCorrect" : 1,
+          |                                  "scorePercentage" : 0
+          |                              }
+          |                          ],
+          |                          "numberOfCorrectResponses" : 1,
+          |                          "maxNumberOfScoringScenarios" : 1,
+          |                          "canAddScoringScenario" : false,
+          |                          "canRemoveScoringScenario" : false
+          |                      },
+          |                      {
+          |                          "catId" : "row-3",
+          |                          "label" : "Row 3",
+          |                          "partialScoring" : [
+          |                              {
+          |                                  "numberOfCorrect" : 1,
+          |                                  "scorePercentage" : 0
+          |                              }
+          |                          ],
+          |                          "numberOfCorrectResponses" : 1,
+          |                          "maxNumberOfScoringScenarios" : 1,
+          |                          "canAddScoringScenario" : false,
+          |                          "canRemoveScoringScenario" : false
+          |                      }
+          |                  ]
+          |              },
+          |              "feedback" : {
+          |                  "correctFeedbackType" : "none",
+          |                  "partialFeedbackType" : "none",
+          |                  "incorrectFeedbackType" : "none"
+          |              },
+          |              "model" : {
+          |                  "columns" : [
+          |                      {
+          |                          "labelHtml" : ""
+          |                      },
+          |                      {
+          |                          "labelHtml" : "Source 1"
+          |                      },
+          |                      {
+          |                          "labelHtml" : "Source 2"
+          |                      },
+          |                      {
+          |                          "labelHtml" : "Both"
+          |                      },
+          |                      {
+          |                          "labelHtml" : "Neither"
+          |                      }
+          |                  ],
+          |                  "rows" : [
+          |                      {
+          |                          "id" : "row-1",
+          |                          "labelHtml" : "Dogs may be able to\nreason."
+          |                      },
+          |                      {
+          |                          "id" : "row-2",
+          |                          "labelHtml" : "Dogs can learn and\nunderstand words for both objects and actions."
+          |                      },
+          |                      {
+          |                          "id" : "row-3",
+          |                          "labelHtml" : "Border collies can\nlearn more words than other dog breeds."
+          |                      }
+          |                  ],
+          |                  "config" : {
+          |                      "inputType" : "checkbox",
+          |                      "layout" : "five-columns",
+          |                      "shuffle" : false
+          |                  }
+          |              }
+          |          }
+          |          }
+        """.stripMargin)
+      val matchDef = PlayerDefinition("html", components = matchJson)
+      val item = itemService.findOneById(itemId).get
+      val update = item.copy(data = None, playerDefinition = Some(matchDef))
+      itemService.save(update)
+      v2SessionHelper.update(sessionId, obj("itemId" -> itemId.toString, "components" -> JsNull))
+      println(Json.prettyPrint(contentAsJson(result)))
+      status(result) === OK
+      contentAsJson(result) === "??"
     }
 
     "when calling load score for extendedTextEntry" should {
@@ -206,8 +345,7 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
         contentAsJson(result) === resultJson
       }
     }
-  */
-//  }
+  }
 
   class token_loadScore(json: AnyContent) extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
     override def getCall(sessionId: ObjectId): Call = Routes.loadScore(sessionId.toString)
