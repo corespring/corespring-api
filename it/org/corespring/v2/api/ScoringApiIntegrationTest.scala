@@ -74,7 +74,7 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
       }.pendingUntilFixed()
     }
 
-    "when calling load score for match but with no components" in new token_loadScore(AnyContentAsJson(obj())) {
+    "return status 200 - when calling load score for match but with no components" in new token_loadScore(AnyContentAsJson(obj())) {
 
       val matchJson = Json.parse(
         """
@@ -210,9 +210,8 @@ class ScoringApiIntegrationTest extends IntegrationSpecification with WithV2Sess
       val update = item.copy(data = None, playerDefinition = Some(matchDef))
       itemService.save(update)
       v2SessionHelper.update(sessionId, obj("itemId" -> itemId.toString, "components" -> JsNull))
-      println(Json.prettyPrint(contentAsJson(result)))
+      logger.trace(Json.prettyPrint(contentAsJson(result)))
       status(result) === OK
-      contentAsJson(result) === "??"
     }
 
     "when calling load score for extendedTextEntry" should {
