@@ -63,6 +63,12 @@ class Main(
       toJson(fv).as[JsObject]
   }
 
+  def serviceWorker() = Action.async {
+    Future {
+      Ok(web.controllers.views.txt.ServiceWorker()).withHeaders("Content-Type" -> "text/javascript")
+    }
+  }
+
   def defaultValues(collections: Seq[String] = Seq.empty): Option[String] = fieldValues.map { fvJson =>
     val values = fvJson.deepMerge(obj(
       "v2ItemTypes" -> itemType.all(collections),

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript">
+      function saveSession() {
+        fetch("/v2/player/session/save/1111.json?foo=bar", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ foo: true })
+        }).then(r => {
+          console.log("response:");
+        });
+      }
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function() {
+          navigator.serviceWorker
+            .register("/cs-api-sw.js")
+            .then(() => {
+              return navigator.serviceWorker.ready;
+            })
+            .then(register => {
+              register.active.postMessage(
+                JSON.stringify({ itemId: "5bbdceb7279494871b88d6e6:0" })
+              );
+            })
+            .catch(e => {
+              console.error("Error loading service worker: ", e);
+            });
+        });
+      }
+    </script>
+  </head>
+  <body>
+    hi
+
+    <button onclick="saveSession()">save session</button>
+    <img
+      src="/v2/player/player/session/5c6ee347e4b0fc9eed7f288a/ac2ad3659978464ca3555ab7033c5a7e_W.png"
+    />
+  </body>
+</html>

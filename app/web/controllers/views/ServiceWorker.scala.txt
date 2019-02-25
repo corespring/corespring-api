@@ -1,0 +1,54 @@
+let itemId = null;
+
+const mockResponse = responseBody => {
+  var responseInit = {
+    // status/statusText default to 200/OK, but we're explicitly setting them here.
+    status: 200,
+    statusText: "OK",
+    headers: {
+      "Content-Type": "application/json",
+      // Purely optional, but we return a custom response header indicating that this is a
+      // mock response. The controlled page could check for this header if it wanted to.
+      "X-Mock-Response": "yes"
+    }
+  };
+
+  return new Response(JSON.stringify(responseBody), responseInit);
+};
+
+self.addEventListener("install", function(event) {
+  self.skipWaiting();
+});
+
+self.addEventListener("message", function(event) {
+  const o = JSON.parse(event.data);
+  itemId = o.itemId;
+  console.log("itemId:", itemId);
+});
+
+self.addEventListener("fetch", function(event) {
+  event.respondWith(
+    new Promise((resolve, reject) => {
+      const saveSession = /^.*\/v2\/player\/session\/save\/(.*)\.json\?(.*)/;
+      const m = event.request.url.match(saveSession);
+
+      if (m && m.length > 0) {
+        const id = m[1];
+        const params = m[2];
+        console.log("got id: ", id);
+        resolve(mockResponse({}));
+      } else {
+        const loadAsset = /^.*\/v2\/player\/player\/session\/(.*?)\/(.*)/;
+        const l = event.request.url.match(loadAsset);
+        const filename = l && l[2];
+        if (filename && filename !== "index.html" && itemId) {
+          const filename = l[2];
+          const cdnRequest = `https://cdn.corespring.org/v2/player/player/item/${itemId}/${filename}`;
+          return resolve(fetch(cdnRequest));
+        } else {
+          return resolve(fetch(event.request));
+        }
+      }
+    })
+  );
+});

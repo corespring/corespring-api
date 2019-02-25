@@ -51,6 +51,7 @@ class SessionHooks(auth: SessionAuth[OrgAndOpts, PlayerDefinition],
   override def save(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SaveSession]] = Future {
     logger.trace(s"save $id")
 
+    // sessionService.save()
     val out = for {
       identity <- getOrgAndOptions(header)
       session <- auth.loadForSave(id)(identity)
