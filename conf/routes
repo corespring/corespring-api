@@ -1,5 +1,5 @@
 GET         /                                                         @web.controllers.PublicSite.redirect()
-
+GET         /cs-api-sw.js                                             @web.controllers.Main.serviceWorker()
 GET         /version                                                  @web.controllers.Main.version()
 GET         /items/:id/sample-launch-code                             @web.controllers.Main.sampleLaunchCode(id)
 
