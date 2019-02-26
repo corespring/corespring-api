@@ -20,7 +20,7 @@ import org.corespring.common.config.{ CdnConfig, ItemAssetResolverConfig }
 import org.corespring.container.client.component.{ ComponentSetExecutionContext, ComponentsConfig }
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.{ ContainerConfig, ContainerExecutionContext }
-import org.corespring.container.client.{ NewRelicRumConfig, V2PlayerConfig, VersionInfo }
+import org.corespring.container.client.{ NewRelicRumConfig, V2PlayerConfig, ServiceWorkerConfig, VersionInfo }
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
@@ -132,7 +132,17 @@ class Main(
     val newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))
 
     val launchTimeout: Int = configuration.getInt("container.launchTimeout").getOrElse(0)
-    val serviceWorker: Option[String] = configuration.getString("container.serviceWorker")
+    val serviceWorker: Option[ServiceWorkerConfig] = {
+
+      val path = configuration.getString("container.serviceWorker.path")
+      val cdn = configuration.getString("container.serviceWorker.cdn")
+
+      (path, cdn) match {
+        case (Some(p), Some(c)) => Some(ServiceWorkerConfig(path = Some(p), cdn = Some(c)))
+        case _ => None
+      }
+    }
+
     val playerConfig = V2PlayerConfig(
       rootUrl = configuration.getString("container.rootUrl"),
       newRelicRumConfig,

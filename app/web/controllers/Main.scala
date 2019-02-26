@@ -57,6 +57,8 @@ class Main(
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
 
+  lazy val sw = web.controllers.views.txt.ServiceWorker()
+
   private lazy val fieldValues: Option[JsObject] = fieldValueService.get.map {
     fv =>
       implicit val writeFieldValue = jsonFormatting.writesFieldValue
@@ -65,7 +67,7 @@ class Main(
 
   def serviceWorker() = Action.async {
     Future {
-      Ok(web.controllers.views.txt.ServiceWorker()).withHeaders("Content-Type" -> "text/javascript")
+      Ok(sw).withHeaders("Content-Type" -> "text/javascript")
     }
   }
 
