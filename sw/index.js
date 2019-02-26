@@ -11,7 +11,7 @@ app.get("/", function(req, res) {
 
 app.get("/cs-api-sw.js", (req, res) => {
   const js = readFileSync(
-    resolve(__dirname, "../app/web/controllers/views/ServiceWorker.scala.txt"),
+    resolve(__dirname, "../app/web/controllers/views/ServiceWorker.scala.js"),
     "utf8"
   );
   res.setHeader("Content-Type", "text/javascript");

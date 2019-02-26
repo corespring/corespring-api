@@ -1,36 +1,50 @@
 
-let _config = null;
+let config = {};
 
 self.addEventListener("install", function(event) {
   self.skipWaiting();
 });
 
 self.addEventListener("message", function(event) {
-  console.log('got message');
   try {
     const o = JSON.parse(event.data);
-    _config = o;
+
+    console.log('[message]', o);
+
+    if(o.type === 'set-cdn'){
+      config.cdn = o.cdn;
+    }
+
+    if(o.type === 'player-info'){
+      config.itemId = o.itemId;
+      config.session = o.session;
+    }
+
   } catch(e){
     // do nothing
   }
 });
 
-
 const getCdnRedirect = (event) => {
-  if(!_config.itemId || _config.itemId === ''){
+
+  if(event.request.method !== 'GET'){
     return;
   }
 
-  if(!_config.cdn || _config.cdn === ''){
+  if(!config.itemId || config.itemId === ''){
+    return;
+  }
+
+  if(!config.cdn || config.cdn === ''){
     return;
   }
 
   const loadAsset = /^.*\/v2\/player\/player\/session\/(.*?)\/(.*)/;
   const l = event.request.url.match(loadAsset);
   const filename = l && l[2];
+
   if (filename && filename !== "index.html") {
-    const filename = l[2];
-    const cdnRequest = `${_config.cdn}/v2/player/player/item/${_config.itemId}/${filename}`;
+    const cdnRequest = `${config.cdn}/v2/player/player/item/${config.itemId}/${filename}`;
     return fetch(cdnRequest);
   }
 }
@@ -39,12 +53,12 @@ const getCdnRedirect = (event) => {
 self.addEventListener("fetch", function(event) {
   event.respondWith(
     new Promise((resolve, reject) => {
-      if(_config && event.request.method === "GET"){
+      if(config){
         var cdnRedirect = getCdnRedirect(event);
         if(cdnRedirect){
           return resolve(cdnRedirect
           .catch(e => {
-            console.warn('path failed:', event.request.url);
+            console.warn('cdn-redirect failed, fallback to original url:', event.request.url);
             return fetch(event.request);
           }))
         }

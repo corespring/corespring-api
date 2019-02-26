@@ -57,7 +57,7 @@ class Main(
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
 
-  lazy val sw = web.controllers.views.txt.ServiceWorker()
+  lazy val sw = web.controllers.views.js.ServiceWorker()
 
   private lazy val fieldValues: Option[JsObject] = fieldValueService.get.map {
     fv =>

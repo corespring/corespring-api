@@ -20,7 +20,7 @@ import org.corespring.common.config.{ CdnConfig, ItemAssetResolverConfig }
 import org.corespring.container.client.component.{ ComponentSetExecutionContext, ComponentsConfig }
 import org.corespring.container.client.controllers.resources.SessionExecutionContext
 import org.corespring.container.client.integration.{ ContainerConfig, ContainerExecutionContext }
-import org.corespring.container.client.{ NewRelicRumConfig, V2PlayerConfig, ServiceWorkerConfig, VersionInfo }
+import org.corespring.container.client.{ NewRelicRumConfig, V2PlayerConfig, VersionInfo }
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, ItemTransformerConfig, PlayerJsonToItem }
@@ -53,7 +53,7 @@ import org.corespring.v2.auth.{ AccessSettingsCheckConfig, V2AuthModule }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player._
 import org.corespring.v2.player.cdn._
-import org.corespring.v2.player.hooks.StandardsTree
+import org.corespring.v2.player.hooks.{ StandardsTree }
 import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService, MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService }
 import org.corespring.v2.sessiondb._
 import org.corespring.web.common.controllers.deployment.{ AssetsLoader, BranchAndHash }
@@ -131,23 +131,30 @@ class Main(
   override lazy val containerConfig: ContainerConfig = {
     val newRelicRumConfig = NewRelicRumConfig.fromConfig(configuration.getConfig("newrelic.rum.applications.player").getOrElse(Configuration.empty))
 
+    val cdn = configuration.getString("container.serviceWorker.cdn")
+
+    val headerJs = cdn.map(cdn => {
+      s"""
+        | if( 'serviceWorker' in navigator) {
+        |    navigator.serviceWorker.register( '/cs-api-sw.js')
+        |      .then(function(){return navigator.serviceWorker.ready;})
+        |      .then( register => {
+        |        var setCdn = { type: 'set-cdn', cdn: '${cdn}' };
+        |        register.active.postMessage(JSON.stringify(setCdn));
+        |     })
+        |     .catch(e => console.error(e));
+        | }
+        |
+        |
+      """.stripMargin
+    })
     val launchTimeout: Int = configuration.getInt("container.launchTimeout").getOrElse(0)
-    val serviceWorker: Option[ServiceWorkerConfig] = {
-
-      val path = configuration.getString("container.serviceWorker.path")
-      val cdn = configuration.getString("container.serviceWorker.cdn")
-
-      (path, cdn) match {
-        case (Some(p), Some(c)) => Some(ServiceWorkerConfig(path = Some(p), cdn = Some(c)))
-        case _ => None
-      }
-    }
 
     val playerConfig = V2PlayerConfig(
       rootUrl = configuration.getString("container.rootUrl"),
       newRelicRumConfig,
-      launchTimeout,
-      serviceWorker)
+      headerJs = headerJs,
+      launchTimeout)
 
     ContainerConfig(
       mode = playMode,

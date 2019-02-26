@@ -10,7 +10,7 @@ import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
 import org.corespring.conversion.qti.transformers.{ ItemTransformer, PlayerJsonToItem }
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.models.appConfig.{AllowExpiredTokens, ArchiveConfig, Bucket}
+import org.corespring.models.appConfig.{ AllowExpiredTokens, ArchiveConfig, Bucket }
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services._
@@ -43,7 +43,6 @@ case class V2PlayerExecutionContext(underlying: ExecutionContext) extends Execut
 trait V2PlayerModule extends DefaultIntegration {
 
   import com.softwaremill.macwire.MacwireMacros._
-
   def versionInfo: VersionInfo
   def archiveConfig: ArchiveConfig
   def bucket: Bucket
