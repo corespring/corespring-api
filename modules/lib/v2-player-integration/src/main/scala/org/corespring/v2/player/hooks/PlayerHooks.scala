@@ -1,17 +1,17 @@
 package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
-import org.corespring.container.client.hooks.{PlayerHooks => ContainerPlayerHooks}
+import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.DisplayConfig
 import org.corespring.models.appConfig.ArchiveConfig
-import org.corespring.models.item.{Item, PlayerDefinition}
+import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
-import org.corespring.v2.auth.models.{DisplayConfigJson, OrgAndOpts}
-import org.corespring.v2.auth.{LoadOrgAndOptions, SessionAuth}
-import org.corespring.v2.errors.Errors.{cantParseItemId, generalError}
+import org.corespring.v2.auth.models.{ DisplayConfigJson, OrgAndOpts }
+import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
+import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
 import play.api.http.Status._
@@ -41,6 +41,7 @@ class PlayerHooks(
   playerAssets: PlayerAssets,
   playerItemProcessor: PlayerItemProcessor,
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
+
   override implicit val containerContext: ContainerExecutionContext)
   extends ContainerPlayerHooks with LoadOrgAndOptions {
 
