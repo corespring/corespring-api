@@ -18,7 +18,7 @@ class LoadPlayerBySessionIdIntegrationTest
     with IdAndPlayerTokenRequestBuilder {
 
     lazy val sessionId = v2SessionHelper.create(itemId)
-    lazy val call = org.corespring.container.client.controllers.apps.routes.Player.load(sessionId.toString)
+    lazy val call = org.corespring.container.client.controllers.apps.routes.Player.loadBySession(sessionId.toString)
     lazy val req = makeRequest(call)
     lazy val result = route(req).get
 
@@ -34,7 +34,7 @@ class LoadPlayerBySessionIdIntegrationTest
 
     "not create any duplicate sessions accidentally" in new scope {
       v2SessionHelper.count must_== 0
-      status(result) must_== 200
+      status(result) must_== SEE_OTHER
       v2SessionHelper.count must_== 1
     }
   }
