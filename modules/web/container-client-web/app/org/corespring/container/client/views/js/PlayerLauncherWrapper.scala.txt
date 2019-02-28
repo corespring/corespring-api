@@ -1,0 +1,12 @@
+@(content: String, isSecure:Boolean)
+
+(function(root){
+  root.corespring = {
+
+    defineLauncher: function(isSecure){
+       @content
+    }
+  };
+})(this);
+
+corespring.defineLauncher(@isSecure);

@@ -1,0 +1,18 @@
+@(namespace:String, data : Option[JsValue])
+
+(function(){
+  "use strict";
+
+  angular.module('@namespace', []);
+
+  angular.module('@namespace').factory('RigServices', [function(){
+    var def = {
+      load: function(onSuccess, onFailure){
+        var data = @{Json.stringify(data.getOrElse(Json.obj()))};
+        onSuccess(data);
+      }
+    };
+    return def;
+  }]);
+})();
+

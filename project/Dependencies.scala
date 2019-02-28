@@ -19,11 +19,24 @@ object Dependencies {
     val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", RepoAuthPlugin.releases)
   }
 
-  val containerClientWeb = toModule("container-client-web")
   val containerJsProcessing = toModule("js-processing")
   val componentModel = toModule("component-model")
   val componentLoader = toModule("component-loader")
   val mongoJsonService = toModule("mongo-json-service")
+  val componentServices = toModule("component-services")
+  val containerClient = toModule("container-client")
+  val utils = toModule("container-utils")
+  val logging = toModule("logging")
+  val jsProcessing = toModule("js-processing")
+
+  val dependencyUtils = "org.corespring" %% "dependency-utils" % "0.5"
+  val grizzled = "org.clapper" %% "grizzled-scala" % "1.2"
+  val htmlCleaner = "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.10"
+  val jade4j = "de.neuland-bfi" % "jade4j" % "0.4.2"
+  val logbackCore = "ch.qos.logback" % "logback-core" % "1.0.7"
+  val lessCss = "org.lesscss" % "lesscss" % "1.7.0.1.1"
+  val rhinoJs = "org.mozilla" % "rhino" % "1.7.6"
+  val yuiCompressor = "com.yahoo.platform.yui" % "yuicompressor" % "2.4.7"
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5").exclude("com.yahoo.platform.yui", "yuicompressor")

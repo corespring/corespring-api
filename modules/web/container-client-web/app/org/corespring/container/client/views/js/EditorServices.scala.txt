@@ -1,0 +1,40 @@
+@(namespace: String,
+mainEndpoints: org.corespring.container.client.views.models.MainEndpoints,
+smEndpoints: org.corespring.container.client.views.models.SupportingMaterialsEndpoints,
+compAndWidgets: org.corespring.container.client.views.models.ComponentsAndWidgets,
+queryParams: play.api.libs.json.JsValue)
+
+@toMethodAndUrl(c:Call) = @{
+  s"{ method: '${c.method.toLowerCase}', url: '${c.url}'}"  
+}
+
+(function(){
+  "use strict";
+
+  angular.module('@namespace', [])
+    .constant('QUERY_PARAMS', @{Json.stringify(queryParams)})
+    .factory('ItemUrls', [ function(){
+      return @mainEndpoints.jsonString;
+    }])
+    .factory('SupportingMaterialUrls', [function(){
+      return @smEndpoints.jsonString;
+    }])
+    .factory('ComponentService', [function(){
+      return {
+          loadAvailableComponents: function(onSuccess, onFailure){
+            var components = @{Json.stringify(compAndWidgets.components)};
+            onSuccess(components);
+          }
+      };
+    }])
+    .factory('DesignerService', [function(){
+      return {
+        loadAvailableUiComponents: function(onSuccess, onFailure){
+          var interactions = @{Json.stringify(compAndWidgets.components)};
+          var widgets = @{Json.stringify(compAndWidgets.widgets)};
+          onSuccess({ interactions: interactions, widgets: widgets });
+        }
+      };
+    }]);
+
+})(this);

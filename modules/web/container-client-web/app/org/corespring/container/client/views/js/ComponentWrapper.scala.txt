@@ -1,0 +1,10 @@
+@(moduleName: String, directiveName : String, jsBody : String, assetsPath : String)
+
+(function(){
+  var definition = (function(exports, require){
+      @jsBody;
+      return exports;
+  })(corespring.client.component("@directiveName", "@moduleName", "@assetsPath"), corespring.require);
+  definition.initializeComponent();
+})();
+

@@ -1,0 +1,35 @@
+@(code:Int, msg:String, showUserError:Boolean)
+<html>
+<head>
+    <style type="text/css">
+        #error{
+        font-family: sans-serif;
+        color: #444444;
+        }
+    </style>
+</head>
+<body>
+<div id="error"></div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript">
+            $(document).ready(function(){
+                var error = {
+                    code: @code,
+                    message: "launch-error",
+                    detailedMessage: "@msg"
+                };
+
+                if(parent != window){
+                  parent.postMessage(JSON.stringify(error), "*");
+                }
+
+                var showUserError = @showUserError;
+
+                if(showUserError){
+                  $("#error").html( "@code: @msg");
+                }
+            });
+
+</script>
+</body>
+</html>

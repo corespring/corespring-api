@@ -1,0 +1,12 @@
+@(namespace : String,
+sessionEndpoints: org.corespring.container.client.views.models.SessionEndpoints,
+queryParams : play.api.libs.json.JsValue)
+
+angular.module('@namespace', [])
+  .constant('QUERY_PARAMS', @{Html(play.api.libs.json.Json.stringify(queryParams))})
+  .factory('PlayerServiceEndpoints', function(){
+    return {
+      session: @sessionEndpoints.jsonString
+    };
+  });
+

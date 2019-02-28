@@ -1,0 +1,32 @@
+@(namespace: String, componentSet: JsValue, componentType:String, queryParams : play.api.libs.json.JsValue)
+
+@toMethodAndUrl(c:Call) = @{
+  s"{ method: '${c.method.toLowerCase}', url: '${c.url}'}"  
+}
+
+(function(){
+  "use strict";
+
+  try {
+    angular.module('@namespace');
+  } catch (e) {
+    angular.module('@namespace', []);
+  }
+
+  angular.module('@namespace')
+    .constant('COMPONENT_EDITOR', {componentType: '@componentType'})
+    .constant('QUERY_PARAMS', @{Json.stringify(queryParams)})
+    .factory('ItemUrls', [ function($http){
+      return {}
+    }])
+    .factory('DesignerService', ['$http', function($http){
+      //TODO: need to load this up - cos of the tangled dependencies...
+      return {
+        loadAvailableUiComponents: function(onSuccess, onFailure){
+          var interactions = @{Json.stringify(componentSet)};
+          onSuccess({interactions: interactions, widgets: []});
+        }
+      };
+    }]);
+
+})(this);

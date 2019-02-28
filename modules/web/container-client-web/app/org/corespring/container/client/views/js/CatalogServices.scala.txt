@@ -1,0 +1,74 @@
+@(namespace : String,
+componentSet:JsValue,
+mainEndpoints: org.corespring.container.client.views.models.MainEndpoints,
+smEndpoints: org.corespring.container.client.views.models.SupportingMaterialsEndpoints,
+queryParams : play.api.libs.json.JsValue)
+
+@toMethodAndUrl(c:Call) = @{
+  s"{ method: '${c.method.toLowerCase}', url: '${c.url}'}"
+}
+
+(function(){
+  "use strict";
+
+  var loadedData = null;
+
+  angular.module('@namespace', [])
+    .constant('QUERY_PARAMS', @{Json.stringify(queryParams)})
+
+  angular.module('@namespace').factory('ComponentService', ['$http',function($http){
+    return {
+        loadAvailableComponents: function(onSuccess, onFailure){
+          var components = @{Json.stringify(componentSet)};
+          onSuccess(components);
+        }
+    };
+  }]);
+
+  angular.module('@namespace').factory('SupportingMaterialUrls', [function(){
+    return @smEndpoints.jsonString;
+  }]);
+
+  angular.module('@namespace').factory('ItemService', ['BaseService', function(BaseService){
+    return {
+      load: function(onSuccess, onFailure){
+        BaseService.load(onSuccess, onFailure);
+      }
+    };
+  }]);
+
+  angular.module('@namespace').factory('BaseService', ['$http' ,
+    function($http){
+
+      var def = {
+        /**
+         * Load the item, check to see if its already loaded.
+         */
+        load: function(onSuccess, onFailure){
+          if(loadedData){
+            onSuccess(loadedData);
+          } else {
+            var finalUrl = '@mainEndpoints.load.url';
+
+            if (window && window.location && window.location.search){
+              finalUrl +=  window.location.search;
+            }
+
+            $http['@mainEndpoints.load.method.toLowerCase'](finalUrl)
+              .success(function(data, status, headers, config){
+                loadedData = data;
+                onSuccess(data);
+              })
+              .error(function(data, status, headers, config){
+                if(onFailure){
+                  onFailure(data);
+                }
+              });
+          }
+        }
+      };
+      return def;
+    }]);
+})();
+
+

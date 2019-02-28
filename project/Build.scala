@@ -156,10 +156,36 @@ object Build extends sbt.Build {
     .settings(
       libraryDependencies ++= Seq(playFramework, securesocial)).dependsOn(v2Auth % "compile->compile;test->test")
 
+  val containerClientWeb = builders.web("container-client-web")
+    .settings(
+      //      buildInfoTask,
+      //      (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
+      sbt.Keys.fork in Test := false,
+      sources in doc in Compile := List(),
+      libraryDependencies ++= Seq(
+        componentModel,
+        componentServices,
+        containerClient,
+        utils, logging, jsProcessing,
+        mockito,
+        grizzled,
+        htmlCleaner,
+        lessCss,
+        scalaz,
+        jade4j,
+        closureCompiler,
+        yuiCompressor,
+        commonsIo,
+        aws,
+        jsoup,
+        macWireMacro,
+        playCache),
+      templatesImport ++= Seq("play.api.libs.json.JsValue", "play.api.libs.json.Json"))
+
   lazy val apiTracking = builders.lib("api-tracking")
     .settings(
-      libraryDependencies ++= Seq(containerClientWeb, playFramework)).dependsOn(v2Auth)
-    .dependsOn(coreServices, v2Errors, testLib % "test->compile")
+      libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
+    .dependsOn(containerClientWeb, coreServices, v2Errors, testLib % "test->compile")
 
   lazy val itemImport = builders.web("item-import")
     .settings(
@@ -218,7 +244,7 @@ object Build extends sbt.Build {
   lazy val v2PlayerIntegration = builders.lib("v2-player-integration")
     .settings(
       libraryDependencies ++= Seq(
-        containerClientWeb,
+        //containerClientWeb,
         componentLoader,
         componentModel,
         scalaz,
@@ -228,6 +254,7 @@ object Build extends sbt.Build {
         corespringMacros,
         macWireMacro))
     .dependsOn(
+      containerClientWeb,
       apiUtils,
       qtiToV2,
       testLib,
@@ -286,6 +313,7 @@ object Build extends sbt.Build {
       coreServices,
       coreServicesSalat,
       coreSalatConfig,
+      containerClientWeb,
       coreWeb,
       coreJson,
       apiUtils,
@@ -307,6 +335,7 @@ object Build extends sbt.Build {
       apiUtils,
       assets,
       commonViews,
+      containerClientWeb,
       coreJson,
       coreModels,
       coreSalatConfig,
