@@ -4,7 +4,7 @@ object Dependencies {
   val playVersion = "2.2.6"
 
   //V2 Player
-  val containerVersion = "5.6.9"
+  val containerVersion = "5.6.16"
 
   val qtiVersion = "0.16"
 
@@ -23,7 +23,6 @@ object Dependencies {
   val containerJsProcessing = toModule("js-processing")
   val componentModel = toModule("component-model")
   val componentLoader = toModule("component-loader")
-  val mongoJsonService = toModule("mongo-json-service")
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5").exclude("com.yahoo.platform.yui", "yuicompressor")
