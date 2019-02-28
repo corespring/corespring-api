@@ -1,18 +1,20 @@
 package org.corespring.v2.sessiondb.mongo
 
-import com.mongodb.WriteResult
+import com.mongodb.{ WriteConcern, WriteResult }
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.mongo.json.services.MongoService
+import org.corespring.services.MongoService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.sessiondb.{ SessionReportingUnsupported, SessionService, SessionServiceExecutionContext }
+import play.api.Logger
 import play.api.libs.json.JsValue
 
 import scala.concurrent.Future
 
 class MongoSessionService(collection: MongoCollection, context: SessionServiceExecutionContext) extends SessionService with SessionReportingUnsupported {
 
+  private val logger = Logger(classOf[MongoSessionService])
   val impl = new MongoService(collection)
 
   def create(data: JsValue): Option[ObjectId] = impl.create(data)
@@ -33,7 +35,13 @@ class MongoSessionService(collection: MongoCollection, context: SessionServiceEx
     found ++ notFound.map { id => id -> None }
   }(context.ec)
 
-  def save(id: String, data: JsValue, upsert: Boolean = true): Option[JsValue] = impl.save(id, data, upsert)
+  //  def save(id: String, data: JsValue, upsert: Boolean = true): Option[JsValue] = impl.save(id, data, upsert)
+
+  def save(id: String, data: JsValue, upsert: Boolean = true): Option[JsValue] = {
+    val wc = WriteConcern.UNACKNOWLEDGED
+    logger.info(s"save $id, write concern: ${wc}")
+    impl.save(id, data, upsert, wc, false)
+  }
 
   override def sessionCount(itemId: VersionedId[ObjectId]): Long = {
     val query = MongoDBObject("itemId" -> itemId.toString)

@@ -141,7 +141,7 @@ object Build extends sbt.Build {
 
   lazy val v2SessionDb = builders.lib("v2-session-db")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sessionServiceClient))
+      libraryDependencies ++= Seq(specs2 % "test", mockito, scalaz, sessionServiceClient))
     .dependsOn(testLib, v2Errors, qtiToV2, itemDrafts)
 
   /**
@@ -149,7 +149,7 @@ object Build extends sbt.Build {
    */
   lazy val v2Auth = builders.lib("v2-auth")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sprayCaching, grizzledLog))
+      libraryDependencies ++= Seq(specs2 % "test", mockito, scalaz, sprayCaching, grizzledLog))
     .dependsOn(coreModels, coreServices, coreWeb, coreJson, testLib, v2Errors, qtiToV2, itemDrafts, v2SessionDb, encryption)
 
   lazy val v2Actions = builders.lib("v2-actions")
@@ -175,7 +175,6 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(
         scalaz,
         scalazContrib,
-        mongoJsonService,
         salatVersioningDao,
         componentModel,
         macWireMacro),
@@ -222,7 +221,7 @@ object Build extends sbt.Build {
         componentLoader,
         componentModel,
         scalaz,
-        mongoJsonService,
+
         playS3,
         httpClient,
         corespringMacros,
