@@ -146,14 +146,8 @@ class MongoService(val collection: MongoCollection) {
       setDbo.removeField("_id")
       logger.trace(s"set dbo: $setDbo")
       val d = MongoDBObject("$set" -> setDbo)
-      val result = collection.update(q, d, upsert, false, wc) //WriteConcern.Safe)
-
-      val n = result.getN()
-      logger.trace(s"[save] result.getN: ${n}")
-      if (n == 0) {
-        logger.warn(s"No db record written for: $id")
-        None
-      } else if (checkResult) {
+      val result = collection.update(q, d, upsert, false, wc)
+      if (checkResult) {
         if (result.getLastError(wc).ok()) {
           Some(data.as[JsObject])
         } else {
