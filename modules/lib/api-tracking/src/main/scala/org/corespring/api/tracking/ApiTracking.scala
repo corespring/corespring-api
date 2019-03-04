@@ -30,7 +30,7 @@ class ApiTrackingLogger(
   def isLoggable(path: String): Boolean = {
     import org.corespring.container.client.controllers.apps.routes._
     val matchesPaths = Seq(
-      Player.load(".*"),
+      Player.load(".*", Some(".*")),
       Player.createSessionForItem(".*"),
       DraftEditor.load(".*"),
       DraftDevEditor.load(".*"),
