@@ -28,7 +28,7 @@ class ApiTrackingLoggerTest extends Specification with Mockito {
         DraftDevEditor.load("draftId"),
         ItemEditor.load("itemId"),
         ItemDevEditor.load("itemId"),
-        Player.load("sessionId"),
+        Player.load("itemId", Some("sessionId")),
         Player.createSessionForItem("itemId"))
       forall(loggables)(_ must beLoggable)
     }

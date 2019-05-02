@@ -9,7 +9,9 @@
     <logger name="play" level="WARN" />
     <logger name="application" level="WARN" />
     <logger name="api" level="WARN" />
-
+    <logger name="org.corespring.v2.player.cdn" level="INFO"/>
+    <logger name="org.corespring.v2.player.cdn.CdnItemAssetResolver" level="INFO"/>
+    <logger name="org.corespring.v2.player.hooks.PlayerHooks" level="TRACE"/>
     <logger name="org.corespring.api.tracking" level="INFO"/>
 
     <logger name="client-logger" level="INFO"/>

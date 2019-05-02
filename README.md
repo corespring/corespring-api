@@ -346,7 +346,13 @@ To remove expired tokens from the db run:
 To target a specific database set ENV_MONGO_URI.  
 If your db is not running locally you have to pass `-Dallow.remote.cleanup=true`  
 
-  
+### Run local against QA/Staging/Prod
+
+```shell
+heroku config -a $APP -s > .env.$APP
+heroku local -e .env.$APP -f Procfile.dev
+```
+
 # Problems
 
 * nodename nor servname provided, or not known - when running `test` - run: `echo "127.0.0.1 HOSTNAME" | sudo tee -a /etc/hosts` - where HOSTNAME is the host name in the error

@@ -22,6 +22,7 @@ import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz._
 import play.api.mvc.Results._
+import org.corespring.macros.DescribeMacro.describe
 
 trait PlayerAssets {
 
@@ -101,12 +102,16 @@ class PlayerHooks(
 
   override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = {
 
-    if (itemAssetResolver.bypass(header)) {
+    val bypass = itemAssetResolver.bypass(header)
+    logger.info(describe(header, bypass))
+
+    if (bypass) {
       logger.info("bypass cdn and load the file!!")
       playerAssets.loadItemFile(itemId, file)(header)
     } else {
       val location = itemAssetResolver.resolve(itemId)(file)
-      SeeOther(location)
+      logger.info(s"see other: $location")
+      SeeOther(location).withHeaders("Cache-Control" -> "no-cache, no-store")
     }
 
   }
