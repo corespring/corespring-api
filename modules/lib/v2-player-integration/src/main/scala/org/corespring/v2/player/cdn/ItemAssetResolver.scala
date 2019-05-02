@@ -1,6 +1,10 @@
 package org.corespring.v2.player.cdn
 
+import play.api.mvc.RequestHeader
+
 trait ItemAssetResolver {
+
+  def bypass(header: RequestHeader): Boolean = true
 
   def resolve(itemId: String)(file: String): String = {
     mkPath(itemId)(file)
