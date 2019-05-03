@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+VERSION=$2
+APP=$1
+
+echo $APP $VERSION
+exit 0
+
+play universal:packageZipTarball
+
+cbt \
+slug-mk-from-artifact-file \
+--artifact-file target/universal/corespring-root-$VERSION.tgz \
+--out-path target/universal/slug-$VERSION.tgz \
+--platform jdk-1.7
+
+cbt slug-deploy-from-file \
+--heroku-app $APP \
+--slug-file "target/universal/slug-$VERSION.tgz" \
+--tag "v$VERSION" \
+--description "{ \"version\": \"$VERSION\", \"tag\": \"v$VERSION\"}" --force
