@@ -1,6 +1,6 @@
 package org.corespring.drafts
 
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.{ ItemDraftHelper, S3Paths }
 import org.corespring.drafts.item.models.DraftId

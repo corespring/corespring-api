@@ -1,6 +1,6 @@
 package org.corespring.salat.config
 
-import com.novus.salat.{ TypeHintFrequency, StringTypeHintStrategy, Context }
+import salat.{ TypeHintFrequency, StringTypeHintStrategy, Context }
 
 class SalatContext(classLoader: ClassLoader)
   extends Context {

@@ -1,15 +1,15 @@
 package org.corespring.services.salat.registration
 
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAO
+import salat.Context
+import salat.dao.SalatDAO
 import org.bson.types.ObjectId
 import org.corespring.models.registration.RegistrationToken
-import org.corespring.{services => interface}
+import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
-class RegistrationTokenService (dao:SalatDAO[RegistrationToken, ObjectId], context:Context)
-  extends interface.RegistrationTokenService{
+class RegistrationTokenService(dao: SalatDAO[RegistrationToken, ObjectId], context: Context)
+  extends interface.RegistrationTokenService {
 
   override def createToken(token: RegistrationToken): Boolean = {
     dao.insert(token)

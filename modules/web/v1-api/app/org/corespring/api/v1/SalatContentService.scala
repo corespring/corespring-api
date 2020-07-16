@@ -2,7 +2,7 @@ package org.corespring.api.v1
 
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
-import com.novus.salat.dao.SalatMongoCursor
+import salat.dao.SalatMongoCursor
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ Content, Item }

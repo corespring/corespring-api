@@ -2,8 +2,8 @@ package org.corespring.services.salat
 
 import com.mongodb.{ WriteConcern, DBObject }
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
-import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatMongoCursor, SalatRemoveError }
+import salat.Context
+import salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatMongoCursor, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
@@ -140,7 +140,7 @@ class UserService(
   }
 
   override def setOrganization(userId: ObjectId, orgId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit] = {
-    import com.novus.salat.grater
+    import salat.grater
 
     val userOrg = UserOrg(orgId, p.value)
     try {

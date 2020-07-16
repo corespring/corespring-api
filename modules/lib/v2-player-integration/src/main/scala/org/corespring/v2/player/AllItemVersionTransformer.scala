@@ -2,7 +2,7 @@ package org.corespring.v2.player
 
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSON
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.conversion.qti.transformers.{ ItemTransformerConfig, ItemTransformer }
 import org.corespring.errors.{ GeneralError, PlatformServiceError }
@@ -29,7 +29,7 @@ class TransformerItemService(underlying: ItemService, versionedCollection: Mongo
 
   override def save(i: Item, createNewVersion: Boolean): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
     import com.mongodb.casbah.Imports._
-    import com.novus.salat._
+    import salat._
     logger.debug(s"function=save id=${i.id}, id=${i.id.id} version=${i.id.version}")
     val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(i))
 

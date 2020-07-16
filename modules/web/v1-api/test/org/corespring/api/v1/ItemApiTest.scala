@@ -1,6 +1,6 @@
 package org.corespring.api.v1
 
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.conversion.qti.transformers.ItemTransformer

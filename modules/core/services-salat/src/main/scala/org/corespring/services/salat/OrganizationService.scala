@@ -1,8 +1,8 @@
 package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports._
-import com.novus.salat.dao.{ SalatDAO, SalatRemoveError }
-import com.novus.salat.{ Context, grater }
+import salat.dao.{ SalatDAO, SalatRemoveError }
+import salat.{ Context, grater }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError

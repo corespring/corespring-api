@@ -2,7 +2,7 @@ package org.corespring.drafts.item.services
 
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.models._
 import org.corespring.models.item.Item

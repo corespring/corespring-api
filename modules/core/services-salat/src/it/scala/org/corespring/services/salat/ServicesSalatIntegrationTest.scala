@@ -2,7 +2,7 @@ package org.corespring.services.salat
 
 import com.amazonaws.services.s3.AmazonS3
 import com.mongodb.casbah.MongoDB
-import com.novus.salat.Context
+import salat.Context
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
@@ -27,7 +27,7 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   protected val archiveContentCollectionId = ObjectId.get
   protected val archiveOrgId = ObjectId.get
 
-  protected def testMostRecentDateModifiedForSessions(ids:Seq[ObjectId]): Option[DateTime] = None
+  protected def testMostRecentDateModifiedForSessions(ids: Seq[ObjectId]): Option[DateTime] = None
 
   protected def removeAllData() = {
     logger.info(s"function=removeAllData - dropping db ---------------")

@@ -2,8 +2,8 @@ package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports._
 import grizzled.slf4j.Logger
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAO
+import salat.Context
+import salat.dao.SalatDAO
 import org.bson.types.ObjectId
 import org.corespring.models.{ Domain, StandardDomains, Standard }
 import org.corespring.services.StandardQuery

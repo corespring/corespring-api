@@ -2,7 +2,7 @@ package org.corespring.it.helpers
 
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
+import salat.Context
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 
@@ -15,7 +15,7 @@ private[helpers] trait CreateDelete[A <: AnyRef] {
   def id(thing: A): ObjectId
 
   def create(thing: A)(implicit m: Manifest[A]): ObjectId = {
-    val grate = com.novus.salat.grater[A]
+    val grate = salat.grater[A]
     mongoCollection.save(grate.asDBObject(thing))
     id(thing)
   }

@@ -1,7 +1,7 @@
 package org.corespring.v2.player.itemDraft
 
 import global.Global
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId

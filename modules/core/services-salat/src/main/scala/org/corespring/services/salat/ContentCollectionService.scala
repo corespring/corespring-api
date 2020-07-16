@@ -1,8 +1,8 @@
 package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports._
-import com.novus.salat.Context
-import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError }
+import salat.Context
+import salat.dao.{ SalatDAO, SalatDAOUpdateError }
 import grizzled.slf4j.Logger
 import org.corespring.errors.{ CollectionInsertError, PlatformServiceError }
 import org.corespring.models.appConfig.ArchiveConfig

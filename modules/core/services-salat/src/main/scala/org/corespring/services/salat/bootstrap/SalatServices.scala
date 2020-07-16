@@ -3,8 +3,8 @@ package org.corespring.services.salat.bootstrap
 import com.amazonaws.services.s3.AmazonS3
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAO
+import salat.Context
+import salat.dao.SalatDAO
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models._

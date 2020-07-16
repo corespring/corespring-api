@@ -2,7 +2,7 @@ package org.corespring.services.salat.item
 
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.Logger
-import com.novus.salat.transformers.CustomTransformer
+import salat.transformers.CustomTransformer
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.services.salat.serialization.{ ToJsValue, ToDBObject }
 import com.mongodb.casbah.Imports._

@@ -1,7 +1,7 @@
 package org.corespring.v2.player.supportingMaterials
 
 import global.Global
-import com.novus.salat.Context
+import salat.Context
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.drafts.item.{ DraftAssetKeys, ItemDraftHelper }
 import org.corespring.it.assets.ImageUtils
