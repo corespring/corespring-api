@@ -2,7 +2,7 @@ package org.corespring.drafts.item
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ CommandResult, WriteResult }
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
@@ -30,7 +30,7 @@ class ItemDrafts(
   draftService: ItemDraftService,
   commitService: CommitService,
   assets: ItemDraftAssets,
-  implicit val context: com.novus.salat.Context)
+  implicit val context: salat.Context)
 
   extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate]
   with ItemDraftDbUtils {
@@ -127,12 +127,11 @@ class ItemDrafts(
     }
 
     for {
-      canCreate <-
-        if (userCanCreateDraft(draftId.itemId, user)) {
-          Success(true)
-        } else {
-          Failure(UserCantCreate(user, draftId.itemId))
-        }
+      canCreate <- if (userCanCreateDraft(draftId.itemId, user)) {
+        Success(true)
+      } else {
+        Failure(UserCantCreate(user, draftId.itemId))
+      }
       unpublishedItem <- itemService.getOrCreateUnpublishedVersion(
         new VersionedId[ObjectId](draftId.itemId, None)).toSuccess(GetUnpublishedItemError(draftId.itemId))
       draft <- mkDraft(draftId, unpublishedItem, user)
@@ -195,7 +194,6 @@ class ItemDrafts(
     val workflow = a.workflow != b.workflow
     val pValue = a.pValue != b.pValue
     val lexile = a.lexile != b.lexile
-
 
     logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials, collectionId=$collectionId")
     Seq(taskInfo, playerDef, supportingMaterials, collectionId, standards,
@@ -265,7 +263,7 @@ class ItemDrafts(
 
   def addFileToChangeSet(draft: ItemDraft, f: StoredFile): Boolean = {
     val query = idToDbo(draft.id)
-    val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
+    val dbo = salat.grater[StoredFile].asDBObject(f)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
     val result = draftService.collection.update(query, update, false, false)
     logger.trace(s"function=addFileToChangeSet, draftId=${draft.id}, docsChanged=${result.getN}")
@@ -275,7 +273,7 @@ class ItemDrafts(
 
   def removeFileFromChangeSet(draftId: DraftId, f: StoredFile): Boolean = {
     val query = idToDbo(draftId)
-    val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
+    val dbo = salat.grater[StoredFile].asDBObject(f)
     val update = MongoDBObject("$pull" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
     val result = draftService.collection.update(query, update, false, false)
     logger.trace(s"function=removeFileFromChangeSet, draftId=${draftId}, docsChanged=${result.getN}")

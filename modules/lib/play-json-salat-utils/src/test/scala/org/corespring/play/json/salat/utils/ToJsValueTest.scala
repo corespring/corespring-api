@@ -3,12 +3,12 @@ package org.corespring.play.json.salat.utils
 import java.net.URL
 import java.util.Date
 
-import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
-import com.novus.salat.json.JSONConfig
+import com.mongodb.casbah.commons.{ MongoDBList, MongoDBObject }
+import salat.json.JSONConfig
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.specs2.mutable.Specification
-import play.api.libs.json.{JsNull, Json}
+import play.api.libs.json.{ JsNull, Json }
 
 class ToJsValueTest extends Specification {
 

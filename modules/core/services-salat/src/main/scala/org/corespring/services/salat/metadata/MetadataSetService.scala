@@ -2,8 +2,8 @@ package org.corespring.services.salat.metadata
 
 import com.mongodb.WriteResult
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAO
+import salat.Context
+import salat.dao.SalatDAO
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.metadata.MetadataSet

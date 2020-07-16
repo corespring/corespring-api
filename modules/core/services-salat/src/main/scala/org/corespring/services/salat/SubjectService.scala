@@ -3,8 +3,8 @@ package org.corespring.services.salat
 import com.mongodb.DBObject
 import com.mongodb.casbah.WriteConcern
 import com.mongodb.casbah.commons.{ MongoDBList, MongoDBObject }
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAO
+import salat.Context
+import salat.dao.SalatDAO
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.Subject

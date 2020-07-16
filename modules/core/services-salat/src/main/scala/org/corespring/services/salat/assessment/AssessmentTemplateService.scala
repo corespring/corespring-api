@@ -2,8 +2,8 @@ package org.corespring.services.salat.assessment
 
 import com.mongodb.{ BasicDBObject, DBObject }
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAO
+import salat.Context
+import salat.dao.SalatDAO
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.AssessmentTemplate
 import org.corespring.models.assessment.AssessmentTemplate.Keys
@@ -17,7 +17,7 @@ class AssessmentTemplateService(
   extends interface.assessment.AssessmentTemplateService
   with HasDao[AssessmentTemplate, ObjectId] {
 
-  override def findByOrg(orgId:ObjectId): Stream[AssessmentTemplate] =
+  override def findByOrg(orgId: ObjectId): Stream[AssessmentTemplate] =
     baseFind(MongoDBObject(Keys.orgId -> orgId)).toStream
 
   override def findOneById(id: ObjectId): Option[AssessmentTemplate] = dao.findOneById(id)
@@ -41,7 +41,6 @@ class AssessmentTemplateService(
   private def baseFind(query: DBObject, fields: DBObject = new BasicDBObject(), limit: Int = 0, skip: Int = 0): Stream[AssessmentTemplate] = {
     dao.find(new MongoDBObject(baseAssessmentTemplateQuery) ++ query, fields).limit(limit).skip(skip).toStream
   }
-
 
 }
 

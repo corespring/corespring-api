@@ -1,8 +1,8 @@
 package org.corespring.services.salat.auth
 
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
-import com.novus.salat.dao.{ SalatDAO, SalatSaveError }
+import salat.Context
+import salat.dao.{ SalatDAO, SalatSaveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.auth.ApiClient

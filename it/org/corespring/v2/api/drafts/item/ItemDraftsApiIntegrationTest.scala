@@ -1,7 +1,7 @@
 package org.corespring.v2.api.drafts.item
 
 import global.Global
-import com.novus.salat.Context
+import salat.Context
 import org.corespring.assets.ItemAssetKeys
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId

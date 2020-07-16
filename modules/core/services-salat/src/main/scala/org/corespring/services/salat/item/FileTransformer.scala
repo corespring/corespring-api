@@ -1,6 +1,6 @@
 package org.corespring.services.salat.item
 
-import com.novus.salat.transformers.CustomTransformer
+import salat.transformers.CustomTransformer
 import grizzled.slf4j.Logger
 import com.mongodb.casbah.Imports._
 import org.corespring.models.item.resource.{ StoredFile, VirtualFile, BaseFile }

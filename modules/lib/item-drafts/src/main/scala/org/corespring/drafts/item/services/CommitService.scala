@@ -10,9 +10,9 @@ trait CommitService {
 
   def collection: MongoCollection
 
-  implicit def context : com.novus.salat.Context
+  implicit def context: salat.Context
 
-  import com.novus.salat.grater
+  import salat.grater
 
   private def toCommit(dbo: DBObject): ItemCommit = {
     grater[ItemCommit].asObject(new MongoDBObject(dbo))

@@ -1,8 +1,8 @@
 package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports._
-import com.novus.salat.Context
-import com.novus.salat.dao.SalatDAOUpdateError
+import salat.Context
+import salat.dao.SalatDAOUpdateError
 import org.bson.types.ObjectId
 import org.corespring.errors.{ ItemUnShareError, PlatformServiceError }
 import org.corespring.models.ContentCollection

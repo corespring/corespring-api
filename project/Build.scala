@@ -32,9 +32,9 @@ object Build extends sbt.Build {
       Keys.fork in Test := builders.forkInTests)
 
   /** Any shared test helpers in here */
-  lazy val testLib = builders.testLib("test-helpers")
-    .settings(libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay))
-    .dependsOn(apiUtils)
+  //  lazy val testLib = builders.testLib("test-helpers")
+  //    .settings(libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay))
+  //    .dependsOn(apiUtils)
 
   lazy val assets = builders.lib("assets")
     .settings(libraryDependencies ++= Seq(
@@ -122,14 +122,14 @@ object Build extends sbt.Build {
 
   lazy val itemDrafts = builders.lib("item-drafts")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", salatVersioningDao, macWireMacro))
-    .dependsOn(assets, coreSalatConfig % "compile->test", coreModels, coreServices, drafts, testLib)
+      libraryDependencies ++= Seq(specs2 % "test", macWireMacro))
+    .dependsOn(assets, coreSalatConfig % "compile->test", coreModels, coreServices, drafts)
     .aggregate(coreModels, drafts)
 
   lazy val qtiToV2 = builders.lib("qti-to-v2")
     .settings(
       libraryDependencies ++= Seq(playJson, rhino % "test", qti, qtiConverter))
-    .dependsOn(coreModels, coreServices, coreUtils, coreJson, apiUtils, testLib % "test->compile")
+    .dependsOn(coreModels, coreServices, coreUtils, coreJson, apiUtils)
 
   /**
    * Error types
@@ -142,7 +142,7 @@ object Build extends sbt.Build {
   lazy val v2SessionDb = builders.lib("v2-session-db")
     .settings(
       libraryDependencies ++= Seq(specs2 % "test", mockito, scalaz, sessionServiceClient))
-    .dependsOn(testLib, v2Errors, qtiToV2, itemDrafts)
+    .dependsOn(v2Errors, qtiToV2, itemDrafts)
 
   /**
    * All authentication code for v2 api + player/editor
@@ -150,7 +150,7 @@ object Build extends sbt.Build {
   lazy val v2Auth = builders.lib("v2-auth")
     .settings(
       libraryDependencies ++= Seq(specs2 % "test", mockito, scalaz, sprayCaching, grizzledLog))
-    .dependsOn(coreModels, coreServices, coreWeb, coreJson, testLib, v2Errors, qtiToV2, itemDrafts, v2SessionDb, encryption)
+    .dependsOn(coreModels, coreServices, coreWeb, coreJson, v2Errors, qtiToV2, itemDrafts, v2SessionDb, encryption)
 
   lazy val v2Actions = builders.lib("v2-actions")
     .settings(
@@ -159,16 +159,16 @@ object Build extends sbt.Build {
   lazy val apiTracking = builders.lib("api-tracking")
     .settings(
       libraryDependencies ++= Seq(containerClientWeb, playFramework)).dependsOn(v2Auth)
-    .dependsOn(coreServices, v2Errors, testLib % "test->compile")
+    .dependsOn(coreServices, v2Errors)
 
   lazy val itemImport = builders.web("item-import")
     .settings(
       libraryDependencies ++= Seq(
         playJson, jsonValidator, salatVersioningDao, mockito, macWireMacro, macWireRuntime))
-    .dependsOn(coreJson, coreServices, v2Auth, testLib % "test->compile")
+    .dependsOn(coreJson, coreServices, v2Auth)
 
   lazy val draftsApi = builders.web("v2-api-drafts")
-    .dependsOn(coreJson, itemDrafts, testLib % "test->test")
+    .dependsOn(coreJson, itemDrafts)
 
   lazy val v2Api = builders.web("v2-api")
     .settings(
@@ -229,7 +229,6 @@ object Build extends sbt.Build {
     .dependsOn(
       apiUtils,
       qtiToV2,
-      testLib,
       v2Auth % "test->test;compile->compile",
       coreJson % "test->test;compile->compile",
       coreModels,
@@ -289,7 +288,6 @@ object Build extends sbt.Build {
       coreJson,
       apiUtils,
       commonViews,
-      testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
       v2Actions % "test->test;compile->compile",
       v1Api,
@@ -317,7 +315,6 @@ object Build extends sbt.Build {
       itemDrafts,
       itemImport,
       qtiToV2,
-      testLib,
       v1Api,
       v2Api,
       v2Auth,

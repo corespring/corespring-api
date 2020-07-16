@@ -2,7 +2,7 @@ package org.corespring.drafts.item
 
 import com.mongodb.CommandResult
 import com.mongodb.casbah.Imports._
-import com.novus.salat.Context
+import salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
@@ -170,7 +170,7 @@ class ItemDraftsTest extends Specification with Mockito {
     "remove" should {
 
       class remove(removeSuccessful: Boolean, owns: Boolean, assetsSuccessful: Boolean) extends scope {
-        draftService.remove(any[DraftId]) returns {if(removeSuccessful) 1 else 0}
+        draftService.remove(any[DraftId]) returns { if (removeSuccessful) 1 else 0 }
         draftService.owns(any[OrgAndUser], any[DraftId]) returns owns
         assets.deleteDraft(any[DraftId]) returns {
           if (assetsSuccessful) Success(Unit) else Failure(TestError("deleteDraft"))
@@ -519,7 +519,7 @@ class ItemDraftsTest extends Specification with Mockito {
         val expectedQuery = utils.convertToDbo(draft.id)
         val (q, u) = captureUpdate
         q.value === expectedQuery
-        val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+        val fileDbo = salat.grater[StoredFile].asDBObject(file)
         val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
         u.value === expectedUpdate
 
@@ -539,7 +539,7 @@ class ItemDraftsTest extends Specification with Mockito {
         val expectedQuery = utils.convertToDbo(draft.id)
         val (q, u) = captureUpdate
         q.value === expectedQuery
-        val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+        val fileDbo = salat.grater[StoredFile].asDBObject(file)
         val expectedUpdate = MongoDBObject("$pull" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
         u.value === expectedUpdate
       }

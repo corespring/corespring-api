@@ -2,7 +2,7 @@ package org.corespring.services.salat
 
 import com.mongodb.{ WriteConcern, DBObject }
 import com.mongodb.casbah.MongoCollection
-import com.novus.salat.dao.{ SalatMongoCursor, SalatDAO }
+import salat.dao.{ SalatMongoCursor, SalatDAO }
 import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.{ Organization, UserOrg, User }

@@ -23,7 +23,7 @@ class ItemServiceIntegrationTest extends IntegrationSpecification {
 
           val file = StoredFile("ervin.png", "image/png", false)
 
-          val fileDbo = com.novus.salat.grater[BaseFile].asDBObject(file)
+          val fileDbo = salat.grater[BaseFile].asDBObject(file)
           val json =
             s"""{
                |  "$$addToSet" : {

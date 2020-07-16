@@ -2,8 +2,8 @@ package org.corespring.services.salat.auth
 
 import com.mongodb.casbah.WriteConcern
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.Context
-import com.novus.salat.dao.{ SalatDAO, SalatInsertError, SalatRemoveError }
+import salat.Context
+import salat.dao.{ SalatDAO, SalatInsertError, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.errors.{ GeneralError, PlatformServiceError }
@@ -92,7 +92,7 @@ class AccessTokenService(
   override def update(token: AccessToken): Validation[PlatformServiceError, AccessToken] = {
     logger.debug(s"function=update, token=$token")
     implicit val ctx = context
-    val updateDbo = com.novus.salat.grater[AccessToken].asDBObject(token)
+    val updateDbo = salat.grater[AccessToken].asDBObject(token)
     val result = dao.update(MongoDBObject("tokenId" -> token.tokenId), updateDbo, upsert = false, multi = false)
     if (result.getLastError.ok) {
       Success(token)

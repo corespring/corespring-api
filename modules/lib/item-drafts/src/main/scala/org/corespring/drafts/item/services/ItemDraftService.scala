@@ -14,8 +14,8 @@ object ItemDraftConfig {
 }
 
 private[drafts] trait ItemDraftDbUtils {
-  implicit def context: com.novus.salat.Context
-  import com.novus.salat.grater
+  implicit def context: salat.Context
+  import salat.grater
   import scala.language.implicitConversions
 
   protected def idToDbo(draftId: DraftId): DBObject = {
@@ -83,7 +83,7 @@ trait ItemDraftService extends ItemDraftDbUtils {
   }
 
   private def toHeader(dbo: DBObject): ItemDraftHeader = {
-    import com.novus.salat.grater
+    import salat.grater
 
     val idDbo: BasicDBObject = dbo.expand[BasicDBObject]("_id").getOrElse {
       throw new RuntimeException(s"Not a db object: ${dbo.get("_id")}")

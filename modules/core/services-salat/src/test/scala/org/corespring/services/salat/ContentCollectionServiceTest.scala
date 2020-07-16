@@ -1,7 +1,7 @@
 package org.corespring.services.salat
 
-import com.novus.salat.Context
-import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
+import salat.Context
+import salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
 import org.bson.types.ObjectId
 import org.corespring.errors.{ PlatformServiceError, CollectionInsertError, GeneralError }
 import org.corespring.models.appConfig.ArchiveConfig
