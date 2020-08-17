@@ -1,5 +1,11 @@
 ![corespring](public/images/logo2015.png)
 
+
+# IMPORTANT
+
+See scripts/build-deploy.sh for information on the patch deploy that is happening for heroku/cloud.mongodb.com
+
+
 This project contains the api rest layer and web ui for administering corespring items.
 
 ### Prerequisites

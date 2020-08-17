@@ -29,6 +29,13 @@ object Global
 
   override def onStart(app: Application): Unit = {
 
+    import sys.process._
+    println("-----------------------------------------------")
+    println("java version:")
+    println(System.getProperty("java.version"))
+    println(System.getProperty("java.specification.version"))
+    println(s"exec result ${"java -version" !!}")
+    println("-----------------------------------------------")
     CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
 
       if (app.mode != Mode.Prod &&

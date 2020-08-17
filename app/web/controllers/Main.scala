@@ -142,11 +142,11 @@ class Main(
       if (!url.contains("@")) {
         val noAt = """mongodb://(.*)/(.*)""".r
         val noAt(server, name) = url
-        (server, name)
+        (server, name.split("\\?")(0))
       } else {
         val withAt = """.*@(.*)/(.*)""".r
         val withAt(server, name) = url
-        (server, name)
+        (server, name.split("\\?")(0))
       }
     }
     case None => ("?", "?")
